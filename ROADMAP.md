@@ -1,0 +1,151 @@
+# ShaadiGPT roadmap
+
+11 phases in total. Phases 1–5 and 7 are done, Phase 6 is mostly done; **Phase 8 is next**.
+Items left unfinished in earlier phases were moved into later ones, so each open item appears once.
+(`PHASE_1_README.md`–`PHASE_3_README.md` are historical setup notes.)
+
+| # | Phase | Status |
+|---|---|---|
+| 1 | Backend foundation | Done |
+| 2 | Sign-up & onboarding | Done (forgot password → Phase 8) |
+| 3 | Profile system | Done |
+| 4 | Search & matching | Done (upgrade in Phase 9) |
+| 5 | Likes, matches & chat | Done |
+| 6 | Polish & launch prep | Mostly done (payments → 11, cleanup → 10) |
+| 7 | Make the backend safe and rebuildable | **Done** (3 small owner follow-ups) |
+| 8 | Finish half-built features | To do — next |
+| 9 | Smarter search that scales | To do |
+| 10 | Launch readiness → public launch | To do |
+| 11 | Payments (Pro via Razorpay) | To do |
+
+---
+
+## Phase 7 — Make the backend safe and rebuildable (done 2026-09-26)
+
+### Security holes in the live database — fixed
+Migrations `20260926133139_close_public_data_exposure` and `20260926141513_fix_likes_matches_and_limits`.
+- [x] Anyone with the public website key could read every user's email, phone number and private answers,
+  and edit or delete any profile, through views that bypassed the access rules
+- [x] Any user could make themselves an admin (`is_admin()` trusted the profile email, which users can edit)
+- [x] Users could mark themselves verified or Pro, lift their own ban, or reset their like counter
+- [x] Anyone could disable other people's push notifications (`increment_push_failure`)
+- [x] Signed-out visitors could call signed-in-only functions; trigger functions were callable directly
+
+### Live bugs found on the way — fixed
+- [x] "Likes You" and "Matches" were always empty (the functions couldn't see the other person's profile)
+- [x] Admins couldn't resolve reports (a database rule only allowed "dismissed"); "Export my data" always failed
+- [x] The match celebration popup couldn't load the other person's profile
+- [x] Daily like limit enforced by the database: 15/day for free users, Super Likes Pro-only, counter kept by the server
+
+### Rebuildable
+- [x] `supabase/migrations/`: a baseline regenerated from the live catalog (replaces `001` and the unsaved
+  002–012) plus the two security migrations; the live migration history matches the repo
+- [x] A database rebuilt from the repo matches live on all 12 checksums in `supabase/tests/schema_checksums.sql`
+- [x] `supabase/tests/run_local.sh` rebuilds locally (no Docker) and runs 37 security/behaviour checks — all pass
+- [x] `lib/database.types.ts` regenerated; 0 type errors in app code (the 60 left are in unused prototype files → Phase 10)
+
+### Code
+- [x] `.env.local.example`; `Supabase/` → `supabase/`; `.env` files git-ignored
+- [x] Profile-rescue screen fixed; removed browser helpers that wrote verification fields
+- [x] Admin tab decided by the database (`is_admin()`); the admin email list no longer ships in the website
+- [x] Edge functions read allowed browser origins from `ALLOWED_ORIGINS` (unset = any origin, as before)
+- [x] `GEMINI_API_KEY` is no longer injected into the website bundle
+
+### Owner follow-ups
+- [ ] Once the live site address is known: set the `ALLOWED_ORIGINS` secret and redeploy both edge functions
+  (`npx supabase functions deploy delete-account` and `send-push`). No behaviour changes until then.
+- [ ] Turn on leaked-password protection in the Supabase dashboard's Authentication settings
+  ([docs](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection))
+- [ ] Remove the now-unused `VITE_ADMIN_EMAILS` variable from the hosting settings
+
+The daily **search** limit moves to Phase 9: search still runs in the browser, so only the server-side search can enforce it.
+
+---
+
+## Phase 8 — Finish half-built features
+- [ ] Forgot password: add a "set new password" screen
+- [ ] Show real online status on profile cards (every card says "Offline" today)
+- [ ] Make the "Active Status" setting actually hide your online status
+- [ ] Add a "Pause profile" switch in Settings (`setPauseStatus` already exists)
+- [ ] Blocked users list with an Unblock button
+- [ ] Email digests: build the weekly email, or remove the toggle
+- [ ] Fix Standouts picks disappearing on reload later in the day
+- [ ] Replace the "Coming in Phase 4" text on the profile page
+- [ ] Admin "Users" and "Reports" tabs only see the admin's own profile (they read `profiles`, which returns
+  your own row only) — add admin-only lookup functions
+- [ ] Push notifications are never sent: nothing runs `send-push` on a schedule (`pg_cron` is installed, no job
+  exists) — schedule it, then test push end to end
+- [ ] Test Google sign-in end to end
+
+## Phase 9 — Smarter search that scales
+- [ ] Run search inside the database: works past 1,000 users, stops downloading everyone's profile, enforces the daily search limit
+- [ ] Replace the three read-only views the search and lists use (`eligible_profiles`, `public_profiles`,
+  `my_blocked_ids` — flagged by Supabase) with server-side functions
+- [ ] Keep fields users marked "hidden" off other people's screens
+- [ ] Score all compatibility factors: six (diet, gym, sleep schedule, living preference, family closeness,
+  interracial marriage) are ignored today because `eligible_profiles` doesn't include them
+- [ ] Understand "near me" (location) and "online" in prompts
+- [ ] Match whole words only ("man" ≠ "woman") and handle "not" / "doesn't"
+- [ ] **Decision:** add real AI — turn the prompt into filters and rank by meaning (bio, hobbies, "vibe")
+- [ ] Optional: AI-written "why you match" summaries
+
+## Phase 10 — Launch readiness → public launch
+- [ ] Delete the 18 unused prototype files (~4,000 lines)
+- [ ] Add automatic code-quality checks (a linter) and fix what they find
+- [ ] Tests for the matching logic, plus end-to-end tests for sign-up → match → chat
+- [ ] Run type checks, code checks, tests and a build on every push (CI)
+- [ ] Separate test and live Supabase projects, with database backups
+- [ ] A proper email service for sign-up codes (Supabase's built-in sender is heavily rate-limited)
+- [ ] Error tracking, and analytics that respect the cookie banner
+- [ ] Shrink the main JavaScript file (537 kB)
+- [ ] Clear the remaining Supabase advisor warnings (access rules re-checking the user on every row, unindexed foreign keys, unused `pg_net` in the public schema)
+- [ ] Fix the broken favicon, add a page description and link previews, rename leftover "MatchGPT" references
+- [ ] Rewrite the README and setup guide
+- [ ] Plan how admins keep up with verification requests (new users are locked out of search after 72 hours)
+- [ ] Legal review of Terms and Privacy; mobile and accessibility check
+
+## Phase 11 — Payments (Pro via Razorpay)
+Must come after Phase 7 — until then, users could give themselves Pro for free.
+- [ ] **Decision:** price, what Pro includes, and when to start charging
+- [ ] Make every Pro check follow one rule (the like button and chat ignore `PRO_FOR_ALL` today)
+- [ ] Razorpay checkout
+- [ ] Payment confirmation on the server that upgrades the account
+- [ ] Renewals, expiry and cancellation, with subscription status in Settings
+- [ ] GST invoices, and a refund policy in the Terms
+- [ ] Turn off `PRO_FOR_ALL`
+
+---
+
+## Done
+
+**Phase 1 — Backend foundation**
+- [x] Supabase database: profiles, likes, matches, messages, blocks, reports
+- [x] Access rules, automatic profile creation, automatic match when both people like each other
+- [x] Photo storage and a script that creates 50 test profiles
+
+**Phase 2 — Sign-up & onboarding**
+- [x] Email + password sign-up with a 6-digit email code, sign in / sign out, Google button
+- [x] Onboarding: basic info → at least 4 photos → details form, resuming where you left off
+
+**Phase 3 — Profile system**
+- [x] My Profile page with inline editing, a completion bar, and per-field hide/show
+- [x] Add, replace and remove photos; settings saved to your account
+
+**Phase 4 — Search & matching**
+- [x] Search box and filters, compatibility score with a "why you match" report
+- [x] Search history with re-run, 3 searches per day
+- [x] Verification requests (social links); unverified users locked out of search after 72 hours
+
+**Phase 5 — Likes, matches & chat**
+- [x] Like, super like and undo; "Likes You" inbox; match celebration popup
+- [x] Live chat with read receipts, date proposals and unmatch
+- [x] Block and report; Standouts (5 daily picks); list of profiles you've liked
+
+**Phase 6 — Polish & launch prep** (mostly done)
+- [x] Terms, Privacy, cookie banner, consent records
+- [x] Theme saved per account, faster loading
+- [x] Admin panel: stats, reports, verifications, users, ban/unban, audit log
+- [x] Full account deletion; push notifications (browser side and the sending function)
+- [x] Incognito mode; liked profiles hidden from search
+- [ ] Razorpay payments → Phase 11
+- [ ] Delete unused prototype files → Phase 10

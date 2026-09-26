@@ -6,6 +6,7 @@
 
 import { supabase } from './supabase';
 import type { FilterOptions, MatchCandidate } from '../types';
+import type { Json } from './database.types';
 
 export interface SavedSearch {
   id: string;
@@ -32,7 +33,7 @@ export async function saveSearch(
     .insert({
       user_id: userId,
       prompt,
-      filters,
+      filters: filters as unknown as Json,
       result_ids: results.map((r) => r.id),
       pool_size: poolSize,
     })
@@ -64,7 +65,7 @@ export async function loadHistory(userId: string, limit = 50): Promise<{ searche
   const searches: SavedSearch[] = (data ?? []).map((row) => ({
     id: row.id,
     prompt: row.prompt ?? '',
-    filters: (row.filters ?? {}) as FilterOptions,
+    filters: (row.filters ?? {}) as unknown as FilterOptions,
     resultIds: row.result_ids ?? [],
     poolSize: row.pool_size ?? 0,
     createdAt: row.created_at,

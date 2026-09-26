@@ -3,8 +3,6 @@
 //
 // Adds:
 //   - incrementSearchCount() — daily search counter, resets at midnight
-//   - incrementLikeCount() — daily like counter (used in Phase 5)
-//   - markVerified() — flips verification_status (stub for Phase 4 testing)
 //   - canSearch() — returns whether user can run another search today
 //   - DAILY_LIMITS — constant config
 // ============================================================================
@@ -15,7 +13,7 @@ import type { ProfileRow } from './database.types';
 import type { UserProfile, UserSettings } from '../types';
 
 export const DAILY_LIMITS = {
-  FREE: { searches: 3, likes: 6 },
+  FREE: { searches: 3, likes: 15 },  // likes: enforced by the database too
   PRO:  { searches: Infinity, likes: Infinity },
 } as const;
 
@@ -84,29 +82,6 @@ export async function toggleHiddenField(
 
   if (error) return { row: null, error: error.message };
   return { row: data, error: null };
-}
-
-// ----------------------------------------------------------------------------
-// Soft-delete account
-// ----------------------------------------------------------------------------
-
-export async function softDeleteAccount(userId: string): Promise<{ error: string | null }> {
-  const wipe: Partial<ProfileRow> = {
-    name: null,
-    email: null,
-    phone_number: null,
-    description: null,
-    photo_urls: [],
-    hidden_fields: [],
-    onboarding_complete: false,
-    is_verified: false,
-    verification_status: 'unverified',
-  };
-
-  const { error } = await supabase.from('profiles').update(wipe).eq('id', userId);
-  if (error) return { error: error.message };
-  await supabase.auth.signOut();
-  return { error: null };
 }
 
 // ============================================================================
@@ -187,49 +162,6 @@ export async function incrementSearchCount(
     .update({
       daily_search_count: newCount,
       last_search_date: new Date().toISOString(),
-    })
-    .eq('id', userId);
-
-  if (error) return { error: error.message };
-  return { error: null };
-}
-
-// ----------------------------------------------------------------------------
-// incrementLikeCount — same pattern, for Phase 5
-// ----------------------------------------------------------------------------
-
-export async function incrementLikeCount(
-  userId: string,
-  currentProfile: UserProfile
-): Promise<{ error: string | null }> {
-  const today = new Date().toISOString().slice(0, 10);
-  const lastDate = currentProfile.lastLikeDate?.slice(0, 10);
-  const isNewDay = lastDate !== today;
-
-  const newCount = isNewDay ? 1 : (currentProfile.dailyLikeCount ?? 0) + 1;
-
-  const { error } = await supabase
-    .from('profiles')
-    .update({
-      daily_like_count: newCount,
-      last_like_date: new Date().toISOString(),
-    })
-    .eq('id', userId);
-
-  if (error) return { error: error.message };
-  return { error: null };
-}
-
-// ----------------------------------------------------------------------------
-// markVerified — Phase 4 testing stub. Real flow comes in Phase 6.
-// ----------------------------------------------------------------------------
-
-export async function markVerified(userId: string): Promise<{ error: string | null }> {
-  const { error } = await supabase
-    .from('profiles')
-    .update({
-      is_verified: true,
-      verification_status: 'verified',
     })
     .eq('id', userId);
 

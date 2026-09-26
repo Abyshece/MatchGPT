@@ -164,7 +164,7 @@ export async function listMyLikesDetailed(
   );
 
   const entries: MyLikeEntry[] = likeRows
-    .map((row) => {
+    .map((row): MyLikeEntry | null => {
       const p = profileMap.get(row.liked_id as string);
       if (!p || p.is_banned) return null;  // skip if profile gone or banned
       return {

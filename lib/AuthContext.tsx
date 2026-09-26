@@ -19,7 +19,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback, Rea
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 import { rowToProfile, rowToSettings } from './profileMapping';
-import type { ProfileRow } from './database.types';
+import type { ProfileRow, TablesInsert } from './database.types';
 import type { UserProfile, UserSettings } from '../types';
 
 interface AuthContextValue {
@@ -122,16 +122,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!session?.user) return { error: 'No active session' };
     const u = session.user;
 
-    const stub: Partial<ProfileRow> = {
+    // Only id + email: every other column (account_created, tier,
+    // verification, photos…) has a database default, and the server — not
+    // the browser — owns the tier and verification fields.
+    const stub: TablesInsert<'profiles'> = {
       id: u.id,
       email: u.email ?? null,
-      onboarding_complete: false,
-      account_created: Date.now(),
-      subscription_tier: 'FREE',
-      verification_status: 'unverified',
-      is_verified: false,
-      photo_urls: [],
-      hidden_fields: [],
     };
 
     const { error } = await supabase.from('profiles').insert(stub);

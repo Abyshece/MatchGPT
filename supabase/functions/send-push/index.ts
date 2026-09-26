@@ -23,12 +23,8 @@
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import webpush from 'https://esm.sh/web-push@3.6.7?target=deno';
-
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+// CORS: allowed browser origins come from the ALLOWED_ORIGINS secret.
+import { withCors } from '../_shared/cors.ts';
 
 interface QueuedPush {
   queue_id: string;
@@ -44,11 +40,7 @@ interface QueuedPush {
   failure_count: number;
 }
 
-serve(async (req: Request): Promise<Response> => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: CORS_HEADERS });
-  }
-
+serve(withCors(async (_req: Request): Promise<Response> => {
   // ---- Read env ----
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -155,11 +147,11 @@ serve(async (req: Request): Promise<Response> => {
     failed,
     dead_subscriptions_pruned: deadSubscriptionIds.length,
   });
-});
+}));
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json' },
   });
 }

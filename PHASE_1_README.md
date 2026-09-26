@@ -1,5 +1,7 @@
 # Phase 1: Backend Foundation
 
+> **Superseded (2026-09-26):** `supabase/001_initial_schema.sql` no longer exists. The full database now lives in `supabase/migrations/` (see `supabase/tests/README.md` and `ROADMAP.md`). The steps below are kept for history.
+
 This is the backend layer for ShaadiGPT. After this phase, your existing UI keeps running unchanged on mock data, but a real Supabase database is wired up underneath, ready for Phase 2.
 
 ## What's in this phase

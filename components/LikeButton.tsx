@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { useToast } from '../lib/useToast';
 import { likeUser, hasLiked, unlikeUser } from '../lib/likesService';
-import { incrementLikeCount } from '../lib/profileService';
+import { DAILY_LIMITS } from '../lib/profileService';
 import { IconHeart, IconStar } from '../constants';
 import type { MatchCandidate } from '../types';
 
@@ -12,7 +12,8 @@ import type { MatchCandidate } from '../types';
 // A pair of buttons: regular Like (heart) and Super Like (star, Pro only).
 //
 // Behavior:
-//   - Free user: clicking heart shows confirmation ("Use 1 of 6 daily likes?")
+//   - Free user: clicking heart shows confirmation with the likes left today
+//     (the database enforces DAILY_LIMITS.FREE.likes and keeps the count)
 //   - Pro user: clicking heart sends immediately
 //   - If like causes a mutual match, fires onMatched(matchId) so caller can
 //     show the celebration modal
@@ -56,7 +57,7 @@ const LikeButton: React.FC<LikeButtonProps> = ({
   const today = new Date().toISOString().slice(0, 10);
   const lastDate = profile.lastLikeDate?.slice(0, 10);
   const usedToday = lastDate === today ? (profile.dailyLikeCount ?? 0) : 0;
-  const remaining = isPro ? Infinity : Math.max(0, 6 - usedToday);
+  const remaining = isPro ? Infinity : Math.max(0, DAILY_LIMITS.FREE.likes - usedToday);
   const atLimit = !isPro && remaining === 0;
 
   // ---- handlers -----------------------------------------------------------
@@ -90,8 +91,7 @@ const LikeButton: React.FC<LikeButtonProps> = ({
       return;
     }
 
-    // Increment daily counter (Free users only — Pro is unlimited but we still track for stats)
-    await incrementLikeCount(session.user.id, profile);
+    // The database counted this like; refresh so "likes left today" updates.
     await refreshProfile();
 
     setBusy(false);
@@ -193,7 +193,7 @@ const LikeButton: React.FC<LikeButtonProps> = ({
               Like {candidate.name}?
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
-              You have <strong>{remaining} of 6</strong> likes remaining today.
+              You have <strong>{remaining} of {DAILY_LIMITS.FREE.likes}</strong> likes remaining today.
             </p>
             <div className="flex gap-2">
               <button

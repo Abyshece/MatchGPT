@@ -21,7 +21,6 @@ const FIELD_MAP: Partial<Record<keyof UserProfile, keyof ProfileRow>> = {
   email: 'email',
   phoneNumber: 'phone_number',
   age: 'age',
-  ageChangedOnce: 'age_changed_once',
 
   pronouns: 'pronouns',
   gender: 'gender',
@@ -162,24 +161,23 @@ export function rowToProfile(row: ProfileRow): UserProfile {
   for (const [uiKey, dbKey] of Object.entries(FIELD_MAP) as [keyof UserProfile, keyof ProfileRow][]) {
     const dbValue = row[dbKey];
     if (dbValue !== null && dbValue !== undefined) {
-      (profile as Record<string, unknown>)[uiKey] = dbValue;
+      (profile as unknown as Record<string, unknown>)[uiKey] = dbValue;
     }
   }
 
   // fields with custom shapes
   profile.email = row.email ?? undefined;
   profile.phoneNumber = row.phone_number ?? undefined;
-  profile.subscriptionTier = row.subscription_tier;
+  profile.subscriptionTier = row.subscription_tier as SubscriptionTier;
   profile.isPremium = row.subscription_tier === 'PRO';
   profile.isVerified = row.is_verified;
-  profile.verificationStatus = row.verification_status;
+  profile.verificationStatus = row.verification_status as UserProfile['verificationStatus'];
   profile.accountCreated = new Date(row.account_created).getTime();
   profile.dailySearchCount = row.daily_search_count;
   profile.lastSearchDate = row.last_search_date;
   profile.dailyLikeCount = row.daily_like_count;
   profile.lastLikeDate = row.last_like_date;
   profile.hiddenFields = row.hidden_fields ?? [];
-  profile.ageChangedOnce = row.age_changed_once;
 
   return profile;
 }
@@ -246,5 +244,5 @@ export function settingsToRowUpdate(s: UserSettings): Partial<ProfileRow> {
 // ----------------------------------------------------------------------------
 
 export function tierFromRow(row: ProfileRow): SubscriptionTier {
-  return row.subscription_tier;
+  return row.subscription_tier as SubscriptionTier;
 }

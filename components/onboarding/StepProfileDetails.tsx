@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '../NotionUI';
 import { IconChevronRight, IconChevronLeft, IconCheck } from '../../constants';
 import { supabase } from '../../lib/supabase';
+import type { TablesUpdate } from '../../lib/database.types';
 import { useAuth } from '../../lib/AuthContext';
 
 // ============================================================================
@@ -135,7 +136,7 @@ const StepProfileDetails: React.FC<StepProfileDetailsProps> = ({ onComplete, onB
     setIsSaving(true);
     const { error: updateError } = await supabase
       .from('profiles')
-      .update(update)
+      .update(update as TablesUpdate<'profiles'>)
       .eq('id', session.user.id);
     setIsSaving(false);
 

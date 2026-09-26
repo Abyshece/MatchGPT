@@ -60,7 +60,7 @@ export interface AdminUserRow {
   is_banned: boolean;
   banned_at: string | null;
   ban_reason: string | null;
-  account_created: number;
+  account_created: string;  // ISO timestamp
   daily_search_count: number;
   daily_like_count: number;
 }
@@ -83,7 +83,7 @@ export interface AdminAuditRow {
 export async function fetchPlatformStats(): Promise<{ stats: PlatformStats | null; error: string | null }> {
   const { data, error } = await supabase.rpc('admin_platform_stats');
   if (error) return { stats: null, error: error.message };
-  return { stats: data as PlatformStats, error: null };
+  return { stats: data as unknown as PlatformStats, error: null };
 }
 
 // ----------------------------------------------------------------------------
@@ -209,13 +209,13 @@ export async function fetchAuditLog(limit = 50): Promise<{ entries: AdminAuditRo
 }
 
 // ----------------------------------------------------------------------------
-// Admin check (used by frontend to decide whether to show the Admin tab)
+// Admin check (used by frontend to decide whether to show the Admin tab).
+// Asks the database: is_admin() compares the signed-in user's confirmed email
+// with the admin_emails table. Every admin RPC checks again on the server.
 // ----------------------------------------------------------------------------
 
-export function isAdminEmail(email: string | null | undefined): boolean {
-  if (!email) return false;
-  const raw = import.meta.env.VITE_ADMIN_EMAILS as string | undefined;
-  if (!raw) return false;
-  const allowlist = raw.split(',').map((e) => e.trim().toLowerCase()).filter(Boolean);
-  return allowlist.includes(email.toLowerCase());
+export async function checkIsAdmin(): Promise<boolean> {
+  const { data, error } = await supabase.rpc('is_admin');
+  if (error) return false;
+  return data === true;
 }

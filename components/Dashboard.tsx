@@ -71,8 +71,10 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
     const cleanup = subscribeToNewMatches(myId, async (event) => {
       const otherId = event.userAId === myId ? event.userBId : event.userAId;
 
+      // Other people's rows aren't readable from `profiles` (own row only);
+      // public_profiles is the safe, read-only subset.
       const { data: row } = await supabase
-        .from('profiles')
+        .from('public_profiles')
         .select('id, name, age, location, photo_urls, hidden_fields, subscription_tier, is_verified')
         .eq('id', otherId)
         .single();

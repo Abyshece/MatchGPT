@@ -19,11 +19,11 @@ export type ConsentEventType =
   | 'cookies_updated'
   | 'marketing_consent';
 
-export interface CookieCategories {
+export type CookieCategories = {
   essential: boolean;  // always true — can't be disabled
   analytics: boolean;
   marketing: boolean;
-}
+};
 
 export const DEFAULT_COOKIE_PREFS: CookieCategories = {
   essential: true,
