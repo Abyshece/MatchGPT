@@ -16,6 +16,19 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
+// Read before the client consumes (and clears) the tokens in the URL: a
+// password-reset link signs the user in, and the app must then ask for a new
+// password instead of carrying on as a normal sign-in.
+export const openedFromRecoveryLink =
+  typeof window !== 'undefined' && /(^#|&)type=recovery(&|$)/.test(window.location.hash);
+
+// An expired or already-used email link comes back as an error in the URL.
+export const emailLinkError: string | null = (() => {
+  if (typeof window === 'undefined') return null;
+  const params = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+  return params.get('error_description');
+})();
+
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,

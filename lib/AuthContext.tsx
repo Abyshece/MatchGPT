@@ -17,7 +17,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import { supabase } from './supabase';
+import { supabase, openedFromRecoveryLink } from './supabase';
 import { rowToProfile, rowToSettings } from './profileMapping';
 import type { ProfileRow, TablesInsert } from './database.types';
 import type { UserProfile, UserSettings } from '../types';
@@ -35,6 +35,9 @@ interface AuthContextValue {
   refreshProfile: () => Promise<void>;
   retryLoadProfile: () => Promise<void>;
   healMissingProfile: () => Promise<{ error: string | null }>;
+  // Signed in through a password-reset link: the app asks for a new password.
+  passwordRecovery: boolean;
+  finishPasswordRecovery: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -46,6 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [profileMissing, setProfileMissing] = useState(false);
+  const [passwordRecovery, setPasswordRecovery] = useState(openedFromRecoveryLink);
 
   const loadProfile = useCallback(async (userId: string | undefined): Promise<void> => {
     if (!userId) {
@@ -155,6 +159,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .then(async ({ data }) => {
         if (!mounted) return;
         setSession(data.session);
+        // An expired reset link leaves no session; don't ask for a password later.
+        if (!data.session) setPasswordRecovery(false);
         try {
           await loadProfile(data.session?.user.id);
         } catch (e) {
@@ -171,14 +177,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
       if (!mounted) return;
+      if (event === 'PASSWORD_RECOVERY') setPasswordRecovery(true);
+      if (event === 'SIGNED_OUT') setPasswordRecovery(false);
       setSession(newSession);
-      try {
-        await loadProfile(newSession?.user.id);
-      } catch (e) {
-        console.error('[AuthContext] onAuthStateChange loadProfile threw:', e);
-      }
+      // A token refresh doesn't change who is signed in or their profile.
+      if (event === 'TOKEN_REFRESHED') return;
+      // Never call Supabase from inside this callback: during a token refresh
+      // or updateUser the auth client still holds its lock, and the profile
+      // query would wait on that lock until it timed out (the "Couldn't load
+      // your profile" screen). Load right after the callback instead.
+      setTimeout(() => {
+        if (!mounted) return;
+        loadProfile(newSession?.user.id).catch((e) => {
+          console.error('[AuthContext] onAuthStateChange loadProfile threw:', e);
+        });
+      }, 0);
     });
 
     return () => {
@@ -231,6 +246,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       refreshProfile,
       retryLoadProfile,
       healMissingProfile,
+      passwordRecovery,
+      finishPasswordRecovery: () => setPasswordRecovery(false),
     }}>
       {children}
     </AuthContext.Provider>

@@ -76,8 +76,15 @@ Run in a browser against a local copy of the backend (`npx supabase start` with 
 - [ ] Owner: "Confirm email" still reads as on for the live site. Until a proper email sender is set up,
   only addresses in your Supabase team can receive the code, so switch it off (and click Save)
 
+### Done
+- [x] Fixed a live bug: about an hour into a session (when the sign-in token refreshes), the app replaced
+  everything with "Couldn't load your profile". The auth listener queried the database while the auth
+  client still held its lock, so the query waited until the 8-second timeout
+- [x] Forgot password: the reset link opened a page that didn't exist. It now opens the site, which asks
+  for the new password; an expired or used link says so. Emails still only reach addresses in your
+  Supabase team until a proper email sender is set up (Phase 10)
+
 ### To do
-- [ ] Forgot password: add a "set new password" screen
 - [ ] Show real online status on profile cards (every card says "Offline" today)
 - [ ] Make the "Active Status" setting actually hide your online status
 - [ ] Add a "Pause profile" switch in Settings (`setPauseStatus` already exists)
