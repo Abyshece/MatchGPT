@@ -5,6 +5,7 @@ import Auth from './components/Auth';
 import EmailVerification from './components/EmailVerification';
 import LandingView from './components/LandingView';
 import OnboardingShell from './components/onboarding/OnboardingShell';
+import StepConsent from './components/onboarding/StepConsent';
 import Dashboard from './components/Dashboard';
 import TermsView from './components/TermsView';
 import PrivacyView from './components/PrivacyView';
@@ -44,6 +45,12 @@ const AppRouter: React.FC<{
     retryLoadProfile, healMissingProfile, signOut, refreshProfile,
   } = useAuth();
   const [pendingSignupEmail, setPendingSignupEmail] = useState<string | null>(null);
+
+  // Signed in means sign-up is finished: drop the pending email so signing out
+  // later shows the home page, not the "check your inbox" screen.
+  useEffect(() => {
+    if (session) setPendingSignupEmail(null);
+  }, [session]);
 
   // ---- Theme state ----
   // Initialise from localStorage as a fast path (so the screen doesn't flash light
@@ -158,12 +165,17 @@ const AppRouter: React.FC<{
     return <FullScreenLoader label="Loading your profile…" />;
   }
 
-  // 7. Onboarding flow
+  // 7. Terms and Privacy not accepted yet (Google sign-ups, older accounts)
+  if (!profileRow.terms_accepted_at) {
+    return <StepConsent onShowLegal={(page) => setLegalPage(page)} />;
+  }
+
+  // 8. Onboarding flow
   if (!profileRow.onboarding_complete) {
     return <OnboardingShell onComplete={() => { /* AuthContext refreshes */ }} />;
   }
 
-  // 8. Main app
+  // 9. Main app
   return (
     <Dashboard
       isDarkMode={isDarkMode}

@@ -63,6 +63,20 @@ The daily **search** limit moves to Phase 9: search still runs in the browser, s
 ---
 
 ## Phase 8 — Finish half-built features
+
+### Checked first: sign-up and profile setup (2026-09-26)
+Run in a browser against a local copy of the backend (`npx supabase start` with the repo's migrations).
+- [x] Works: email sign-up with "Confirm email" off and on (code from the email), Google-style sign-up,
+  the 3-step profile setup (details, 4 photos, 5 detail pages), search, sign out and back in
+- [x] Fixed: after signing out, new users were stuck on the "Check your inbox" screen
+- [x] Fixed: Google sign-ups never accepted the Terms and Privacy Policy, so nothing was recorded. Anyone
+  without a recorded acceptance is now asked once before continuing, existing accounts included
+- [x] Fixed: with "Confirm email" on, the Terms acceptance from the sign-up form was silently lost
+- [x] Google sign-ups start profile setup with their name filled in
+- [ ] Owner: "Confirm email" still reads as on for the live site. Until a proper email sender is set up,
+  only addresses in your Supabase team can receive the code, so switch it off (and click Save)
+
+### To do
 - [ ] Forgot password: add a "set new password" screen
 - [ ] Show real online status on profile cards (every card says "Offline" today)
 - [ ] Make the "Active Status" setting actually hide your online status

@@ -145,11 +145,12 @@ export async function recordSignupConsent(
   ];
 
   for (const event of events) {
-    await recordConsent(event);
+    const { error } = await recordConsent(event);
+    if (error) return { error };
   }
 
   // Also write to the profile row for quick lookup
-  await supabase
+  const { error } = await supabase
     .from('profiles')
     .update({
       terms_accepted_at: new Date().toISOString(),
@@ -158,7 +159,7 @@ export async function recordSignupConsent(
     })
     .eq('id', userId);
 
-  return { error: null };
+  return { error: error?.message ?? null };
 }
 
 // ----------------------------------------------------------------------------
