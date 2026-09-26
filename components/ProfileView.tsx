@@ -5,6 +5,7 @@ import { useToast } from '../lib/useToast';
 import { updateProfile } from '../lib/profileService';
 import { addPhoto, removePhoto, replacePhoto } from '../lib/photoService';
 import { supabase } from '../lib/supabase';
+import VerificationRequestModal from './VerificationRequestModal';
 import {
   IconCheck, IconUpload, IconEdit, IconX, IconZap, IconShield, IconClock,
 } from '../constants';
@@ -25,6 +26,7 @@ const ProfileView: React.FC = () => {
   const [editValue, setEditValue] = useState<string | number>('');
   const [savingField, setSavingField] = useState<string | null>(null);
   const [showCompletionWidget, setShowCompletionWidget] = useState(true);
+  const [showVerifyModal, setShowVerifyModal] = useState(false);
 
   const [isEditingSummary, setIsEditingSummary] = useState(false);
   const [summaryEditValue, setSummaryEditValue] = useState('');
@@ -476,7 +478,12 @@ const ProfileView: React.FC = () => {
                   ) : profile.verificationStatus === 'pending' ? (
                     <span className="text-yellow-600 dark:text-yellow-400 font-bold text-xs flex items-center gap-1"><IconClock /> Pending</span>
                   ) : (
-                    <span className="text-gray-400 text-xs">Coming in Phase 4</span>
+                    <button
+                      onClick={() => setShowVerifyModal(true)}
+                      className="text-blue-600 dark:text-blue-400 hover:underline font-bold text-xs"
+                    >
+                      Get verified →
+                    </button>
                   )}
                 </div>
                 <div className="flex items-center justify-between text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-zinc-800 p-2 rounded">
@@ -539,6 +546,7 @@ const ProfileView: React.FC = () => {
           </div>
         </div>
       </div>
+      {showVerifyModal && <VerificationRequestModal onClose={() => setShowVerifyModal(false)} />}
     </div>
   );
 };

@@ -83,15 +83,20 @@ Run in a browser against a local copy of the backend (`npx supabase start` with 
 - [x] Forgot password: the reset link opened a page that didn't exist. It now opens the site, which asks
   for the new password; an expired or used link says so. Emails still only reach addresses in your
   Supabase team until a proper email sender is set up (Phase 10)
+- [x] Profile cards show "Online" for people active in the last 5 minutes (every card said "Offline")
+- [x] "Active Status" off: the person shows as Offline and drops out of the "Online Now" and
+  "Recently active" filters. (Their last-active time still reaches other users' browsers until the
+  database change below.)
+- [x] "Pause my profile" switch in Settings: hidden from search and Standouts, matches and chats keep working
+- [x] Blocked people list in Settings with an Unblock button
+- [x] Fixed: people you blocked (or who blocked you) still appeared in search and Standouts
+- [x] Email digests: removed the toggle, which did nothing. The weekly email needs the email service (Phase 10)
+- [x] Fixed: Standouts re-ran a top-8 search on every visit and dropped saved picks that were no longer
+  in it, so picks vanished later in the day (reproduced: 0 of 5 saved picks shown; now 5 of 5)
+- [x] Profile page: "Coming in Phase 4" is now a "Get verified →" button; the upgrade pop-up no longer
+  mentions "Phase 6"
 
 ### To do
-- [ ] Show real online status on profile cards (every card says "Offline" today)
-- [ ] Make the "Active Status" setting actually hide your online status
-- [ ] Add a "Pause profile" switch in Settings (`setPauseStatus` already exists)
-- [ ] Blocked users list with an Unblock button
-- [ ] Email digests: build the weekly email, or remove the toggle
-- [ ] Fix Standouts picks disappearing on reload later in the day
-- [ ] Replace the "Coming in Phase 4" text on the profile page
 - [ ] Admin "Users" and "Reports" tabs only see the admin's own profile (they read `profiles`, which returns
   your own row only) — add admin-only lookup functions
 - [ ] Push notifications are never sent: nothing runs `send-push` on a schedule (`pg_cron` is installed, no job
@@ -116,7 +121,8 @@ Run in a browser against a local copy of the backend (`npx supabase start` with 
 - [ ] Tests for the matching logic, plus end-to-end tests for sign-up → match → chat
 - [ ] Run type checks, code checks, tests and a build on every push (CI)
 - [ ] Separate test and live Supabase projects, with database backups
-- [ ] A proper email service for sign-up codes (Supabase's built-in sender is heavily rate-limited)
+- [ ] A proper email service: sign-up codes and password resets (the built-in sender only reaches your
+  Supabase team), then the weekly email digest and its Settings switch
 - [ ] Error tracking, and analytics that respect the cookie banner
 - [ ] Shrink the main JavaScript file (537 kB)
 - [ ] Clear the remaining Supabase advisor warnings (access rules re-checking the user on every row, unindexed foreign keys, unused `pg_net` in the public schema)

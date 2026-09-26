@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { PageHeader, InfoSection, Button } from './NotionUI';
 import { useAuth } from '../lib/AuthContext';
 import { useToast } from '../lib/useToast';
-import { updateSettings } from '../lib/profileService';
+import { updateSettings, setPauseStatus } from '../lib/profileService';
 import { deleteAccount } from '../lib/deleteAccountService';
 import PushNotifSetup from './PushNotifSetup';
+import BlockedPeopleList from './BlockedPeopleList';
 import {
   IconMoon, IconSun, IconUser, IconLogOut, IconChevronRight, IconTrash, IconX,
 } from '../constants';
@@ -33,7 +34,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
   onSetTheme,
   onNavigate,
 }) => {
-  const { profile, settings, session, signOut, refreshProfile } = useAuth();
+  const { profile, profileRow, settings, session, signOut, refreshProfile } = useAuth();
   const { showToast } = useToast();
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -54,6 +55,17 @@ const SettingsView: React.FC<SettingsViewProps> = ({
       showToast(`Couldn't save: ${result.error}`, 'error');
       return;
     }
+    await refreshProfile();
+  };
+
+  const togglePause = async (paused: boolean) => {
+    if (!session?.user.id) return;
+    const { error } = await setPauseStatus(session.user.id, paused);
+    if (error) {
+      showToast(`Couldn't save: ${error}`, 'error');
+      return;
+    }
+    showToast(paused ? 'Profile paused. You are hidden from search.' : 'Profile visible again.', 'success');
     await refreshProfile();
   };
 
@@ -131,9 +143,19 @@ const SettingsView: React.FC<SettingsViewProps> = ({
           </InfoSection>
 
           <InfoSection title="Privacy & Visibility">
+            <SettingsToggle
+              label="Pause my profile"
+              description="Hide me from search and Standouts. Your matches and chats keep working."
+              checked={profileRow?.is_paused ?? false}
+              onChange={togglePause}
+            />
             <SettingsToggle label="Incognito Mode" description="Only show my profile to people I've liked." checked={settings.incognito} onChange={(v) => updateOne('incognito', v)} />
             <SettingsToggle label="Active Status" description="Show when you are online." checked={settings.showOnline} onChange={(v) => updateOne('showOnline', v)} />
             <SettingsToggle label="Read Receipts" description="Let matches know when you've read messages." checked={settings.readReceipts} onChange={(v) => updateOne('readReceipts', v)} />
+          </InfoSection>
+
+          <InfoSection title="Blocked people">
+            {session && <BlockedPeopleList userId={session.user.id} />}
           </InfoSection>
 
           <InfoSection title="Notifications">
@@ -144,7 +166,6 @@ const SettingsView: React.FC<SettingsViewProps> = ({
               checked={settings.pushNotifs}
               onChange={(v) => updateOne('pushNotifs', v)}
             />
-            <SettingsToggle label="Email Digests" description="Weekly summary of profile activity." checked={settings.emailNotifs} onChange={(v) => updateOne('emailNotifs', v)} />
           </InfoSection>
 
           <InfoSection title="Appearance">
