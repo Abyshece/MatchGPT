@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './lib/AuthContext';
 import { ToastProvider, useToast } from './lib/useToast';
+import { emailLinkError } from './lib/supabase';
 import Auth from './components/Auth';
 import EmailVerification from './components/EmailVerification';
 import LandingView from './components/LandingView';
 import OnboardingShell from './components/onboarding/OnboardingShell';
 import StepConsent from './components/onboarding/StepConsent';
+import SetNewPassword from './components/SetNewPassword';
 import Dashboard from './components/Dashboard';
 import TermsView from './components/TermsView';
 import PrivacyView from './components/PrivacyView';
@@ -42,8 +44,9 @@ const AppRouter: React.FC<{
 }> = ({ legalPage, setLegalPage }) => {
   const {
     session, profileRow, profile, loading, profileLoading, profileError, profileMissing,
-    retryLoadProfile, healMissingProfile, signOut, refreshProfile,
+    retryLoadProfile, healMissingProfile, signOut, refreshProfile, passwordRecovery,
   } = useAuth();
+  const { showToast } = useToast();
   const [pendingSignupEmail, setPendingSignupEmail] = useState<string | null>(null);
 
   // Signed in means sign-up is finished: drop the pending email so signing out
@@ -51,6 +54,13 @@ const AppRouter: React.FC<{
   useEffect(() => {
     if (session) setPendingSignupEmail(null);
   }, [session]);
+
+  // An expired or already-used email link (reset, confirmation) lands here
+  // with an error in the URL; say so instead of failing silently.
+  useEffect(() => {
+    if (emailLinkError) showToast(`${emailLinkError}. Please request a new link.`, 'error');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ---- Theme state ----
   // Initialise from localStorage as a fast path (so the screen doesn't flash light
@@ -148,6 +158,11 @@ const AppRouter: React.FC<{
         onBack={() => setPendingSignupEmail(null)}
       />
     );
+  }
+
+  // Opened a password-reset link: choose the new password first.
+  if (session && passwordRecovery) {
+    return <SetNewPassword />;
   }
 
   // 4. Profile load errored — surface actual error with retry
