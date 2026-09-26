@@ -2,13 +2,12 @@ import React, { useState } from 'react';
 import { Button } from './NotionUI';
 import { IconMail, IconGoogle, IconChevronRight, IconX, IconLock } from '../constants';
 import { supabase } from '../lib/supabase';
-import { recordSignupConsent } from '../lib/consentService';
+import { TERMS_VERSION, PRIVACY_VERSION } from '../lib/consentService';
 
 interface AuthProps {
-  // Called when sign-in or signup OTP-send is initiated.
-  // For sign-in: user is now logged in, parent can dismiss.
-  // For signup: parent should switch to the email-verification screen.
+  // Sign-up that needs the emailed code: parent shows the email-verification screen.
   onSignupInitiated: (email: string) => void;
+  // Signed in (sign-in, or a sign-up that needed no code): parent can dismiss.
   onSignInSuccess: () => void;
   onClose?: () => void;
   // Phase 6: navigate to legal pages from the signup form
@@ -85,9 +84,18 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
       return;
     }
     setIsLoading(true);
+    // The ticked boxes travel with the new account; StepConsent records them
+    // once the user is signed in (recording needs a session).
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          terms_version: TERMS_VERSION,
+          privacy_version: PRIVACY_VERSION,
+          marketing_opt_in: marketingOptIn,
+        },
+      },
     });
     setIsLoading(false);
     if (signUpError) {
@@ -95,17 +103,14 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
       return;
     }
 
-    // Record consent — we have the new auth user's id even before email verification
-    if (signUpData?.user?.id) {
-      try {
-        await recordSignupConsent(signUpData.user.id, email, marketingOptIn);
-      } catch (e) {
-        // Best-effort — don't block signup if consent logging fails
-        console.warn('[Auth] consent logging failed:', e);
-      }
+    // "Confirm email" off: the account is already signed in.
+    if (signUpData.session) {
+      onSignInSuccess();
+      return;
     }
 
-    // Supabase has emailed a 6-digit OTP. Hand off to email-verification screen.
+    // "Confirm email" on: Supabase has emailed a 6-digit code. Hand off to the
+    // email-verification screen.
     onSignupInitiated(email);
   };
 

@@ -22,7 +22,11 @@ const RELATIONSHIP_INTENTS = [
 
 const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ onComplete }) => {
   const { session, refreshProfile } = useAuth();
-  const [name, setName] = useState('');
+  // Google sign-ups arrive with a name; start from it.
+  const [name, setName] = useState<string>(() => {
+    const meta = session?.user.user_metadata ?? {};
+    return String(meta.full_name ?? meta.name ?? '');
+  });
   const [age, setAge] = useState<string>('');
   const [gender, setGender] = useState('');
   const [pronouns, setPronouns] = useState('');
