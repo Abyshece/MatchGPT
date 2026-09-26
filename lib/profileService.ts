@@ -3,7 +3,6 @@
 //
 // Adds:
 //   - incrementSearchCount() — daily search counter, resets at midnight
-//   - incrementLikeCount() — daily like counter (used in Phase 5)
 //   - canSearch() — returns whether user can run another search today
 //   - DAILY_LIMITS — constant config
 // ============================================================================
@@ -14,7 +13,7 @@ import type { ProfileRow } from './database.types';
 import type { UserProfile, UserSettings } from '../types';
 
 export const DAILY_LIMITS = {
-  FREE: { searches: 3, likes: 6 },
+  FREE: { searches: 3, likes: 15 },  // likes: enforced by the database too
   PRO:  { searches: Infinity, likes: Infinity },
 } as const;
 
@@ -163,32 +162,6 @@ export async function incrementSearchCount(
     .update({
       daily_search_count: newCount,
       last_search_date: new Date().toISOString(),
-    })
-    .eq('id', userId);
-
-  if (error) return { error: error.message };
-  return { error: null };
-}
-
-// ----------------------------------------------------------------------------
-// incrementLikeCount — same pattern, for Phase 5
-// ----------------------------------------------------------------------------
-
-export async function incrementLikeCount(
-  userId: string,
-  currentProfile: UserProfile
-): Promise<{ error: string | null }> {
-  const today = new Date().toISOString().slice(0, 10);
-  const lastDate = currentProfile.lastLikeDate?.slice(0, 10);
-  const isNewDay = lastDate !== today;
-
-  const newCount = isNewDay ? 1 : (currentProfile.dailyLikeCount ?? 0) + 1;
-
-  const { error } = await supabase
-    .from('profiles')
-    .update({
-      daily_like_count: newCount,
-      last_like_date: new Date().toISOString(),
     })
     .eq('id', userId);
 

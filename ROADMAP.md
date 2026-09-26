@@ -1,6 +1,6 @@
 # ShaadiGPT roadmap
 
-11 phases in total. Phases 1–5 are done, Phase 6 is mostly done, and **Phase 7 is in progress**.
+11 phases in total. Phases 1–5 and 7 are done, Phase 6 is mostly done; **Phase 8 is next**.
 Items left unfinished in earlier phases were moved into later ones, so each open item appears once.
 (`PHASE_1_README.md`–`PHASE_3_README.md` are historical setup notes.)
 
@@ -12,63 +12,53 @@ Items left unfinished in earlier phases were moved into later ones, so each open
 | 4 | Search & matching | Done (upgrade in Phase 9) |
 | 5 | Likes, matches & chat | Done |
 | 6 | Polish & launch prep | Mostly done (payments → 11, cleanup → 10) |
-| 7 | Make the backend safe and rebuildable | **In progress** |
-| 8 | Finish half-built features | To do |
+| 7 | Make the backend safe and rebuildable | **Done** (3 small owner follow-ups) |
+| 8 | Finish half-built features | To do — next |
 | 9 | Smarter search that scales | To do |
 | 10 | Launch readiness → public launch | To do |
 | 11 | Payments (Pro via Razorpay) | To do |
 
 ---
 
-## Phase 7 — Make the backend safe and rebuildable (in progress)
+## Phase 7 — Make the backend safe and rebuildable (done 2026-09-26)
 
-### Done (code only)
-- [x] Add `.env.local.example` listing every environment variable and where it belongs
-- [x] Rename `Supabase/` → `supabase/` (the Supabase CLI's expected name); stop committing the CLI's `.temp` cache
-- [x] Fix the "Create profile" rescue screen: it sent `account_created` as a number (rejected by Postgres) and set tier/verification fields from the browser
-- [x] Remove unused browser code that could mark an account verified (`markVerified`, `softDeleteAccount`)
-- [x] Edge functions: allowed browser origins now come from the `ALLOWED_ORIGINS` secret (unset = any origin, as before)
-- [x] Stop injecting `GEMINI_API_KEY` into the website bundle (`vite.config.ts`)
-- [x] Type errors not caused by the stale database types: fixed (153 → 129; the edge functions are no longer checked as website code)
+### Security holes in the live database — fixed
+Migrations `20260926133139_close_public_data_exposure` and `20260926141513_fix_likes_matches_and_limits`.
+- [x] Anyone with the public website key could read every user's email, phone number and private answers,
+  and edit or delete any profile, through views that bypassed the access rules
+- [x] Any user could make themselves an admin (`is_admin()` trusted the profile email, which users can edit)
+- [x] Users could mark themselves verified or Pro, lift their own ban, or reset their like counter
+- [x] Anyone could disable other people's push notifications (`increment_push_failure`)
+- [x] Signed-out visitors could call signed-in-only functions; trigger functions were callable directly
 
-### Still to do — needs the Supabase connector
-This cloud environment can't reach Supabase directly (the network policy blocks `*.supabase.co` and
-`api.supabase.com`, and raw Postgres connections aren't proxied). Connect the **Supabase** connector at
-https://claude.ai/customize/connectors, then start a new session: connectors load when a session starts.
-Project: **ShaadiGPT**, ref `fmrbzzdjtarsaqvfukum`.
+### Live bugs found on the way — fixed
+- [x] "Likes You" and "Matches" were always empty (the functions couldn't see the other person's profile)
+- [x] Admins couldn't resolve reports (a database rule only allowed "dismissed"); "Export my data" always failed
+- [x] The match celebration popup couldn't load the other person's profile
+- [x] Daily like limit enforced by the database: 15/day for free users, Super Likes Pro-only, counter kept by the server
 
-Nothing below changes the live database without the owner's explicit OK.
+### Rebuildable
+- [x] `supabase/migrations/`: a baseline regenerated from the live catalog (replaces `001` and the unsaved
+  002–012) plus the two security migrations; the live migration history matches the repo
+- [x] A database rebuilt from the repo matches live on all 12 checksums in `supabase/tests/schema_checksums.sql`
+- [x] `supabase/tests/run_local.sh` rebuilds locally (no Docker) and runs 37 security/behaviour checks — all pass
+- [x] `lib/database.types.ts` regenerated; 0 type errors in app code (the 60 left are in unused prototype files → Phase 10)
 
-- [ ] **1. Inspect the live database (read-only).** Tables, views, functions, triggers, RLS policies, grants,
-  storage policies, cron jobs, realtime publication. Run Supabase's security advisors.
-- [ ] **2. Save it into the repo** as a baseline migration in `supabase/migrations/`, confirm it rebuilds an empty
-  database (PostgreSQL 16 installs with apt here; Docker is not running), and retire `supabase/001_initial_schema.sql`.
-  The app uses all of these and none are in `001`:
-  - Tables/views: `search_history`, `standouts`, `push_subscriptions`, `push_queue`, `pending_pushes`,
-     `deletion_audit`, `verification_requests`, `consent_records`, `admin_audit`, `public_profiles`,
-     `eligible_profiles`, `my_blocked_ids`
-  - Functions: `get_likes_received`, `get_matches_with_profile`, `mark_messages_read`, `unmatch`,
-     `submit_verification_request`, `increment_push_failure`, `admin_platform_stats`,
-     `admin_pending_verifications`, `admin_review_verification`, `admin_update_report`, `admin_ban_user`,
-     `admin_unban_user`, `admin_verify_user`
-  - `profiles` columns: `settings_theme`, `is_banned`, `banned_at`, `ban_reason`, `is_paused`, `paused_at`,
-     `cookie_preferences`, `terms_accepted_at`, `privacy_accepted_at`, `marketing_consent`
-  - The push-notification queue triggers and the scheduled job that runs `send-push`
-- [ ] **3. Regenerate `lib/database.types.ts`** from the live project and fix the 69 remaining type errors in live code.
-- [ ] **4. Hardening migration** — write it, test it locally, show it to the owner, apply only after approval:
-  - [ ] Other users can't read `email` or `phone_number` (the owner and admins still can)
-  - [ ] Browser updates can't change `is_verified`, `verification_status`, `subscription_tier`,
-     `subscription_renews_at`, the daily counters and their dates, or `is_banned` / `banned_at` / `ban_reason`.
-     Move `incrementSearchCount` / `incrementLikeCount` into database functions.
-  - [ ] Enforce the daily like limit when a like is inserted. **Decision needed:** 6/day for free users
-     (what the like button does today), or unlimited while Pro is free for everyone (`PRO_FOR_ALL`)?
-  - [ ] An `is_admin()` check the app can call, replacing the `VITE_ADMIN_EMAILS` list in the website bundle
-  - [ ] Confirm the profile-rescue insert is allowed by the database, or remove the rescue screen
-- [ ] **5. Deploy** both edge functions and set the `ALLOWED_ORIGINS` secret to the live site's address
-  (owner's approval; needs the production domain).
+### Code
+- [x] `.env.local.example`; `Supabase/` → `supabase/`; `.env` files git-ignored
+- [x] Profile-rescue screen fixed; removed browser helpers that wrote verification fields
+- [x] Admin tab decided by the database (`is_admin()`); the admin email list no longer ships in the website
+- [x] Edge functions read allowed browser origins from `ALLOWED_ORIGINS` (unset = any origin, as before)
+- [x] `GEMINI_API_KEY` is no longer injected into the website bundle
 
-The daily **search** limit can only be truly enforced once search runs on the server (Phase 9);
-until then the browser downloads the candidate pool itself.
+### Owner follow-ups
+- [ ] Once the live site address is known: set the `ALLOWED_ORIGINS` secret and redeploy both edge functions
+  (`npx supabase functions deploy delete-account` and `send-push`). No behaviour changes until then.
+- [ ] Turn on leaked-password protection in the Supabase dashboard's Authentication settings
+  ([docs](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection))
+- [ ] Remove the now-unused `VITE_ADMIN_EMAILS` variable from the hosting settings
+
+The daily **search** limit moves to Phase 9: search still runs in the browser, so only the server-side search can enforce it.
 
 ---
 
@@ -81,11 +71,19 @@ until then the browser downloads the candidate pool itself.
 - [ ] Email digests: build the weekly email, or remove the toggle
 - [ ] Fix Standouts picks disappearing on reload later in the day
 - [ ] Replace the "Coming in Phase 4" text on the profile page
-- [ ] Test Google sign-in and push notifications end to end
+- [ ] Admin "Users" and "Reports" tabs only see the admin's own profile (they read `profiles`, which returns
+  your own row only) — add admin-only lookup functions
+- [ ] Push notifications are never sent: nothing runs `send-push` on a schedule (`pg_cron` is installed, no job
+  exists) — schedule it, then test push end to end
+- [ ] Test Google sign-in end to end
 
 ## Phase 9 — Smarter search that scales
 - [ ] Run search inside the database: works past 1,000 users, stops downloading everyone's profile, enforces the daily search limit
+- [ ] Replace the three read-only views the search and lists use (`eligible_profiles`, `public_profiles`,
+  `my_blocked_ids` — flagged by Supabase) with server-side functions
 - [ ] Keep fields users marked "hidden" off other people's screens
+- [ ] Score all compatibility factors: six (diet, gym, sleep schedule, living preference, family closeness,
+  interracial marriage) are ignored today because `eligible_profiles` doesn't include them
 - [ ] Understand "near me" (location) and "online" in prompts
 - [ ] Match whole words only ("man" ≠ "woman") and handle "not" / "doesn't"
 - [ ] **Decision:** add real AI — turn the prompt into filters and rank by meaning (bio, hobbies, "vibe")
@@ -100,6 +98,7 @@ until then the browser downloads the candidate pool itself.
 - [ ] A proper email service for sign-up codes (Supabase's built-in sender is heavily rate-limited)
 - [ ] Error tracking, and analytics that respect the cookie banner
 - [ ] Shrink the main JavaScript file (537 kB)
+- [ ] Clear the remaining Supabase advisor warnings (access rules re-checking the user on every row, unindexed foreign keys, unused `pg_net` in the public schema)
 - [ ] Fix the broken favicon, add a page description and link previews, rename leftover "MatchGPT" references
 - [ ] Rewrite the README and setup guide
 - [ ] Plan how admins keep up with verification requests (new users are locked out of search after 72 hours)

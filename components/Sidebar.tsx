@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../lib/AuthContext';
-import { isAdminEmail } from '../lib/adminService';
+import { useIsAdmin } from '../lib/useIsAdmin';
 import { listLikesReceived } from '../lib/likesService';
 import { listMatches } from '../lib/matchesService';
 import VerificationRequestModal from './VerificationRequestModal';
@@ -30,7 +30,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const { profile, session, signOut } = useAuth();
   const tier = profile?.subscriptionTier || 'FREE';
   const isPro = tier === 'PRO';
-  const isAdmin = isAdminEmail(profile?.email);
+  const isAdmin = useIsAdmin() === true;
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
   const [unreadMatches, setUnreadMatches] = useState(0);

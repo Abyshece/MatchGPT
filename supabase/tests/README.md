@@ -2,7 +2,18 @@
 
 Tools for checking the migrations in `supabase/migrations/` without Docker.
 
-## Rebuild the database locally
+## Quick start
+
+```bash
+supabase/tests/run_local.sh
+```
+
+Rebuilds an empty local database from every migration, loads `test_data.sql`
+and runs `security_tests.sh`: 16 attacks that must be blocked and 21 normal
+app actions that must keep working. It exits non-zero if any check fails.
+`UP_TO=<version>` stops after that migration (useful to see a bug before its fix).
+
+## Rebuild the database by hand
 
 Needs a local PostgreSQL (16 or newer) and `psql`.
 
@@ -28,5 +39,5 @@ realtime publication and Supabase's default grants.
 constraints, indexes, functions and their permissions, triggers, views,
 policies, row-level security, grants, realtime tables, storage buckets). Run it
 on the local rebuild and on the live project (Supabase SQL editor): every row
-should match. It matched on 2026-09-26, right after
-`20260926133139_close_public_data_exposure`.
+should match. It matched on 2026-09-26, after
+`20260926141513_fix_likes_matches_and_limits`.

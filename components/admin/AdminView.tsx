@@ -3,8 +3,8 @@ import { useAuth } from '../../lib/AuthContext';
 import { useToast } from '../../lib/useToast';
 import {
   fetchPlatformStats, fetchReports, fetchAuditLog,
-  isAdminEmail,
 } from '../../lib/adminService';
+import { useIsAdmin } from '../../lib/useIsAdmin';
 import type { PlatformStats, ReportRow, AdminAuditRow } from '../../lib/adminService';
 import AdminUsersTab from './AdminUsersTab';
 import AdminReportsTab from './AdminReportsTab';
@@ -18,9 +18,9 @@ import AdminVerificationsTab from './AdminVerificationsTab';
 //   2. Reports — pending reports queue
 //   3. Users — search any user, take actions
 //
-// Access controlled by the VITE_ADMIN_EMAILS env var. If a non-admin somehow
-// reaches this view (e.g. someone changed local state), they'll see "Access
-// denied" and the DB RPCs will refuse all admin actions anyway.
+// Access is decided by the database (is_admin(): the signed-in email must be
+// in admin_emails). If a non-admin somehow reaches this view they see "Access
+// denied", and the admin RPCs refuse them anyway.
 // ============================================================================
 
 type AdminTab = 'dashboard' | 'reports' | 'verifications' | 'users';
@@ -28,6 +28,7 @@ type AdminTab = 'dashboard' | 'reports' | 'verifications' | 'users';
 const AdminView: React.FC = () => {
   const { profile } = useAuth();
   const { showToast } = useToast();
+  const isAdmin = useIsAdmin();
 
   const [tab, setTab] = useState<AdminTab>('dashboard');
   const [stats, setStats] = useState<PlatformStats | null>(null);
@@ -55,19 +56,22 @@ const AdminView: React.FC = () => {
   }, [showToast]);
 
   useEffect(() => {
-    if (tab === 'dashboard') loadDashboard();
-  }, [tab, loadDashboard]);
+    if (isAdmin && tab === 'dashboard') loadDashboard();
+  }, [isAdmin, tab, loadDashboard]);
 
   // ---- Access control ----
   if (!profile) return null;
-  if (!isAdminEmail(profile.email)) {
+  if (isAdmin === null) {
+    return <div className="flex items-center justify-center h-full text-sm text-gray-400">Checking access…</div>;
+  }
+  if (!isAdmin) {
     return (
       <div className="flex items-center justify-center h-full p-6">
         <div className="max-w-md text-center">
           <div className="text-4xl mb-3">🚫</div>
           <h1 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Access denied</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            This area is only available to admins. Your email isn't on the allowlist.
+            This area is only available to admins. Your account isn't on the admin list.
           </p>
         </div>
       </div>

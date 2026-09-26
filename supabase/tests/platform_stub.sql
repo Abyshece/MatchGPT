@@ -4,6 +4,8 @@ do $$ begin
   if not exists (select 1 from pg_roles where rolname = 'anon') then create role anon nologin noinherit; end if;
   if not exists (select 1 from pg_roles where rolname = 'authenticated') then create role authenticated nologin noinherit; end if;
   if not exists (select 1 from pg_roles where rolname = 'service_role') then create role service_role nologin noinherit bypassrls; end if;
+  -- Supabase Auth writes auth.users as this role (sign-ups fire on_auth_user_created)
+  if not exists (select 1 from pg_roles where rolname = 'supabase_auth_admin') then create role supabase_auth_admin nologin noinherit; end if;
 end $$;
 create schema extensions;
 create schema auth;
@@ -44,6 +46,8 @@ create function storage.foldername(name text) returns text[] language sql immuta
 $$;
 create publication supabase_realtime;
 grant usage on schema auth, storage, public, extensions to anon, authenticated, service_role;
+grant usage on schema auth to supabase_auth_admin;
+grant select, insert, update, delete on auth.users to supabase_auth_admin;
 alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
 alter default privileges in schema public grant all on functions to anon, authenticated, service_role;
 alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
