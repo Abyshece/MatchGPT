@@ -21,7 +21,6 @@ const FIELD_MAP: Partial<Record<keyof UserProfile, keyof ProfileRow>> = {
   email: 'email',
   phoneNumber: 'phone_number',
   age: 'age',
-  ageChangedOnce: 'age_changed_once',
 
   pronouns: 'pronouns',
   gender: 'gender',
@@ -162,7 +161,7 @@ export function rowToProfile(row: ProfileRow): UserProfile {
   for (const [uiKey, dbKey] of Object.entries(FIELD_MAP) as [keyof UserProfile, keyof ProfileRow][]) {
     const dbValue = row[dbKey];
     if (dbValue !== null && dbValue !== undefined) {
-      (profile as Record<string, unknown>)[uiKey] = dbValue;
+      (profile as unknown as Record<string, unknown>)[uiKey] = dbValue;
     }
   }
 
@@ -179,7 +178,6 @@ export function rowToProfile(row: ProfileRow): UserProfile {
   profile.dailyLikeCount = row.daily_like_count;
   profile.lastLikeDate = row.last_like_date;
   profile.hiddenFields = row.hidden_fields ?? [];
-  profile.ageChangedOnce = row.age_changed_once;
 
   return profile;
 }

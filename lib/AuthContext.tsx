@@ -122,16 +122,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!session?.user) return { error: 'No active session' };
     const u = session.user;
 
+    // Only id + email: every other column (account_created, tier,
+    // verification, photos…) has a database default, and the server — not
+    // the browser — owns the tier and verification fields.
     const stub: Partial<ProfileRow> = {
       id: u.id,
       email: u.email ?? null,
-      onboarding_complete: false,
-      account_created: Date.now(),
-      subscription_tier: 'FREE',
-      verification_status: 'unverified',
-      is_verified: false,
-      photo_urls: [],
-      hidden_fields: [],
     };
 
     const { error } = await supabase.from('profiles').insert(stub);

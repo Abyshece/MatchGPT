@@ -22,14 +22,8 @@
 
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
-
-// CORS allowed origins. The function must be reachable from the browser.
-// In production tighten this to your actual domain(s).
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+// CORS: allowed browser origins come from the ALLOWED_ORIGINS secret.
+import { withCors } from '../_shared/cors.ts';
 
 interface DeleteRequestBody {
   reason?: string;
@@ -46,12 +40,7 @@ interface DeleteResponse {
   };
 }
 
-serve(async (req: Request): Promise<Response> => {
-  // ---- CORS preflight ----
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: CORS_HEADERS });
-  }
-
+serve(withCors(async (req: Request): Promise<Response> => {
   if (req.method !== 'POST') {
     return jsonResponse({ success: false, error: 'Method not allowed' }, 405);
   }
@@ -184,11 +173,11 @@ serve(async (req: Request): Promise<Response> => {
       audit_log_id: auditLogId,
     },
   });
-});
+}));
 
 function jsonResponse(body: DeleteResponse, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json' },
   });
 }
