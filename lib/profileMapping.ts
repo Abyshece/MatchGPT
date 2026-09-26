@@ -168,10 +168,10 @@ export function rowToProfile(row: ProfileRow): UserProfile {
   // fields with custom shapes
   profile.email = row.email ?? undefined;
   profile.phoneNumber = row.phone_number ?? undefined;
-  profile.subscriptionTier = row.subscription_tier;
+  profile.subscriptionTier = row.subscription_tier as SubscriptionTier;
   profile.isPremium = row.subscription_tier === 'PRO';
   profile.isVerified = row.is_verified;
-  profile.verificationStatus = row.verification_status;
+  profile.verificationStatus = row.verification_status as UserProfile['verificationStatus'];
   profile.accountCreated = new Date(row.account_created).getTime();
   profile.dailySearchCount = row.daily_search_count;
   profile.lastSearchDate = row.last_search_date;
@@ -244,5 +244,5 @@ export function settingsToRowUpdate(s: UserSettings): Partial<ProfileRow> {
 // ----------------------------------------------------------------------------
 
 export function tierFromRow(row: ProfileRow): SubscriptionTier {
-  return row.subscription_tier;
+  return row.subscription_tier as SubscriptionTier;
 }

@@ -19,7 +19,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback, Rea
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 import { rowToProfile, rowToSettings } from './profileMapping';
-import type { ProfileRow } from './database.types';
+import type { ProfileRow, TablesInsert } from './database.types';
 import type { UserProfile, UserSettings } from '../types';
 
 interface AuthContextValue {
@@ -125,7 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Only id + email: every other column (account_created, tier,
     // verification, photos…) has a database default, and the server — not
     // the browser — owns the tier and verification fields.
-    const stub: Partial<ProfileRow> = {
+    const stub: TablesInsert<'profiles'> = {
       id: u.id,
       email: u.email ?? null,
     };

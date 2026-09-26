@@ -60,7 +60,7 @@ export interface AdminUserRow {
   is_banned: boolean;
   banned_at: string | null;
   ban_reason: string | null;
-  account_created: number;
+  account_created: string;  // ISO timestamp
   daily_search_count: number;
   daily_like_count: number;
 }
@@ -83,7 +83,7 @@ export interface AdminAuditRow {
 export async function fetchPlatformStats(): Promise<{ stats: PlatformStats | null; error: string | null }> {
   const { data, error } = await supabase.rpc('admin_platform_stats');
   if (error) return { stats: null, error: error.message };
-  return { stats: data as PlatformStats, error: null };
+  return { stats: data as unknown as PlatformStats, error: null };
 }
 
 // ----------------------------------------------------------------------------

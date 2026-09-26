@@ -74,11 +74,13 @@ export async function runSearch(input: SearchInput): Promise<SearchOutput> {
 
   // Pre-step: if `notAlreadyLiked` is set, fetch IDs the searcher already liked
   // and exclude them from the pool BEFORE other filtering.
-  let pool: ProfileRow[] = data;
+  // eligible_profiles exposes only a subset of the profile columns; the rest
+  // read as undefined here (see ROADMAP Phase 9, search rework).
+  let pool = data as unknown as ProfileRow[];
   if (input.filters.notAlreadyLiked) {
     const { listLikesSent } = await import('./likesService');
     const { likedIds } = await listLikesSent(input.searcherId);
-    pool = data.filter((row) => !likedIds.has(row.id));
+    pool = pool.filter((row) => !likedIds.has(row.id));
   }
 
   // Pre-step: incognito users only appear to people they've already liked.
