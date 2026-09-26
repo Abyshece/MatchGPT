@@ -90,45 +90,19 @@ export async function fetchPlatformStats(): Promise<{ stats: PlatformStats | nul
 // Reports queue
 // ----------------------------------------------------------------------------
 
+// Reports with both people's name and email. The browser can only read its
+// own profile row, so the names come from the admin-only admin_list_reports().
 export async function fetchReports(status: 'pending' | 'all' = 'pending'): Promise<{ reports: ReportRow[]; error: string | null }> {
-  let query = supabase
-    .from('reports')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(100);
-
-  if (status === 'pending') {
-    query = query.eq('status', 'pending');
-  }
-
-  const { data, error } = await query;
+  const { data, error } = await supabase.rpc('admin_list_reports', { p_pending_only: status === 'pending' });
   if (error) return { reports: [], error: error.message };
-
-  const reports = (data ?? []) as ReportRow[];
-
-  // Hydrate with reporter/reported user info
-  const userIds = Array.from(new Set([
-    ...reports.map((r) => r.reporter_id),
-    ...reports.map((r) => r.reported_id),
-  ]));
-
-  if (userIds.length === 0) return { reports, error: null };
-
-  const { data: users } = await supabase
-    .from('profiles')
-    .select('id, email, name')
-    .in('id', userIds);
-
-  const userMap = new Map((users ?? []).map((u) => [u.id, u]));
-  reports.forEach((r) => {
-    const reporter = userMap.get(r.reporter_id);
-    const reported = userMap.get(r.reported_id);
-    r.reporter_email = reporter?.email ?? undefined;
-    r.reporter_name = reporter?.name ?? undefined;
-    r.reported_email = reported?.email ?? undefined;
-    r.reported_name = reported?.name ?? undefined;
-  });
-
+  const reports = (data ?? []).map((r) => ({
+    ...r,
+    status: r.status as ReportRow['status'],
+    reporter_email: r.reporter_email ?? undefined,
+    reporter_name: r.reporter_name ?? undefined,
+    reported_email: r.reported_email ?? undefined,
+    reported_name: r.reported_name ?? undefined,
+  }));
   return { reports, error: null };
 }
 
@@ -150,20 +124,9 @@ export async function updateReport(
 // User management
 // ----------------------------------------------------------------------------
 
+// Newest 50 accounts, or those whose name or email contains the query.
 export async function searchUsers(query: string): Promise<{ users: AdminUserRow[]; error: string | null }> {
-  let supaQuery = supabase
-    .from('profiles')
-    .select('id, email, name, age, location, subscription_tier, is_verified, is_banned, banned_at, ban_reason, account_created, daily_search_count, daily_like_count')
-    .order('account_created', { ascending: false })
-    .limit(50);
-
-  if (query.trim()) {
-    const q = `%${query.trim()}%`;
-    // Search by name OR email
-    supaQuery = supaQuery.or(`name.ilike.${q},email.ilike.${q}`);
-  }
-
-  const { data, error } = await supaQuery;
+  const { data, error } = await supabase.rpc('admin_search_users', { p_query: query.trim(), p_limit: 50 });
   if (error) return { users: [], error: error.message };
   return { users: (data ?? []) as AdminUserRow[], error: null };
 }

@@ -96,12 +96,23 @@ Run in a browser against a local copy of the backend (`npx supabase start` with 
 - [x] Profile page: "Coming in Phase 4" is now a "Get verified →" button; the upgrade pop-up no longer
   mentions "Phase 6"
 
+- [x] Admin "Users" and "Reports" tabs only saw the admin's own profile: new admin-only lookups
+  (`admin_search_users`, `admin_list_reports`, migration `20260926195517`)
+- [x] "Active Status" off now also hides the last-active time in the database (it reached every
+  signed-in browser)
+- [x] Push notifications were never sent. Nothing ran `send-push`, the Vault key it would have used was a
+  placeholder, and it had no Web Push (VAPID) keys. Now a cron job calls it every minute when something is
+  queued, authenticated by a secret the database generates; `send-push` creates and stores its own key
+  pair; browsers read the public key from the database. Tested locally with a stand-in push service that
+  checked the signature and decrypted the message
+- [x] `supabase/tests/run_local.sh`: 50 security/behaviour checks (13 new), all pass
+- [x] `supabase/config.toml` for a full local Supabase (Docker); keeps JWT checks off for both functions
+
 ### To do
-- [ ] Admin "Users" and "Reports" tabs only see the admin's own profile (they read `profiles`, which returns
-  your own row only) — add admin-only lookup functions
-- [ ] Push notifications are never sent: nothing runs `send-push` on a schedule (`pg_cron` is installed, no job
-  exists) — schedule it, then test push end to end
-- [ ] Test Google sign-in end to end
+- [ ] Owner: test Google sign-in with a real Google account. Everything checkable from outside is in order
+  (provider on, Google accepts the app's ID and return address, returns to the live site); in Google Cloud
+  → Google Auth Platform → Audience the publishing status must be "In production", not "Testing"
+- [ ] Owner: try push notifications on a phone or laptop (Settings → Notifications) once this is live
 
 ## Phase 9 — Smarter search that scales
 - [ ] Run search inside the database: works past 1,000 users, stops downloading everyone's profile, enforces the daily search limit

@@ -23,3 +23,6 @@ insert into public.likes (liker_id, liked_id) values
 -- a report for the admin tests
 insert into public.reports (id, reporter_id, reported_id, reason) values
   ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-00000000000b', '00000000-0000-0000-0000-00000000000c', 'spam');
+-- v turned Active Status off
+update public.profiles set settings_show_online = false, last_active_at = now()
+ where id = '00000000-0000-0000-0000-00000000000c';

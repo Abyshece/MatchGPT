@@ -51,3 +51,20 @@ grant select, insert, update, delete on auth.users to supabase_auth_admin;
 alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
 alter default privileges in schema public grant all on functions to anon, authenticated, service_role;
 alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
+-- Supabase Vault (stored in plain text here; only postgres can read it, as on Supabase)
+create schema vault;
+create table vault.secrets (
+  id uuid primary key default gen_random_uuid(),
+  name text unique,
+  description text default '',
+  secret text not null,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+create view vault.decrypted_secrets as
+  select id, name, description, secret, secret as decrypted_secret, created_at, updated_at from vault.secrets;
+create function vault.create_secret(new_secret text, new_name text default null, new_description text default '', new_key_id uuid default null)
+  returns uuid language sql as $$
+  insert into vault.secrets (name, description, secret) values (new_name, new_description, new_secret) returning id
+$$;
+revoke all on schema vault from public;

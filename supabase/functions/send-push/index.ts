@@ -2,9 +2,14 @@
 // send-push Edge Function
 //
 // Drains the push_queue table and sends notifications via Web Push API.
-// Invoked by:
-//   1. Supabase cron (every minute, see deploy notes) — primary trigger
-//   2. Direct invocation from the client right after a like/match for low latency
+// Invoked by the `send-push` cron job (every minute while something is queued,
+// see migration 20260926195517). Only callers with the job's shared secret
+// (x-cron-secret header, kept in Supabase Vault) get through, so deploy with
+// JWT verification off: npx supabase functions deploy send-push --no-verify-jwt
+//
+// The Web Push (VAPID) key pair also lives in Vault. On the first run there
+// is none, so this function creates it; browsers read the public half through
+// the vapid_public_key() database function.
 //
 // Web Push protocol:
 //   POST <subscription.endpoint>
@@ -16,13 +21,11 @@
 //     Crypto-Key: dh=<ECDH-public-key-base64url>
 //   Body: encrypted payload (aes128gcm)
 //
-// We use `https://esm.sh/web-push@3` which handles VAPID signing and AES-GCM
-// encryption for us. The Deno-compatible version is at @denosaurs/web-push.
+// The web-push npm package handles VAPID signing and AES-GCM encryption for us.
 // ============================================================================
 
-import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
-import webpush from 'https://esm.sh/web-push@3.6.7?target=deno';
+import { createClient } from 'npm:@supabase/supabase-js@2.45.0';
+import webpush from 'npm:web-push@3.6.7';
 // CORS: allowed browser origins come from the ALLOWED_ORIGINS secret.
 import { withCors } from '../_shared/cors.ts';
 
@@ -40,24 +43,59 @@ interface QueuedPush {
   failure_count: number;
 }
 
-serve(withCors(async (_req: Request): Promise<Response> => {
-  // ---- Read env ----
+interface PushConfig {
+  cron_secret: string | null;
+  vapid_public_key: string | null;
+  vapid_private_key: string | null;
+}
+
+Deno.serve(withCors(async (req: Request): Promise<Response> => {
+  // ---- Read env (both provided by Supabase) ----
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-  const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY');
-  const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY');
   const vapidSubject = Deno.env.get('VAPID_SUBJECT') ?? 'mailto:noreply@shaadigpt.com';
 
-  if (!supabaseUrl || !serviceRoleKey || !vapidPublicKey || !vapidPrivateKey) {
+  if (!supabaseUrl || !serviceRoleKey) {
     console.error('[send-push] missing env vars');
     return jsonResponse({ success: false, error: 'Server not configured' }, 500);
   }
 
-  webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
-
   const admin = createClient(supabaseUrl, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
+
+  // ---- Cron secret and VAPID keys from Vault ----
+  const { data: configRows, error: configError } = await admin.rpc('send_push_config');
+  const config = ((configRows ?? []) as PushConfig[])[0];
+  if (configError || !config?.cron_secret) {
+    console.error('[send-push] no config in Vault:', configError?.message);
+    return jsonResponse({ success: false, error: 'Server not configured' }, 500);
+  }
+  if (!sameSecret(req.headers.get('x-cron-secret') ?? '', config.cron_secret)) {
+    return jsonResponse({ success: false, error: 'Unauthorized' }, 401);
+  }
+
+  let vapidPublicKey = config.vapid_public_key;
+  let vapidPrivateKey = config.vapid_private_key;
+  if (!vapidPublicKey || !vapidPrivateKey) {
+    // First run: create the key pair. If another run got there first, the
+    // database keeps and returns that pair instead.
+    const keys = webpush.generateVAPIDKeys();
+    const { data: saved, error: saveError } = await admin.rpc('save_vapid_keys', {
+      p_public_key: keys.publicKey,
+      p_private_key: keys.privateKey,
+    });
+    const pair = ((saved ?? []) as PushConfig[])[0];
+    if (saveError || !pair?.vapid_public_key || !pair?.vapid_private_key) {
+      console.error('[send-push] could not save VAPID keys:', saveError?.message);
+      return jsonResponse({ success: false, error: 'Server not configured' }, 500);
+    }
+    vapidPublicKey = pair.vapid_public_key;
+    vapidPrivateKey = pair.vapid_private_key;
+    console.log('[send-push] created the VAPID key pair');
+  }
+
+  webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
 
   // ---- 1. Fetch pending pushes (joined with subscriptions) ----
   const { data: pendingRows, error: fetchError } = await admin
@@ -148,6 +186,14 @@ serve(withCors(async (_req: Request): Promise<Response> => {
     dead_subscriptions_pruned: deadSubscriptionIds.length,
   });
 }));
+
+// Compare without an early exit, so response timing doesn't leak the secret.
+function sameSecret(given: string, expected: string): boolean {
+  if (given.length !== expected.length) return false;
+  let diff = 0;
+  for (let i = 0; i < given.length; i++) diff |= given.charCodeAt(i) ^ expected.charCodeAt(i);
+  return diff === 0;
+}
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
