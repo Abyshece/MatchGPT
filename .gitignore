@@ -31,3 +31,6 @@ dist-ssr
 # Supabase CLI local state
 supabase/.temp
 supabase/.branches
+
+# Browser test screenshots
+tests/e2e/.shots/

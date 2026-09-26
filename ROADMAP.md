@@ -1,6 +1,6 @@
 # ShaadiGPT roadmap
 
-11 phases in total. Phases 1–5 and 7 are done, Phase 6 is mostly done; **Phase 8 is next**.
+11 phases in total. Phases 1–5, 7 and 8 are done, Phase 6 is mostly done; **Phase 9 is next**.
 Items left unfinished in earlier phases were moved into later ones, so each open item appears once.
 (`PHASE_1_README.md`–`PHASE_3_README.md` are historical setup notes.)
 
@@ -13,8 +13,8 @@ Items left unfinished in earlier phases were moved into later ones, so each open
 | 5 | Likes, matches & chat | Done |
 | 6 | Polish & launch prep | Mostly done (payments → 11, cleanup → 10) |
 | 7 | Make the backend safe and rebuildable | **Done** (3 small owner follow-ups) |
-| 8 | Finish half-built features | To do — next |
-| 9 | Smarter search that scales | To do |
+| 8 | Finish half-built features | **Done** (owner checks listed) |
+| 9 | Smarter search that scales | To do — next |
 | 10 | Launch readiness → public launch | To do |
 | 11 | Payments (Pro via Razorpay) | To do |
 
@@ -62,7 +62,7 @@ The daily **search** limit moves to Phase 9: search still runs in the browser, s
 
 ---
 
-## Phase 8 — Finish half-built features
+## Phase 8 — Finish half-built features (done 2026-09-26)
 
 ### Checked first: sign-up and profile setup (2026-09-26)
 Run in a browser against a local copy of the backend (`npx supabase start` with the repo's migrations).
@@ -85,8 +85,7 @@ Run in a browser against a local copy of the backend (`npx supabase start` with 
   Supabase team until a proper email sender is set up (Phase 10)
 - [x] Profile cards show "Online" for people active in the last 5 minutes (every card said "Offline")
 - [x] "Active Status" off: the person shows as Offline and drops out of the "Online Now" and
-  "Recently active" filters. (Their last-active time still reaches other users' browsers until the
-  database change below.)
+  "Recently active" filters
 - [x] "Pause my profile" switch in Settings: hidden from search and Standouts, matches and chats keep working
 - [x] Blocked people list in Settings with an Unblock button
 - [x] Fixed: people you blocked (or who blocked you) still appeared in search and Standouts
@@ -107,12 +106,16 @@ Run in a browser against a local copy of the backend (`npx supabase start` with 
   checked the signature and decrypted the message
 - [x] `supabase/tests/run_local.sh`: 50 security/behaviour checks (13 new), all pass
 - [x] `supabase/config.toml` for a full local Supabase (Docker); keeps JWT checks off for both functions
+- [x] Browser tests for all of the above in `tests/e2e/`
+- [x] Live: migration applied, `send-push` redeployed, the schedule created its keys; the live schema
+  matches a rebuild from the repo on all 12 checksums
 
-### To do
-- [ ] Owner: test Google sign-in with a real Google account. Everything checkable from outside is in order
+### Owner checks
+- [ ] Test Google sign-in with a real Google account. Everything checkable from outside is in order
   (provider on, Google accepts the app's ID and return address, returns to the live site); in Google Cloud
   → Google Auth Platform → Audience the publishing status must be "In production", not "Testing"
-- [ ] Owner: try push notifications on a phone or laptop (Settings → Notifications) once this is live
+- [ ] Turn on push notifications on a phone or laptop (Settings → Notifications) and get someone to
+  Super Like you or message you
 
 ## Phase 9 — Smarter search that scales
 - [ ] Run search inside the database: works past 1,000 users, stops downloading everyone's profile, enforces the daily search limit
