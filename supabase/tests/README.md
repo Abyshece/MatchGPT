@@ -1,6 +1,6 @@
 # Database tests
 
-Tools for checking the migrations in `supabase/migrations/` without Docker.
+Tools for checking the migrations in `supabase/migrations/`, with or without Docker.
 
 ## Quick start
 
@@ -9,9 +9,25 @@ supabase/tests/run_local.sh
 ```
 
 Rebuilds an empty local database from every migration, loads `test_data.sql`
-and runs `security_tests.sh`: 16 attacks that must be blocked and 21 normal
+and runs `security_tests.sh`: 22 attacks that must be blocked and 28 normal
 app actions that must keep working. It exits non-zero if any check fails.
 `UP_TO=<version>` stops after that migration (useful to see a bug before its fix).
+
+## Full local Supabase (Docker)
+
+`supabase/config.toml` configures a complete local stack (auth, database,
+storage, realtime, a mail catcher for sign-up and reset emails):
+
+```bash
+npx supabase start          # first run downloads the images
+npx supabase db reset       # rebuild the database from supabase/migrations/
+VITE_SUPABASE_URL=http://127.0.0.1:54321 SUPABASE_SERVICE_ROLE_KEY=<service_role key from `npx supabase status`> npx tsx scripts/seed.ts
+VITE_SUPABASE_URL=http://127.0.0.1:54321 VITE_SUPABASE_ANON_KEY=<anon key from `npx supabase status`> npm run dev
+```
+
+Emails land in the mail catcher at http://127.0.0.1:54324. For push
+notifications locally, also set the Vault `project_url` to an address the
+database container can reach the functions at (see the send-push migration).
 
 ## Rebuild the database by hand
 
@@ -31,7 +47,7 @@ done
 `platform_stub.sql` stands in for the parts of Supabase the migrations rely on:
 the `anon` / `authenticated` / `service_role` roles, a minimal `auth.users`
 table with Supabase's `auth.uid()` / `auth.jwt()`, the `storage` tables, the
-realtime publication and Supabase's default grants.
+realtime publication, a plain-text Vault and Supabase's default grants.
 
 ## Compare with the live database
 

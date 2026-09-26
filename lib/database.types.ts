@@ -2208,6 +2208,24 @@ export type Database = {
         Args: { reason: string; target_id: string }
         Returns: undefined
       }
+      admin_list_reports: {
+        Args: { p_pending_only?: boolean }
+        Returns: {
+          admin_notes: string
+          created_at: string
+          details: string
+          id: string
+          reason: string
+          reported_email: string
+          reported_id: string
+          reported_name: string
+          reporter_email: string
+          reporter_id: string
+          reporter_name: string
+          resolved_at: string
+          status: string
+        }[]
+      }
       admin_pending_verifications: {
         Args: never
         Returns: {
@@ -2228,6 +2246,24 @@ export type Database = {
       admin_review_verification: {
         Args: { decision: string; notes: string; request_id: string }
         Returns: undefined
+      }
+      admin_search_users: {
+        Args: { p_limit?: number; p_query?: string }
+        Returns: {
+          account_created: string
+          age: number
+          ban_reason: string
+          banned_at: string
+          daily_like_count: number
+          daily_search_count: number
+          email: string
+          id: string
+          is_banned: boolean
+          is_verified: boolean
+          location: string
+          name: string
+          subscription_tier: string
+        }[]
       }
       admin_unban_user: { Args: { target_id: string }; Returns: undefined }
       admin_update_report: {
@@ -2275,6 +2311,21 @@ export type Database = {
       increment_push_failure: { Args: { sub_id: string }; Returns: undefined }
       is_admin: { Args: never; Returns: boolean }
       mark_messages_read: { Args: { p_match_id: string }; Returns: number }
+      save_vapid_keys: {
+        Args: { p_private_key: string; p_public_key: string }
+        Returns: {
+          vapid_private_key: string
+          vapid_public_key: string
+        }[]
+      }
+      send_push_config: {
+        Args: never
+        Returns: {
+          cron_secret: string
+          vapid_private_key: string
+          vapid_public_key: string
+        }[]
+      }
       submit_verification_request: {
         Args: {
           p_facebook_url: string
@@ -2286,6 +2337,7 @@ export type Database = {
         Returns: string
       }
       unmatch: { Args: { p_match_id: string }; Returns: undefined }
+      vapid_public_key: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never

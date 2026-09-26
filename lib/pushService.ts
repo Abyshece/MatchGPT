@@ -8,12 +8,12 @@
 //   4. Save the subscription to the database
 //   5. Unsubscribe + delete from DB on opt-out
 //
-// The VAPID public key comes from VITE_VAPID_PUBLIC_KEY env var.
+// The VAPID public key comes from the database (vapid_public_key()); the
+// send-push function creates the key pair and keeps it in Supabase Vault.
 // ============================================================================
 
 import { supabase } from './supabase';
 
-const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined;
 
 // ----------------------------------------------------------------------------
 // Capability detection
@@ -63,8 +63,9 @@ export async function subscribeToPush(userId: string): Promise<SubscribeResult> 
     return { success: false, error: 'Push notifications not supported on this browser' };
   }
 
-  if (!VAPID_PUBLIC_KEY) {
-    return { success: false, error: 'VAPID public key not configured. Contact support.' };
+  const { data: vapidPublicKey, error: keyError } = await supabase.rpc('vapid_public_key');
+  if (keyError || !vapidPublicKey) {
+    return { success: false, error: 'Push notifications aren\'t set up yet. Please try again later.' };
   }
 
   try {
@@ -80,7 +81,7 @@ export async function subscribeToPush(userId: string): Promise<SubscribeResult> 
     // 3. Subscribe (or reuse existing subscription)
     let subscription = await reg.pushManager.getSubscription();
     if (!subscription) {
-      const applicationServerKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+      const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
       subscription = await reg.pushManager.subscribe({
         userVisibleOnly: true,           // required — only show user-visible pushes
         applicationServerKey: applicationServerKey as BufferSource,

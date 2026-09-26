@@ -78,6 +78,20 @@ check BLOCKED "A16 free user's 16th like of the day" authenticated "$USER_X" "x@
   "insert into public.likes (liker_id, liked_id) select '$USER_X', $EXTRA from generate_series(1, 16) g;" \
   "Daily like limit reached"
 
+check BLOCKED "A17 signed-out visitor reads the push cron secret and keys" anon "" "" \
+  "select * from public.send_push_config();" "permission denied"
+check BLOCKED "A18 signed-in user reads the push cron secret and keys" authenticated "$USER_X" "x@example.com" \
+  "select * from public.send_push_config();" "permission denied"
+check BLOCKED "A19 signed-in user replaces the push (VAPID) keys" authenticated "$USER_X" "x@example.com" \
+  "select * from public.save_vapid_keys('pub', 'priv');" "permission denied"
+check BLOCKED "A20 non-admin lists every user (admin_search_users)" authenticated "$USER_X" "x@example.com" \
+  "select count(*) from public.admin_search_users('', 50);" "Forbidden"
+check BLOCKED "A21 non-admin lists reports with names (admin_list_reports)" authenticated "$USER_X" "x@example.com" \
+  "select count(*) from public.admin_list_reports(false);" "Forbidden"
+check ALLOWED "A22 user reads last-active time of someone with Active Status off" authenticated "$USER_X" "x@example.com" \
+  "select 'search=' || coalesce(e.last_active_at::text, 'hidden') || ' public=' || coalesce(p.last_active_at::text, 'hidden')
+     from public.eligible_profiles e join public.public_profiles p using (id) where e.id = '$OTHER';" "search=hidden public=hidden"
+
 echo
 echo "Normal app use — must keep working:"
 check ALLOWED "N1  user reads the search pool (eligible_profiles)" authenticated "$USER_X" "x@example.com" \
@@ -129,6 +143,23 @@ check ALLOWED "N20 user exports their own data" authenticated "$USER_X" "x@examp
   "select case when public.export_my_data() ? 'profile' then 'export ok' end;" "export ok"
 check ALLOWED "N21 signed-out visitor asks is_admin() (false, no error)" anon "" "" \
   "select 'is_admin=' || public.is_admin();" "is_admin=false"
+
+check ALLOWED "N22 admin lists every user" authenticated "$ADMIN" "owner@example.com" \
+  "select 'users=' || count(*) from public.admin_search_users('', 50);" "users=23"
+check ALLOWED "N23 admin finds a user by email" authenticated "$ADMIN" "owner@example.com" \
+  "select 'found=' || count(*) || ' ' || min(email) from public.admin_search_users('x@example', 50);" "found=1 x@example.com"
+check ALLOWED "N24 admin lists reports with both people's details" authenticated "$ADMIN" "owner@example.com" \
+  "select 'reporter=' || reporter_email || ' reported=' || reported_email from public.admin_list_reports(true);" \
+  "reporter=x@example.com reported=v@example.com"
+check ALLOWED "N25 server reads the send-push config (cron secret exists)" service_role "" "" \
+  "select 'secret_len=' || length(cron_secret) from public.send_push_config();" "secret_len=64"
+check ALLOWED "N26 server saves VAPID keys once; a second pair can't replace them" service_role "" "" \
+  "select 1 from public.save_vapid_keys('pub1', 'priv1');
+   select 'pub=' || vapid_public_key || ' priv=' || vapid_private_key from public.save_vapid_keys('pub2', 'priv2');" "pub=pub1 priv=priv1"
+check ALLOWED "N27 signed-in user gets the VAPID public key (none yet)" authenticated "$USER_X" "x@example.com" \
+  "select 'key=' || coalesce(public.vapid_public_key(), 'none');" "key=none"
+check ALLOWED "N28 last-active time still shows for people with Active Status on" authenticated "$USER_X" "x@example.com" \
+  "select 'admin=' || case when last_active_at is null then 'hidden' else 'shown' end from public.eligible_profiles where id = '$ADMIN';" "admin=shown"
 
 echo
 if [[ $fails -eq 0 ]]; then echo "All checks passed."; else echo "$fails check(s) FAILED."; exit 1; fi
