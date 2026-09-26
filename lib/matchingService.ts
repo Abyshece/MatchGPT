@@ -24,6 +24,7 @@
 
 import { supabase } from './supabase';
 import { rowToProfile } from './profileMapping';
+import { listMyBlockedIds } from './blocksService';
 import type { ProfileRow } from './database.types';
 import type {
   UserProfile, FilterOptions, MatchCandidate, CompatibilityItem,
@@ -58,6 +59,15 @@ export interface SearchOutput {
  * Caller decides the limit by passing `limit`. Defaults to 8 if not provided
  * so any new callers won't accidentally explode the result set.
  */
+// "Online" means active in the last 5 minutes (the app records activity every
+// 2 minutes while open), unless the person turned Active Status off.
+const ONLINE_WINDOW_MS = 5 * 60 * 1000;
+
+export function isOnlineNow(row: { last_active_at?: string | null; settings_show_online?: boolean | null }): boolean {
+  if (row.settings_show_online === false || !row.last_active_at) return false;
+  return Date.now() - new Date(row.last_active_at).getTime() <= ONLINE_WINDOW_MS;
+}
+
 export async function runSearch(input: SearchInput): Promise<SearchOutput> {
   // 1. Pull candidate pool
   const { data, error } = await supabase
@@ -72,11 +82,16 @@ export async function runSearch(input: SearchInput): Promise<SearchOutput> {
 
   const totalEligible = data.length;
 
-  // Pre-step: if `notAlreadyLiked` is set, fetch IDs the searcher already liked
-  // and exclude them from the pool BEFORE other filtering.
   // eligible_profiles exposes only a subset of the profile columns; the rest
   // read as undefined here (see ROADMAP Phase 9, search rework).
   let pool = data as unknown as ProfileRow[];
+
+  // Pre-step: nobody the searcher blocked, or who blocked the searcher.
+  const { ids: blocked } = await listMyBlockedIds();
+  pool = pool.filter((row) => !blocked.has(row.id));
+
+  // Pre-step: if `notAlreadyLiked` is set, fetch IDs the searcher already liked
+  // and exclude them from the pool BEFORE other filtering.
   if (input.filters.notAlreadyLiked) {
     const { listLikesSent } = await import('./likesService');
     const { likedIds } = await listLikesSent(input.searcherId);
@@ -114,6 +129,22 @@ export async function runSearch(input: SearchInput): Promise<SearchOutput> {
   };
 }
 
+// Score specific people (e.g. today's saved Standouts picks) the same way search
+// does. Anyone no longer eligible (paused, banned, deleted) or blocked in either
+// direction drops out.
+export async function scoreProfilesByIds(searcher: UserProfile, ids: string[]): Promise<MatchCandidate[]> {
+  if (ids.length === 0) return [];
+  const { data, error } = await supabase.from('eligible_profiles').select('*').in('id', ids);
+  if (error) {
+    console.error('[matchingService] failed to fetch profiles:', error.message);
+    return [];
+  }
+  const { ids: blocked } = await listMyBlockedIds();
+  return (data as unknown as ProfileRow[])
+    .filter((row) => !blocked.has(row.id))
+    .map((row) => scoreCandidate(row, searcher, ''));
+}
+
 // ============================================================================
 // STAGE 1 — HARD FILTERS
 // ============================================================================
@@ -144,16 +175,12 @@ function applyHardFilters(
     if (filters.isVerified && !row.is_verified) return false;
 
     // ---- Online now (filter pill) ----
-    // We consider a user "online" if their last_active_at is within 5 minutes.
-    if (filters.isOnline) {
-      if (!row.last_active_at) return false;
-      const ageMs = Date.now() - new Date(row.last_active_at).getTime();
-      if (ageMs > 5 * 60 * 1000) return false;
-    }
+    if (filters.isOnline && !isOnlineNow(row)) return false;
 
     // ---- Recently active (within 7 days) ----
+    // People who turned Active Status off don't show their activity.
     if (filters.recentlyActive) {
-      if (!row.last_active_at) return false;
+      if (!row.last_active_at || row.settings_show_online === false) return false;
       const ageMs = Date.now() - new Date(row.last_active_at).getTime();
       if (ageMs > 7 * 24 * 60 * 60 * 1000) return false;
     }
@@ -292,7 +319,7 @@ function scoreCandidate(
     imageUrls: row.photo_urls ?? [],
     linkedin: row.linkedin ?? undefined,
     instagram: row.instagram ?? undefined,
-    isOnline: false,
+    isOnline: isOnlineNow(row),
     isVerified: row.is_verified ?? false,
     isPremium: row.subscription_tier === 'PRO',
     subscriptionTier: (row.subscription_tier as 'FREE' | 'PRO') ?? 'FREE',

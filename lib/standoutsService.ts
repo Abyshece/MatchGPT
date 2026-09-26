@@ -10,7 +10,7 @@
 // ============================================================================
 
 import { supabase } from './supabase';
-import { runSearch } from './matchingService';
+import { runSearch, scoreProfilesByIds } from './matchingService';
 import type { UserProfile, MatchCandidate } from '../types';
 
 const STANDOUTS_PER_DAY = 5;
@@ -40,8 +40,9 @@ export async function loadStandouts(
     return { candidates: [], computed: false, error: cachedError.message };
   }
 
-  if (cached && cached.length >= STANDOUTS_PER_DAY) {
-    // Cache hit — fetch the actual profile rows
+  // Any saved picks are today's picks, even if fewer than 5 were found; don't
+  // recompute (and reshuffle) them on every visit.
+  if (cached && cached.length > 0) {
     return await fetchProfilesByIds(cached.map((r) => r.candidate_id as string), searcher);
   }
 
@@ -104,27 +105,11 @@ async function fetchProfilesByIds(
   ids: string[],
   searcher: UserProfile
 ): Promise<{ candidates: MatchCandidate[]; computed: boolean; error: string | null }> {
-  if (ids.length === 0) return { candidates: [], computed: false, error: null };
-
-  // Re-run the matcher with no filters, then keep only the rows whose id is in our cache.
-  // This is the easiest way to recompute compatibilityReport from current profile
-  // state. It's ~30ms even with 500 profiles in the pool.
-  const { data: searcherUserId } = await supabase.auth.getUser();
-  const userId = searcherUserId.user?.id;
-  if (!userId) return { candidates: [], computed: false, error: 'Not authenticated' };
-
-  const result = await runSearch({
-    searcherId: userId,
-    searcher,
-    prompt: '',
-    filters: { isOnline: false, isVerified: false, isPremium: false },
-  });
-
-  const idSet = new Set(ids);
-  const matched = result.candidates.filter((c) => idSet.has(c.id));
-
-  // Preserve the cached rank order (not the live score order)
-  matched.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
-
-  return { candidates: matched, computed: false, error: null };
+  // Score exactly the saved picks. (Re-running a top-8 search and keeping the
+  // saved ids lost any pick that had since dropped out of the top 8, so picks
+  // vanished on reload later in the day.)
+  const candidates = await scoreProfilesByIds(searcher, ids);
+  // Keep the saved order, not today's live score order
+  candidates.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+  return { candidates, computed: false, error: null };
 }

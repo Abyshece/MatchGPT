@@ -76,7 +76,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ reason, resetInHours, onClo
           </button>
 
           <p className="text-[11px] text-gray-400 text-center mt-3">
-            Razorpay integration coming in Phase 6. The button is disabled until then.
+            Pro subscriptions are coming soon.
           </p>
 
           <button
