@@ -3,7 +3,7 @@
 //
 // Drains the push_queue table and sends notifications via Web Push API.
 // Invoked by the `send-push` cron job (every minute while something is queued,
-// see migration 20260926181500). Only callers with the job's shared secret
+// see migration 20260926195517). Only callers with the job's shared secret
 // (x-cron-secret header, kept in Supabase Vault) get through, so deploy with
 // JWT verification off: npx supabase functions deploy send-push --no-verify-jwt
 //

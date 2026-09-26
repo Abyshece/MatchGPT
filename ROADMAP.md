@@ -97,7 +97,7 @@ Run in a browser against a local copy of the backend (`npx supabase start` with 
   mentions "Phase 6"
 
 - [x] Admin "Users" and "Reports" tabs only saw the admin's own profile: new admin-only lookups
-  (`admin_search_users`, `admin_list_reports`, migration `20260926181500`)
+  (`admin_search_users`, `admin_list_reports`, migration `20260926195517`)
 - [x] "Active Status" off now also hides the last-active time in the database (it reached every
   signed-in browser)
 - [x] Push notifications were never sent. Nothing ran `send-push`, the Vault key it would have used was a
