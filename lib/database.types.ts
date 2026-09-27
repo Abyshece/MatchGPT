@@ -1570,7 +1570,7 @@ export type Database = {
           is_verified?: boolean | null
           job_title?: string | null
           languages?: string | null
-          last_active_at?: string | null
+          last_active_at?: never
           linkedin?: string | null
           location?: string | null
           love_language?: string | null
@@ -1629,7 +1629,7 @@ export type Database = {
           is_verified?: boolean | null
           job_title?: string | null
           languages?: string | null
-          last_active_at?: string | null
+          last_active_at?: never
           linkedin?: string | null
           location?: string | null
           love_language?: string | null
@@ -1774,7 +1774,7 @@ export type Database = {
           is_verified?: boolean | null
           job_title?: string | null
           languages?: string | null
-          last_active_at?: string | null
+          last_active_at?: never
           linkedin?: string | null
           location?: string | null
           marriage_timeline?: string | null
@@ -1811,7 +1811,7 @@ export type Database = {
           is_verified?: boolean | null
           job_title?: string | null
           languages?: string | null
-          last_active_at?: string | null
+          last_active_at?: never
           linkedin?: string | null
           location?: string | null
           marriage_timeline?: string | null
