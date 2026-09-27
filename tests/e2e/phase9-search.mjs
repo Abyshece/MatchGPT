@@ -7,6 +7,8 @@
 //  4. The daily limit is enforced by the server: a 4th search is refused even
 //     when the page thinks one is left
 //  5. The liked list, Standouts and the blocked list still show people
+// With the GEMINI_API_KEY secret set (or a stand-in, see README), prompts are
+// understood by Gemini; otherwise by rules. The checks hold either way.
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -69,6 +71,9 @@ try {
   const far = sql(`select count(*) from profiles where id in (${inList(nearIds)}) and location not like '%, MH';`);
   check(far === '0', 'all of them are in Mumbai or elsewhere in Maharashtra');
   check(await page.getByText('Results for you').isVisible(), 'results are shown');
+  const understood = await page.getByTestId('understood').innerText().catch(() => '');
+  check(/Understood/.test(understood) && understood.includes('Near you'),
+    `the page shows what the search understood (${near.json.understoodBy}): ${understood.replace(/\s+/g, ' ')}`);
 
   const smoke = await search("someone who doesn't smoke");
   const smokeIds = smoke.json.candidates.map((c) => c.id);

@@ -1,6 +1,9 @@
 // Tests for matching.ts. Run from the repo root:
 //   deno test --no-config supabase/functions/search/matching_test.ts
-import { parsePrompt, rankCandidates, sanitizeFilters, type Row } from './matching.ts';
+import {
+  buildCatalog, describeParsed, parsePrompt, planToParsed, rankCandidates, sanitizeFilters,
+  type Row, type SearchPlan,
+} from './matching.ts';
 
 function assertEquals(actual: unknown, expected: unknown, label = '') {
   const a = JSON.stringify(actual);
@@ -124,4 +127,71 @@ Deno.test('diet, exercise and the other factors now count', () => {
 Deno.test('filters from the browser are checked', () => {
   assertEquals(sanitizeFilters({ religion: 'Hindu', isOnline: 'yes', ageRange: [40, 25], evil: 1 }),
     { religion: 'Hindu', ageRange: [25, 40] });
+});
+
+// ---- Plans from Gemini (ai.ts) ------------------------------------------------
+
+const plan = (p: Partial<SearchPlan>): SearchPlan => ({
+  gender: null, ageMin: null, ageMax: null, nearMe: false, city: null, online: false,
+  recentlyActive: false, verified: false, avoid: [], preferences: [], keywords: [], ...p,
+});
+const aiIds = (pool: Row[], p: SearchPlan) =>
+  rankCandidates(me, pool, 'ignored', {}, 50, NOW, planToParsed(p)).candidates.map((c) => c.id);
+
+Deno.test('Gemini plan: a named city, age and habits to avoid are filters', () => {
+  const pool = [
+    person('pune', { location: 'Pune, MH' }), person('mumbai'),
+    person('pune-smoker', { location: 'Pune, MH', smoking: 'Regularly' }),
+    person('pune-40', { location: 'Pune, MH', age: 40 }),
+  ];
+  assertEquals(aiIds(pool, plan({ city: 'Pune', ageMax: 35, avoid: ['smoking'] })), ['pune']);
+});
+
+Deno.test('Gemini plan: chosen answers and keyword synonyms raise the score', () => {
+  const pool = [
+    person('plain'),
+    person('veg', { dietary_preferences: 'Vegan' }),
+    person('doc', { job_title: 'Physician' }),
+    person('both', { dietary_preferences: 'Vegetarian', job_title: 'Surgeon' }),
+  ];
+  const p = plan({
+    preferences: [{ field: 'dietary_preferences', answers: ['Vegetarian', 'Vegan'], negated: false }],
+    keywords: [{ words: ['doctor', 'physician', 'surgeon'], negated: false }],
+  });
+  const [first] = aiIds(pool, p);
+  assertEquals(first, 'both');
+  const scores = rankCandidates(me, pool, '', {}, 50, NOW, planToParsed(p)).candidates;
+  const score = (id: string) => scores.find((c) => c.id === id)!.compatibilityScore;
+  assertEquals(score('doc') > score('plain') && score('veg') > score('plain'), true);
+});
+
+Deno.test('Gemini plan: a hidden answer counts as unknown', () => {
+  const hidden = person('h', { religion: 'Hindu', hidden_fields: ['religion'] });
+  const shown = person('s', { religion: 'Hindu' });
+  const p = plan({ preferences: [{ field: 'religion', answers: ['Hindu'], negated: false }] });
+  assertEquals(aiIds([hidden, shown], p), ['s', 'h']);
+});
+
+Deno.test('catalog: answers people show, hidden ones left out, sorted', () => {
+  const catalog = buildCatalog([
+    person('a', { dietary_preferences: 'Vegan', religion: 'Sikh' }),
+    person('b', { dietary_preferences: 'Jain', religion: 'Hindu', hidden_fields: ['religion'] }),
+  ]);
+  assertEquals([catalog.dietary_preferences, catalog.religion], [['Jain', 'Vegan'], ['Sikh']]);
+});
+
+Deno.test('what the search understood, as short labels', () => {
+  assertEquals(describeParsed(parsePrompt("a woman under 30 near me who doesn't smoke and loves hiking")),
+    ['Women', 'Under 30', 'Near you', "Doesn't smoke", 'hiking']);
+  assertEquals(describeParsed(planToParsed(plan({
+    gender: 'man', ageMin: 25, ageMax: 30, city: 'Pune', avoid: ['drinking'],
+    preferences: [{ field: 'dietary_preferences', answers: ['Vegetarian', 'Vegan'], negated: false }],
+    keywords: [{ words: ['books', 'reading'], negated: false }, { words: ['lawyer'], negated: true }],
+  }))), ['Men', 'Age 25–30', 'In Pune', "Doesn't drink", 'Diet: Vegetarian / Vegan', 'books', 'not lawyer']);
+});
+
+Deno.test('answers as the sign-up form stores them count too ("Dog", "Yes")', () => {
+  const pool = [person('dog', { pets: 'Dog' }), person('none', { pets: 'None' }), person('cook', { can_cook: 'Yes' })];
+  assertEquals(ids(pool, 'dog lover')[0], 'dog');
+  assertEquals(ids(pool, 'someone who can cook')[0], 'cook');
 });

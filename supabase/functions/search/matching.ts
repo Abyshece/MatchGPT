@@ -4,6 +4,9 @@
 // Used by the `search` edge function. No imports, so it can be tested on its
 // own. (Until Phase 9 this ran in the browser, in lib/matchingService.ts.)
 //
+// The prompt is understood either by Gemini (ai.ts, turned into the same
+// shape by planToParsed) or, when Gemini isn't available, by parsePrompt.
+//
 // For one searcher and the pool from search_candidates():
 //   1. Each candidate is seen the way other users see them: fields they marked
 //      hidden count as not filled in, for filters, prompt matching and scoring
@@ -319,20 +322,20 @@ const INTENT_LIST: Intent[] = [
   { words: ['vegan'], alsoText: true,
     answer: (p) => (p.dietaryPreferences ? p.dietaryPreferences === 'Vegan' : undefined) },
   { words: ['pet', 'dog', 'cat', 'puppy', 'kitten', 'animal'], alsoText: true,
-    answer: fieldAnswer('pets', ['Has pets', 'Wants pets'], ['No pets', 'Allergic']) },
+    answer: fieldAnswer('pets', ['Has pets', 'Wants pets', 'Dog', 'Cat'], ['No pets', 'Allergic', 'None']) },
   { words: ['cook', 'cooking', 'chef', 'foodie', 'baking', 'baker'], alsoText: true,
-    answer: fieldAnswer('canCook', ['Excellent', 'Decent'], ["Can't cook", 'Basic']) },
+    answer: fieldAnswer('canCook', ['Excellent', 'Decent', 'Yes'], ["Can't cook", 'Basic', 'No']) },
   { words: ['gym', 'fitness', 'fit', 'workout', 'exercise', 'athletic', 'athlete'], alsoText: true,
     answer: fieldAnswer('gymRoutine', ['Daily', '3-4 times a week'], ['Never', 'Occasionally']) },
   { words: ['sport', 'sporty'], alsoText: true,
     answer: fieldAnswer('sportsInterest', ['Avid fan', 'I play, not watch'], ['Not interested']) },
   { words: ['reader', 'reading', 'read', 'book', 'bookworm', 'novel'], alsoText: true,
-    answer: fieldAnswer('readingInterest', ['Avid reader'], ["I don't read much"]) },
+    answer: fieldAnswer('readingInterest', ['Avid reader', 'Avid Reader'], ["I don't read much"]) },
   { words: ['travel', 'traveling', 'travelling', 'traveler', 'traveller', 'wanderlust', 'explorer', 'backpacking', 'backpacker'],
     alsoText: true,
     answer: (p) => {
-      if (p.lovesTravel === 'Yes, frequently' || p.nextTravelDestination) return true;
-      return p.lovesTravel === 'I prefer staying home' ? false : undefined;
+      if (['Yes, frequently', 'Yes'].includes(p.lovesTravel) || p.nextTravelDestination) return true;
+      return ['I prefer staying home', 'No'].includes(p.lovesTravel) ? false : undefined;
     } },
   { words: ['introvert', 'introverted', 'homebody', 'quiet', 'shy'], alsoText: true,
     answer: fieldAnswer('socialBattery', ['Introvert', 'Homebody'], ['Extrovert', 'Social Butterfly']) },
@@ -356,11 +359,15 @@ interface Term {
   phrases: string[];   // any of these in the profile text is a match
   negated: boolean;
   intent?: Intent;
+  field?: string;      // from Gemini: a profile answer (camelCase field)...
+  values?: string[];   // ...and the answers that count
+  label: string;       // how it's shown back to the searcher
 }
 
-interface ParsedPrompt {
+export interface ParsedPrompt {
   terms: Term[];
   nearMe: boolean;
+  city: string | null;
   online: boolean;
   recentlyActive: boolean;
   verified: boolean;
@@ -477,6 +484,7 @@ export function parsePrompt(prompt: string): ParsedPrompt {
         phrases: known ? known.intent.words : group ?? [word],
         negated,
         intent: known?.intent,
+        label: word,
       });
     }
     lastWasNegated = negated;
@@ -486,6 +494,7 @@ export function parsePrompt(prompt: string): ParsedPrompt {
   return {
     terms,
     nearMe: near.found,
+    city: null,
     online: online.found,
     recentlyActive: recent.found,
     verified: verified.found,
@@ -514,6 +523,11 @@ const mentions = (text: string, phrases: string[]) => phrases.some((ph) => text.
 
 // Does the profile satisfy this part of the prompt?
 function satisfies(term: Term, p: Profile, text: string): boolean {
+  if (term.field) {
+    // Unknown (not filled in or hidden) never counts, either way
+    if (p[term.field] === undefined) return false;
+    return (term.values ?? []).includes(p[term.field]) !== term.negated;
+  }
   if (!term.intent) return mentions(text, term.phrases) !== term.negated;
   const answer = term.intent.answer(p);
   if (term.negated) return answer === false;
@@ -526,6 +540,121 @@ function promptBonus(parsed: ParsedPrompt, p: Profile): number {
   const text = profileText(p);
   const matched = parsed.terms.filter((term) => satisfies(term, p, text)).length;
   return Math.round((matched / parsed.terms.length) * 30);
+}
+
+// ============================================================================
+// Prompts understood by Gemini (ai.ts)
+// ============================================================================
+
+export type Habit = 'smoking' | 'drinking' | 'marijuana' | 'drugs';
+
+// What Gemini made of a prompt, already checked by ai.ts.
+export interface SearchPlan {
+  gender: Gender | null;
+  ageMin: number | null;
+  ageMax: number | null;
+  nearMe: boolean;
+  city: string | null;
+  online: boolean;
+  recentlyActive: boolean;
+  verified: boolean;
+  avoid: Habit[];                                                        // left out, like "doesn't smoke"
+  preferences: { field: string; answers: string[]; negated: boolean }[];  // snake_case profile answers
+  keywords: { words: string[]; negated: boolean }[];                     // looked for in bios, hobbies, jobs
+}
+
+// Profile answers Gemini may choose from: the ones people in the pool have.
+export const AI_FIELDS: Record<string, string> = {
+  religion: 'Religion', politics: 'Politics', dating_intention: 'Looking for',
+  relationship_type: 'Relationship', marriage_timeline: 'Marriage', family_plans: 'Kids',
+  children: 'Has kids', education_level: 'Education', work_style: 'Work',
+  drinking: 'Drinks', smoking: 'Smokes', marijuana: 'Cannabis', drugs: 'Drugs',
+  dietary_preferences: 'Diet', gym_routine: 'Exercise', sleep_schedule: 'Sleep',
+  can_cook: 'Cooks', pets: 'Pets', living_preference: 'Lives', social_battery: 'Personality',
+  love_language: 'Love language', attachment_style: 'Attachment', conflict_resolution: 'Conflict style',
+  financial_approach: 'Money', family_closeness: 'Family', travel_style: 'Travel',
+  loves_travel: 'Loves travel', reading_interest: 'Reading', sports_interest: 'Sports',
+  has_tattoos: 'Tattoos', body_type: 'Body type', ethnicity: 'Ethnicity', zodiac: 'Zodiac',
+};
+
+// Field → the answers visible in the pool (hidden ones left out), sorted.
+// Fields with free text (more than 25 different answers) are skipped.
+export function buildCatalog(pool: Row[]): Record<string, string[]> {
+  const seen = new Map<string, Set<string>>();
+  for (const row of pool) {
+    const p = asSeenByOthers(row);
+    for (const field of Object.keys(AI_FIELDS)) {
+      const value = p[toCamel(field)];
+      if (typeof value !== 'string' || value.length > 40) continue;
+      if (!seen.has(field)) seen.set(field, new Set());
+      seen.get(field)!.add(value);
+    }
+  }
+  const catalog: Record<string, string[]> = {};
+  for (const field of Object.keys(AI_FIELDS)) {
+    const values = seen.get(field);
+    if (values && values.size <= 25) catalog[field] = [...values].sort();
+  }
+  return catalog;
+}
+
+const HABIT_INTENT: Record<Habit, string> = { smoking: 'smoke', drinking: 'drink', marijuana: 'weed', drugs: 'drug' };
+
+export function planToParsed(plan: SearchPlan): ParsedPrompt {
+  const terms: Term[] = [];
+  for (const habit of plan.avoid) {
+    const intent = INTENT_BY_WORD.get(HABIT_INTENT[habit])?.intent;
+    if (intent) terms.push({ phrases: intent.words, negated: true, intent, label: HABIT_INTENT[habit] });
+  }
+  for (const pref of plan.preferences) {
+    terms.push({
+      phrases: [], negated: pref.negated, field: toCamel(pref.field), values: pref.answers,
+      label: `${AI_FIELDS[pref.field] ?? pref.field}: ${pref.negated ? 'not ' : ''}${pref.answers.join(' / ')}`,
+    });
+  }
+  for (const keyword of plan.keywords) {
+    const phrases = [...new Set(keyword.words.map(normalize).filter(Boolean))];
+    if (phrases.length > 0) terms.push({ phrases, negated: keyword.negated, label: keyword.words[0] });
+  }
+  const hasAge = plan.ageMin !== null || plan.ageMax !== null;
+  return {
+    terms,
+    nearMe: plan.nearMe,
+    city: plan.city,
+    online: plan.online,
+    recentlyActive: plan.recentlyActive,
+    verified: plan.verified,
+    gender: plan.gender,
+    ageRange: hasAge ? [plan.ageMin ?? 18, plan.ageMax ?? 99] : null,
+  };
+}
+
+const HABIT_CHIPS: Record<string, [string, string]> = {
+  smoke: ['Smokes', "Doesn't smoke"], drink: ['Drinks', "Doesn't drink"],
+  weed: ['Cannabis', 'No cannabis'], drug: ['Drugs', 'No drugs'],
+};
+
+// Short labels for what the search understood ("Women", "Age 25–30",
+// "Doesn't smoke", "Diet: Vegetarian / Vegan", "reading"), shown above results.
+export function describeParsed(parsed: ParsedPrompt): string[] {
+  const chips: string[] = [];
+  if (parsed.gender) chips.push({ woman: 'Women', man: 'Men', nonbinary: 'Non-binary people' }[parsed.gender]);
+  if (parsed.ageRange) {
+    const [min, max] = parsed.ageRange;
+    chips.push(min <= 18 ? `Under ${max + 1}` : max >= 99 ? `Over ${min - 1}` : `Age ${min}–${max}`);
+  }
+  if (parsed.city) chips.push(`In ${parsed.city}`);
+  if (parsed.nearMe) chips.push('Near you');
+  if (parsed.online) chips.push('Online now');
+  if (parsed.recentlyActive) chips.push('Active this week');
+  if (parsed.verified) chips.push('Verified');
+  for (const term of parsed.terms) {
+    const habit = term.intent && HABIT_CHIPS[term.intent.words[0]];
+    if (habit) chips.push(habit[term.negated ? 1 : 0]);
+    else if (term.field) chips.push(term.label);
+    else chips.push(`${term.negated ? 'not ' : ''}${term.label}`);
+  }
+  return [...new Set(chips)].slice(0, 10);
 }
 
 // ============================================================================
@@ -547,6 +676,10 @@ function passesFilters(
   if (filters.neighborhood) {
     const hay = `${c.location ?? ''} ${c.hometown ?? ''}`.toLowerCase();
     if (!hay.includes(filters.neighborhood.toLowerCase())) return false;
+  }
+  if (parsed.city) {
+    const hay = `${c.location ?? ''} ${c.hometown ?? ''}`.toLowerCase();
+    if (!hay.includes(parsed.city.toLowerCase())) return false;
   }
   if (parsed.nearMe && me.location) {
     if (!c.location || !(sameCity(me.location, c.location) || sameRegion(me.location, c.location))) return false;
@@ -652,9 +785,9 @@ function scoreRelationshipGoals(s: Profile, c: Profile): Dimension {
 }
 
 function closeTimelines(a: string, b: string): boolean {
-  const order = ['ASAP', 'Within 6 months', 'Within 1 year', '1-2 years', '3-5 years', '5+ years', 'Not sure yet'];
-  const ai = order.indexOf(a);
-  const bi = order.indexOf(b);
+  const order = ['asap', 'within 6 months', 'within 1 year', '1-2 years', '3-5 years', '5+ years', 'not sure yet'];
+  const ai = order.indexOf(a.toLowerCase());
+  const bi = order.indexOf(b.toLowerCase());
   return ai !== -1 && bi !== -1 && Math.abs(ai - bi) <= 1;
 }
 
@@ -1027,9 +1160,9 @@ export function rankCandidates(
   filters: FilterOptions,
   limit: number,
   now = Date.now(),
+  parsed: ParsedPrompt = parsePrompt(prompt),
 ): { candidates: MatchCandidate[]; poolSize: number } {
   const me = ownProfile(meRow);
-  const parsed = parsePrompt(prompt);
   const survivors = pool
     .map((row) => ({ row, c: asSeenByOthers(row) }))
     .filter(({ row, c }) => passesFilters(row, c, me, filters, parsed, now));

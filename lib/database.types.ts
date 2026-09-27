@@ -937,6 +937,24 @@ export type Database = {
           },
         ]
       }
+      search_prompt_cache: {
+        Row: {
+          created_at: string
+          key: string
+          plan: Json
+        }
+        Insert: {
+          created_at?: string
+          key: string
+          plan: Json
+        }
+        Update: {
+          created_at?: string
+          key?: string
+          plan?: Json
+        }
+        Relationships: []
+      }
       standouts: {
         Row: {
           candidate_id: string
