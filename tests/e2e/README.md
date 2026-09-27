@@ -27,5 +27,6 @@ Defaults match the local stack; override with `BASE_URL`, `SUPABASE_URL`,
 | `reset-flow.mjs` | Forgot password → email link → new password; old one rejected; a used link is refused |
 | `refresh-check.mjs [email]` | The app survives sign-in token refreshes. Set `jwt_expiry = 120` to see several in two minutes |
 | `phase8-app.mjs <email>` | Online status, Standouts keeping its picks, block/unblock, pause, "Get verified" (an onboarded account, password `TestPass!2026`) |
+| `gemini-standin.cjs` | Not a test: a stand-in for Google's Gemini API so AI search can be tried locally without a key (instructions at the top of the file) |
 | `phase9-search.mjs <email>` | Search on the server: "near me", "doesn't smoke", hidden name and religion never sent, the daily limit refused by the server, liked list / Standouts / blocked list (an onboarded account, password `TestPass!2026`; moves it to Mumbai) |
 | `admin-tabs.mjs <email>` | Admin Users and Reports tabs see everyone (makes the account an admin) |

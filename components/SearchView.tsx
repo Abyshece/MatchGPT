@@ -74,6 +74,8 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
   const [hasSearched, setHasSearched] = useState(false);
   const [searching, setSearching] = useState(false);
   const [poolSize, setPoolSize] = useState(0);
+  // What the server understood from the prompt, shown above the results
+  const [understood, setUnderstood] = useState<{ labels: string[]; byAi: boolean } | null>(null);
   const [selectedCandidate, setSelectedCandidate] = useState<MatchCandidate | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
@@ -188,6 +190,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
 
       setResults(output.candidates);
       setPoolSize(output.poolSize);
+      setUnderstood({ labels: output.understood, byAi: output.understoodBy === 'ai' });
 
       saveSearch(session.user.id, effectivePrompt, filters, output.candidates, output.poolSize)
         .catch((e) => console.warn('[SearchView] saveSearch failed:', e));
@@ -440,6 +443,18 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
         {/* Results */}
         {hasSearched && (
           <div className="mt-8">
+            {!searching && understood && understood.labels.length > 0 && (
+              <div className="flex flex-wrap items-center justify-center gap-1.5 mb-6 animate-fade-in" data-testid="understood">
+                <span className="text-xs text-gray-400 mr-1">
+                  {understood.byAi ? '✨ Understood by AI:' : 'Understood:'}
+                </span>
+                {understood.labels.map((label) => (
+                  <span key={label} className="px-2.5 py-1 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 text-xs rounded-full font-medium">
+                    {label}
+                  </span>
+                ))}
+              </div>
+            )}
             {searching ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (

@@ -1,7 +1,7 @@
 # MatchGPT roadmap
 
-11 phases in total. Phases 1–5 and 7–9 are done (Phase 9 leaves one decision for you: whether to add AI),
-Phase 6 is mostly done; **Phase 10 is next**.
+11 phases in total. Phases 1–5 and 7–9 are done, Phase 6 is mostly done; **Phase 10 is next**.
+AI search (Gemini) is built and live; it switches on once you add the `GEMINI_API_KEY` secret (Phase 9).
 Items left unfinished in earlier phases were moved into later ones, so each open item appears once.
 (`PHASE_1_README.md`–`PHASE_3_README.md` are historical setup notes.)
 
@@ -15,7 +15,7 @@ Items left unfinished in earlier phases were moved into later ones, so each open
 | 6 | Polish & launch prep | Mostly done (payments → 11, cleanup → 10) |
 | 7 | Make the backend safe and rebuildable | **Done** (3 small owner follow-ups) |
 | 8 | Finish half-built features | **Done** (owner checks listed) |
-| 9 | Smarter search that scales | **Done** (AI is a decision for you) |
+| 9 | Smarter search that scales | **Done** (add the Gemini key to switch AI on) |
 | 10 | Launch readiness → public launch | To do — next |
 | 11 | Payments (Pro via Razorpay) | To do |
 
@@ -155,9 +155,23 @@ Search and Standouts run in a new `search` edge function instead of the browser.
   - 12 unit tests for the matching logic (`supabase/functions/search/matching_test.ts`)
   - browser test `tests/e2e/phase9-search.mjs`
   - checked live with a temporary account, deleted afterwards
-- [ ] **Decision:** add real AI to turn the prompt into filters and rank by meaning (bio, hobbies, "vibe").
-  Needs an AI provider account and an API key kept on the server, and costs money per search
-- [ ] Optional, after that decision: AI-written "why you match" summaries
+- [x] AI search with Google Gemini's free tier (decided 2026-09-27; migration `20260927210449_phase9_ai_prompt_cache`,
+  applied live). Gemini turns the prompt into filters (gender, age, a named city, "near me",
+  online, habits to avoid) and preferences that raise the score (profile answers such as diet or religion, and
+  words with synonyms to look for in bios, hobbies and jobs). Results show what the search understood
+  ("✨ Understood by AI: Women · In Pune · Doesn't smoke · …")
+  - Sent to Google: only the typed text (emails and phone numbers removed) and the list of answers people have;
+    never names, photos or profiles. The Privacy Policy now says so (version `privacy-v2-2026-09-27`)
+  - Free-tier limits: roughly 500–1,000 AI searches a day and about 15 a minute (Google shows the exact numbers
+    in AI Studio). The same prompt reuses its saved plan for 30 days. When the key is missing, the quota is used
+    up or Gemini is slow, search falls back to the rule-based understanding above, so it never stops working
+  - The model is picked automatically (newest Flash-Lite first); a `GEMINI_MODEL` secret overrides it
+  - Tested with 14 more unit tests (`ai_test.ts`, `matching_test.ts`), the browser test against a local stand-in
+    for Gemini (`tests/e2e/gemini-standin.cjs`), and live with a temporary account (deleted afterwards)
+- [ ] **Owner:** create a free Gemini API key (aistudio.google.com → Get API key, no billing) and add it in Supabase
+  under Edge Functions → Secrets as `GEMINI_API_KEY`. Until then search uses the rules
+- [ ] Optional: AI-written "why you match" summaries (each would use free quota: better after launch, or on the paid tier)
+- [ ] Optional: rank by the meaning of bios with Supabase's built-in embedding model (free, runs inside Supabase)
 
 ## Phase 10 — Launch readiness → public launch
 - [ ] Delete the 18 unused prototype files (~4,000 lines)

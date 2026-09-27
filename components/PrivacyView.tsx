@@ -43,7 +43,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
 
       <article className="max-w-3xl mx-auto px-6 py-10">
         <p className="text-xs text-gray-500 dark:text-gray-400 mb-6">
-          Document version: {PRIVACY_VERSION} · Last updated: May 11, 2026
+          Document version: {PRIVACY_VERSION} · Last updated: September 27, 2026
         </p>
 
         <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-8">
@@ -111,6 +111,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
             <li><strong>Other users:</strong> your profile (excluding fields you mark hidden) is visible to other users in search results and matches</li>
             <li><strong>Supabase (database & auth):</strong> our backend hosting provider, EU/US infrastructure</li>
             <li><strong>Vercel (web hosting):</strong> hosts the website and serves it from edge locations worldwide</li>
+            <li><strong>Google (Gemini AI):</strong> the text you type into search is sent to Google's Gemini AI to work out what you're looking for. Nothing else from your account or profile is sent with it. We use Google's free tier, under which Google may use this text to improve its services, so please don't type personal details into search</li>
             <li><strong>Razorpay (payments):</strong> processes Pro subscription payments, based in India</li>
             <li><strong>Resend (email):</strong> sends transactional emails — when configured with a real domain</li>
             <li><strong>Law enforcement:</strong> only when legally compelled (court order, subpoena)</li>
@@ -123,7 +124,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
 
         <Section title="6. International data transfers">
           <p>
-            Some of our service providers (Vercel, Supabase) operate globally and may transfer your
+            Some of our service providers (Vercel, Supabase, Google) operate globally and may transfer your
             data outside the European Economic Area. When this happens, we rely on Standard
             Contractual Clauses approved by the European Commission, or the recipient country's
             adequacy decision, to ensure your data is protected.
@@ -206,7 +207,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
 
         <div className="border-t border-gray-200 dark:border-zinc-800 pt-6 mt-10 text-center">
           <p className="text-xs text-gray-400">
-            This document was last updated on May 11, 2026 and is identified internally as {PRIVACY_VERSION}.
+            This document was last updated on September 27, 2026 and is identified internally as {PRIVACY_VERSION}.
           </p>
         </div>
       </article>

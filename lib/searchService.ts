@@ -2,7 +2,8 @@
 // searchService
 //
 // Search and Standouts run on the server, in the `search` edge function
-// (supabase/functions/search: filters, prompt understanding, scoring). The
+// (supabase/functions/search: filters, prompt understanding by Gemini or by
+// rules, scoring). The
 // browser sends the prompt and filters and gets back the top matches, without
 // anything their owners marked hidden. The server also keeps the daily search
 // count, so the limit can't be skipped.
@@ -18,6 +19,8 @@ export interface SearchOutput {
   poolSize: number;               // people who passed the filters
   totalEligible: number;          // everyone the user could be shown
   remaining: number | null;       // searches left today; null = unlimited
+  understood: string[];           // what the prompt was taken to mean ("Women", "Doesn't smoke", ...)
+  understoodBy: 'ai' | 'rules';   // Gemini, or the rule-based fallback
 }
 
 export type SearchErrorCode =

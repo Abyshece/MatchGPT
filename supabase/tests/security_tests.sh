@@ -117,6 +117,10 @@ check ALLOWED "A29 hidden name, age and location stay out of Likes You, Matches 
      from public.get_profile_cards(array['$OTHER']::uuid[]);" "like=hidden/hidden/hidden
 match=hidden/hidden/hidden
 card=hidden/hidden/hidden"
+check ALLOWED "A30 signed-in user reads or fills the AI plan cache" authenticated "$USER_X" "x@example.com" \
+  "select 'readable=' || has_table_privilege('authenticated', 'public.search_prompt_cache', 'select')
+       || ' writable=' || has_table_privilege('authenticated', 'public.search_prompt_cache', 'insert')
+       || ' anon=' || has_table_privilege('anon', 'public.search_prompt_cache', 'select');" "readable=false writable=false anon=false"
 
 echo
 echo "Normal app use — must keep working:"
@@ -215,6 +219,11 @@ check ALLOWED "N32 user reads cards of people they liked, matched or blocked" au
   "reset role; insert into public.likes (liker_id, liked_id) select '$USER_X', $EXTRA from generate_series(1, 1) g;
    insert into public.blocks (blocker_id, blocked_id) select '$USER_X', $EXTRA from generate_series(2, 2) g; set local role authenticated;
    select 'cards=' || count(*) from public.get_profile_cards(array(select $EXTRA from generate_series(1, 3) g));" "cards=2"
+check ALLOWED "N33 search function saves and reuses a Gemini plan (service role)" service_role "" "" \
+  "insert into public.search_prompt_cache (key, plan) values ('k1', '{\"gender\": \"woman\"}');
+   insert into public.search_prompt_cache (key, plan) values ('k1', '{\"gender\": \"man\"}')
+     on conflict (key) do update set plan = excluded.plan, created_at = now();
+   select 'plan=' || (plan ->> 'gender') from public.search_prompt_cache where key = 'k1';" "plan=man"
 
 echo
 if [[ $fails -eq 0 ]]; then echo "All checks passed."; else echo "$fails check(s) FAILED."; exit 1; fi
