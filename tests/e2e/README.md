@@ -1,7 +1,7 @@
 # Browser tests
 
 Playwright scripts that drive the real app in Chromium against a local
-Supabase (`supabase/config.toml`), used to check Phases 8 and 9. Each prints what it
+Supabase (`supabase/config.toml`), used to check Phases 8 and 9 and later fixes. Each prints what it
 checked and exits non-zero on failure; screenshots go to `tests/e2e/.shots/`.
 
 ## Setup
@@ -29,4 +29,6 @@ Defaults match the local stack; override with `BASE_URL`, `SUPABASE_URL`,
 | `phase8-app.mjs <email>` | Online status, Standouts keeping its picks, block/unblock, pause, "Get verified" (an onboarded account, password `TestPass!2026`) |
 | `gemini-standin.cjs` | Not a test: a stand-in for Google's Gemini API so AI search can be tried locally without a key (instructions at the top of the file) |
 | `phase9-search.mjs <email>` | Search on the server: "near me", "doesn't smoke", hidden name and religion never sent, the daily limit refused by the server, liked list / Standouts / blocked list (an onboarded account, password `TestPass!2026`; moves it to Mumbai) |
+| `verify-popup.mjs <email>` | "Verify your identity": full size when opened from the sidebar (was squeezed into it), link checks, 2 of 4 links, sending, "in review" with the links filled in, a full-width sheet on a phone; Pro accounts see "Unlimited searches" (an onboarded account, password `TestPass!2026`) |
+| `google-button.mjs <email>` | Google's own sign-in button, with a stand-in for Google's library: Google gets a hashed nonce, Supabase gets the token and the matching nonce, errors are shown. Needs a dev server started with `VITE_GOOGLE_CLIENT_ID=test-client.apps.googleusercontent.com` (default `BASE_URL` http://localhost:3001) |
 | `admin-tabs.mjs <email>` | Admin Users and Reports tabs see everyone (makes the account an admin) |

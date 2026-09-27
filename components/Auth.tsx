@@ -3,6 +3,8 @@ import { Button } from './NotionUI';
 import { IconMail, IconGoogle, IconChevronRight, IconX, IconLock } from '../constants';
 import { supabase } from '../lib/supabase';
 import { TERMS_VERSION, PRIVACY_VERSION } from '../lib/consentService';
+import { GOOGLE_CLIENT_ID } from '../lib/googleSignIn';
+import GoogleSignInButton from './GoogleSignInButton';
 
 interface AuthProps {
   // Sign-up that needs the emailed code: parent shows the email-verification screen.
@@ -32,6 +34,9 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
     setInfo(null);
   };
 
+  // Classic Google sign-in, used until Google's own button is switched on
+  // (GOOGLE_CLIENT_ID in lib/googleSignIn.ts). Google's screen then names the
+  // Supabase address.
   const handleGoogle = async () => {
     clearMessages();
     setIsLoading(true);
@@ -177,18 +182,26 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
 
         {mode === 'MENU' && (
           <div className="flex flex-col gap-2.5">
-            <button
-              onClick={handleGoogle}
-              disabled={isLoading}
-              className="relative flex items-center justify-center w-full h-9 px-4 border border-gray-300 dark:border-zinc-700 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors text-xs font-semibold text-gray-900 dark:text-gray-100 group disabled:opacity-50"
-            >
-              <span className="absolute left-4 opacity-80 group-hover:opacity-100 transition-opacity"><IconGoogle /></span>
-              <span>Continue with Google</span>
-            </button>
+            {GOOGLE_CLIENT_ID ? (
+              <GoogleSignInButton
+                clientId={GOOGLE_CLIENT_ID}
+                onSignedIn={onSignInSuccess}
+                onError={(message) => { setInfo(null); setError(message); }}
+              />
+            ) : (
+              <button
+                onClick={handleGoogle}
+                disabled={isLoading}
+                className="relative flex items-center justify-center w-full h-10 px-4 border border-gray-300 dark:border-zinc-700 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors text-xs font-semibold text-gray-900 dark:text-gray-100 group disabled:opacity-50"
+              >
+                <span className="absolute left-4 opacity-80 group-hover:opacity-100 transition-opacity"><IconGoogle /></span>
+                <span>Continue with Google</span>
+              </button>
+            )}
 
             <button
               onClick={() => { clearMessages(); setMode('SIGNIN'); }}
-              className="relative flex items-center justify-center w-full h-9 px-4 border border-gray-300 dark:border-zinc-700 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors text-xs font-semibold text-gray-900 dark:text-gray-100 group"
+              className="relative flex items-center justify-center w-full h-10 px-4 border border-gray-300 dark:border-zinc-700 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors text-xs font-semibold text-gray-900 dark:text-gray-100 group"
             >
               <span className="absolute left-4 opacity-80 group-hover:opacity-100 transition-opacity"><IconMail /></span>
               <span>Continue with Email</span>
@@ -206,7 +219,7 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
 
               <button
                 onClick={() => { clearMessages(); setMode('SIGNUP'); }}
-                className="group w-full flex items-center justify-center gap-2 h-9 bg-black hover:bg-neutral-800 dark:bg-white dark:hover:bg-gray-200 text-white dark:text-black rounded-lg text-xs font-bold transition-all shadow-sm hover:shadow-md"
+                className="group w-full flex items-center justify-center gap-2 h-10 bg-black hover:bg-neutral-800 dark:bg-white dark:hover:bg-gray-200 text-white dark:text-black rounded-lg text-xs font-bold transition-all shadow-sm hover:shadow-md"
               >
                 Create Account
                 <span className="opacity-70 group-hover:translate-x-1 transition-transform"><IconChevronRight /></span>

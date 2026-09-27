@@ -84,8 +84,10 @@ try {
   check(shown.length === picks.length, 'all 5 saved picks are shown after reload');
 
   log('3. blocked people');
-  const victim = found[0].name;
-  const victimId = sql(`select id from profiles where name = '${victim.replace(/'/g, "''")}' limit 1;`);
+  // someone whose name nobody else has (the seed data repeats some names)
+  const victim = found.map((c) => c.name)
+    .find((n) => sql(`select count(*) from profiles where name = '${n.replace(/'/g, "''")}';`) === '1');
+  const victimId = sql(`select id from profiles where name = '${victim.replace(/'/g, "''")}';`);
   sql(`insert into blocks (blocker_id, blocked_id, reason) values ('${me}', '${victimId}', 'test');`);
   await search('someone kind who loves travel');
   const after = await cards();

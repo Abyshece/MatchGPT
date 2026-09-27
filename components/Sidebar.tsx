@@ -159,13 +159,11 @@ const Sidebar: React.FC<SidebarProps> = ({
         {/* GET VERIFIED TODAY — only shown if user is not verified */}
         {profile && !profile.isVerified && (
           <div
-            onClick={() => {
-              if (profile.verificationStatus !== 'pending') setShowVerifyModal(true);
-            }}
-            className={`rounded-lg border transition-all duration-300 mb-3 overflow-hidden group ${
+            onClick={() => setShowVerifyModal(true)}
+            className={`rounded-lg border transition-all duration-300 mb-3 overflow-hidden group cursor-pointer ${
               profile.verificationStatus === 'pending'
-                ? 'bg-yellow-50 dark:bg-yellow-900/10 border-yellow-200 dark:border-yellow-800 cursor-default'
-                : 'bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/20 cursor-pointer'
+                ? 'bg-yellow-50 dark:bg-yellow-900/10 border-yellow-200 dark:border-yellow-800 hover:bg-yellow-100 dark:hover:bg-yellow-900/20'
+                : 'bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/20'
             } ${isCollapsed ? 'p-2 flex justify-center items-center' : 'px-3 py-3'}`}
             title={isCollapsed ? (profile.verificationStatus === 'pending' ? 'Verification pending' : 'Get verified') : undefined}
           >
@@ -213,7 +211,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      {/* Verification modal — opened from the GET VERIFIED TODAY box */}
+      {/* Verification modal, opened from the box above (it renders into <body>) */}
       {showVerifyModal && (
         <VerificationRequestModal onClose={() => setShowVerifyModal(false)} />
       )}
