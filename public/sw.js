@@ -27,10 +27,10 @@ self.addEventListener('push', (event) => {
     payload = event.data ? event.data.json() : {};
   } catch (e) {
     // Fallback to text
-    payload = { title: 'ShaadiGPT', body: event.data ? event.data.text() : 'New activity' };
+    payload = { title: 'MatchGPT', body: event.data ? event.data.text() : 'New activity' };
   }
 
-  const title = payload.title || 'ShaadiGPT';
+  const title = payload.title || 'MatchGPT';
   const options = {
     body: payload.body || '',
     icon: '/icon-192.png',          // shown in the notification
@@ -53,7 +53,7 @@ self.addEventListener('notificationclick', (event) => {
 
   event.waitUntil(
     (async () => {
-      // If a ShaadiGPT tab is already open, focus it instead of opening a new one
+      // If a MatchGPT tab is already open, focus it instead of opening a new one
       const allClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
       const appUrl = self.location.origin;
 

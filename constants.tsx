@@ -18,7 +18,7 @@ import { PhotoSlot, MatchCandidate, SubscriptionTier } from './types';
 export const SUBSCRIPTION_PLANS = [
   {
     tier: 'FREE' as SubscriptionTier,
-    name: 'ShaadiGPT Free',
+    name: 'MatchGPT Free',
     price: '₹0',
     period: 'Forever',
     features: [
@@ -33,7 +33,7 @@ export const SUBSCRIPTION_PLANS = [
   },
   {
     tier: 'PRO' as SubscriptionTier,
-    name: 'ShaadiGPT Pro',
+    name: 'MatchGPT Pro',
     price: '₹2,999',
     period: 'per month',
     features: [

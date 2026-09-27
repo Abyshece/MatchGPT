@@ -47,7 +47,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
         </p>
 
         <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-8">
-          This Privacy Policy explains how ShaadiGPT ("we", "us", or "the Service") collects, uses,
+          This Privacy Policy explains how MatchGPT ("we", "us", or "the Service") collects, uses,
           stores, and protects your personal information when you use our dating and matrimony
           platform. We are committed to handling your data with care and in accordance with the
           EU General Data Protection Regulation (GDPR), India's Digital Personal Data Protection
@@ -56,8 +56,8 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
 
         <Section title="1. Who we are">
           <p>
-            ShaadiGPT is operated by Abhishek (the "Operator"). For any privacy-related questions,
-            you can contact us at <a href="mailto:privacy@shaadigpt.com" className="text-blue-600 dark:text-blue-400 underline">privacy@shaadigpt.com</a>.
+            MatchGPT is operated by Abhishek (the "Operator"). For any privacy-related questions,
+            you can contact us at <a href="mailto:privacy@matchgpt.com" className="text-blue-600 dark:text-blue-400 underline">privacy@matchgpt.com</a>.
           </p>
           <p>
             We are the data controller for the personal information you provide on this platform.
@@ -164,7 +164,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
             <li><strong>Complain:</strong> lodge a complaint with your local data protection authority</li>
           </ul>
           <p className="mt-2">
-            To exercise any of these rights, email <a href="mailto:privacy@shaadigpt.com" className="text-blue-600 dark:text-blue-400 underline">privacy@shaadigpt.com</a>. We will respond within 30 days.
+            To exercise any of these rights, email <a href="mailto:privacy@matchgpt.com" className="text-blue-600 dark:text-blue-400 underline">privacy@matchgpt.com</a>. We will respond within 30 days.
           </p>
         </Section>
 
@@ -183,7 +183,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
 
         <Section title="11. Children's privacy">
           <p>
-            ShaadiGPT is intended only for users 18 years and older. We do not knowingly collect
+            MatchGPT is intended only for users 18 years and older. We do not knowingly collect
             data from children under 18. If you become aware that a child has provided us with
             personal data, please contact us immediately and we will delete it.
           </p>
@@ -200,7 +200,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
         <Section title="13. Contact">
           <p>
             Questions about this policy or your data:<br />
-            <a href="mailto:privacy@shaadigpt.com" className="text-blue-600 dark:text-blue-400 underline">privacy@shaadigpt.com</a>
+            <a href="mailto:privacy@matchgpt.com" className="text-blue-600 dark:text-blue-400 underline">privacy@matchgpt.com</a>
           </p>
         </Section>
 

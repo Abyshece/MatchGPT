@@ -1,7 +1,7 @@
 // ============================================================================
 // matchingService
 //
-// THE BRAIN of ShaadiGPT search. Pure functions — no React, no Supabase imports
+// THE BRAIN of MatchGPT search. Pure functions — no React, no Supabase imports
 // in the scoring logic itself (so it's unit-testable). Only the
 // `runSearch` wrapper hits the DB.
 //

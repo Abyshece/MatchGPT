@@ -59,7 +59,7 @@ const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ onAuditUpdate }) => {
   };
 
   const handleUnban = async (user: AdminUserRow) => {
-    if (!confirm(`Unban ${user.name ?? user.email}? They'll be able to use ShaadiGPT again immediately.`)) return;
+    if (!confirm(`Unban ${user.name ?? user.email}? They'll be able to use MatchGPT again immediately.`)) return;
     setActioningId(user.id);
     const { error } = await unbanUser(user.id);
     setActioningId(null);
@@ -237,7 +237,7 @@ const BanModal: React.FC<{
           </div>
           <h3 className="text-lg font-bold text-gray-900 dark:text-white">Ban {user.name ?? user.email}?</h3>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            They won't be able to sign in or use ShaadiGPT. Their profile will be hidden from search.
+            They won't be able to sign in or use MatchGPT. Their profile will be hidden from search.
           </p>
         </div>
 

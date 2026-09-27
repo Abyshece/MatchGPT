@@ -139,7 +139,7 @@ const StepPhotos: React.FC<StepPhotosProps> = ({ onComplete, onBack }) => {
         >
           <IconChevronLeft />
         </button>
-        <div className="font-bold text-gray-700 dark:text-gray-100 text-lg">ShaadiGPT</div>
+        <div className="font-bold text-gray-700 dark:text-gray-100 text-lg">MatchGPT</div>
       </div>
 
       <div className="flex-1 overflow-y-auto">

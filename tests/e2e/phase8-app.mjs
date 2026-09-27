@@ -7,7 +7,7 @@
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
-const DB = process.env.DB_CONTAINER || 'supabase_db_ShaadiGPT';  // `docker ps` shows the name
+const DB = process.env.DB_CONTAINER || 'supabase_db_MatchGPT';  // `docker ps` shows the name
 
 const EMAIL = process.argv[2];
 const PASSWORD = 'TestPass!2026';

@@ -77,7 +77,7 @@ const CookieBanner: React.FC<CookieBannerProps> = ({ onNavigateToPrivacy }) => {
                 </h3>
                 <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
                   We use cookies to keep you signed in and improve the service. Essential cookies
-                  are required to use ShaadiGPT. Analytics and marketing cookies are optional.{' '}
+                  are required to use MatchGPT. Analytics and marketing cookies are optional.{' '}
                   <button
                     onClick={onNavigateToPrivacy}
                     className="text-blue-600 dark:text-blue-400 hover:underline"

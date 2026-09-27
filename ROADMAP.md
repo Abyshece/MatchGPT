@@ -1,4 +1,4 @@
-# ShaadiGPT roadmap
+# MatchGPT roadmap
 
 11 phases in total. Phases 1–5, 7 and 8 are done, Phase 6 is mostly done; **Phase 9 is next**.
 Items left unfinished in earlier phases were moved into later ones, so each open item appears once.
@@ -110,6 +110,14 @@ Run in a browser against a local copy of the backend (`npx supabase start` with 
 - [x] Live: migration applied, `send-push` redeployed, the schedule created its keys; the live schema
   matches a rebuild from the repo on all 12 checksums
 
+- [x] Renamed to MatchGPT everywhere users see it: every screen, Terms and Privacy, the browser tab,
+  plan names, notifications, "Export my data" (migration `20260927101209`); contact emails are now
+  support@ and privacy@matchgpt.com. Unchanged on purpose: saved-setting keys in the browser (renaming
+  them would reset everyone's theme and cookie choices) and the site address `shaadi-gpt.vercel.app`
+- [ ] Owner: matchgpt.com currently redirects to a domain-sales page (domains.atom.com), so mail to the
+  new contact addresses won't arrive until you own the domain and set up those mailboxes. To serve the
+  site there later: add the domain in Vercel, then set it as the Site URL in Supabase Authentication
+
 ### Owner checks
 - [ ] Test Google sign-in with a real Google account. Everything checkable from outside is in order
   (provider on, Google accepts the app's ID and return address, returns to the live site); in Google Cloud
@@ -140,7 +148,7 @@ Run in a browser against a local copy of the backend (`npx supabase start` with 
 - [ ] Error tracking, and analytics that respect the cookie banner
 - [ ] Shrink the main JavaScript file (537 kB)
 - [ ] Clear the remaining Supabase advisor warnings (access rules re-checking the user on every row, unindexed foreign keys, unused `pg_net` in the public schema)
-- [ ] Fix the broken favicon, add a page description and link previews, rename leftover "MatchGPT" references
+- [ ] Fix the broken favicon, add a page description and link previews
 - [ ] Rewrite the README and setup guide
 - [ ] Plan how admins keep up with verification requests (new users are locked out of search after 72 hours)
 - [ ] Legal review of Terms and Privacy; mobile and accessibility check

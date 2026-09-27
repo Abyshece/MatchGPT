@@ -2,7 +2,7 @@
 # https://supabase.com/docs/guides/local-development/cli/config
 # A string used to distinguish different Supabase projects on the same host. Defaults to the
 # working directory name when running `supabase init`.
-project_id = "ShaadiGPT"
+project_id = "MatchGPT"
 
 [api]
 enabled = true
@@ -246,7 +246,7 @@ otp_expiry = 3600
 # it ({{ .Token }}). The live project needs the same template if "Confirm email"
 # is turned on.
 [auth.email.template.confirmation]
-subject = "Your ShaadiGPT code"
+subject = "Your MatchGPT code"
 content_path = "./supabase/templates/confirmation.html"
 
 # Uncomment to customize email template

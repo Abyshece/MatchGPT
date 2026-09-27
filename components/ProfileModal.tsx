@@ -350,7 +350,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
               <button
                 onClick={() => {
                   if (navigator.share) {
-                    navigator.share({ title: candidate.name, text: `Check out ${candidate.name} on ShaadiGPT`, url: window.location.href }).catch(() => {});
+                    navigator.share({ title: candidate.name, text: `Check out ${candidate.name} on MatchGPT`, url: window.location.href }).catch(() => {});
                   } else {
                     navigator.clipboard?.writeText(window.location.href).catch(() => {});
                   }
