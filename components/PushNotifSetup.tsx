@@ -45,7 +45,7 @@ const PushNotifSetup: React.FC = () => {
       <div className="text-xs text-gray-500 dark:text-gray-400 py-2 px-1">
         Push notifications aren't supported on this browser.
         {/iPhone|iPad|iPod/.test(navigator.userAgent) && (
-          <> On iOS, add ShaadiGPT to your home screen first (Share → Add to Home Screen).</>
+          <> On iOS, add MatchGPT to your home screen first (Share → Add to Home Screen).</>
         )}
       </div>
     );

@@ -23,7 +23,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ reason, resetInHours, onClo
       ? `Wait ${resetInHours ?? 24}h or upgrade for unlimited searches.`
       : reason === 'compatibility_report'
         ? 'See exactly which traits align and where there might be friction.'
-        : 'Get unlimited access to ShaadiGPT.';
+        : 'Get unlimited access to MatchGPT.';
 
   return (
     <div

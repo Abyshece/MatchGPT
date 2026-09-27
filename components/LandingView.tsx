@@ -51,7 +51,7 @@ const LandingView: React.FC<LandingViewProps> = ({ onSignupInitiated, onShowLega
       <header className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-zinc-800">
         <div className="flex items-center gap-2.5 select-none">
           <span className="text-2xl">💍</span>
-          <span className="text-lg font-bold text-gray-900 dark:text-gray-100 tracking-tight">ShaadiGPT</span>
+          <span className="text-lg font-bold text-gray-900 dark:text-gray-100 tracking-tight">MatchGPT</span>
         </div>
         <button
           onClick={() => setShowAuth(true)}
@@ -144,7 +144,7 @@ const LandingView: React.FC<LandingViewProps> = ({ onSignupInitiated, onShowLega
           <button onClick={() => onShowLegal('privacy')} className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
             Privacy
           </button>
-          <span>© 2026 ShaadiGPT</span>
+          <span>© 2026 MatchGPT</span>
         </div>
       </footer>
 

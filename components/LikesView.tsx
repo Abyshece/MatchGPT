@@ -92,7 +92,7 @@ const LikesView: React.FC = () => {
               <div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white">See who liked you</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Upgrade to ShaadiGPT Pro to reveal all {likes.length} {likes.length === 1 ? 'person' : 'people'} and sort them.
+                  Upgrade to MatchGPT Pro to reveal all {likes.length} {likes.length === 1 ? 'person' : 'people'} and sort them.
                 </p>
               </div>
             </div>

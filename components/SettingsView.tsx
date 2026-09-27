@@ -20,7 +20,7 @@ interface SettingsViewProps {
 }
 
 const DELETE_REASONS = [
-  'I met someone on ShaadiGPT',
+  'I met someone on MatchGPT',
   `I'm not happy with the matches`,
   'I need a break from dating',
   'Privacy concerns',
@@ -225,7 +225,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
             >
               Delete Account
             </button>
-            <p className="text-center text-[10px] text-gray-400 mt-2">ShaadiGPT • v0.3</p>
+            <p className="text-center text-[10px] text-gray-400 mt-2">MatchGPT • v0.3</p>
           </div>
         </div>
       </div>
@@ -285,7 +285,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
                   <p className="text-xs leading-relaxed">
                     Your account, profile, photos, matches, messages, likes, and all other data will be permanently deleted.
                     Anyone who matched with you will lose access to your conversations.
-                    You will need to sign up again from scratch if you want to use ShaadiGPT in the future.
+                    You will need to sign up again from scratch if you want to use MatchGPT in the future.
                   </p>
                 </div>
                 <div>

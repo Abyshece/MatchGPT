@@ -114,7 +114,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         {!isCollapsed ? (
           <div className="flex items-center gap-3 select-none w-full">
             <span className="flex-shrink-0 text-2xl">💍</span>
-            <span className="text-xl font-bold text-gray-800 dark:text-gray-100 tracking-tight">ShaadiGPT</span>
+            <span className="text-xl font-bold text-gray-800 dark:text-gray-100 tracking-tight">MatchGPT</span>
           </div>
         ) : (
           <div onClick={toggleCollapse} className="text-2xl cursor-pointer">💍</div>
@@ -192,7 +192,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
         )}
 
-        {/* GET SHAADIGPT+ CTA — hidden while the product is free for everyone.
+        {/* GET MATCHGPT+ CTA — hidden while the product is free for everyone.
             (See PRO_FOR_ALL in profileService.ts.) Re-enable this block when
             paid Pro tier launches. */}
 

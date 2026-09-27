@@ -46,14 +46,14 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => {
         </p>
 
         <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-8">
-          Welcome to ShaadiGPT. These Terms of Service ("Terms") govern your use of our
+          Welcome to MatchGPT. These Terms of Service ("Terms") govern your use of our
           matchmaking platform. By creating an account or using the service, you agree to be
           bound by these Terms. If you do not agree, please do not use the service.
         </p>
 
         <Section title="1. Eligibility">
           <p>You must be at least 18 years old and legally capable of entering into a binding
-          contract in your jurisdiction. By using ShaadiGPT, you represent that you meet these
+          contract in your jurisdiction. By using MatchGPT, you represent that you meet these
           requirements.</p>
           <p>The platform is intended for adults seeking serious relationships and matrimony.
           Use by minors is strictly prohibited.</p>
@@ -90,14 +90,14 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => {
 
         <Section title="4. Content and license">
           <p>You retain ownership of the content you post (profile information, photos, messages).
-          By posting, you grant ShaadiGPT a worldwide, non-exclusive, royalty-free license to use,
+          By posting, you grant MatchGPT a worldwide, non-exclusive, royalty-free license to use,
           display, and process that content solely for the purpose of operating the service.</p>
           <p>You represent that you have the right to share any content you post and that it does
           not infringe anyone else's rights.</p>
         </Section>
 
         <Section title="5. Subscriptions and payments">
-          <p>ShaadiGPT offers a free tier and a paid Pro tier. Pro tier pricing:</p>
+          <p>MatchGPT offers a free tier and a paid Pro tier. Pro tier pricing:</p>
           <ul className="list-disc list-inside space-y-1 ml-2">
             <li>Monthly: ₹999 per month</li>
             <li>Annual: ₹9,999 per year (saves ~17%)</li>
@@ -121,7 +121,7 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => {
         </Section>
 
         <Section title="7. Matching, no guarantees">
-          <p>ShaadiGPT provides tools to help you find compatible partners, but we make no
+          <p>MatchGPT provides tools to help you find compatible partners, but we make no
           guarantees about:</p>
           <ul className="list-disc list-inside space-y-1 ml-2">
             <li>The quality, accuracy, or truthfulness of other users' profiles</li>
@@ -145,7 +145,7 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => {
           <p>The service is provided "AS IS" and "AS AVAILABLE" without warranties of any kind,
           express or implied. We do not warrant that the service will be uninterrupted, error-free,
           or secure.</p>
-          <p>To the maximum extent permitted by law, ShaadiGPT will not be liable for any indirect,
+          <p>To the maximum extent permitted by law, MatchGPT will not be liable for any indirect,
           incidental, consequential, or special damages arising from your use of the service. Our
           total liability to you for any claim will not exceed the amount you paid us in the 12
           months preceding the claim.</p>
@@ -154,7 +154,7 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => {
         </Section>
 
         <Section title="10. Indemnification">
-          <p>You agree to indemnify and hold ShaadiGPT harmless from any claims, damages, losses,
+          <p>You agree to indemnify and hold MatchGPT harmless from any claims, damages, losses,
           or expenses (including legal fees) arising from your violation of these Terms or your
           misuse of the service.</p>
         </Section>
@@ -174,7 +174,7 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => {
 
         <Section title="13. Contact">
           <p>Questions about these Terms:<br />
-            <a href="mailto:support@shaadigpt.com" className="text-blue-600 dark:text-blue-400 underline">support@shaadigpt.com</a>
+            <a href="mailto:support@matchgpt.com" className="text-blue-600 dark:text-blue-400 underline">support@matchgpt.com</a>
           </p>
         </Section>
 

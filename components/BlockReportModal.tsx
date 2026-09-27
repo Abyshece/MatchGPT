@@ -45,7 +45,7 @@ const BlockReportModal: React.FC<BlockReportModalProps> = ({
       showToast(`Couldn't submit report: ${error}`, 'error');
       return;
     }
-    showToast(`Report submitted. Thank you for keeping ShaadiGPT safe.`, 'success');
+    showToast(`Report submitted. Thank you for keeping MatchGPT safe.`, 'success');
     onComplete();
   };
 
