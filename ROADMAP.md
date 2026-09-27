@@ -1,6 +1,7 @@
 # MatchGPT roadmap
 
-11 phases in total. Phases 1–5, 7 and 8 are done, Phase 6 is mostly done; **Phase 9 is next**.
+11 phases in total. Phases 1–5 and 7–9 are done (Phase 9 leaves one decision for you: whether to add AI),
+Phase 6 is mostly done; **Phase 10 is next**.
 Items left unfinished in earlier phases were moved into later ones, so each open item appears once.
 (`PHASE_1_README.md`–`PHASE_3_README.md` are historical setup notes.)
 
@@ -9,13 +10,13 @@ Items left unfinished in earlier phases were moved into later ones, so each open
 | 1 | Backend foundation | Done |
 | 2 | Sign-up & onboarding | Done (forgot password → Phase 8) |
 | 3 | Profile system | Done |
-| 4 | Search & matching | Done (upgrade in Phase 9) |
+| 4 | Search & matching | Done (rebuilt on the server in Phase 9) |
 | 5 | Likes, matches & chat | Done |
 | 6 | Polish & launch prep | Mostly done (payments → 11, cleanup → 10) |
 | 7 | Make the backend safe and rebuildable | **Done** (3 small owner follow-ups) |
 | 8 | Finish half-built features | **Done** (owner checks listed) |
-| 9 | Smarter search that scales | To do — next |
-| 10 | Launch readiness → public launch | To do |
+| 9 | Smarter search that scales | **Done** (AI is a decision for you) |
+| 10 | Launch readiness → public launch | To do — next |
 | 11 | Payments (Pro via Razorpay) | To do |
 
 ---
@@ -52,13 +53,13 @@ Migrations `20260926133139_close_public_data_exposure` and `20260926141513_fix_l
 - [x] `GEMINI_API_KEY` is no longer injected into the website bundle
 
 ### Owner follow-ups
-- [ ] Once the live site address is known: set the `ALLOWED_ORIGINS` secret and redeploy both edge functions
-  (`npx supabase functions deploy delete-account` and `send-push`). No behaviour changes until then.
+- [ ] Once the live site address is known: set the `ALLOWED_ORIGINS` secret and redeploy the edge functions
+  (`npx supabase functions deploy delete-account`, `send-push` and `search`). No behaviour changes until then.
 - [ ] Turn on leaked-password protection in the Supabase dashboard's Authentication settings
   ([docs](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection))
 - [ ] Remove the now-unused `VITE_ADMIN_EMAILS` variable from the hosting settings
 
-The daily **search** limit moves to Phase 9: search still runs in the browser, so only the server-side search can enforce it.
+The daily **search** limit moved to Phase 9, where search moved to the server; it's enforced there now.
 
 ---
 
@@ -125,29 +126,52 @@ Run in a browser against a local copy of the backend (`npx supabase start` with 
 - [ ] Turn on push notifications on a phone or laptop (Settings → Notifications) and get someone to
   Super Like you or message you
 
-## Phase 9 — Smarter search that scales
-- [ ] Run search inside the database: works past 1,000 users, stops downloading everyone's profile, enforces the daily search limit
-- [ ] Replace the three read-only views the search and lists use (`eligible_profiles`, `public_profiles`,
-  `my_blocked_ids` — flagged by Supabase) with server-side functions
-- [ ] Keep fields users marked "hidden" off other people's screens
-- [ ] Score all compatibility factors: six (diet, gym, sleep schedule, living preference, family closeness,
-  interracial marriage) are ignored today because `eligible_profiles` doesn't include them
-- [ ] Understand "near me" (location) and "online" in prompts
-- [ ] Match whole words only ("man" ≠ "woman") and handle "not" / "doesn't"
-- [ ] **Decision:** add real AI — turn the prompt into filters and rank by meaning (bio, hobbies, "vibe")
-- [ ] Optional: AI-written "why you match" summaries
+## Phase 9 — Smarter search that scales (done 2026-09-27)
+Search and Standouts run in a new `search` edge function instead of the browser. Migrations
+`20260927112757_phase9_server_search` and `20260927123642_phase9_drop_profile_views`, both applied live.
+
+- [x] Search runs on the server. It works past 1,000 users: each search considers the 5,000 most recently
+  active people whose gender preferences fit. Browsers only receive the top 50 results, not everyone's profile
+- [x] The daily limit (3 searches for free accounts) and the 72-hour verification lockout are enforced by
+  the server. Users can no longer reset their own search counter
+- [x] The three read-only views flagged by Supabase (`eligible_profiles`, `public_profiles`,
+  `my_blocked_ids`) and the unused `visible_profiles` are gone. The advisor has no errors left
+- [x] Fields users marked "hidden" never reach other people's browsers: search, Standouts, Likes You,
+  Matches, the liked list and the blocked list. Filters and prompts treat them as not filled in, so results
+  can't reveal them either. A hidden name shows as "Name hidden"
+- [x] Other people's profiles only include the fields the profile screen shows (therapy, criminal record,
+  family health and similar answers are no longer sent)
+- [x] All compatibility factors count, including diet, exercise, sleep schedule, living situation,
+  closeness to family and openness to an interracial marriage
+- [x] Prompts:
+  - "near me" (same city or state), "online", "recently active", "verified"
+  - "a woman" / "men"
+  - ages: "under 30", "late 20s", "25-32"
+- [x] Whole words only ("man" ≠ "woman"). "Not", "doesn't", "no", "non-" and "… free" are understood.
+  "Doesn't smoke" (also drinking, cannabis and drugs) leaves out people who say they do
+- [x] Standouts: picked on the server; refreshing them is Pro-only there too
+- [x] Tests:
+  - 61 database checks
+  - 12 unit tests for the matching logic (`supabase/functions/search/matching_test.ts`)
+  - browser test `tests/e2e/phase9-search.mjs`
+  - checked live with a temporary account, deleted afterwards
+- [ ] **Decision:** add real AI to turn the prompt into filters and rank by meaning (bio, hobbies, "vibe").
+  Needs an AI provider account and an API key kept on the server, and costs money per search
+- [ ] Optional, after that decision: AI-written "why you match" summaries
 
 ## Phase 10 — Launch readiness → public launch
 - [ ] Delete the 18 unused prototype files (~4,000 lines)
 - [ ] Add automatic code-quality checks (a linter) and fix what they find
-- [ ] Tests for the matching logic, plus end-to-end tests for sign-up → match → chat
+- [ ] End-to-end tests for sign-up → match → chat (the matching logic has unit tests since Phase 9)
 - [ ] Run type checks, code checks, tests and a build on every push (CI)
 - [ ] Separate test and live Supabase projects, with database backups
 - [ ] A proper email service: sign-up codes and password resets (the built-in sender only reaches your
   Supabase team), then the weekly email digest and its Settings switch
 - [ ] Error tracking, and analytics that respect the cookie banner
 - [ ] Shrink the main JavaScript file (537 kB)
-- [ ] Clear the remaining Supabase advisor warnings (access rules re-checking the user on every row, unindexed foreign keys, unused `pg_net` in the public schema)
+- [ ] Clear the remaining Supabase advisor warnings (access rules re-checking the user on every row, unindexed
+  foreign keys, `pg_net` in the public schema). The "signed-in users can run SECURITY DEFINER functions"
+  warnings are expected: each of those functions checks who is asking
 - [ ] Fix the broken favicon, add a page description and link previews
 - [ ] Rewrite the README and setup guide
 - [ ] Plan how admins keep up with verification requests (new users are locked out of search after 72 hours)
