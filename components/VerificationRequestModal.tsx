@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../lib/AuthContext';
 import { useToast } from '../lib/useToast';
 import {
@@ -8,17 +9,15 @@ import type { VerificationRequestRow } from '../lib/verificationService';
 import { IconX, IconCheck, IconShield } from '../constants';
 
 // ============================================================================
-// VerificationRequestModal — restyled to match the legacy MatchGPT
-// SocialVerificationModal design. Backend logic unchanged: real submission to
-// Supabase verification_requests table for admin review.
+// VerificationRequestModal
 //
-// Visual layout:
-//   - Header: shield icon + "Verify Identity" + subtitle
-//   - 4 platform rows (LinkedIn, Instagram, Facebook required; X optional)
-//     - Each row: icon, label, input, "Link" button
-//     - Clicking "Link" locks that row visually (saves the URL into local state)
-//     - Once linked, row shows green check + LINKED badge
-//   - Footer: explainer + Cancel + Submit (only enabled when 3 required linked)
+// The user adds links to their social profiles; an admin checks them and
+// approves (Admin → Verifications), which gives the profile its verified
+// badge. The server needs at least 2 of the 4 links
+// (submit_verification_request); a pending request can be updated.
+//
+// Rendered into <body> through a portal: it's opened from inside the sidebar,
+// whose slide-in transform would otherwise squeeze it to the sidebar's width.
 // ============================================================================
 
 interface VerificationRequestModalProps {
@@ -27,6 +26,51 @@ interface VerificationRequestModalProps {
 }
 
 type Platform = 'linkedin' | 'instagram' | 'facebook' | 'twitter';
+
+const MIN_LINKS = 2;  // same rule as submit_verification_request
+
+const PLATFORMS: {
+  key: Platform; label: string; domains: string[]; placeholder: string; badgeClass: string; mark: React.ReactNode;
+}[] = [
+  {
+    key: 'linkedin', label: 'LinkedIn', domains: ['linkedin.com'], placeholder: 'linkedin.com/in/your-name',
+    badgeClass: 'bg-[#0A66C2] text-white text-[13px]', mark: 'in',
+  },
+  {
+    key: 'instagram', label: 'Instagram', domains: ['instagram.com'], placeholder: 'instagram.com/your-name',
+    badgeClass: 'bg-gradient-to-br from-[#F58529] via-[#DD2A7B] to-[#8134AF] text-white',
+    mark: (
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
+        <rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" fill="currentColor" />
+      </svg>
+    ),
+  },
+  {
+    key: 'facebook', label: 'Facebook', domains: ['facebook.com', 'fb.com'], placeholder: 'facebook.com/your-name',
+    badgeClass: 'bg-[#1877F2] text-white text-[15px]', mark: 'f',
+  },
+  {
+    key: 'twitter', label: 'X (Twitter)', domains: ['x.com', 'twitter.com'], placeholder: 'x.com/your-name',
+    badgeClass: 'bg-black dark:bg-white text-white dark:text-black text-[13px]', mark: '𝕏',
+  },
+];
+
+// "linkedin.com/in/asha" or a full link → a full https link, or null if it
+// isn't a profile link on one of the platform's domains.
+function toProfileUrl(value: string, domains: string[]): string | null {
+  const text = value.trim();
+  if (!text) return null;
+  let url: URL;
+  try {
+    url = new URL(/^https?:\/\//i.test(text) ? text : `https://${text}`);
+  } catch {
+    return null;
+  }
+  const host = url.hostname.toLowerCase().replace(/^(www|m|mobile)\./, '');
+  const onPlatform = domains.some((d) => host === d || host.endsWith(`.${d}`));
+  const hasProfile = url.pathname.replace(/\/+$/, '').length > 1;
+  return onPlatform && hasProfile ? `https://${host}${url.pathname}${url.search}` : null;
+}
 
 const VerificationRequestModal: React.FC<VerificationRequestModalProps> = ({
   onClose, onSubmitted,
@@ -37,67 +81,48 @@ const VerificationRequestModal: React.FC<VerificationRequestModalProps> = ({
   const [existing, setExisting] = useState<VerificationRequestRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [linking, setLinking] = useState<Platform | null>(null);
-
+  const [touched, setTouched] = useState<Set<Platform>>(new Set());  // left the field: show its problem
   const [urls, setUrls] = useState<Record<Platform, string>>({
     linkedin: profile?.linkedin ?? '',
     instagram: profile?.instagram ?? '',
     facebook: profile?.facebook ?? '',
     twitter: profile?.twitter ?? '',
   });
-  const [linked, setLinked] = useState<Set<Platform>>(new Set());
 
   useEffect(() => {
     if (!session?.user.id) return;
     getMyVerificationRequest(session.user.id).then(({ request }) => {
       setExisting(request);
       if (request) {
-        const next = { ...urls };
-        const autoLinked = new Set<Platform>();
-        if (request.linkedin_url) { next.linkedin = request.linkedin_url; autoLinked.add('linkedin'); }
-        if (request.instagram_url) { next.instagram = request.instagram_url; autoLinked.add('instagram'); }
-        if (request.facebook_url) { next.facebook = request.facebook_url; autoLinked.add('facebook'); }
-        if (request.twitter_url) { next.twitter = request.twitter_url; autoLinked.add('twitter'); }
-        setUrls(next);
-        setLinked(autoLinked);
+        setUrls((prev) => ({
+          linkedin: request.linkedin_url ?? prev.linkedin,
+          instagram: request.instagram_url ?? prev.instagram,
+          facebook: request.facebook_url ?? prev.facebook,
+          twitter: request.twitter_url ?? prev.twitter,
+        }));
       }
       setLoading(false);
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user.id]);
 
-  const handleLink = (platform: Platform) => {
-    const url = urls[platform].trim();
-    if (url.length < 5) return;
-    setLinking(platform);
-    // Local UX delay to match legacy feel
-    setTimeout(() => {
-      setLinking(null);
-      setLinked((prev) => new Set(prev).add(platform));
-    }, 600);
-  };
+  const links = PLATFORMS.map((p) => ({ ...p, value: urls[p.key], url: toProfileUrl(urls[p.key], p.domains) }));
+  const invalid = links.filter((l) => l.value.trim() && !l.url);
+  const validCount = links.filter((l) => l.url).length;
+  const canSubmit = validCount >= MIN_LINKS && invalid.length === 0;
 
-  const handleUnlink = (platform: Platform) => {
-    setLinked((prev) => {
-      const next = new Set(prev);
-      next.delete(platform);
-      return next;
-    });
-  };
+  const isPending = existing?.status === 'pending';
+  const wasRejected = existing?.status === 'rejected';
 
-  const canSubmit = linked.has('linkedin') && linked.has('instagram') && linked.has('facebook');
-
-  const handleSubmit = async () => {
-    if (!canSubmit) {
-      showToast('Please link all 3 required accounts', 'error');
-      return;
-    }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!canSubmit) return;
     setSubmitting(true);
+    const link = (key: Platform) => links.find((l) => l.key === key)?.url ?? '';
     const { error } = await submitVerificationRequest({
-      linkedinUrl: urls.linkedin.trim(),
-      instagramUrl: urls.instagram.trim(),
-      facebookUrl: urls.facebook.trim(),
-      twitterUrl: urls.twitter.trim(),
+      linkedinUrl: link('linkedin'),
+      instagramUrl: link('instagram'),
+      facebookUrl: link('facebook'),
+      twitterUrl: link('twitter'),
       userNotes: '',
     });
     setSubmitting(false);
@@ -105,25 +130,24 @@ const VerificationRequestModal: React.FC<VerificationRequestModalProps> = ({
       showToast(`Couldn't submit: ${error}`, 'error');
       return;
     }
-    showToast('Verification submitted. We\'ll review within 24-72 hours.', 'success');
+    showToast(isPending ? 'Links updated.' : "Sent for review. We'll check your links within 24–48 hours.", 'success');
     await refreshProfile();
-    if (onSubmitted) onSubmitted();
+    onSubmitted?.();
     onClose();
   };
 
-  // Already verified state
   if (profile?.isVerified) {
     return (
-      <Wrapper onClose={onClose}>
-        <div className="p-6 text-center">
-          <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center text-3xl">✓</div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">You're verified!</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Your profile shows a verified badge to other users.
-          </p>
+      <Wrapper onClose={onClose} labelledBy="verify-title">
+        <div className="p-8 text-center">
+          <div className="w-14 h-14 mx-auto mb-4 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center">
+            <IconCheck className="w-7 h-7" />
+          </div>
+          <h2 id="verify-title" className="text-xl font-bold text-gray-900 dark:text-white mb-2">You're verified</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Your profile shows the verified badge to other people.</p>
           <button
             onClick={onClose}
-            className="mt-5 w-full py-2.5 bg-black dark:bg-white text-white dark:text-black rounded-lg text-sm font-bold"
+            className="mt-6 w-full py-2.5 bg-black dark:bg-white text-white dark:text-black rounded-lg text-sm font-bold hover:opacity-90"
           >
             Close
           </button>
@@ -132,250 +156,152 @@ const VerificationRequestModal: React.FC<VerificationRequestModalProps> = ({
     );
   }
 
-  const isPending = existing?.status === 'pending';
-  const wasRejected = existing?.status === 'rejected';
-
   return (
-    <Wrapper onClose={onClose}>
-      {/* Header */}
-      <div className="p-6 border-b border-gray-100 dark:border-zinc-800 flex justify-between items-start bg-white dark:bg-zinc-900 relative z-10">
-        <div className="flex gap-4 min-w-0">
-          <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
+    <Wrapper onClose={onClose} labelledBy="verify-title">
+      <form onSubmit={handleSubmit} className="flex flex-col min-h-0">
+        {/* Header */}
+        <div className="px-6 pt-6 pb-4 flex items-start gap-4 flex-shrink-0">
+          <div className="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0">
             <IconShield />
           </div>
-          <div className="min-w-0">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
-              {isPending ? 'Verification in Review' : wasRejected ? 'Resubmit Verification' : 'Verify Identity'}
+          <div className="flex-1 min-w-0">
+            <h2 id="verify-title" className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
+              {isPending ? 'Verification in review' : 'Verify your identity'}
             </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 leading-tight">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               {isPending
-                ? <>Your submission is being reviewed. Usually takes 24-72 hours.</>
-                : wasRejected
-                  ? <>Your previous request was rejected. Update and resubmit below.</>
-                  : <>To ensure authenticity, you must link your <strong>LinkedIn, Instagram, and Facebook</strong> accounts.</>}
+                ? "We're checking your links, usually within 24–48 hours. You can still change them below."
+                : 'Add links to at least 2 of your social profiles. We check they belong to you, then add a verified badge to your profile.'}
             </p>
           </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="-mr-2 -mt-1 p-2 rounded-lg text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+            aria-label="Close"
+          >
+            <IconX />
+          </button>
         </div>
-        <button
-          onClick={onClose}
-          className="text-gray-400 hover:text-black dark:hover:text-white transition-colors p-1 flex-shrink-0 ml-2"
-          aria-label="Close"
-        >
-          <IconX />
-        </button>
-      </div>
 
-      {/* Rejected notes */}
-      {wasRejected && existing?.admin_notes && (
-        <div className="mx-6 mt-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/40 rounded-lg p-3 text-sm text-red-800 dark:text-red-300">
-          <p className="font-bold mb-1">Why it was rejected:</p>
-          <p className="text-xs italic">"{existing.admin_notes}"</p>
-        </div>
-      )}
-
-      {/* Platform rows */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-2">
-        {loading ? (
-          <div className="space-y-2">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-16 bg-gray-100 dark:bg-zinc-800 rounded-lg animate-pulse" />
-            ))}
+        {wasRejected && (
+          <div className="mx-6 mb-2 flex-shrink-0 rounded-lg border border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-800 dark:text-red-300">
+            <p className="font-semibold">Your last request wasn't approved.</p>
+            {existing?.admin_notes && <p className="mt-1 text-xs">Reason: {existing.admin_notes}</p>}
+            <p className="mt-1 text-xs">Check your links and send them again.</p>
           </div>
-        ) : (
-          <>
-            <SocialRow
-              label="LinkedIn"
-              emoji="💼"
-              placeholder="https://linkedin.com/in/username"
-              required
-              value={urls.linkedin}
-              onChange={(v) => setUrls((prev) => ({ ...prev, linkedin: v }))}
-              isLinked={linked.has('linkedin')}
-              isLinking={linking === 'linkedin'}
-              onLink={() => handleLink('linkedin')}
-              onUnlink={() => handleUnlink('linkedin')}
-              disabled={isPending}
-            />
-            <SocialRow
-              label="Instagram"
-              emoji="📷"
-              placeholder="https://instagram.com/username"
-              required
-              value={urls.instagram}
-              onChange={(v) => setUrls((prev) => ({ ...prev, instagram: v }))}
-              isLinked={linked.has('instagram')}
-              isLinking={linking === 'instagram'}
-              onLink={() => handleLink('instagram')}
-              onUnlink={() => handleUnlink('instagram')}
-              disabled={isPending}
-            />
-            <SocialRow
-              label="Facebook"
-              emoji="👥"
-              placeholder="https://facebook.com/username"
-              required
-              value={urls.facebook}
-              onChange={(v) => setUrls((prev) => ({ ...prev, facebook: v }))}
-              isLinked={linked.has('facebook')}
-              isLinking={linking === 'facebook'}
-              onLink={() => handleLink('facebook')}
-              onUnlink={() => handleUnlink('facebook')}
-              disabled={isPending}
-            />
-            <SocialRow
-              label="X (Twitter)"
-              emoji="🐦"
-              placeholder="https://x.com/username"
-              value={urls.twitter}
-              onChange={(v) => setUrls((prev) => ({ ...prev, twitter: v }))}
-              isLinked={linked.has('twitter')}
-              isLinking={linking === 'twitter'}
-              onLink={() => handleLink('twitter')}
-              onUnlink={() => handleUnlink('twitter')}
-              disabled={isPending}
-            />
-          </>
         )}
-      </div>
 
-      {/* Footer */}
-      <div className="p-4 border-t border-gray-100 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900/50 flex flex-col gap-3 flex-shrink-0">
-        <div className="flex justify-between items-center gap-4 flex-wrap">
-          <p className="text-[10px] text-gray-400 font-medium leading-tight flex-1 min-w-[140px]">
-            Verification takes 24-72 hours. Your links are secure and only used for identity checks.
-          </p>
-          <div className="flex gap-2 flex-shrink-0">
+        {/* Links */}
+        <div className="px-6 py-2 space-y-4 flex-1 min-h-0 overflow-y-auto">
+          {loading ? (
+            [1, 2, 3, 4].map((i) => <div key={i} className="h-[68px] rounded-lg bg-gray-100 dark:bg-zinc-800 animate-pulse" />)
+          ) : (
+            links.map((l) => {
+              const showError = !!l.value.trim() && !l.url && touched.has(l.key);
+              return (
+                <div key={l.key}>
+                  <label htmlFor={`verify-${l.key}`} className="flex items-center gap-2 mb-1.5 text-sm font-semibold text-gray-800 dark:text-gray-200">
+                    <span className={`w-6 h-6 rounded-md flex items-center justify-center font-bold flex-shrink-0 ${l.badgeClass}`} aria-hidden="true">
+                      {l.mark}
+                    </span>
+                    {l.label}
+                    {l.url && <span className="ml-auto text-green-600 dark:text-green-400"><IconCheck className="w-4 h-4" /></span>}
+                  </label>
+                  <input
+                    id={`verify-${l.key}`}
+                    type="text"
+                    inputMode="url"
+                    autoComplete="url"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    value={l.value}
+                    onChange={(e) => setUrls((prev) => ({ ...prev, [l.key]: e.target.value }))}
+                    onBlur={() => setTouched((prev) => new Set(prev).add(l.key))}
+                    placeholder={l.placeholder}
+                    aria-invalid={showError}
+                    className={`w-full rounded-lg border bg-white dark:bg-zinc-950 px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-500 outline-none transition-shadow focus:ring-2 ${
+                      showError
+                        ? 'border-red-400 focus:ring-red-200 dark:focus:ring-red-900/50'
+                        : 'border-gray-300 dark:border-zinc-700 focus:border-gray-900 dark:focus:border-zinc-400 focus:ring-gray-200 dark:focus:ring-zinc-800'
+                    }`}
+                  />
+                  {showError && (
+                    <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+                      Paste the link to your {l.label} profile, like {l.placeholder}
+                    </p>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 pt-4 pb-6 mt-2 flex-shrink-0 border-t border-gray-100 dark:border-zinc-800">
+          <div className="flex items-center justify-between mb-3 text-xs">
+            <span className={validCount >= MIN_LINKS ? 'text-green-700 dark:text-green-400 font-semibold' : 'text-gray-500 dark:text-gray-400'}>
+              {validCount >= MIN_LINKS ? `${validCount} links added` : `${validCount} of ${MIN_LINKS} links added`}
+            </span>
+            <span className="text-gray-400 dark:text-zinc-500">Only our review team sees these.</span>
+          </div>
+          <div className="flex flex-col-reverse sm:flex-row gap-2 sm:justify-end">
             <button
+              type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md transition-colors"
+              className="px-4 py-2.5 rounded-lg text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
             >
-              {isPending ? 'Close' : 'Cancel'}
+              Cancel
             </button>
-            {!isPending && (
-              <button
-                onClick={handleSubmit}
-                disabled={!canSubmit || submitting}
-                className={`px-5 py-2 rounded-md text-sm font-bold shadow-md transition-all ${
-                  canSubmit && !submitting
-                    ? 'bg-green-600 hover:bg-green-700 text-white'
-                    : 'bg-gray-200 dark:bg-zinc-700 text-gray-400 dark:text-zinc-500 cursor-not-allowed'
-                }`}
-              >
-                {submitting ? 'Submitting…' : 'Submit for Verification'}
-              </button>
-            )}
+            <button
+              type="submit"
+              disabled={submitting || loading || !canSubmit}
+              className="px-5 py-2.5 rounded-lg text-sm font-bold bg-black dark:bg-white text-white dark:text-black hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {submitting ? 'Sending…' : isPending ? 'Update links' : 'Send for review'}
+            </button>
           </div>
         </div>
-        {!isPending && !canSubmit && (
-          <p className="text-[10px] text-red-500 text-right font-bold">
-            * Please link all 3 required accounts to proceed.
-          </p>
-        )}
-      </div>
+      </form>
     </Wrapper>
   );
 };
 
-// ----------------------------------------------------------------------------
-// SocialRow
-// ----------------------------------------------------------------------------
+// Full-screen backdrop and centred card (a bottom sheet on phones), rendered
+// into <body>. Escape or a click outside closes it.
+const Wrapper: React.FC<{ onClose: () => void; labelledBy: string; children: React.ReactNode }> = ({
+  onClose, labelledBy, children,
+}) => {
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeRef.current(); };
+    document.addEventListener('keydown', onKey);
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';  // the page behind doesn't scroll
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = overflow;
+    };
+  }, []);
 
-interface SocialRowProps {
-  label: string;
-  emoji: string;
-  placeholder: string;
-  required?: boolean;
-  value: string;
-  onChange: (v: string) => void;
-  isLinked: boolean;
-  isLinking: boolean;
-  onLink: () => void;
-  onUnlink: () => void;
-  disabled?: boolean;
-}
-
-const SocialRow: React.FC<SocialRowProps> = ({
-  label, emoji, placeholder, required,
-  value, onChange, isLinked, isLinking, onLink, onUnlink, disabled,
-}) => (
-  <div className="flex items-center gap-3 p-3 rounded-lg border border-transparent hover:border-gray-200 dark:hover:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-all group">
-    <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl shadow-sm transition-colors flex-shrink-0 ${
-      isLinked
-        ? 'bg-green-100 dark:bg-green-900/30 text-green-600'
-        : 'bg-gray-100 dark:bg-zinc-800 text-gray-500'
-    }`}>
-      {isLinked ? <IconCheck /> : <span>{emoji}</span>}
-    </div>
-
-    <div className="flex-1 min-w-0">
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide flex items-center gap-1">
-          {label} {required && <span className="text-red-500">*</span>}
-        </span>
-        {isLinked && (
-          <span className="text-[10px] bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-1.5 rounded font-bold">
-            LINKED
-          </span>
-        )}
-      </div>
-      {isLinked ? (
-        <div className="text-sm text-gray-900 dark:text-gray-100 font-medium truncate">
-          🔒 {value}
-        </div>
-      ) : (
-        <input
-          type="url"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          disabled={disabled}
-          className="w-full bg-transparent border-none p-0 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:ring-0 focus:outline-none disabled:opacity-50"
-        />
-      )}
-    </div>
-
-    {isLinked ? (
-      <button
-        onClick={onUnlink}
-        disabled={disabled}
-        className="px-3 py-1.5 rounded-md text-xs font-bold text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors flex-shrink-0 disabled:opacity-50"
-      >
-        Edit
-      </button>
-    ) : (
-      <button
-        onClick={onLink}
-        disabled={isLinking || !value || disabled}
-        className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all flex-shrink-0 ${
-          value && !disabled
-            ? 'bg-black dark:bg-white text-white dark:text-black hover:opacity-80 shadow-sm'
-            : 'bg-gray-100 dark:bg-zinc-800 text-gray-400 cursor-not-allowed'
-        }`}
-      >
-        {isLinking ? 'Checking…' : 'Link'}
-      </button>
-    )}
-  </div>
-);
-
-// ----------------------------------------------------------------------------
-// Wrapper
-// ----------------------------------------------------------------------------
-
-const Wrapper: React.FC<{ onClose: () => void; children: React.ReactNode }> = ({
-  onClose, children,
-}) => (
-  <div
-    className="fixed inset-0 z-[400] flex items-center justify-center p-4 bg-white/60 dark:bg-black/60 backdrop-blur-[12px] animate-fade-in"
-    onClick={onClose}
-  >
+  return createPortal(
     <div
-      className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-200 dark:border-zinc-800 flex flex-col max-h-[90vh]"
-      onClick={(e) => e.stopPropagation()}
+      className="fixed inset-0 z-[500] flex items-end sm:items-center justify-center sm:p-4 bg-black/40 backdrop-blur-sm animate-fade-in"
+      onClick={onClose}
     >
-      {children}
-    </div>
-  </div>
-);
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={labelledBy}
+        className="w-full sm:max-w-md max-h-[92vh] flex flex-col bg-white dark:bg-zinc-900 rounded-t-2xl sm:rounded-2xl shadow-2xl border border-gray-200 dark:border-zinc-800 overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {children}
+      </div>
+    </div>,
+    document.body,
+  );
+};
 
 export default VerificationRequestModal;

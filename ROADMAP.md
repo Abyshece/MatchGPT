@@ -74,8 +74,8 @@ Run in a browser against a local copy of the backend (`npx supabase start` with 
   without a recorded acceptance is now asked once before continuing, existing accounts included
 - [x] Fixed: with "Confirm email" on, the Terms acceptance from the sign-up form was silently lost
 - [x] Google sign-ups start profile setup with their name filled in
-- [ ] Owner: "Confirm email" still reads as on for the live site. Until a proper email sender is set up,
-  only addresses in your Supabase team can receive the code, so switch it off (and click Save)
+- [x] Owner: "Confirm email" switched off on the live site (checked 2026-09-27). Until a proper email sender
+  is set up, only addresses in your Supabase team could have received the code
 
 ### Done
 - [x] Fixed a live bug: about an hour into a session (when the sign-in token refreshes), the app replaced
@@ -174,6 +174,33 @@ Search and Standouts run in a new `search` edge function instead of the browser.
 - [ ] Optional: rank by the meaning of bios with Supabase's built-in embedding model (free, runs inside Supabase)
 
 ## Phase 10 — Launch readiness → public launch
+
+### Fixes asked for first (2026-09-27)
+- [x] "Verify your identity" popup: opened from the sidebar it was squeezed into the sidebar's width (the
+  sidebar's slide-in transform trapped it). It now opens over the whole page (a full-width sheet on phones),
+  with plain link fields that are checked, the server's real rule (2 of the 4 links; it asked for all 3 of
+  LinkedIn, Instagram and Facebook), and links that can be changed while the request is in review.
+  Browser test `tests/e2e/verify-popup.mjs`
+- [x] Pro accounts saw "Infinity of 3 searches remaining today"; now "Unlimited searches"
+- [x] Google's sign-in screen says "to continue to fmrbzzdjtarsaqvfukum.supabase.co": Google names the app
+  after the address it returns to, which is Supabase's in the classic sign-in, and only shows an app name
+  once it has verified the brand, which needs every address in the sign-in setup to be yours. Google's own
+  button is built (`lib/googleSignIn.ts`, `components/GoogleSignInButton.tsx`): the sign-in happens on this
+  site and Supabase checks Google's token, so Supabase's address disappears. Browser test
+  `tests/e2e/google-button.mjs`. It stays off until the step below: Google refuses its button on sites
+  that aren't registered, and a check against Google showed `https://shaadi-gpt.vercel.app` isn't yet
+- [ ] **Owner:** Google Cloud → Google Auth Platform → Clients → the web client (ID starting
+  `1095396009529-7cqo…`) → Authorized JavaScript origins → add `https://shaadi-gpt.vercel.app` → Save.
+  Then I switch Google's button on (`LIVE_CLIENT_ID` in `lib/googleSignIn.ts`); Google's screen then shows
+  the site's address instead of Supabase's
+- [ ] **Owner, for "MatchGPT" on Google's screen** (after the button is on): Branding: app name MatchGPT,
+  logo, home page `https://shaadi-gpt.vercel.app`, privacy `https://shaadi-gpt.vercel.app/#privacy`, terms
+  `https://shaadi-gpt.vercel.app/#terms`, authorized domain `shaadi-gpt.vercel.app`; remove the Supabase
+  callback from the client's redirect URIs and `fmrbzzdjtarsaqvfukum.supabase.co` from the authorized domains;
+  prove the site is yours in Google Search Console (I add the verification tag); then Verification Center →
+  submit for brand verification (Google says a few business days)
+
+### Launch readiness
 - [ ] Delete the 18 unused prototype files (~4,000 lines)
 - [ ] Add automatic code-quality checks (a linter) and fix what they find
 - [ ] End-to-end tests for sign-up → match → chat (the matching logic has unit tests since Phase 9)

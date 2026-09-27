@@ -391,7 +391,9 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
           }`}>
             {!allowance.allowed
               ? <>Daily limit reached · resets in {allowance.resetInHours}h</>
-              : <>{allowance.remaining} of 3 searches remaining today</>}
+              : allowance.isPro
+                ? <>Unlimited searches</>
+                : <>{allowance.remaining} of 3 searches remaining today</>}
           </span>
         </div>
 
