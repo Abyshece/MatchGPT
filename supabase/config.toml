@@ -430,3 +430,7 @@ verify_jwt = false
 # Deployed with JWT verification off (the function checks the user itself).
 [functions.delete-account]
 verify_jwt = false
+
+# Checks the signed-in user itself (supabase/functions/search/index.ts).
+[functions.search]
+verify_jwt = false

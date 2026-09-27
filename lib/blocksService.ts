@@ -3,9 +3,9 @@
 //
 // Wraps the `blocks` and `reports` tables.
 //
-// Blocking is one-directional in the DB but bidirectional in effect — the
-// app code uses my_blocked_ids view to filter out everyone who blocked or
-// was blocked by the current user.
+// Blocking is one-directional in the DB but bidirectional in effect: search,
+// Standouts, Likes You and Matches (all on the server) leave out everyone who
+// blocked or was blocked by the current user.
 // ============================================================================
 
 import { supabase } from './supabase';
@@ -80,18 +80,6 @@ export async function unblockUser(
     .eq('blocked_id', blockedId);
   if (error) return { error: error.message };
   return { error: null };
-}
-
-// ----------------------------------------------------------------------------
-// listMyBlockedIds — IDs blocked in either direction (uses view)
-// ----------------------------------------------------------------------------
-
-export async function listMyBlockedIds(): Promise<{ ids: Set<string>; error: string | null }> {
-  const { data, error } = await supabase
-    .from('my_blocked_ids')
-    .select('other_id');
-  if (error) return { ids: new Set(), error: error.message };
-  return { ids: new Set((data ?? []).map((r) => r.other_id as string)), error: null };
 }
 
 // ----------------------------------------------------------------------------

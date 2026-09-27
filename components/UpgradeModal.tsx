@@ -13,7 +13,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ reason, resetInHours, onClo
 
   const headline =
     reason === 'daily_limit'
-      ? `You've used your free search today`
+      ? `You've used today's free searches`
       : reason === 'compatibility_report'
         ? 'Unlock the Compatibility Report'
         : 'Upgrade to Pro';

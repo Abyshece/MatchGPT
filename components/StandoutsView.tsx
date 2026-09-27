@@ -12,9 +12,9 @@ import type { MatchCandidate } from '../types';
 // ============================================================================
 // StandoutsView
 //
-// 3-5 curated daily picks. Computed lazily — the first time the user opens
-// this tab each day, the matching algorithm runs and caches results in the
-// `standouts` table. Subsequent visits the same day read from cache.
+// 5 curated daily picks. The server chooses them the first time the user
+// opens this tab each day and keeps them in the `standouts` table; later
+// visits the same day show the same picks.
 //
 // Day rolls over at 00:00 UTC.
 // ============================================================================
@@ -34,17 +34,18 @@ const StandoutsView: React.FC<StandoutsViewProps> = ({ onNavigateToMatches }) =>
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [matchCelebration, setMatchCelebration] = useState<{ matchId: string; candidate: MatchCandidate } | null>(null);
 
+  const userId = session?.user.id;
   const fetchStandouts = useCallback(async () => {
-    if (!profile || !session?.user.id) return;
+    if (!userId) return;
     setLoading(true);
-    const { candidates, error } = await loadStandouts(session.user.id, profile);
+    const { candidates, error } = await loadStandouts();
     setLoading(false);
     if (error) {
       showToast(`Couldn't load standouts: ${error}`, 'error');
       return;
     }
     setCandidates(candidates);
-  }, [profile, session?.user.id, showToast]);
+  }, [userId, showToast]);
 
   useEffect(() => { fetchStandouts(); }, [fetchStandouts]);
 
@@ -70,7 +71,7 @@ const StandoutsView: React.FC<StandoutsViewProps> = ({ onNavigateToMatches }) =>
       return;
     }
     setRefreshing(true);
-    const { candidates, error } = await refreshStandouts(session.user.id, profile);
+    const { candidates, error } = await refreshStandouts();
     setRefreshing(false);
     if (error) {
       showToast(`Couldn't refresh: ${error}`, 'error');

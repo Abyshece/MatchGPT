@@ -2271,7 +2271,12 @@ export type Database = {
         Returns: undefined
       }
       admin_verify_user: { Args: { target_id: string }; Returns: undefined }
+      consume_search: { Args: { p_user_id: string }; Returns: Json }
       export_my_data: { Args: never; Returns: Json }
+      gender_preference_fits: {
+        Args: { p_preference: string; p_target: string }
+        Returns: boolean
+      }
       get_likes_received: {
         Args: { p_user_id: string }
         Returns: {
@@ -2308,6 +2313,20 @@ export type Database = {
           unread_count: number
         }[]
       }
+      get_profile_cards: {
+        Args: { p_ids: string[] }
+        Returns: {
+          age: number
+          description: string
+          hidden_fields: string[]
+          id: string
+          is_verified: boolean
+          location: string
+          name: string
+          photo_urls: string[]
+          subscription_tier: string
+        }[]
+      }
       increment_push_failure: { Args: { sub_id: string }; Returns: undefined }
       is_admin: { Args: never; Returns: boolean }
       mark_messages_read: { Args: { p_match_id: string }; Returns: number }
@@ -2317,6 +2336,15 @@ export type Database = {
           vapid_private_key: string
           vapid_public_key: string
         }[]
+      }
+      search_candidates: {
+        Args: {
+          p_exclude_liked?: boolean
+          p_ids?: string[]
+          p_limit?: number
+          p_user_id: string
+        }
+        Returns: Json
       }
       send_push_config: {
         Args: never
