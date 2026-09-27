@@ -38,16 +38,16 @@ SQL
 }
 
 echo "Attacks — must be blocked (or return nothing):"
-check BLOCKED "A1  signed-out visitor reads emails/phones (visible_profiles)" anon "" "" \
-  "select email, phone_number, criminal_record from public.visible_profiles;"
-check BLOCKED "A2  signed-out visitor verifies a profile through a view" anon "" "" \
-  "update public.visible_profiles set is_verified = true where id = '$OTHER' returning id;"
-check BLOCKED "A3  signed-out visitor deletes a profile through a view" anon "" "" \
-  "delete from public.public_profiles where id = '$OTHER' returning id;"
+check ALLOWED "A1  signed-out visitor reads emails/phones (profiles)" anon "" "" \
+  "select 'rows=' || count(*) from public.profiles where email is not null or phone_number is not null;" "rows=0"
+check ALLOWED "A2  signed-out visitor marks a profile verified" anon "" "" \
+  "with u as (update public.profiles set is_verified = true where id = '$OTHER' returning 1) select 'updated=' || count(*) from u;" "updated=0"
+check ALLOWED "A3  signed-out visitor deletes a profile" anon "" "" \
+  "with d as (delete from public.profiles where id = '$OTHER' returning 1) select 'deleted=' || count(*) from d;" "deleted=0"
 check BLOCKED "A4  signed-out visitor reads push keys and queued messages" anon "" "" \
   "select endpoint, auth, body from public.pending_pushes;"
-check BLOCKED "A5  signed-out visitor reads the search pool" anon "" "" \
-  "select count(*) from public.eligible_profiles;"
+check BLOCKED "A5  signed-in user reads the old search pool view (eligible_profiles)" authenticated "$USER_X" "x@example.com" \
+  "select count(*) from public.eligible_profiles;" "does not exist"
 check BLOCKED "A6  user changes own profile email to the admin's" authenticated "$USER_X" "x@example.com" \
   "update public.profiles set email = 'owner@example.com' where id = '$USER_X';"
 check BLOCKED "A7  user marks themself verified and Pro" authenticated "$USER_X" "x@example.com" \
@@ -88,9 +88,8 @@ check BLOCKED "A20 non-admin lists every user (admin_search_users)" authenticate
   "select count(*) from public.admin_search_users('', 50);" "Forbidden"
 check BLOCKED "A21 non-admin lists reports with names (admin_list_reports)" authenticated "$USER_X" "x@example.com" \
   "select count(*) from public.admin_list_reports(false);" "Forbidden"
-check ALLOWED "A22 user reads last-active time of someone with Active Status off" authenticated "$USER_X" "x@example.com" \
-  "select 'search=' || coalesce(e.last_active_at::text, 'hidden') || ' public=' || coalesce(p.last_active_at::text, 'hidden')
-     from public.eligible_profiles e join public.public_profiles p using (id) where e.id = '$OTHER';" "search=hidden public=hidden"
+check ALLOWED "A22 search isn't given the last-active time of someone with Active Status off" service_role "" "" \
+  "select 'v=' || coalesce(e ->> 'last_active_at', 'hidden') from jsonb_array_elements(public.search_candidates('$USER_X')) e where e ->> 'id' = '$OTHER';" "v=hidden"
 
 check BLOCKED "A23 user resets their own daily search counter" authenticated "$USER_X" "x@example.com" \
   "reset role; update public.profiles set daily_search_count = 3, last_search_date = current_date where id = '$USER_X'; set local role authenticated;
@@ -121,76 +120,70 @@ card=hidden/hidden/hidden"
 
 echo
 echo "Normal app use — must keep working:"
-check ALLOWED "N1  user reads the search pool (eligible_profiles)" authenticated "$USER_X" "x@example.com" \
-  "select count(*) from public.eligible_profiles;"
-check ALLOWED "N2  user reads public_profiles (liked-profiles list)" authenticated "$USER_X" "x@example.com" \
-  "select count(*) from public.public_profiles;"
-check ALLOWED "N3  user reads my_blocked_ids" authenticated "$USER_X" "x@example.com" \
-  "select count(*) from public.my_blocked_ids;"
-check ALLOWED "N4  user reads their own profile row" authenticated "$USER_X" "x@example.com" \
+check ALLOWED "N1  user reads their own profile row" authenticated "$USER_X" "x@example.com" \
   "select 'rows=' || count(*) from public.profiles;" "rows=1"
-check ALLOWED "N5  user edits normal fields (onboarding, hidden fields, theme)" authenticated "$USER_X" "x@example.com" \
+check ALLOWED "N2  user edits normal fields (onboarding, hidden fields, theme)" authenticated "$USER_X" "x@example.com" \
   "update public.profiles set name = 'New Name', hobbies = 'hiking', email_verified = true, hidden_fields = '{religion}', settings_theme = 'dark' where id = '$USER_X' returning name;"
-check ALLOWED "N6  admin is recognised (is_admin)" authenticated "$ADMIN" "owner@example.com" \
+check ALLOWED "N3  admin is recognised (is_admin)" authenticated "$ADMIN" "owner@example.com" \
   "select 'is_admin=' || public.is_admin();" "is_admin=true"
-check ALLOWED "N7  admin verifies a user" authenticated "$ADMIN" "owner@example.com" \
+check ALLOWED "N4  admin verifies a user" authenticated "$ADMIN" "owner@example.com" \
   "select public.admin_verify_user('$OTHER'); reset role; select 'verified=' || is_verified from public.profiles where id = '$OTHER';" "verified=true"
-check ALLOWED "N8  admin reads admin_emails" authenticated "$ADMIN" "owner@example.com" \
+check ALLOWED "N5  admin reads admin_emails" authenticated "$ADMIN" "owner@example.com" \
   "select 'rows=' || count(*) from public.admin_emails;" "rows=1"
-check BLOCKED "N9  non-admin calls an admin function" authenticated "$USER_X" "x@example.com" \
+check BLOCKED "N6  non-admin calls an admin function" authenticated "$USER_X" "x@example.com" \
   "select public.admin_verify_user('$OTHER');" "Forbidden"
-check ALLOWED "N10 user submits a verification request" authenticated "$USER_X" "x@example.com" \
+check ALLOWED "N7  user submits a verification request" authenticated "$USER_X" "x@example.com" \
   "select public.submit_verification_request('https://linkedin.com/in/x', 'https://instagram.com/x', '', '', '');
    reset role; select 'status=' || verification_status from public.profiles where id = '$USER_X';" "status=pending"
-check ALLOWED "N11 server (service role) bans a user" service_role "" "" \
+check ALLOWED "N8  server (service role) bans a user" service_role "" "" \
   "update public.profiles set is_banned = true where id = '$OTHER' returning is_banned;"
-check ALLOWED "N12 server reads pending_pushes (send-push function)" service_role "" "" \
+check ALLOWED "N9  server reads pending_pushes (send-push function)" service_role "" "" \
   "select 'rows=' || count(*) from public.pending_pushes;" "rows=1"
-check ALLOWED "N13 server calls increment_push_failure (send-push)" service_role "" "" \
+check ALLOWED "N10 server calls increment_push_failure (send-push)" service_role "" "" \
   "select public.increment_push_failure('$PUSH_SUB');"
-check ALLOWED "N14 sign-up creates a profile (as Supabase Auth's role)" supabase_auth_admin "" "" \
+check ALLOWED "N11 sign-up creates a profile (as Supabase Auth's role)" supabase_auth_admin "" "" \
   "insert into auth.users (id, email, email_confirmed_at) values ('00000000-0000-0000-0000-00000000000d', 'new@example.com', now());
    reset role; select 'profiles=' || count(*) from public.profiles where id = '00000000-0000-0000-0000-00000000000d';" "profiles=1"
-check ALLOWED "N15 Likes You shows the like the user received" authenticated "$USER_X" "x@example.com" \
+check ALLOWED "N12 Likes You shows the like the user received" authenticated "$USER_X" "x@example.com" \
   "select 'likes_received=' || count(*) from public.get_likes_received('$USER_X');" "likes_received=1"
-check ALLOWED "N16 liking back creates a match that shows in Matches" authenticated "$USER_X" "x@example.com" \
+check ALLOWED "N13 liking back creates a match that shows in Matches" authenticated "$USER_X" "x@example.com" \
   "insert into public.likes (liker_id, liked_id) values ('$USER_X', '$OTHER');
    select 'matches=' || count(*) from public.get_matches_with_profile('$USER_X');" "matches=1"
-check ALLOWED "N17 free user sends 15 likes in a day (server counts them)" authenticated "$USER_X" "x@example.com" \
+check ALLOWED "N14 free user sends 15 likes in a day (server counts them)" authenticated "$USER_X" "x@example.com" \
   "insert into public.likes (liker_id, liked_id) select '$USER_X', $EXTRA from generate_series(1, 15) g;
    select 'likes today=' || daily_like_count from public.profiles where id = '$USER_X';" "likes today=15"
-check ALLOWED "N18 Pro user: no daily limit, Super Likes allowed" authenticated "$USER_X" "x@example.com" \
+check ALLOWED "N15 Pro user: no daily limit, Super Likes allowed" authenticated "$USER_X" "x@example.com" \
   "reset role; update public.profiles set subscription_tier = 'PRO' where id = '$USER_X'; set local role authenticated;
    insert into public.likes (liker_id, liked_id) select '$USER_X', $EXTRA from generate_series(1, 16) g;
    insert into public.likes (liker_id, liked_id, is_super_like) values ('$USER_X', '$OTHER', true); select 'ok';" "ok"
-check ALLOWED "N19 admin resolves a report" authenticated "$ADMIN" "owner@example.com" \
+check ALLOWED "N16 admin resolves a report" authenticated "$ADMIN" "owner@example.com" \
   "select public.admin_update_report('$REPORT', 'resolved', 'handled');
    reset role; select 'status=' || status from public.reports where id = '$REPORT';" "status=resolved"
-check ALLOWED "N20 user exports their own data" authenticated "$USER_X" "x@example.com" \
+check ALLOWED "N17 user exports their own data" authenticated "$USER_X" "x@example.com" \
   "select case when public.export_my_data() ? 'profile' then 'export ok' end;" "export ok"
-check ALLOWED "N21 signed-out visitor asks is_admin() (false, no error)" anon "" "" \
+check ALLOWED "N18 signed-out visitor asks is_admin() (false, no error)" anon "" "" \
   "select 'is_admin=' || public.is_admin();" "is_admin=false"
 
-check ALLOWED "N22 admin lists every user" authenticated "$ADMIN" "owner@example.com" \
+check ALLOWED "N19 admin lists every user" authenticated "$ADMIN" "owner@example.com" \
   "select 'users=' || count(*) from public.admin_search_users('', 50);" "users=23"
-check ALLOWED "N23 admin finds a user by email" authenticated "$ADMIN" "owner@example.com" \
+check ALLOWED "N20 admin finds a user by email" authenticated "$ADMIN" "owner@example.com" \
   "select 'found=' || count(*) || ' ' || min(email) from public.admin_search_users('x@example', 50);" "found=1 x@example.com"
-check ALLOWED "N24 admin lists reports with both people's details" authenticated "$ADMIN" "owner@example.com" \
+check ALLOWED "N21 admin lists reports with both people's details" authenticated "$ADMIN" "owner@example.com" \
   "select 'reporter=' || reporter_email || ' reported=' || reported_email from public.admin_list_reports(true);" \
   "reporter=x@example.com reported=v@example.com"
-check ALLOWED "N25 server reads the send-push config (cron secret exists)" service_role "" "" \
+check ALLOWED "N22 server reads the send-push config (cron secret exists)" service_role "" "" \
   "select 'secret_len=' || length(cron_secret) from public.send_push_config();" "secret_len=64"
-check ALLOWED "N26 server saves VAPID keys once; a second pair can't replace them" service_role "" "" \
+check ALLOWED "N23 server saves VAPID keys once; a second pair can't replace them" service_role "" "" \
   "select 1 from public.save_vapid_keys('pub1', 'priv1');
    select 'pub=' || vapid_public_key || ' priv=' || vapid_private_key from public.save_vapid_keys('pub2', 'priv2');" "pub=pub1 priv=priv1"
-check ALLOWED "N27 signed-in user gets the VAPID public key (none yet)" authenticated "$USER_X" "x@example.com" \
+check ALLOWED "N24 signed-in user gets the VAPID public key (none yet)" authenticated "$USER_X" "x@example.com" \
   "select 'key=' || coalesce(public.vapid_public_key(), 'none');" "key=none"
-check ALLOWED "N28 last-active time still shows for people with Active Status on" authenticated "$USER_X" "x@example.com" \
-  "select 'admin=' || case when last_active_at is null then 'hidden' else 'shown' end from public.eligible_profiles where id = '$ADMIN';" "admin=shown"
+check ALLOWED "N25 search gets the last-active time of people with Active Status on" service_role "" "" \
+  "select 'admin=' || case when e ->> 'last_active_at' is null then 'hidden' else 'shown' end from jsonb_array_elements(public.search_candidates('$USER_X')) e where e ->> 'id' = '$ADMIN';" "admin=shown"
 
-check ALLOWED "N29 search pool: everyone else who can be shown (service role)" service_role "" "" \
+check ALLOWED "N26 search pool: everyone else who can be shown (service role)" service_role "" "" \
   "select 'pool=' || jsonb_array_length(public.search_candidates('$USER_X'));" "pool=22"
-check ALLOWED "N30 search pool leaves out blocked, banned, paused, incognito, liked, wrong gender" service_role "" "" \
+check ALLOWED "N27 search pool leaves out blocked, banned, paused, incognito, liked, wrong gender" service_role "" "" \
   "insert into public.blocks (blocker_id, blocked_id) values ('$USER_X', (select $EXTRA from generate_series(1, 1) g));
    insert into public.blocks (blocker_id, blocked_id) values ((select $EXTRA from generate_series(2, 2) g), '$USER_X');
    update public.profiles set is_banned = true where id = (select $EXTRA from generate_series(3, 3) g);
@@ -205,20 +198,20 @@ check ALLOWED "N30 search pool leaves out blocked, banned, paused, incognito, li
        || ' v_incognito_liked_me=' || (p @> jsonb_build_array(jsonb_build_object('id', '$OTHER')))
        || ' man_for_women=' || (p @> jsonb_build_array(jsonb_build_object('id', (select $EXTRA from generate_series(9, 9) g))))
      from (select public.search_candidates('$USER_X', null, true) p) s;" "pool=14 liked_kept=15 v_incognito_liked_me=true man_for_women=true"
-check ALLOWED "N31 search pool for given people only (Standouts)" service_role "" "" \
+check ALLOWED "N28 search pool for given people only (Standouts)" service_role "" "" \
   "select 'pool=' || jsonb_array_length(public.search_candidates('$USER_X', array['$OTHER', '$USER_X']::uuid[]));" "pool=1"
-check ALLOWED "N32 free user: 3 searches a day, the 4th is refused" service_role "" "" \
+check ALLOWED "N29 free user: 3 searches a day, the 4th is refused" service_role "" "" \
   "select 'allowed=' || string_agg(public.consume_search('$USER_X') ->> 'allowed', ',') from generate_series(1, 4);
    select 'count=' || daily_search_count from public.profiles where id = '$USER_X';" "allowed=true,true,true,false
 count=3"
-check ALLOWED "N33 search count starts again on a new day" service_role "" "" \
+check ALLOWED "N30 search count starts again on a new day" service_role "" "" \
   "update public.profiles set daily_search_count = 3, last_search_date = current_date - 1 where id = '$USER_X';
    select 'remaining=' || (public.consume_search('$USER_X') ->> 'remaining');" "remaining=2"
-check ALLOWED "N34 Pro user: unlimited searches" service_role "" "" \
+check ALLOWED "N31 Pro user: unlimited searches" service_role "" "" \
   "update public.profiles set subscription_tier = 'PRO' where id = '$USER_X';
    select 'allowed=' || bool_and((public.consume_search('$USER_X') ->> 'allowed')::boolean) || ' remaining=' || coalesce(max(public.consume_search('$USER_X') ->> 'remaining'), 'unlimited')
      from generate_series(1, 5);" "allowed=true remaining=unlimited"
-check ALLOWED "N35 user reads cards of people they liked, matched or blocked" authenticated "$USER_X" "x@example.com" \
+check ALLOWED "N32 user reads cards of people they liked, matched or blocked" authenticated "$USER_X" "x@example.com" \
   "reset role; insert into public.likes (liker_id, liked_id) select '$USER_X', $EXTRA from generate_series(1, 1) g;
    insert into public.blocks (blocker_id, blocked_id) select '$USER_X', $EXTRA from generate_series(2, 2) g; set local role authenticated;
    select 'cards=' || count(*) from public.get_profile_cards(array(select $EXTRA from generate_series(1, 3) g));" "cards=2"

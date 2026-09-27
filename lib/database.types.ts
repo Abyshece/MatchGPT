@@ -55,28 +55,7 @@ export type Database = {
             foreignKeyName: "admin_audit_admin_id_fkey"
             columns: ["admin_id"]
             isOneToOne: false
-            referencedRelation: "eligible_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "admin_audit_admin_id_fkey"
-            columns: ["admin_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "admin_audit_admin_id_fkey"
-            columns: ["admin_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "admin_audit_admin_id_fkey"
-            columns: ["admin_id"]
-            isOneToOne: false
-            referencedRelation: "visible_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -105,28 +84,7 @@ export type Database = {
             foreignKeyName: "admin_emails_added_by_fkey"
             columns: ["added_by"]
             isOneToOne: false
-            referencedRelation: "eligible_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "admin_emails_added_by_fkey"
-            columns: ["added_by"]
-            isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "admin_emails_added_by_fkey"
-            columns: ["added_by"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "admin_emails_added_by_fkey"
-            columns: ["added_by"]
-            isOneToOne: false
-            referencedRelation: "visible_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -158,41 +116,6 @@ export type Database = {
             foreignKeyName: "blocks_blocked_id_fkey"
             columns: ["blocked_id"]
             isOneToOne: false
-            referencedRelation: "eligible_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "blocks_blocked_id_fkey"
-            columns: ["blocked_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "blocks_blocked_id_fkey"
-            columns: ["blocked_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "blocks_blocked_id_fkey"
-            columns: ["blocked_id"]
-            isOneToOne: false
-            referencedRelation: "visible_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "blocks_blocker_id_fkey"
-            columns: ["blocker_id"]
-            isOneToOne: false
-            referencedRelation: "eligible_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "blocks_blocker_id_fkey"
-            columns: ["blocker_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -200,14 +123,7 @@ export type Database = {
             foreignKeyName: "blocks_blocker_id_fkey"
             columns: ["blocker_id"]
             isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "blocks_blocker_id_fkey"
-            columns: ["blocker_id"]
-            isOneToOne: false
-            referencedRelation: "visible_profiles"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -257,28 +173,7 @@ export type Database = {
             foreignKeyName: "consent_records_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "eligible_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "consent_records_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "consent_records_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "consent_records_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "visible_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -304,28 +199,7 @@ export type Database = {
             foreignKeyName: "data_export_log_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "eligible_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "data_export_log_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "data_export_log_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "data_export_log_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "visible_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -396,41 +270,6 @@ export type Database = {
             foreignKeyName: "likes_liked_id_fkey"
             columns: ["liked_id"]
             isOneToOne: false
-            referencedRelation: "eligible_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "likes_liked_id_fkey"
-            columns: ["liked_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "likes_liked_id_fkey"
-            columns: ["liked_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "likes_liked_id_fkey"
-            columns: ["liked_id"]
-            isOneToOne: false
-            referencedRelation: "visible_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "likes_liker_id_fkey"
-            columns: ["liker_id"]
-            isOneToOne: false
-            referencedRelation: "eligible_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "likes_liker_id_fkey"
-            columns: ["liker_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -438,14 +277,7 @@ export type Database = {
             foreignKeyName: "likes_liker_id_fkey"
             columns: ["liker_id"]
             isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "likes_liker_id_fkey"
-            columns: ["liker_id"]
-            isOneToOne: false
-            referencedRelation: "visible_profiles"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -480,35 +312,7 @@ export type Database = {
             foreignKeyName: "matches_unmatched_by_fkey"
             columns: ["unmatched_by"]
             isOneToOne: false
-            referencedRelation: "eligible_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "matches_unmatched_by_fkey"
-            columns: ["unmatched_by"]
-            isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "matches_unmatched_by_fkey"
-            columns: ["unmatched_by"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "matches_unmatched_by_fkey"
-            columns: ["unmatched_by"]
-            isOneToOne: false
-            referencedRelation: "visible_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "matches_user_a_id_fkey"
-            columns: ["user_a_id"]
-            isOneToOne: false
-            referencedRelation: "eligible_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -519,45 +323,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "matches_user_a_id_fkey"
-            columns: ["user_a_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "matches_user_a_id_fkey"
-            columns: ["user_a_id"]
-            isOneToOne: false
-            referencedRelation: "visible_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "matches_user_b_id_fkey"
-            columns: ["user_b_id"]
-            isOneToOne: false
-            referencedRelation: "eligible_profiles"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "matches_user_b_id_fkey"
             columns: ["user_b_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "matches_user_b_id_fkey"
-            columns: ["user_b_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "matches_user_b_id_fkey"
-            columns: ["user_b_id"]
-            isOneToOne: false
-            referencedRelation: "visible_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -602,28 +371,7 @@ export type Database = {
             foreignKeyName: "messages_sender_id_fkey"
             columns: ["sender_id"]
             isOneToOne: false
-            referencedRelation: "eligible_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "messages_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "messages_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "messages_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "visible_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1051,28 +799,7 @@ export type Database = {
             foreignKeyName: "push_queue_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "eligible_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "push_queue_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "push_queue_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "push_queue_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "visible_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1116,28 +843,7 @@ export type Database = {
             foreignKeyName: "push_subscriptions_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "eligible_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "push_subscriptions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "push_subscriptions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "push_subscriptions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "visible_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1181,41 +887,6 @@ export type Database = {
             foreignKeyName: "reports_reported_id_fkey"
             columns: ["reported_id"]
             isOneToOne: false
-            referencedRelation: "eligible_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reports_reported_id_fkey"
-            columns: ["reported_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reports_reported_id_fkey"
-            columns: ["reported_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reports_reported_id_fkey"
-            columns: ["reported_id"]
-            isOneToOne: false
-            referencedRelation: "visible_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reports_reporter_id_fkey"
-            columns: ["reporter_id"]
-            isOneToOne: false
-            referencedRelation: "eligible_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reports_reporter_id_fkey"
-            columns: ["reporter_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1223,14 +894,7 @@ export type Database = {
             foreignKeyName: "reports_reporter_id_fkey"
             columns: ["reporter_id"]
             isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reports_reporter_id_fkey"
-            columns: ["reporter_id"]
-            isOneToOne: false
-            referencedRelation: "visible_profiles"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1268,28 +932,7 @@ export type Database = {
             foreignKeyName: "search_history_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "eligible_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "search_history_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "search_history_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "search_history_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "visible_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1324,41 +967,6 @@ export type Database = {
             foreignKeyName: "standouts_candidate_id_fkey"
             columns: ["candidate_id"]
             isOneToOne: false
-            referencedRelation: "eligible_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "standouts_candidate_id_fkey"
-            columns: ["candidate_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "standouts_candidate_id_fkey"
-            columns: ["candidate_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "standouts_candidate_id_fkey"
-            columns: ["candidate_id"]
-            isOneToOne: false
-            referencedRelation: "visible_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "standouts_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "eligible_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "standouts_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1366,14 +974,7 @@ export type Database = {
             foreignKeyName: "standouts_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "standouts_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "visible_profiles"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1426,41 +1027,6 @@ export type Database = {
             foreignKeyName: "verification_requests_reviewed_by_fkey"
             columns: ["reviewed_by"]
             isOneToOne: false
-            referencedRelation: "eligible_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "verification_requests_reviewed_by_fkey"
-            columns: ["reviewed_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "verification_requests_reviewed_by_fkey"
-            columns: ["reviewed_by"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "verification_requests_reviewed_by_fkey"
-            columns: ["reviewed_by"]
-            isOneToOne: false
-            referencedRelation: "visible_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "verification_requests_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "eligible_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "verification_requests_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1468,206 +1034,13 @@ export type Database = {
             foreignKeyName: "verification_requests_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "verification_requests_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "visible_profiles"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
       }
     }
     Views: {
-      eligible_profiles: {
-        Row: {
-          age: number | null
-          attachment_style: string | null
-          body_type: string | null
-          children: string | null
-          conflict_resolution: string | null
-          dating_intention: string | null
-          description: string | null
-          drinking: string | null
-          drugs: string | null
-          education_level: string | null
-          ethnicity: string | null
-          eye_color: string | null
-          facebook: string | null
-          family_plans: string | null
-          financial_approach: string | null
-          gender: string | null
-          hair_color: string | null
-          height: string | null
-          hidden_fields: string[] | null
-          hobbies: string | null
-          hometown: string | null
-          id: string | null
-          instagram: string | null
-          interested_in: string | null
-          is_verified: boolean | null
-          job_title: string | null
-          languages: string | null
-          last_active_at: string | null
-          linkedin: string | null
-          location: string | null
-          love_language: string | null
-          marijuana: string | null
-          marriage_timeline: string | null
-          music_genre: string | null
-          name: string | null
-          onboarding_complete: boolean | null
-          pets: string | null
-          photo_urls: string[] | null
-          politics: string | null
-          pronouns: string | null
-          race: string | null
-          reading_interest: string | null
-          relationship_type: string | null
-          religion: string | null
-          settings_incognito: boolean | null
-          settings_show_online: boolean | null
-          sexuality: string | null
-          smoking: string | null
-          social_battery: string | null
-          sports_interest: string | null
-          subscription_tier: string | null
-          travel_style: string | null
-          twitter: string | null
-          university: string | null
-          work: string | null
-          work_style: string | null
-          zodiac: string | null
-        }
-        Insert: {
-          age?: number | null
-          attachment_style?: string | null
-          body_type?: string | null
-          children?: string | null
-          conflict_resolution?: string | null
-          dating_intention?: string | null
-          description?: string | null
-          drinking?: string | null
-          drugs?: string | null
-          education_level?: string | null
-          ethnicity?: string | null
-          eye_color?: string | null
-          facebook?: string | null
-          family_plans?: string | null
-          financial_approach?: string | null
-          gender?: string | null
-          hair_color?: string | null
-          height?: string | null
-          hidden_fields?: string[] | null
-          hobbies?: string | null
-          hometown?: string | null
-          id?: string | null
-          instagram?: string | null
-          interested_in?: string | null
-          is_verified?: boolean | null
-          job_title?: string | null
-          languages?: string | null
-          last_active_at?: never
-          linkedin?: string | null
-          location?: string | null
-          love_language?: string | null
-          marijuana?: string | null
-          marriage_timeline?: string | null
-          music_genre?: string | null
-          name?: string | null
-          onboarding_complete?: boolean | null
-          pets?: string | null
-          photo_urls?: string[] | null
-          politics?: string | null
-          pronouns?: string | null
-          race?: string | null
-          reading_interest?: string | null
-          relationship_type?: string | null
-          religion?: string | null
-          settings_incognito?: boolean | null
-          settings_show_online?: boolean | null
-          sexuality?: string | null
-          smoking?: string | null
-          social_battery?: string | null
-          sports_interest?: string | null
-          subscription_tier?: string | null
-          travel_style?: string | null
-          twitter?: string | null
-          university?: string | null
-          work?: string | null
-          work_style?: string | null
-          zodiac?: string | null
-        }
-        Update: {
-          age?: number | null
-          attachment_style?: string | null
-          body_type?: string | null
-          children?: string | null
-          conflict_resolution?: string | null
-          dating_intention?: string | null
-          description?: string | null
-          drinking?: string | null
-          drugs?: string | null
-          education_level?: string | null
-          ethnicity?: string | null
-          eye_color?: string | null
-          facebook?: string | null
-          family_plans?: string | null
-          financial_approach?: string | null
-          gender?: string | null
-          hair_color?: string | null
-          height?: string | null
-          hidden_fields?: string[] | null
-          hobbies?: string | null
-          hometown?: string | null
-          id?: string | null
-          instagram?: string | null
-          interested_in?: string | null
-          is_verified?: boolean | null
-          job_title?: string | null
-          languages?: string | null
-          last_active_at?: never
-          linkedin?: string | null
-          location?: string | null
-          love_language?: string | null
-          marijuana?: string | null
-          marriage_timeline?: string | null
-          music_genre?: string | null
-          name?: string | null
-          onboarding_complete?: boolean | null
-          pets?: string | null
-          photo_urls?: string[] | null
-          politics?: string | null
-          pronouns?: string | null
-          race?: string | null
-          reading_interest?: string | null
-          relationship_type?: string | null
-          religion?: string | null
-          settings_incognito?: boolean | null
-          settings_show_online?: boolean | null
-          sexuality?: string | null
-          smoking?: string | null
-          social_battery?: string | null
-          sports_interest?: string | null
-          subscription_tier?: string | null
-          travel_style?: string | null
-          twitter?: string | null
-          university?: string | null
-          work?: string | null
-          work_style?: string | null
-          zodiac?: string | null
-        }
-        Relationships: []
-      }
-      my_blocked_ids: {
-        Row: {
-          other_id: string | null
-        }
-        Relationships: []
-      }
       pending_pushes: {
         Row: {
           auth: string | null
@@ -1687,520 +1060,10 @@ export type Database = {
             foreignKeyName: "push_queue_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "eligible_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "push_queue_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "push_queue_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "push_queue_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "visible_profiles"
-            referencedColumns: ["id"]
-          },
         ]
-      }
-      public_profiles: {
-        Row: {
-          age: number | null
-          body_type: string | null
-          children: string | null
-          dating_intention: string | null
-          description: string | null
-          drinking: string | null
-          education_level: string | null
-          ethnicity: string | null
-          facebook: string | null
-          family_plans: string | null
-          gender: string | null
-          height: string | null
-          hidden_fields: string[] | null
-          hobbies: string | null
-          hometown: string | null
-          id: string | null
-          instagram: string | null
-          is_banned: boolean | null
-          is_paused: boolean | null
-          is_verified: boolean | null
-          job_title: string | null
-          languages: string | null
-          last_active_at: string | null
-          linkedin: string | null
-          location: string | null
-          marriage_timeline: string | null
-          name: string | null
-          photo_urls: string[] | null
-          pronouns: string | null
-          relationship_type: string | null
-          religion: string | null
-          smoking: string | null
-          subscription_tier: string | null
-          twitter: string | null
-          work: string | null
-        }
-        Insert: {
-          age?: number | null
-          body_type?: string | null
-          children?: string | null
-          dating_intention?: string | null
-          description?: string | null
-          drinking?: string | null
-          education_level?: string | null
-          ethnicity?: string | null
-          facebook?: string | null
-          family_plans?: string | null
-          gender?: string | null
-          height?: string | null
-          hidden_fields?: string[] | null
-          hobbies?: string | null
-          hometown?: string | null
-          id?: string | null
-          instagram?: string | null
-          is_banned?: boolean | null
-          is_paused?: boolean | null
-          is_verified?: boolean | null
-          job_title?: string | null
-          languages?: string | null
-          last_active_at?: never
-          linkedin?: string | null
-          location?: string | null
-          marriage_timeline?: string | null
-          name?: string | null
-          photo_urls?: string[] | null
-          pronouns?: string | null
-          relationship_type?: string | null
-          religion?: string | null
-          smoking?: string | null
-          subscription_tier?: string | null
-          twitter?: string | null
-          work?: string | null
-        }
-        Update: {
-          age?: number | null
-          body_type?: string | null
-          children?: string | null
-          dating_intention?: string | null
-          description?: string | null
-          drinking?: string | null
-          education_level?: string | null
-          ethnicity?: string | null
-          facebook?: string | null
-          family_plans?: string | null
-          gender?: string | null
-          height?: string | null
-          hidden_fields?: string[] | null
-          hobbies?: string | null
-          hometown?: string | null
-          id?: string | null
-          instagram?: string | null
-          is_banned?: boolean | null
-          is_paused?: boolean | null
-          is_verified?: boolean | null
-          job_title?: string | null
-          languages?: string | null
-          last_active_at?: never
-          linkedin?: string | null
-          location?: string | null
-          marriage_timeline?: string | null
-          name?: string | null
-          photo_urls?: string[] | null
-          pronouns?: string | null
-          relationship_type?: string | null
-          religion?: string | null
-          smoking?: string | null
-          subscription_tier?: string | null
-          twitter?: string | null
-          work?: string | null
-        }
-        Relationships: []
-      }
-      visible_profiles: {
-        Row: {
-          account_created: string | null
-          age: number | null
-          age_changed_once: boolean | null
-          attachment_style: string | null
-          baking_interest: string | null
-          ban_reason: string | null
-          banned_at: string | null
-          body_hair: string | null
-          body_type: string | null
-          can_cook: string | null
-          childhood_description: string | null
-          children: string | null
-          clothing_style: string | null
-          conflict_resolution: string | null
-          cookie_preferences: Json | null
-          covid_vaccine: string | null
-          criminal_record: string | null
-          daily_like_count: number | null
-          daily_search_count: number | null
-          daily_super_like_count: number | null
-          dating_intention: string | null
-          description: string | null
-          dietary_preferences: string | null
-          dream_house_type: string | null
-          dresses_well: string | null
-          drinking: string | null
-          drives_car: string | null
-          drugs: string | null
-          education_level: string | null
-          email: string | null
-          email_verified: boolean | null
-          ethnicity: string | null
-          eye_color: string | null
-          facebook: string | null
-          facial_hair: string | null
-          family_closeness: string | null
-          family_health_history: string | null
-          family_plans: string | null
-          favorite_drink: string | null
-          financial_approach: string | null
-          financial_splitting: string | null
-          future_plans: string | null
-          gender: string | null
-          gym_routine: string | null
-          hair_color: string | null
-          hair_type: string | null
-          has_drivers_license: string | null
-          has_tattoos: string | null
-          height: string | null
-          hidden_fields: string[] | null
-          hobbies: string | null
-          hometown: string | null
-          hygiene: string | null
-          id: string | null
-          instagram: string | null
-          interested_in: string | null
-          interracial_marriage: string | null
-          is_banned: boolean | null
-          is_organised: string | null
-          is_verified: boolean | null
-          job_title: string | null
-          languages: string | null
-          last_active_at: string | null
-          last_like_date: string | null
-          last_search_date: string | null
-          last_super_like_date: string | null
-          linkedin: string | null
-          living_preference: string | null
-          location: string | null
-          love_language: string | null
-          loves_travel: string | null
-          makeup_routine: string | null
-          marijuana: string | null
-          marketing_consent: boolean | null
-          marriage_timeline: string | null
-          music_genre: string | null
-          name: string | null
-          nationality_count: number | null
-          next_travel_destination: string | null
-          onboarding_complete: boolean | null
-          pets: string | null
-          phone_number: string | null
-          phone_type: string | null
-          phone_verified: boolean | null
-          photo_urls: string[] | null
-          politics: string | null
-          privacy_accepted_at: string | null
-          pronouns: string | null
-          race: string | null
-          reading_interest: string | null
-          relationship_type: string | null
-          religion: string | null
-          settings_email_notifs: boolean | null
-          settings_incognito: boolean | null
-          settings_push_notifs: boolean | null
-          settings_read_receipts: boolean | null
-          settings_show_online: boolean | null
-          settings_theme: string | null
-          sex_style: string | null
-          sexuality: string | null
-          shopping_preference: string | null
-          siblings: string | null
-          sleep_schedule: string | null
-          smoking: string | null
-          snoring: string | null
-          social_battery: string | null
-          sports_interest: string | null
-          subscription_renews_at: string | null
-          subscription_tier: string | null
-          terms_accepted_at: string | null
-          therapy_history: string | null
-          travel_style: string | null
-          twitter: string | null
-          university: string | null
-          updated_at: string | null
-          verification_status: string | null
-          wears_glasses: string | null
-          wears_jewelry: string | null
-          wears_lenses: string | null
-          work: string | null
-          work_style: string | null
-          zodiac: string | null
-        }
-        Insert: {
-          account_created?: string | null
-          age?: number | null
-          age_changed_once?: boolean | null
-          attachment_style?: string | null
-          baking_interest?: string | null
-          ban_reason?: string | null
-          banned_at?: string | null
-          body_hair?: string | null
-          body_type?: string | null
-          can_cook?: string | null
-          childhood_description?: string | null
-          children?: string | null
-          clothing_style?: string | null
-          conflict_resolution?: string | null
-          cookie_preferences?: Json | null
-          covid_vaccine?: string | null
-          criminal_record?: string | null
-          daily_like_count?: number | null
-          daily_search_count?: number | null
-          daily_super_like_count?: number | null
-          dating_intention?: string | null
-          description?: string | null
-          dietary_preferences?: string | null
-          dream_house_type?: string | null
-          dresses_well?: string | null
-          drinking?: string | null
-          drives_car?: string | null
-          drugs?: string | null
-          education_level?: string | null
-          email?: string | null
-          email_verified?: boolean | null
-          ethnicity?: string | null
-          eye_color?: string | null
-          facebook?: string | null
-          facial_hair?: string | null
-          family_closeness?: string | null
-          family_health_history?: string | null
-          family_plans?: string | null
-          favorite_drink?: string | null
-          financial_approach?: string | null
-          financial_splitting?: string | null
-          future_plans?: string | null
-          gender?: string | null
-          gym_routine?: string | null
-          hair_color?: string | null
-          hair_type?: string | null
-          has_drivers_license?: string | null
-          has_tattoos?: string | null
-          height?: string | null
-          hidden_fields?: string[] | null
-          hobbies?: string | null
-          hometown?: string | null
-          hygiene?: string | null
-          id?: string | null
-          instagram?: string | null
-          interested_in?: string | null
-          interracial_marriage?: string | null
-          is_banned?: boolean | null
-          is_organised?: string | null
-          is_verified?: boolean | null
-          job_title?: string | null
-          languages?: string | null
-          last_active_at?: string | null
-          last_like_date?: string | null
-          last_search_date?: string | null
-          last_super_like_date?: string | null
-          linkedin?: string | null
-          living_preference?: string | null
-          location?: string | null
-          love_language?: string | null
-          loves_travel?: string | null
-          makeup_routine?: string | null
-          marijuana?: string | null
-          marketing_consent?: boolean | null
-          marriage_timeline?: string | null
-          music_genre?: string | null
-          name?: string | null
-          nationality_count?: number | null
-          next_travel_destination?: string | null
-          onboarding_complete?: boolean | null
-          pets?: string | null
-          phone_number?: string | null
-          phone_type?: string | null
-          phone_verified?: boolean | null
-          photo_urls?: string[] | null
-          politics?: string | null
-          privacy_accepted_at?: string | null
-          pronouns?: string | null
-          race?: string | null
-          reading_interest?: string | null
-          relationship_type?: string | null
-          religion?: string | null
-          settings_email_notifs?: boolean | null
-          settings_incognito?: boolean | null
-          settings_push_notifs?: boolean | null
-          settings_read_receipts?: boolean | null
-          settings_show_online?: boolean | null
-          settings_theme?: string | null
-          sex_style?: string | null
-          sexuality?: string | null
-          shopping_preference?: string | null
-          siblings?: string | null
-          sleep_schedule?: string | null
-          smoking?: string | null
-          snoring?: string | null
-          social_battery?: string | null
-          sports_interest?: string | null
-          subscription_renews_at?: string | null
-          subscription_tier?: string | null
-          terms_accepted_at?: string | null
-          therapy_history?: string | null
-          travel_style?: string | null
-          twitter?: string | null
-          university?: string | null
-          updated_at?: string | null
-          verification_status?: string | null
-          wears_glasses?: string | null
-          wears_jewelry?: string | null
-          wears_lenses?: string | null
-          work?: string | null
-          work_style?: string | null
-          zodiac?: string | null
-        }
-        Update: {
-          account_created?: string | null
-          age?: number | null
-          age_changed_once?: boolean | null
-          attachment_style?: string | null
-          baking_interest?: string | null
-          ban_reason?: string | null
-          banned_at?: string | null
-          body_hair?: string | null
-          body_type?: string | null
-          can_cook?: string | null
-          childhood_description?: string | null
-          children?: string | null
-          clothing_style?: string | null
-          conflict_resolution?: string | null
-          cookie_preferences?: Json | null
-          covid_vaccine?: string | null
-          criminal_record?: string | null
-          daily_like_count?: number | null
-          daily_search_count?: number | null
-          daily_super_like_count?: number | null
-          dating_intention?: string | null
-          description?: string | null
-          dietary_preferences?: string | null
-          dream_house_type?: string | null
-          dresses_well?: string | null
-          drinking?: string | null
-          drives_car?: string | null
-          drugs?: string | null
-          education_level?: string | null
-          email?: string | null
-          email_verified?: boolean | null
-          ethnicity?: string | null
-          eye_color?: string | null
-          facebook?: string | null
-          facial_hair?: string | null
-          family_closeness?: string | null
-          family_health_history?: string | null
-          family_plans?: string | null
-          favorite_drink?: string | null
-          financial_approach?: string | null
-          financial_splitting?: string | null
-          future_plans?: string | null
-          gender?: string | null
-          gym_routine?: string | null
-          hair_color?: string | null
-          hair_type?: string | null
-          has_drivers_license?: string | null
-          has_tattoos?: string | null
-          height?: string | null
-          hidden_fields?: string[] | null
-          hobbies?: string | null
-          hometown?: string | null
-          hygiene?: string | null
-          id?: string | null
-          instagram?: string | null
-          interested_in?: string | null
-          interracial_marriage?: string | null
-          is_banned?: boolean | null
-          is_organised?: string | null
-          is_verified?: boolean | null
-          job_title?: string | null
-          languages?: string | null
-          last_active_at?: string | null
-          last_like_date?: string | null
-          last_search_date?: string | null
-          last_super_like_date?: string | null
-          linkedin?: string | null
-          living_preference?: string | null
-          location?: string | null
-          love_language?: string | null
-          loves_travel?: string | null
-          makeup_routine?: string | null
-          marijuana?: string | null
-          marketing_consent?: boolean | null
-          marriage_timeline?: string | null
-          music_genre?: string | null
-          name?: string | null
-          nationality_count?: number | null
-          next_travel_destination?: string | null
-          onboarding_complete?: boolean | null
-          pets?: string | null
-          phone_number?: string | null
-          phone_type?: string | null
-          phone_verified?: boolean | null
-          photo_urls?: string[] | null
-          politics?: string | null
-          privacy_accepted_at?: string | null
-          pronouns?: string | null
-          race?: string | null
-          reading_interest?: string | null
-          relationship_type?: string | null
-          religion?: string | null
-          settings_email_notifs?: boolean | null
-          settings_incognito?: boolean | null
-          settings_push_notifs?: boolean | null
-          settings_read_receipts?: boolean | null
-          settings_show_online?: boolean | null
-          settings_theme?: string | null
-          sex_style?: string | null
-          sexuality?: string | null
-          shopping_preference?: string | null
-          siblings?: string | null
-          sleep_schedule?: string | null
-          smoking?: string | null
-          snoring?: string | null
-          social_battery?: string | null
-          sports_interest?: string | null
-          subscription_renews_at?: string | null
-          subscription_tier?: string | null
-          terms_accepted_at?: string | null
-          therapy_history?: string | null
-          travel_style?: string | null
-          twitter?: string | null
-          university?: string | null
-          updated_at?: string | null
-          verification_status?: string | null
-          wears_glasses?: string | null
-          wears_jewelry?: string | null
-          wears_lenses?: string | null
-          work?: string | null
-          work_style?: string | null
-          zodiac?: string | null
-        }
-        Relationships: []
       }
     }
     Functions: {
