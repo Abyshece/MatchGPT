@@ -2,8 +2,7 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { useToast } from '../lib/useToast';
 import { loadHistory, deleteSearch, clearHistory } from '../lib/searchHistoryService';
-import { runSearch } from '../lib/matchingService';
-import { incrementSearchCount, computeSearchAllowance } from '../lib/profileService';
+import { computeSearchAllowance } from '../lib/profileService';
 import { listMyLikesDetailed } from '../lib/likesService';
 import MatchCard from './MatchCard';
 import ProfileModal from './ProfileModal';
@@ -25,11 +24,12 @@ type HistoryTab = 'searches' | 'liked';
 type TimeFilter = 'today' | 'week' | 'all';
 
 interface HistoryViewProps {
-  onOpenInSearch?: (saved: SavedSearch) => void;
+  // Opens the Find Match tab and runs the saved search there
+  onOpenInSearch: (saved: SavedSearch) => void;
 }
 
 const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
-  const { profile, session, refreshProfile } = useAuth();
+  const { profile, session } = useAuth();
   const { showToast } = useToast();
 
   const [tab, setTab] = useState<HistoryTab>('searches');
@@ -38,9 +38,6 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
   const [likedLoading, setLikedLoading] = useState(false);
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
   const [loading, setLoading] = useState(true);
-  const [activeSearch, setActiveSearch] = useState<SavedSearch | null>(null);
-  const [results, setResults] = useState<MatchCandidate[]>([]);
-  const [rerunning, setRerunning] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState<MatchCandidate | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
@@ -86,41 +83,13 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
   }, [liked, timeFilter]);
 
   const handleRerun = useCallback((saved: SavedSearch) => {
-    if (!profile || !session?.user.id) return;
-
-    const allowance = computeSearchAllowance(profile);
-    if (!allowance.allowed) {
+    if (!profile) return;
+    if (!computeSearchAllowance(profile).allowed) {
       setShowUpgradeModal(true);
       return;
     }
-
-    // Delegate to parent: switches to Find Match tab and auto-runs the search.
-    // Falls back to in-place rerun if no callback is wired (legacy behavior).
-    if (onOpenInSearch) {
-      onOpenInSearch(saved);
-      return;
-    }
-
-    // Legacy in-place rerun (kept for safety if Dashboard doesn't pass the prop)
-    setActiveSearch(saved);
-    setRerunning(true);
-    setResults([]);
-
-    runSearch({
-      searcherId: session.user.id,
-      searcher: profile,
-      prompt: saved.prompt,
-      filters: saved.filters,
-    })
-      .then(async (output) => {
-        setResults(output.candidates);
-        await incrementSearchCount(session.user.id, profile);
-        await refreshProfile();
-        showToast(`Re-ran with ${output.candidates.length} fresh matches`, 'success');
-      })
-      .catch(() => showToast('Re-run failed', 'error'))
-      .finally(() => setRerunning(false));
-  }, [profile, session?.user.id, refreshProfile, showToast, onOpenInSearch]);
+    onOpenInSearch(saved);
+  }, [profile, onOpenInSearch]);
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Delete this saved search?')) return;
@@ -131,10 +100,6 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
     }
     showToast('Deleted', 'success');
     setHistory((prev) => prev.filter((s) => s.id !== id));
-    if (activeSearch?.id === id) {
-      setActiveSearch(null);
-      setResults([]);
-    }
   };
 
   const handleClearAll = async () => {
@@ -147,8 +112,6 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
     }
     showToast('History cleared', 'success');
     setHistory([]);
-    setActiveSearch(null);
-    setResults([]);
   };
 
   if (!profile) {
@@ -308,11 +271,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
               {history.map((s) => (
                 <div
                   key={s.id}
-                  className={`group flex items-center gap-4 p-4 rounded-xl border transition-all cursor-pointer ${
-                    activeSearch?.id === s.id
-                      ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
-                      : 'bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 hover:border-gray-400 dark:hover:border-zinc-600'
-                  }`}
+                  className="group flex items-center gap-4 p-4 rounded-xl border transition-all cursor-pointer bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 hover:border-gray-400 dark:hover:border-zinc-600"
                   onClick={() => handleRerun(s)}
                 >
                   <div className="w-10 h-10 bg-gray-100 dark:bg-zinc-800 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400 flex-shrink-0">
@@ -340,36 +299,6 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
                 </div>
               ))}
             </div>
-
-            {/* Re-run results */}
-            {activeSearch && (
-              <div className="border-t border-gray-200 dark:border-zinc-800 pt-8">
-                <div className="mb-4">
-                  <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
-                    Re-running: <span className="text-gray-500">"{activeSearch.prompt || '(no prompt)'}"</span>
-                  </h2>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{filterSummary(activeSearch.filters)}</p>
-                </div>
-
-                {rerunning ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {[1, 2, 3, 4, 5, 6].map((i) => (
-                      <div key={i} className="aspect-[3/4] rounded-xl bg-gray-100 dark:bg-zinc-800 animate-pulse" />
-                    ))}
-                  </div>
-                ) : results.length === 0 ? (
-                  <p className="text-sm text-gray-500 dark:text-gray-400 italic text-center py-8">
-                    No matches with these criteria right now.
-                  </p>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {results.map((c) => (
-                      <MatchCard key={c.id} candidate={c} onClick={() => setSelectedCandidate(c)} />
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
           </>
         )}
           </>

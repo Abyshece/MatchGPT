@@ -5,6 +5,7 @@ import MatchCelebrationModal from './MatchCelebrationModal';
 import { subscribeToNewMatches } from '../lib/chatService';
 import { supabase } from '../lib/supabase';
 import { IconMenu, IconEdit } from '../constants';
+import { displayName } from '../lib/profileMapping';
 import type { MatchCandidate } from '../types';
 
 // ============================================================================
@@ -72,18 +73,14 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
       const otherId = event.userAId === myId ? event.userBId : event.userAId;
 
       // Other people's rows aren't readable from `profiles` (own row only);
-      // public_profiles is the safe, read-only subset.
-      const { data: row } = await supabase
-        .from('public_profiles')
-        .select('id, name, age, location, photo_urls, hidden_fields, subscription_tier, is_verified')
-        .eq('id', otherId)
-        .single();
-
+      // get_profile_cards returns the card of someone you're matched with.
+      const { data: cards } = await supabase.rpc('get_profile_cards', { p_ids: [otherId] });
+      const row = cards?.[0];
       if (!row) return;
 
       const candidate: MatchCandidate = {
         id: row.id,
-        name: row.name ?? '',
+        name: displayName(row.name),
         age: row.age ?? 0,
         location: row.location ?? '',
         compatibilityScore: 0,

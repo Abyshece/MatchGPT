@@ -2,8 +2,8 @@
 // profileService (Phase 4 update)
 //
 // Adds:
-//   - incrementSearchCount() — daily search counter, resets at midnight
-//   - canSearch() — returns whether user can run another search today
+//   - computeSearchAllowance() — searches left today (the server keeps the
+//     count and enforces the limit; see supabase/functions/search)
 //   - DAILY_LIMITS — constant config
 // ============================================================================
 
@@ -13,7 +13,7 @@ import type { ProfileRow } from './database.types';
 import type { UserProfile, UserSettings } from '../types';
 
 export const DAILY_LIMITS = {
-  FREE: { searches: 3, likes: 15 },  // likes: enforced by the database too
+  FREE: { searches: 3, likes: 15 },  // both enforced by the server too
   PRO:  { searches: Infinity, likes: Infinity },
 } as const;
 
@@ -144,32 +144,6 @@ export function computeSearchAllowance(profile: UserProfile): SearchAllowance {
 }
 
 // ----------------------------------------------------------------------------
-// incrementSearchCount — bump daily counter, reset on new day
-// ----------------------------------------------------------------------------
-
-export async function incrementSearchCount(
-  userId: string,
-  currentProfile: UserProfile
-): Promise<{ error: string | null }> {
-  const today = new Date().toISOString().slice(0, 10);
-  const lastDate = currentProfile.lastSearchDate?.slice(0, 10);
-  const isNewDay = lastDate !== today;
-
-  const newCount = isNewDay ? 1 : (currentProfile.dailySearchCount ?? 0) + 1;
-
-  const { error } = await supabase
-    .from('profiles')
-    .update({
-      daily_search_count: newCount,
-      last_search_date: new Date().toISOString(),
-    })
-    .eq('id', userId);
-
-  if (error) return { error: error.message };
-  return { error: null };
-}
-
-// ----------------------------------------------------------------------------
 // Verification lockout: 72 hours after account creation, unverified users
 // are soft-locked from search/like actions until they verify.
 // ----------------------------------------------------------------------------
@@ -227,8 +201,8 @@ export async function updateLastActive(
 // ----------------------------------------------------------------------------
 // setPauseStatus — pause or resume matching
 // ----------------------------------------------------------------------------
-// When paused, the user disappears from search results everywhere (eligible_
-// profiles view excludes paused users in 012_pause_and_gdpr_export.sql).
+// When paused, the user disappears from search and Standouts (search_candidates()
+// leaves out paused users).
 // Existing matches and chats keep working — only NEW discovery is blocked.
 // Different from incognito: incognito users still appear to people who liked
 // them. Paused users are invisible to everyone.

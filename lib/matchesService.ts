@@ -7,6 +7,7 @@
 // ============================================================================
 
 import { supabase } from './supabase';
+import { displayName } from './profileMapping';
 
 export interface MatchSummary {
   matchId: string;
@@ -42,7 +43,7 @@ export async function listMatches(userId: string): Promise<{ matches: MatchSumma
     matchedAt: row.matched_at as string,
     otherUser: {
       id: row.other_user_id as string,
-      name: (row.other_name as string) ?? '',
+      name: displayName(row.other_name as string | null),
       age: (row.other_age as number) ?? null,
       location: (row.other_location as string) ?? '',
       photos: (row.other_photos as string[]) ?? [],

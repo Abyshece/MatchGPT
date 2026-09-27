@@ -9,7 +9,7 @@ supabase/tests/run_local.sh
 ```
 
 Rebuilds an empty local database from every migration, loads `test_data.sql`
-and runs `security_tests.sh`: 22 attacks that must be blocked and 28 normal
+and runs `security_tests.sh`: 29 attacks that must be blocked and 35 normal
 app actions that must keep working. It exits non-zero if any check fails.
 `UP_TO=<version>` stops after that migration (useful to see a bug before its fix).
 
@@ -24,6 +24,10 @@ npx supabase db reset       # rebuild the database from supabase/migrations/
 VITE_SUPABASE_URL=http://127.0.0.1:54321 SUPABASE_SERVICE_ROLE_KEY=<service_role key from `npx supabase status`> npx tsx scripts/seed.ts
 VITE_SUPABASE_URL=http://127.0.0.1:54321 VITE_SUPABASE_ANON_KEY=<anon key from `npx supabase status`> npm run dev
 ```
+
+Search runs in the `search` edge function; `npx supabase functions serve` serves
+it (and the others) locally. Its matching logic has unit tests:
+`deno test --no-config supabase/functions/search/matching_test.ts`.
 
 Emails land in the mail catcher at http://127.0.0.1:54324. For push
 notifications locally, also set the Vault `project_url` to an address the

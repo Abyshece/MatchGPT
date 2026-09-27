@@ -1,7 +1,7 @@
 # Browser tests
 
 Playwright scripts that drive the real app in Chromium against a local
-Supabase (`supabase/config.toml`), used to check Phase 8. Each prints what it
+Supabase (`supabase/config.toml`), used to check Phases 8 and 9. Each prints what it
 checked and exits non-zero on failure; screenshots go to `tests/e2e/.shots/`.
 
 ## Setup
@@ -27,4 +27,5 @@ Defaults match the local stack; override with `BASE_URL`, `SUPABASE_URL`,
 | `reset-flow.mjs` | Forgot password → email link → new password; old one rejected; a used link is refused |
 | `refresh-check.mjs [email]` | The app survives sign-in token refreshes. Set `jwt_expiry = 120` to see several in two minutes |
 | `phase8-app.mjs <email>` | Online status, Standouts keeping its picks, block/unblock, pause, "Get verified" (an onboarded account, password `TestPass!2026`) |
+| `phase9-search.mjs <email>` | Search on the server: "near me", "doesn't smoke", hidden name and religion never sent, the daily limit refused by the server, liked list / Standouts / blocked list (an onboarded account, password `TestPass!2026`; moves it to Mumbai) |
 | `admin-tabs.mjs <email>` | Admin Users and Reports tabs see everyone (makes the account an admin) |

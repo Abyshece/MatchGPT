@@ -7,6 +7,7 @@
 // ============================================================================
 
 import { supabase } from './supabase';
+import { displayName } from './profileMapping';
 import type { MatchCandidate } from '../types';
 
 export interface LikeReceived {
@@ -151,39 +152,35 @@ export async function listMyLikesDetailed(
   if (likeErr) return { entries: [], error: likeErr.message };
   if (!likeRows || likeRows.length === 0) return { entries: [], error: null };
 
-  // Hydrate with full profile data
+  // Name and photos for each (banned people, and anyone who blocked the user,
+  // come back without a card and are skipped)
   const ids = likeRows.map((r) => r.liked_id as string);
-  const { data: profileRows, error: profErr } = await supabase
-    .from('public_profiles')
-    .select('id, name, age, location, description, photo_urls, is_verified, subscription_tier, hidden_fields, is_banned')
-    .in('id', ids);
-  if (profErr) return { entries: [], error: profErr.message };
+  const { data: cards, error: cardsErr } = await supabase.rpc('get_profile_cards', { p_ids: ids });
+  if (cardsErr) return { entries: [], error: cardsErr.message };
 
-  const profileMap = new Map(
-    (profileRows ?? []).map((p) => [p.id as string, p])
-  );
+  const cardById = new Map((cards ?? []).map((p) => [p.id, p]));
 
   const entries: MyLikeEntry[] = likeRows
     .map((row): MyLikeEntry | null => {
-      const p = profileMap.get(row.liked_id as string);
-      if (!p || p.is_banned) return null;  // skip if profile gone or banned
+      const p = cardById.get(row.liked_id as string);
+      if (!p) return null;
       return {
         likeId: row.id as string,
         likedAt: row.created_at as string,
         isSuperLike: row.is_super_like as boolean,
         candidate: {
-          id: p.id as string,
-          name: (p.name as string) ?? '',
-          age: (p.age as number) ?? 0,
-          location: (p.location as string) ?? '',
+          id: p.id,
+          name: displayName(p.name),
+          age: p.age ?? 0,
+          location: p.location ?? '',
           compatibilityScore: 0,
           tags: row.is_super_like ? ['You super-liked'] : ['You liked'],
-          bio: (p.description as string) ?? '',
-          imageUrls: ((p.photo_urls as string[] | null) ?? []),
-          isVerified: (p.is_verified as boolean) ?? false,
-          isPremium: (p.subscription_tier as string) === 'PRO',
-          subscriptionTier: (p.subscription_tier as 'FREE' | 'PRO') ?? 'FREE',
-          hiddenFields: ((p.hidden_fields as string[] | null) ?? []),
+          bio: p.description ?? '',
+          imageUrls: p.photo_urls ?? [],
+          isVerified: p.is_verified ?? false,
+          isPremium: p.subscription_tier === 'PRO',
+          subscriptionTier: p.subscription_tier === 'PRO' ? 'PRO' : 'FREE',
+          hiddenFields: p.hidden_fields ?? [],
         },
       };
     })
@@ -207,7 +204,7 @@ export async function listLikesReceived(userId: string): Promise<{ likes: LikeRe
     likedAt: row.liked_at as string,
     liker: {
       id: row.liker_id as string,
-      name: (row.liker_name as string) ?? '',
+      name: displayName(row.liker_name as string | null),
       age: (row.liker_age as number) ?? null,
       location: (row.liker_location as string) ?? '',
       photos: (row.liker_photos as string[]) ?? [],

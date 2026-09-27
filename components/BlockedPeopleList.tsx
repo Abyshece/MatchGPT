@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { listBlockedByMe, unblockUser } from '../lib/blocksService';
+import { displayName } from '../lib/profileMapping';
 import { useToast } from '../lib/useToast';
 
 // ============================================================================
@@ -31,18 +32,21 @@ const BlockedPeopleList: React.FC<{ userId: string }> = ({ userId }) => {
         if (!cancelled) setError(listError);
         return;
       }
-      const { data: profiles } = ids.length
-        ? await supabase.from('public_profiles').select('id, name, photo_urls').in('id', ids.map((b) => b.blockedId))
+      const { data: cards } = ids.length
+        ? await supabase.rpc('get_profile_cards', { p_ids: ids.map((b) => b.blockedId) })
         : { data: [] };
-      const byId = new Map((profiles ?? []).map((p) => [p.id, p]));
+      const byId = new Map((cards ?? []).map((p) => [p.id, p]));
       if (cancelled) return;
-      setPeople(ids.map((b) => ({
-        id: b.blockedId,
-        // A deleted account has no profile left
-        name: byId.get(b.blockedId)?.name || 'Deleted account',
-        photoUrl: byId.get(b.blockedId)?.photo_urls?.[0] ?? null,
-        blockedAt: b.createdAt,
-      })));
+      setPeople(ids.map((b) => {
+        // No card for someone who was banned or blocked you too
+        const card = byId.get(b.blockedId);
+        return {
+          id: b.blockedId,
+          name: card ? displayName(card.name) : 'Profile unavailable',
+          photoUrl: card?.photo_urls?.[0] ?? null,
+          blockedAt: b.createdAt,
+        };
+      }));
     })();
     return () => { cancelled = true; };
   }, [userId]);

@@ -1,9 +1,9 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { useToast } from '../lib/useToast';
-import { runSearch } from '../lib/matchingService';
+import { searchProfiles, SearchError } from '../lib/searchService';
 import { saveSearch } from '../lib/searchHistoryService';
-import { incrementSearchCount, computeSearchAllowance, computeVerificationStatus } from '../lib/profileService';
+import { computeSearchAllowance, computeVerificationStatus } from '../lib/profileService';
 import MatchCard from './MatchCard';
 import ProfileModal from './ProfileModal';
 import VerificationBanner from './VerificationBanner';
@@ -176,31 +176,23 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
       return;
     }
 
+    const hadSearched = hasSearched;
     setSearching(true);
     setHasSearched(true);
 
     try {
-      // Everyone gets the Pro-tier 50 results while PRO_FOR_ALL is on
-      // (see profileService.ts). Switch back to a tier-based limit when
-      // paid Pro launches.
-      const output = await runSearch({
-        searcherId: session.user.id,
-        searcher: profile,
-        prompt: effectivePrompt,
-        // Always exclude profiles the user has already liked so the search
-        // results stay fresh (no point re-showing someone you've already liked).
-        filters: { ...filters, notAlreadyLiked: true },
-        limit: 50,
-      });
+      // The server runs the search, leaves out people already liked and
+      // counts it toward today's limit. Everyone gets the Pro-size list of 50
+      // while PRO_FOR_ALL is on (see profileService.ts).
+      const output = await searchProfiles(effectivePrompt, filters, 50);
 
       setResults(output.candidates);
       setPoolSize(output.poolSize);
 
-      await incrementSearchCount(session.user.id, profile);
-
       saveSearch(session.user.id, effectivePrompt, filters, output.candidates, output.poolSize)
         .catch((e) => console.warn('[SearchView] saveSearch failed:', e));
 
+      // Picks up the new search count
       await refreshProfile();
 
       if (output.candidates.length === 0) {
@@ -209,12 +201,18 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
         showToast(`Found ${output.candidates.length} matches`, 'success');
       }
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Search failed';
-      showToast(msg, 'error');
+      if (e instanceof SearchError && e.code === 'LIMIT_REACHED') {
+        // Already used up (e.g. in another tab): back to how it was, plus the upgrade prompt
+        setHasSearched(hadSearched);
+        setShowUpgradeModal(true);
+        await refreshProfile();
+      } else {
+        showToast(e instanceof Error ? e.message : 'Search failed', 'error');
+      }
     } finally {
       setSearching(false);
     }
-  }, [prompt, filters, profile, session.user.id, allowance.allowed, isLockedOut, activeFilterCount, refreshProfile, showToast]);
+  }, [prompt, filters, session.user.id, allowance.allowed, isLockedOut, activeFilterCount, hasSearched, refreshProfile, showToast]);
 
   // Keep the ref pointed at the latest handleSearch so the mount-effect can call it
   useEffect(() => {

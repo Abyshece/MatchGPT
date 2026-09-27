@@ -92,6 +92,33 @@ check ALLOWED "A22 user reads last-active time of someone with Active Status off
   "select 'search=' || coalesce(e.last_active_at::text, 'hidden') || ' public=' || coalesce(p.last_active_at::text, 'hidden')
      from public.eligible_profiles e join public.public_profiles p using (id) where e.id = '$OTHER';" "search=hidden public=hidden"
 
+check BLOCKED "A23 user resets their own daily search counter" authenticated "$USER_X" "x@example.com" \
+  "reset role; update public.profiles set daily_search_count = 3, last_search_date = current_date where id = '$USER_X'; set local role authenticated;
+   update public.profiles set daily_search_count = 0 where id = '$USER_X';" "can only be changed by MatchGPT"
+check BLOCKED "A24 signed-in user downloads the search pool (search_candidates)" authenticated "$USER_X" "x@example.com" \
+  "select public.search_candidates('$USER_X');" "permission denied"
+check BLOCKED "A25 signed-in user calls the search counter directly (consume_search)" authenticated "$USER_X" "x@example.com" \
+  "select public.consume_search('$USER_X');" "permission denied"
+check BLOCKED "A26 signed-out visitor reads profile cards" anon "" "" \
+  "select * from public.get_profile_cards(array['$USER_X']::uuid[]);" "permission denied"
+check ALLOWED "A27 user reads the card of a stranger (no like, match or block)" authenticated "$USER_X" "x@example.com" \
+  "select 'cards=' || count(*) from public.get_profile_cards(array[('00000000-0000-0000-0001-' || lpad('1', 12, '0'))::uuid]);" "cards=0"
+check ALLOWED "A28 user reads the card of someone who blocked them" authenticated "$USER_X" "x@example.com" \
+  "reset role; insert into public.likes (liker_id, liked_id) select '$USER_X', $EXTRA from generate_series(1, 1) g;
+   insert into public.blocks (blocker_id, blocked_id) select $EXTRA, '$USER_X' from generate_series(1, 1) g; set local role authenticated;
+   select 'cards=' || count(*) from public.get_profile_cards(array(select $EXTRA from generate_series(1, 1) g));" "cards=0"
+check ALLOWED "A29 hidden name, age and location stay out of Likes You, Matches and cards" authenticated "$USER_X" "x@example.com" \
+  "reset role; update public.profiles set hidden_fields = '{name,age,location}', age = 30, location = 'Pune, MH' where id = '$OTHER'; set local role authenticated;
+   select 'like=' || coalesce(liker_name, 'hidden') || '/' || coalesce(liker_age::text, 'hidden') || '/' || coalesce(liker_location, 'hidden')
+     from public.get_likes_received('$USER_X');
+   reset role; insert into public.likes (liker_id, liked_id) values ('$USER_X', '$OTHER'); set local role authenticated;
+   select 'match=' || coalesce(other_name, 'hidden') || '/' || coalesce(other_age::text, 'hidden') || '/' || coalesce(other_location, 'hidden')
+     from public.get_matches_with_profile('$USER_X');
+   select 'card=' || coalesce(name, 'hidden') || '/' || coalesce(age::text, 'hidden') || '/' || coalesce(location, 'hidden')
+     from public.get_profile_cards(array['$OTHER']::uuid[]);" "like=hidden/hidden/hidden
+match=hidden/hidden/hidden
+card=hidden/hidden/hidden"
+
 echo
 echo "Normal app use — must keep working:"
 check ALLOWED "N1  user reads the search pool (eligible_profiles)" authenticated "$USER_X" "x@example.com" \
@@ -102,8 +129,8 @@ check ALLOWED "N3  user reads my_blocked_ids" authenticated "$USER_X" "x@example
   "select count(*) from public.my_blocked_ids;"
 check ALLOWED "N4  user reads their own profile row" authenticated "$USER_X" "x@example.com" \
   "select 'rows=' || count(*) from public.profiles;" "rows=1"
-check ALLOWED "N5  user edits normal fields (onboarding, search counter, theme)" authenticated "$USER_X" "x@example.com" \
-  "update public.profiles set name = 'New Name', hobbies = 'hiking', email_verified = true, daily_search_count = 1, settings_theme = 'dark' where id = '$USER_X' returning name;"
+check ALLOWED "N5  user edits normal fields (onboarding, hidden fields, theme)" authenticated "$USER_X" "x@example.com" \
+  "update public.profiles set name = 'New Name', hobbies = 'hiking', email_verified = true, hidden_fields = '{religion}', settings_theme = 'dark' where id = '$USER_X' returning name;"
 check ALLOWED "N6  admin is recognised (is_admin)" authenticated "$ADMIN" "owner@example.com" \
   "select 'is_admin=' || public.is_admin();" "is_admin=true"
 check ALLOWED "N7  admin verifies a user" authenticated "$ADMIN" "owner@example.com" \
@@ -160,6 +187,41 @@ check ALLOWED "N27 signed-in user gets the VAPID public key (none yet)" authenti
   "select 'key=' || coalesce(public.vapid_public_key(), 'none');" "key=none"
 check ALLOWED "N28 last-active time still shows for people with Active Status on" authenticated "$USER_X" "x@example.com" \
   "select 'admin=' || case when last_active_at is null then 'hidden' else 'shown' end from public.eligible_profiles where id = '$ADMIN';" "admin=shown"
+
+check ALLOWED "N29 search pool: everyone else who can be shown (service role)" service_role "" "" \
+  "select 'pool=' || jsonb_array_length(public.search_candidates('$USER_X'));" "pool=22"
+check ALLOWED "N30 search pool leaves out blocked, banned, paused, incognito, liked, wrong gender" service_role "" "" \
+  "insert into public.blocks (blocker_id, blocked_id) values ('$USER_X', (select $EXTRA from generate_series(1, 1) g));
+   insert into public.blocks (blocker_id, blocked_id) values ((select $EXTRA from generate_series(2, 2) g), '$USER_X');
+   update public.profiles set is_banned = true where id = (select $EXTRA from generate_series(3, 3) g);
+   update public.profiles set is_paused = true where id = (select $EXTRA from generate_series(4, 4) g);
+   update public.profiles set settings_incognito = true where id in ((select $EXTRA from generate_series(5, 5) g), '$OTHER');
+   insert into public.likes (liker_id, liked_id) values ('$USER_X', (select $EXTRA from generate_series(6, 6) g));
+   update public.profiles set gender = 'Woman', interested_in = 'Men' where id = '$USER_X';
+   update public.profiles set gender = 'Male', interested_in = 'Men' where id = (select $EXTRA from generate_series(7, 7) g);
+   update public.profiles set gender = 'Woman', interested_in = 'Everyone' where id = (select $EXTRA from generate_series(8, 8) g);
+   update public.profiles set gender = 'Man', interested_in = 'Women' where id = (select $EXTRA from generate_series(9, 9) g);
+   select 'pool=' || jsonb_array_length(p) || ' liked_kept=' || jsonb_array_length(public.search_candidates('$USER_X', null, false))
+       || ' v_incognito_liked_me=' || (p @> jsonb_build_array(jsonb_build_object('id', '$OTHER')))
+       || ' man_for_women=' || (p @> jsonb_build_array(jsonb_build_object('id', (select $EXTRA from generate_series(9, 9) g))))
+     from (select public.search_candidates('$USER_X', null, true) p) s;" "pool=14 liked_kept=15 v_incognito_liked_me=true man_for_women=true"
+check ALLOWED "N31 search pool for given people only (Standouts)" service_role "" "" \
+  "select 'pool=' || jsonb_array_length(public.search_candidates('$USER_X', array['$OTHER', '$USER_X']::uuid[]));" "pool=1"
+check ALLOWED "N32 free user: 3 searches a day, the 4th is refused" service_role "" "" \
+  "select 'allowed=' || string_agg(public.consume_search('$USER_X') ->> 'allowed', ',') from generate_series(1, 4);
+   select 'count=' || daily_search_count from public.profiles where id = '$USER_X';" "allowed=true,true,true,false
+count=3"
+check ALLOWED "N33 search count starts again on a new day" service_role "" "" \
+  "update public.profiles set daily_search_count = 3, last_search_date = current_date - 1 where id = '$USER_X';
+   select 'remaining=' || (public.consume_search('$USER_X') ->> 'remaining');" "remaining=2"
+check ALLOWED "N34 Pro user: unlimited searches" service_role "" "" \
+  "update public.profiles set subscription_tier = 'PRO' where id = '$USER_X';
+   select 'allowed=' || bool_and((public.consume_search('$USER_X') ->> 'allowed')::boolean) || ' remaining=' || coalesce(max(public.consume_search('$USER_X') ->> 'remaining'), 'unlimited')
+     from generate_series(1, 5);" "allowed=true remaining=unlimited"
+check ALLOWED "N35 user reads cards of people they liked, matched or blocked" authenticated "$USER_X" "x@example.com" \
+  "reset role; insert into public.likes (liker_id, liked_id) select '$USER_X', $EXTRA from generate_series(1, 1) g;
+   insert into public.blocks (blocker_id, blocked_id) select '$USER_X', $EXTRA from generate_series(2, 2) g; set local role authenticated;
+   select 'cards=' || count(*) from public.get_profile_cards(array(select $EXTRA from generate_series(1, 3) g));" "cards=2"
 
 echo
 if [[ $fails -eq 0 ]]; then echo "All checks passed."; else echo "$fails check(s) FAILED."; exit 1; fi

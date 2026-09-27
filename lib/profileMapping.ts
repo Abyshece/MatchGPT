@@ -246,3 +246,8 @@ export function settingsToRowUpdate(s: UserSettings): Partial<ProfileRow> {
 export function tierFromRow(row: ProfileRow): SubscriptionTier {
   return row.subscription_tier as SubscriptionTier;
 }
+
+// Other people's names come back empty when they chose to hide them.
+export function displayName(name: string | null | undefined): string {
+  return name?.trim() || 'Name hidden';
+}

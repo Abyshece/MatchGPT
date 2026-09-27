@@ -71,7 +71,8 @@ try {
   log('2. Standouts keeps saved picks outside the live top 8');
   // Save 5 random compatible people as today's picks; most of them fall outside
   // the live top 8 that the old code re-ran on every visit.
-  const picks = sql(`select id || '|' || name from eligible_profiles where gender = 'Female' and interested_in in ('Men','Everyone')
+  const picks = sql(`select id || '|' || name from profiles where onboarding_complete and name <> '' and not is_banned and not is_paused
+                     and gender = 'Female' and interested_in in ('Men','Everyone')
                      order by md5(id::text) limit 5;`).split('\n').map((l) => l.split('|'));
   sql(`insert into standouts (user_id, candidate_id, rank, for_date) values ${picks.map(([id], i) => `('${me}', '${id}', ${i + 1}, (now() at time zone 'utc')::date)`).join(',')};`);
   await page.getByText('Standouts', { exact: true }).first().click();
@@ -103,7 +104,10 @@ try {
   await page.getByText('Pause my profile').click();
   await page.waitForTimeout(1500);
   check(sql(`select is_paused from profiles where id = '${me}';`) === 't', 'Pause my profile saved (is_paused = true)');
-  check(sql(`select count(*) from eligible_profiles where id = '${me}';`) === '0', 'paused profile is out of the search pool');
+  // someone from the results, whose search pool had this user in it
+  const other = sql(`select id from profiles where name = '${found[0].name.replace(/'/g, "''")}' limit 1;`);
+  check(sql(`select count(*) from jsonb_array_elements(public.search_candidates('${other}')) e where e->>'id' = '${me}';`) === '0',
+    'paused profile is out of the search pool');
   await page.screenshot({ path: `${OUT}4-settings-paused.png` });
   await page.getByText('Pause my profile').click();
   await page.waitForTimeout(1500);
