@@ -9,11 +9,12 @@ import MatchCard from './MatchCard';
 import ProfileModal from './ProfileModal';
 import VerificationBanner from './VerificationBanner';
 import UpgradeModal from './UpgradeModal';
-// The filter panel carries the long answer lists; it loads the first time it's opened
-const FilterPanel = lazy(() => import('./FilterPanel'));
 import MatchCelebrationModal from './MatchCelebrationModal';
 import { IconZap, IconX, IconCheck } from '../constants';
 import type { MatchCandidate, FilterOptions } from '../types';
+
+// The filter panel carries the long answer lists; it loads the first time it's opened
+const FilterPanel = lazy(() => import('./FilterPanel'));
 
 // ============================================================================
 // SearchView (Phase 5 update)
@@ -228,8 +229,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
 
   return (
     <div className="h-full overflow-y-auto">
-      {/* Profile completion banner — full-width, dismissible. Encourages users to
-          finish their profile because a 100% profile leads to more accurate matches. */}
+      {/* Invitation to add the India details (members who joined before them) */}
       {showIndiaInvite && (
         <div className="bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-900/30 px-4 py-3 relative animate-fade-in">
           <div className="max-w-6xl mx-auto flex items-center justify-center gap-3 flex-wrap pr-8">
@@ -254,6 +254,8 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
         </div>
       )}
 
+      {/* Profile completion banner — full-width, dismissible. Encourages users to
+          finish their profile because a 100% profile leads to more accurate matches. */}
       {showCompletionBanner && (
         <div className="bg-rose-50 dark:bg-rose-900/20 border-b border-rose-200 dark:border-rose-900/30 px-4 py-3 relative animate-fade-in">
           <div className="max-w-6xl mx-auto flex items-center justify-center gap-3 flex-wrap pr-8">
