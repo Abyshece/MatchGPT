@@ -1,6 +1,22 @@
 // ============================================================================
-// How some profile answers read on a profile (Phase 12).
+// How some profile answers read on a profile (Phase 12). Kept apart from the
+// option lists (matrimonyOptions.ts), which only load where answers are edited.
 // ============================================================================
+
+// What the sect question is called for each religion
+export const SECT_LABEL: Record<string, string> = { Muslim: 'Sect', Christian: 'Denomination' };
+
+// How others see who manages the profile ("Son" -> managed by a parent).
+export function profileManagedBy(createdFor: string | null | undefined): string | null {
+  switch (createdFor) {
+    case 'Myself': return 'Self';
+    case 'Son': case 'Daughter': return 'Parent';
+    case 'Brother': case 'Sister': return 'Sibling';
+    case 'Relative': return 'Relative';
+    case 'Friend': return 'Friend';
+    default: return null;
+  }
+}
 
 // "18:30" -> "6:30 PM"
 export function formatBirthTime(time: string | null | undefined): string {

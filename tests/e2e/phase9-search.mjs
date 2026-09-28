@@ -27,7 +27,7 @@ const inList = (ids) => ids.map((id) => `'${id}'`).join(',') || 'null';
 const me = sql(`select id from profiles where email = '${EMAIL}';`);
 // A fresh account (not yet locked out for being unverified), free plan, no searches today
 sql(`update profiles set daily_search_count = 0, subscription_tier = 'FREE', is_paused = false,
-       account_created = now(), location = 'Mumbai, MH' where id = '${me}';
+       account_created = now(), city = 'Mumbai', state = 'Maharashtra', country = 'India' where id = '${me}';
      delete from likes where liker_id = '${me}';
      delete from blocks where blocker_id = '${me}';
      delete from standouts where user_id = '${me}';
@@ -68,7 +68,9 @@ try {
   const nearIds = near.json.candidates.map((c) => c.id);
   await page.screenshot({ path: `${OUT}1-near-me.png` });
   check(near.status === 200 && nearIds.length > 0, `"near me" returned ${nearIds.length} people`);
-  const far = sql(`select count(*) from profiles where id in (${inList(nearIds)}) and location not like '%, MH';`);
+  // Maharashtra by the state answer, or "…, MH" / "…, Maharashtra" as typed before Phase 12
+  const far = sql(`select count(*) from profiles where id in (${inList(nearIds)})
+                     and coalesce(state, '') <> 'Maharashtra' and location not similar to '%, (MH|Maharashtra)';`);
   check(far === '0', 'all of them are in Mumbai or elsewhere in Maharashtra');
   check(await page.getByText('Results for you').isVisible(), 'results are shown');
   const understood = await page.getByTestId('understood').innerText().catch(() => '');
@@ -97,8 +99,11 @@ try {
   await card.click();
   await page.waitForTimeout(800);
   await page.screenshot({ path: `${OUT}3-hidden-profile.png` });
-  const modal = await page.locator('.fixed.inset-0').last().innerText();
-  check(!modal.includes('Religion') && !modal.includes(topRow[0]), 'their profile shows neither the name nor a Religion row');
+  // The popup itself (the filter drawer's backdrop is also fixed and full-screen)
+  const modal = await page.locator('div.fixed.inset-0', { has: page.getByText('Profile Details') }).innerText();
+  check(modal.includes('Name hidden') || modal.includes('Profile Details'), 'reading the profile popup');
+  check(!modal.includes(topRow[0]) && !(topRow[1] && modal.includes(topRow[1])),
+    `their profile shows neither the name nor the religion (${topRow[1] || 'none given'})`);
   await page.keyboard.press('Escape');
 
   log('4. daily limit on the server');

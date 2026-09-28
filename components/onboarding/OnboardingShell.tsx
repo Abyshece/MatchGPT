@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { useAuth } from '../../lib/AuthContext';
-import StepBasicInfo from './StepBasicInfo';
 import StepPhotos from './StepPhotos';
-import StepProfileDetails from './StepProfileDetails';
+
+// Steps 1 and 3 carry the long answer lists (lib/matrimonyOptions.ts), so they
+// load only when someone is setting up their profile.
+const StepBasicInfo = lazy(() => import('./StepBasicInfo'));
+const StepProfileDetails = lazy(() => import('./StepProfileDetails'));
 
 // ============================================================================
 // OnboardingShell
@@ -33,13 +36,13 @@ const OnboardingShell: React.FC<OnboardingShellProps> = ({ onComplete }) => {
   // database is the source of truth — local state just bridges the gap.
   const [forcedStep, setForcedStep] = React.useState<Step | null>(null);
 
-  if (!profileRow) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#191919]">
-        <div className="text-gray-400 text-sm">Loading…</div>
-      </div>
-    );
-  }
+  const loading = (
+    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#191919]">
+      <div className="text-gray-400 text-sm">Loading…</div>
+    </div>
+  );
+
+  if (!profileRow) return loading;
 
   const derivedStep: Step = (() => {
     if (!profileRow.name) return 'BASIC';
@@ -51,12 +54,14 @@ const OnboardingShell: React.FC<OnboardingShellProps> = ({ onComplete }) => {
 
   if (step === 'BASIC') {
     return (
-      <StepBasicInfo
-        onComplete={async () => {
-          await refreshProfile();
-          setForcedStep('PHOTOS');
-        }}
-      />
+      <Suspense fallback={loading}>
+        <StepBasicInfo
+          onComplete={async () => {
+            await refreshProfile();
+            setForcedStep('PHOTOS');
+          }}
+        />
+      </Suspense>
     );
   }
 
@@ -73,13 +78,15 @@ const OnboardingShell: React.FC<OnboardingShellProps> = ({ onComplete }) => {
   }
 
   return (
-    <StepProfileDetails
-      onComplete={async () => {
-        await refreshProfile();
-        onComplete();
-      }}
-      onBack={() => setForcedStep('PHOTOS')}
-    />
+    <Suspense fallback={loading}>
+      <StepProfileDetails
+        onComplete={async () => {
+          await refreshProfile();
+          onComplete();
+        }}
+        onBack={() => setForcedStep('PHOTOS')}
+      />
+    </Suspense>
   );
 };
 

@@ -175,10 +175,10 @@ export const PropertyRow: React.FC<PropertyRowProps> = React.memo(({
               />
             )}
             <div className="flex items-center gap-1 pt-1">
-              <button onClick={onSave} className="p-1 hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 dark:text-green-400 rounded">
+              <button onClick={onSave} aria-label="Save" title="Save" className="p-1 hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 dark:text-green-400 rounded">
                   <IconCheck />
               </button>
-              <button onClick={onCancel} className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 rounded">
+              <button onClick={onCancel} aria-label="Cancel" title="Cancel" className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 rounded">
                   <IconX />
               </button>
             </div>

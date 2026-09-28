@@ -21,18 +21,6 @@ export interface OptionGroup {
 
 export const PROFILE_CREATED_FOR = ['Myself', 'Son', 'Daughter', 'Brother', 'Sister', 'Relative', 'Friend'];
 
-// How others see who manages the profile ("Son" -> managed by a parent).
-export function profileManagedBy(createdFor: string | null | undefined): string | null {
-  switch (createdFor) {
-    case 'Myself': return 'Self';
-    case 'Son': case 'Daughter': return 'Parent';
-    case 'Brother': case 'Sister': return 'Sibling';
-    case 'Relative': return 'Relative';
-    case 'Friend': return 'Friend';
-    default: return null;
-  }
-}
-
 export const MARITAL_STATUS = ['Never Married', 'Awaiting Divorce', 'Divorced', 'Widowed', 'Annulled'];
 export const CHILDREN = ['No', 'Yes, living together', 'Yes, living separately'];
 export const CHILDREN_COUNT = ['1', '2', '3', '3+'];
@@ -418,7 +406,6 @@ export const SECTS: Record<string, string[]> = {
     'Syrian - Orthodox', 'Syro - Malabar', 'Other',
   ],
 };
-export const SECT_LABEL: Record<string, string> = { Muslim: 'Sect', Christian: 'Denomination' };
 export const GOTRA_RELIGIONS = ['Hindu', 'Jain', 'Sikh'];
 export const GOTRAS = [
   'Aatharvas', 'Agasthi', 'Ahabhunasa', 'Alampayana', 'Angiras', 'Arrishinimi', 'Athreyasa', 'Atri',

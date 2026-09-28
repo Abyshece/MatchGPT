@@ -11,13 +11,13 @@ import {
   IconCheck, IconUpload, IconEdit, IconX, IconZap, IconShield, IconClock,
 } from '../constants';
 import { profileCompletion } from '../lib/profileCompletion';
-import { formatBirthTime, formatChildren, formatSiblings } from '../lib/profileDisplay';
+import { SECT_LABEL, formatBirthTime, formatChildren, formatSiblings } from '../lib/profileDisplay';
 import {
   ANNUAL_INCOME, CASTES, CHILDREN, CHILDREN_COUNT, CITIES_BY_STATE, COUNTRIES, DEGREES, DIETS, DISABILITY,
   EDUCATION_LEVELS, EMPLOYED_IN, FAMILY_STATUS, FAMILY_TYPE, FAMILY_VALUES, FATHER_OCCUPATION, GOTRA_RELIGIONS,
   GOTRAS, HEIGHTS, HOBBY_GROUPS, HOROSCOPE_MATCH, INDIAN_STATES, LANGUAGES_SPOKEN, LIVING_WITH_FAMILY, MANGLIK,
   MARITAL_STATUS, MOTHER_OCCUPATION, MOTHER_TONGUES, NAKSHATRA, OCCUPATIONS, OPEN_TO_OTHER_COMMUNITIES,
-  PREFER_NOT_TO_SAY, PROFILE_CREATED_FOR, RASHI, RELIGIONS, RESIDENTIAL_STATUS, SECT_LABEL, SECTS, SETTLING_ABROAD,
+  PREFER_NOT_TO_SAY, PROFILE_CREATED_FOR, RASHI, RELIGIONS, RESIDENTIAL_STATUS, SECTS, SETTLING_ABROAD,
   SIBLING_COUNTS, SUB_CASTES, educationLevelForDegree, type OptionGroup,
 } from '../lib/matrimonyOptions';
 import type { UserProfile } from '../types';
@@ -45,6 +45,9 @@ function dependentChanges(profile: UserProfile, field: keyof UserProfile, value:
     if (value === 'India') changes.residentialStatus = '';
   }
   if (field === 'state' && value !== profile.state) changes.city = '';
+  // The state list offered without a country is India's
+  if ((field === 'state' || field === 'city') && value && !profile.country
+    && INDIAN_STATES.includes(field === 'state' ? value : profile.state ?? '')) changes.country = 'India';
   if (field === 'degree' && !profile.educationLevel) {
     const level = educationLevelForDegree(value);
     if (level) changes.educationLevel = level;
@@ -444,7 +447,7 @@ const ProfileView: React.FC = () => {
               })}
               {renderChoice('subCaste', 'Sub-caste', { options: SUB_CASTES[profile.caste ?? ''] ?? [], allowCustom: true })}
               {GOTRA_RELIGIONS.includes(profile.religion) && renderChoice('gotra', 'Gotra', { options: GOTRAS, allowCustom: true })}
-              {renderRow('openToOtherCommunities', 'Open to other communities', undefined, 'select', OPEN_TO_OTHER_COMMUNITIES)}
+              {renderRow('openToOtherCommunities', 'Other communities', undefined, 'select', OPEN_TO_OTHER_COMMUNITIES)}
               {renderRow('ethnicity', 'Ethnicity')}
               {renderRow('race', 'Race', undefined, 'select', ['Asian', 'Black/African', 'Hispanic/Latino', 'Middle Eastern', 'Native American', 'Pacific Islander', 'South Asian', 'White/Caucasian', 'Mixed', 'Other'])}
               {renderRow('nationalityCount', 'Number of nationalities', undefined, 'number')}

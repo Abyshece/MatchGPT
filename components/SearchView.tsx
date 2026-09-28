@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo, Suspense, lazy } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { useToast } from '../lib/useToast';
 import { searchProfiles, SearchError } from '../lib/searchService';
@@ -9,7 +9,8 @@ import MatchCard from './MatchCard';
 import ProfileModal from './ProfileModal';
 import VerificationBanner from './VerificationBanner';
 import UpgradeModal from './UpgradeModal';
-import FilterPanel from './FilterPanel';
+// The filter panel carries the long answer lists; it loads the first time it's opened
+const FilterPanel = lazy(() => import('./FilterPanel'));
 import MatchCelebrationModal from './MatchCelebrationModal';
 import { IconZap, IconX, IconCheck } from '../constants';
 import type { MatchCandidate, FilterOptions } from '../types';
@@ -88,6 +89,8 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
   const [selectedCandidate, setSelectedCandidate] = useState<MatchCandidate | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const [filterPanelLoaded, setFilterPanelLoaded] = useState(false);
+  useEffect(() => { if (showFilterPanel) setFilterPanelLoaded(true); }, [showFilterPanel]);
   const [matchCelebration, setMatchCelebration] = useState<{ matchId: string; candidate: MatchCandidate } | null>(null);
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [inviteDismissed, setInviteDismissed] = useState(() => {
@@ -550,14 +553,18 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
       )}
 
       {/* Filter panel */}
-      <FilterPanel
-        isOpen={showFilterPanel}
-        initialFilters={filters}
-        isPro={profile.subscriptionTier === 'PRO'}
-        onApply={(f) => setFilters(f)}
-        onClose={() => setShowFilterPanel(false)}
-        onUpgrade={() => { setShowFilterPanel(false); setShowUpgradeModal(true); }}
-      />
+      {filterPanelLoaded && (
+        <Suspense fallback={null}>
+          <FilterPanel
+            isOpen={showFilterPanel}
+            initialFilters={filters}
+            isPro={profile.subscriptionTier === 'PRO'}
+            onApply={(f) => setFilters(f)}
+            onClose={() => setShowFilterPanel(false)}
+            onUpgrade={() => { setShowFilterPanel(false); setShowUpgradeModal(true); }}
+          />
+        </Suspense>
+      )}
 
       {/* Match celebration */}
       {matchCelebration && (

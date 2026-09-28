@@ -3,8 +3,7 @@ import CompatibilityReport from './CompatibilityReport';
 import LikeButton from './LikeButton';
 import BlockReportModal from './BlockReportModal';
 import { IconX, IconCheck, IconChevronLeft, IconChevronRight, IconUser } from '../constants';
-import { SECT_LABEL, profileManagedBy } from '../lib/matrimonyOptions';
-import { formatBirthTime, formatChildren, formatSiblings } from '../lib/profileDisplay';
+import { SECT_LABEL, formatBirthTime, formatChildren, formatSiblings, profileManagedBy } from '../lib/profileDisplay';
 import type { MatchCandidate } from '../types';
 
 // ============================================================================

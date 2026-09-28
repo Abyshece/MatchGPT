@@ -177,13 +177,40 @@ function sameCity(a: string, b: string): boolean {
   return city(a) === city(b) || city(a).includes(city(b)) || city(b).includes(city(a));
 }
 
-// Same state or country: the last comma-separated part matches.
+// Indian state codes in locations typed before Phase 12 ("Mumbai, MH")
+const STATE_CODES: Record<string, string> = {
+  an: 'andaman and nicobar islands', ap: 'andhra pradesh', ar: 'arunachal pradesh', as: 'assam', br: 'bihar',
+  ch: 'chandigarh', cg: 'chhattisgarh', ct: 'chhattisgarh', dl: 'delhi', ga: 'goa', gj: 'gujarat', hr: 'haryana',
+  hp: 'himachal pradesh', jk: 'jammu and kashmir', jh: 'jharkhand', ka: 'karnataka', kl: 'kerala', la: 'ladakh',
+  mp: 'madhya pradesh', mh: 'maharashtra', mn: 'manipur', ml: 'meghalaya', mz: 'mizoram', nl: 'nagaland',
+  od: 'odisha', or: 'odisha', py: 'puducherry', pb: 'punjab', rj: 'rajasthan', sk: 'sikkim', tn: 'tamil nadu',
+  tg: 'telangana', ts: 'telangana', tr: 'tripura', up: 'uttar pradesh', ut: 'uttarakhand', wb: 'west bengal',
+};
+
+// Same state or country: the last comma-separated part matches ("MH" and
+// "Maharashtra" count as the same).
 function sameRegion(a: string, b: string): boolean {
   const region = (s: string) => {
     const parts = s.toLowerCase().split(',').map((x) => x.trim());
-    return parts[parts.length - 1] || parts[0];
+    const last = parts[parts.length - 1] || parts[0];
+    return STATE_CODES[last] ?? last;
   };
   return region(a) === region(b);
+}
+
+// Where someone lives: city and state (or country) when they chose them,
+// otherwise the location as typed before Phase 12.
+function placeOf(p: Profile): string | undefined {
+  return p.city ? [p.city, p.state || p.country].filter(Boolean).join(', ') : p.location;
+}
+
+// Same city, or the same state (compared by the state answers when both have one)
+function nearby(a: Profile, b: Profile): boolean {
+  const pa = placeOf(a);
+  const pb = placeOf(b);
+  if (!pa || !pb) return false;
+  if (sameCity(pa, pb)) return true;
+  return a.state && b.state ? a.state === b.state : sameRegion(pa, pb);
 }
 
 // ============================================================================
@@ -821,9 +848,7 @@ function passesFilters(
   }
   if (filters.country && c.country !== filters.country) return false;
   if (filters.state && c.state !== filters.state) return false;
-  if (parsed.nearMe && me.location) {
-    if (!c.location || !(sameCity(me.location, c.location) || sameRegion(me.location, c.location))) return false;
-  }
+  if (parsed.nearMe && placeOf(me) && !nearby(me, c)) return false;
 
   if ((filters.isVerified || parsed.verified) && row.is_verified !== true) return false;
   if ((filters.isOnline || parsed.online) && !activeWithin(row, ONLINE_WINDOW_MS, now)) return false;
@@ -1129,9 +1154,8 @@ function scoreLocationBackground(s: Profile, c: Profile): Dimension {
 
   // Same city (6) — the biggest single signal. City and state when both
   // have them, otherwise the location text.
-  const place = (p: Profile) => (p.city ? `${p.city}, ${p.state || p.country || ''}` : p.location);
-  const myPlace = place(s);
-  const theirPlace = place(c);
+  const myPlace = placeOf(s);
+  const theirPlace = placeOf(c);
   if (myPlace && theirPlace) {
     if (sameCity(myPlace, theirPlace)) {
       score += 6;

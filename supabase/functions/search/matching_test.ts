@@ -234,6 +234,19 @@ Deno.test('score: diet, community, horoscope, mother tongue and settling abroad'
   assertEquals(others.some((i) => i.text.includes('communit')), false);
 });
 
+Deno.test('near me: old "City, XX" locations and city/state answers are compared alike', () => {
+  const legacyMe: Row = { ...me, location: 'Mumbai, MH' };
+  const pool = [
+    person('pune', { location: 'Pune, Maharashtra', city: 'Pune', state: 'Maharashtra', country: 'India' }),
+    person('pune-old', { location: 'Pune, MH' }),
+    person('surat', { location: 'Surat, Gujarat', city: 'Surat', state: 'Gujarat', country: 'India' }),
+  ];
+  assertEquals(ids(pool, 'near me').sort(), ['pune', 'pune-old']);
+  assertEquals(rankCandidates(legacyMe, pool, 'near me', {}, 50, NOW).candidates.map((c) => c.id).sort(), ['pune', 'pune-old']);
+  const newMe: Row = { ...me, location: 'Thane, Maharashtra', city: 'Thane', state: 'Maharashtra', country: 'India' };
+  assertEquals(rankCandidates(newMe, pool, 'near me', {}, 50, NOW).candidates.map((c) => c.id).sort(), ['pune', 'pune-old']);
+});
+
 Deno.test('near me: city and state columns, and cities with two names', () => {
   const searcher: Row = { ...me, location: 'Bengaluru, Karnataka', city: 'Bengaluru', state: 'Karnataka' };
   const pool = [

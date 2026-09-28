@@ -21,7 +21,7 @@ Defaults match the local stack; override with `BASE_URL`, `SUPABASE_URL`,
 
 | Script | Checks |
 |---|---|
-| `signup-flow.mjs` | Email sign-up → 3-step profile setup (4 photos) → search → sign out → log back in |
+| `signup-flow.mjs` | Email sign-up → 3-step profile setup (date of birth, marital status, country → state → city; 4 photos; the 6 pages of India details, with long lists typed into and chips) → what was saved, with age, location and height worked out → search → sign out → log back in |
 | `consent-flows.mjs [email]` | Google-style sign-up gets the Terms screen and a filled-in name; an existing account without Terms is asked once. `email`: a seeded account that hasn't accepted yet |
 | `confirm-flow.mjs` | Sign-up with "Confirm email" on: code from the email, Terms recorded after verifying. Needs `enable_confirmations = true` |
 | `reset-flow.mjs` | Forgot password → email link → new password; old one rejected; a used link is refused |
@@ -34,3 +34,4 @@ Defaults match the local stack; override with `BASE_URL`, `SUPABASE_URL`,
 | `razorpay-standin.cjs` | Not a test: a stand-in for Razorpay's API, Checkout approvals and webhooks, so MatchGPT+ can be tried locally without an account (instructions at the top of the file) |
 | `billing-flow.mjs <email>` | MatchGPT+ with the Razorpay stand-in: sidebar button, plans, closing Checkout, the free trial, a charge by webhook with its invoice, repeated and forged webhooks, cancelling, the period ending, a second (yearly) subscription without a trial, cancelling after a failed renewal, two checkouts at once (paid: the second cancelled and refunded; in the trial), cancelling a trial, a halted renewal, "coming soon" without keys (an onboarded account, password `TestPass!2026`) |
 | `admin-tabs.mjs <email>` | Admin Users and Reports tabs see everyone (makes the account an admin) |
+| `india-profile.mjs <email A> <email B>` | Phase 12: A (India details cleared) gets the invitation, fills in date of birth, religion, mother tongue, caste (then hides it), sub-caste, height, state and city, brothers, Manglik, diet and languages in My Profile; cannabis, drugs and relationship type are gone. B finds A with the mother-tongue and height filters and with typed searches ("taller than 5'6"", "non manglik"), sees the new sections on A's profile, and never gets A's hidden caste or date of birth (two onboarded accounts, password `TestPass!2026`) |
