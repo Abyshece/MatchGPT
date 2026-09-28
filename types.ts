@@ -143,6 +143,47 @@ export interface UserProfile {
   facebook?: string;
   twitter?: string;
 
+  // ---- India fields (Phase 12) ----
+  profileCreatedFor?: string;
+  dateOfBirth?: string;          // private: others only see the age
+  maritalStatus?: string;
+  childrenCount?: string;
+  heightCm?: number;             // worked out by the database from height
+  disability?: string;
+  motherTongue?: string;
+  caste?: string;
+  subCaste?: string;
+  sect?: string;
+  openToOtherCommunities?: string;
+  gotra?: string;
+  manglik?: string;
+  rashi?: string;
+  nakshatra?: string;
+  birthTime?: string;
+  birthPlace?: string;
+  horoscopeMatch?: string;
+  degree?: string;
+  employedIn?: string;
+  occupation?: string;
+  annualIncome?: string;
+  country?: string;
+  state?: string;
+  city?: string;
+  residentialStatus?: string;
+  settlingAbroad?: string;
+  familyType?: string;
+  familyStatus?: string;
+  familyValues?: string;
+  fatherOccupation?: string;
+  motherOccupation?: string;
+  brothers?: string;
+  brothersMarried?: string;
+  sisters?: string;
+  sistersMarried?: string;
+  familyLocation?: string;
+  livingWithFamily?: string;
+  aboutFamily?: string;
+
   // ---- privacy ----
   hiddenFields?: string[];
 }
@@ -160,17 +201,27 @@ export interface FilterOptions {
   ageRange?: [number, number];
   ethnicity?: string;
   religion?: string;
-  relationshipType?: string;
-  height?: string;
   datingIntention?: string;
-  children?: string;
+  children?: string;             // 'No' or 'Yes'
   familyPlans?: string;
-  drugs?: string;
   smoking?: string;
-  marijuana?: string;
   drinking?: string;
   politics?: string;
   educationLevel?: string;
+  // Phase 12
+  motherTongue?: string;
+  caste?: string;
+  maritalStatus?: string;
+  manglik?: string;
+  dietaryPreferences?: string;
+  country?: string;
+  state?: string;
+  heightRange?: [number, number];  // cm
+  // No longer asked or offered (Phase 12); the server ignores them
+  relationshipType?: string;
+  height?: string;
+  drugs?: string;
+  marijuana?: string;
 }
 
 export interface PhotoSlot {
@@ -287,6 +338,45 @@ export interface MatchCandidate {
   attachmentStyle?: string;
   sleepSchedule?: string;
   financialApproach?: string;
+  // ---- India fields (Phase 12; never the date of birth) ----
+  profileCreatedFor?: string;
+  maritalStatus?: string;
+  childrenCount?: string;
+  heightCm?: number;             // worked out by the database from height
+  disability?: string;
+  motherTongue?: string;
+  caste?: string;
+  subCaste?: string;
+  sect?: string;
+  openToOtherCommunities?: string;
+  gotra?: string;
+  manglik?: string;
+  rashi?: string;
+  nakshatra?: string;
+  birthTime?: string;
+  birthPlace?: string;
+  horoscopeMatch?: string;
+  degree?: string;
+  employedIn?: string;
+  occupation?: string;
+  annualIncome?: string;
+  country?: string;
+  state?: string;
+  city?: string;
+  residentialStatus?: string;
+  settlingAbroad?: string;
+  familyType?: string;
+  familyStatus?: string;
+  familyValues?: string;
+  fatherOccupation?: string;
+  motherOccupation?: string;
+  brothers?: string;
+  brothersMarried?: string;
+  sisters?: string;
+  sistersMarried?: string;
+  familyLocation?: string;
+  livingWithFamily?: string;
+  aboutFamily?: string;
 }
 
 export interface HistoryItem {

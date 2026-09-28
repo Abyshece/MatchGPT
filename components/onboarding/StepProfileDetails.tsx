@@ -4,10 +4,18 @@ import { IconChevronRight, IconChevronLeft, IconCheck } from '../../constants';
 import { supabase } from '../../lib/supabase';
 import type { TablesUpdate } from '../../lib/database.types';
 import { useAuth } from '../../lib/AuthContext';
+import { ChipsField, ChoiceField } from '../ProfileInputs';
+import {
+  ANNUAL_INCOME, CASTES, DEGREES, DIETS, DISABILITY, EDUCATION_LEVELS, EMPLOYED_IN, FAMILY_STATUS, FAMILY_TYPE,
+  FAMILY_VALUES, FATHER_OCCUPATION, GOTRA_RELIGIONS, GOTRAS, HOBBY_GROUPS, HOROSCOPE_MATCH, LANGUAGES_SPOKEN,
+  LIVING_WITH_FAMILY, MANGLIK, MOTHER_OCCUPATION, MOTHER_TONGUES, NAKSHATRA, OCCUPATIONS, OPEN_TO_OTHER_COMMUNITIES,
+  PREFER_NOT_TO_SAY, RASHI, RELIGIONS, RESIDENTIAL_STATUS, SECT_LABEL, SECTS, SETTLING_ABROAD, SIBLING_COUNTS,
+  SUB_CASTES, educationLevelForDegree, type OptionGroup,
+} from '../../lib/matrimonyOptions';
 
 // ============================================================================
 // Step 3: Profile Details
-// 5 sub-pages, each focused on one cluster of attributes.
+// 6 sub-pages, each focused on one cluster of attributes.
 // All fields optional — users can fill more later from their profile.
 // ============================================================================
 
@@ -15,6 +23,8 @@ interface StepProfileDetailsProps {
   onComplete: () => void;
   onBack: () => void;
 }
+
+type Values = Record<string, string>;
 
 // Each "page" in the multi-page form
 type Page = {
@@ -26,96 +36,186 @@ type Page = {
 
 type FieldDef = {
   key: string;             // db column name (snake_case)
-  label: string;
-  type: 'text' | 'textarea' | 'select';
-  options?: string[];
+  label: string | ((v: Values) => string);
+  type: 'text' | 'textarea' | 'select' | 'chips' | 'time';
+  options?: string[] | ((v: Values) => string[]);
+  groups?: OptionGroup[];
+  allowCustom?: boolean;   // a typed answer that isn't in the list is kept
   placeholder?: string;
+  hint?: string;
+  when?: (v: Values) => boolean;  // only asked when this is true
 };
+
+const hasSiblings = (n: string | undefined) => !!n && n !== '0';
 
 const PAGES: Page[] = [
   {
-    title: 'Appearance',
-    subtitle: 'Just the basics — fully optional.',
-    emoji: '✨',
+    title: 'Religion & community',
+    subtitle: 'What families often ask first. Every answer is optional, and you can hide any of them later.',
+    emoji: '🙏',
     fields: [
-      { key: 'height', label: 'Height', type: 'text', placeholder: `e.g. 5'8"` },
+      { key: 'religion', label: 'Religion', type: 'select', options: RELIGIONS },
+      { key: 'mother_tongue', label: 'Mother tongue', type: 'select', groups: MOTHER_TONGUES },
+      { key: 'sect', label: (v) => SECT_LABEL[v.religion] ?? 'Sect', type: 'select',
+        options: (v) => SECTS[v.religion] ?? [], when: (v) => !!SECTS[v.religion] },
+      { key: 'caste', label: (v) => (CASTES[v.religion] ? 'Caste' : 'Caste / community'), type: 'select',
+        options: (v) => [PREFER_NOT_TO_SAY, ...(CASTES[v.religion] ?? [])], allowCustom: true,
+        placeholder: 'Type to search or add yours', when: (v) => !!v.religion },
+      { key: 'sub_caste', label: 'Sub-caste', type: 'select', options: (v) => SUB_CASTES[v.caste] ?? [],
+        allowCustom: true, placeholder: 'Type to search or add yours',
+        when: (v) => !!v.caste && v.caste !== PREFER_NOT_TO_SAY && (!!SUB_CASTES[v.caste] || GOTRA_RELIGIONS.includes(v.religion)) },
+      { key: 'gotra', label: 'Gotra', type: 'select', options: GOTRAS, allowCustom: true,
+        placeholder: 'Type to search or add yours', when: (v) => GOTRA_RELIGIONS.includes(v.religion) },
+      { key: 'open_to_other_communities', label: 'Open to marrying outside your community?', type: 'select',
+        options: OPEN_TO_OTHER_COMMUNITIES },
+      { key: 'languages', label: 'Languages you speak', type: 'chips', options: LANGUAGES_SPOKEN },
+    ],
+  },
+  {
+    title: 'Education & career',
+    subtitle: 'What you studied and what you do.',
+    emoji: '🎓',
+    fields: [
+      { key: 'education_level', label: 'Highest qualification', type: 'select', options: EDUCATION_LEVELS },
+      { key: 'degree', label: 'Degree', type: 'select', groups: DEGREES, allowCustom: true,
+        placeholder: 'e.g. B.Tech, MBBS, MBA' },
+      { key: 'university', label: 'College / university', type: 'text', placeholder: 'e.g. IIT Bombay' },
+      { key: 'employed_in', label: 'Employed in', type: 'select', options: EMPLOYED_IN },
+      { key: 'occupation', label: 'Occupation', type: 'select', groups: OCCUPATIONS, allowCustom: true,
+        placeholder: 'e.g. Software Professional, Doctor' },
+      { key: 'job_title', label: 'Job title', type: 'text', placeholder: 'e.g. Product Manager' },
+      { key: 'work', label: 'Company / workplace', type: 'text', placeholder: 'e.g. Infosys' },
+      { key: 'annual_income', label: 'Annual income', type: 'select', groups: ANNUAL_INCOME,
+        hint: 'You can hide this from others on your profile.' },
+      { key: 'residential_status', label: 'Residential status', type: 'select', options: RESIDENTIAL_STATUS,
+        when: (v) => !!v.country && v.country !== 'India' },
+    ],
+  },
+  {
+    title: 'Family',
+    subtitle: 'A little about your family.',
+    emoji: '🏡',
+    fields: [
+      { key: 'family_type', label: 'Family type', type: 'select', options: FAMILY_TYPE },
+      { key: 'family_status', label: 'Family status', type: 'select', options: FAMILY_STATUS },
+      { key: 'family_values', label: 'Family values', type: 'select', options: FAMILY_VALUES },
+      { key: 'father_occupation', label: "Father's occupation", type: 'select', options: FATHER_OCCUPATION },
+      { key: 'mother_occupation', label: "Mother's occupation", type: 'select', options: MOTHER_OCCUPATION },
+      { key: 'brothers', label: 'Brothers', type: 'select', options: SIBLING_COUNTS },
+      { key: 'brothers_married', label: 'Of them married', type: 'select', options: SIBLING_COUNTS,
+        when: (v) => hasSiblings(v.brothers) },
+      { key: 'sisters', label: 'Sisters', type: 'select', options: SIBLING_COUNTS },
+      { key: 'sisters_married', label: 'Of them married', type: 'select', options: SIBLING_COUNTS,
+        when: (v) => hasSiblings(v.sisters) },
+      { key: 'family_location', label: 'Family lives in', type: 'text', placeholder: 'e.g. Indore, Madhya Pradesh' },
+      { key: 'living_with_family', label: 'Do you live with your family?', type: 'select', options: LIVING_WITH_FAMILY },
+      { key: 'family_closeness', label: 'Family closeness', type: 'select', options: ['Very Close', 'Moderately Close', 'Distant', 'No Contact'] },
+      { key: 'about_family', label: 'About your family', type: 'textarea',
+        placeholder: 'A few lines about your family, in your own words.' },
+    ],
+  },
+  {
+    title: 'Horoscope',
+    subtitle: "For families who match horoscopes. Skip this page if it doesn't matter to you.",
+    emoji: '🪔',
+    fields: [
+      { key: 'manglik', label: 'Manglik', type: 'select', options: MANGLIK },
+      { key: 'rashi', label: 'Rashi (moon sign)', type: 'select', options: RASHI },
+      { key: 'nakshatra', label: 'Nakshatra', type: 'select', options: NAKSHATRA },
+      { key: 'birth_time', label: 'Time of birth', type: 'time' },
+      { key: 'birth_place', label: 'Place of birth', type: 'text', placeholder: 'e.g. Jaipur' },
+      { key: 'horoscope_match', label: 'Horoscope match', type: 'select', options: HOROSCOPE_MATCH },
+    ],
+  },
+  {
+    title: 'Lifestyle & appearance',
+    subtitle: 'How you spend your time and approach the everyday.',
+    emoji: '🌱',
+    fields: [
+      { key: 'dietary_preferences', label: 'Diet', type: 'select', options: DIETS },
+      { key: 'drinking', label: 'Drinking', type: 'select', options: ['No', 'Socially', 'Regularly'] },
+      { key: 'smoking', label: 'Smoking', type: 'select', options: ['No', 'Socially', 'Regularly'] },
+      { key: 'gym_routine', label: 'Exercise', type: 'select', options: ['Daily', '3-4 times a week', '1-2 times a week', 'Occasionally', 'Never'] },
+      { key: 'sleep_schedule', label: 'Sleep schedule', type: 'select', options: ['Early Bird', 'Night Owl', 'Flexible', 'Irregular'] },
+      { key: 'hobbies', label: 'Hobbies & interests', type: 'chips', groups: HOBBY_GROUPS },
       { key: 'body_type', label: 'Body type', type: 'select', options: ['Slim', 'Athletic', 'Average', 'Curvy', 'Plus Size', 'Muscular'] },
       { key: 'ethnicity', label: 'Ethnicity', type: 'select', options: ['Indian', 'Asian', 'Black', 'Caucasian', 'Hispanic', 'Middle Eastern', 'Mixed', 'Other'] },
       { key: 'hair_color', label: 'Hair color', type: 'select', options: ['Black', 'Brown', 'Blonde', 'Red', 'Gray', 'White', 'Dyed/Other'] },
       { key: 'eye_color', label: 'Eye color', type: 'select', options: ['Brown', 'Black', 'Blue', 'Green', 'Hazel', 'Gray', 'Amber', 'Other'] },
       { key: 'has_tattoos', label: 'Tattoos?', type: 'select', options: ['Yes', 'No'] },
+      { key: 'disability', label: 'Disability', type: 'select', options: DISABILITY,
+        hint: 'Optional. It is never used to filter anyone out.' },
     ],
   },
   {
-    title: 'Lifestyle',
-    subtitle: 'How you spend your time and approach the everyday.',
-    emoji: '🌱',
-    fields: [
-      { key: 'drinking', label: 'Drinking', type: 'select', options: ['No', 'Socially', 'Regularly'] },
-      { key: 'smoking', label: 'Smoking', type: 'select', options: ['No', 'Socially', 'Regularly'] },
-      { key: 'marijuana', label: 'Marijuana', type: 'select', options: ['No', 'Socially', 'Regularly'] },
-      { key: 'drugs', label: 'Other drugs', type: 'select', options: ['No', 'Sometimes', 'Often'] },
-      { key: 'gym_routine', label: 'Exercise', type: 'select', options: ['Daily', '3-4 times a week', '1-2 times a week', 'Occasionally', 'Never'] },
-      { key: 'dietary_preferences', label: 'Diet', type: 'select', options: ['No restrictions', 'Vegetarian', 'Vegan', 'Eggetarian', 'Jain', 'Halal', 'Kosher', 'Gluten-free'] },
-      { key: 'sleep_schedule', label: 'Sleep schedule', type: 'select', options: ['Early Bird', 'Night Owl', 'Flexible', 'Irregular'] },
-      { key: 'hobbies', label: 'Hobbies', type: 'textarea', placeholder: 'e.g. reading, hiking, photography' },
-    ],
-  },
-  {
-    title: 'Career & Background',
-    subtitle: 'What you do and where you come from.',
-    emoji: '🎓',
-    fields: [
-      { key: 'job_title', label: 'Job title', type: 'text', placeholder: 'e.g. Product Manager' },
-      { key: 'work', label: 'Workplace', type: 'text', placeholder: 'e.g. Tech startup' },
-      { key: 'education_level', label: 'Education level', type: 'select', options: ['High School', `Bachelor's`, `Master's`, 'PhD', 'Trade School'] },
-      { key: 'university', label: 'University', type: 'text', placeholder: 'e.g. IIT Bombay' },
-      { key: 'religion', label: 'Religion', type: 'select', options: ['Hindu', 'Muslim', 'Christian', 'Sikh', 'Jain', 'Buddhist', 'Jewish', 'Spiritual', 'Agnostic', 'Atheist', 'Other'] },
-      { key: 'politics', label: 'Politics', type: 'select', options: ['Liberal', 'Moderate', 'Conservative', 'Apolitical', 'Other'] },
-      { key: 'languages', label: 'Languages', type: 'text', placeholder: 'e.g. English, Hindi' },
-      { key: 'zodiac', label: 'Zodiac', type: 'select', options: ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'] },
-    ],
-  },
-  {
-    title: 'Family & Dating',
-    subtitle: 'Where you stand on the bigger questions.',
+    title: 'Relationship & you',
+    subtitle: 'Where you stand on the bigger questions, and how you relate.',
     emoji: '💞',
     fields: [
-      { key: 'relationship_type', label: 'Relationship type', type: 'select', options: ['Monogamous', 'Polyamorous', 'Open', 'Casual'] },
       { key: 'marriage_timeline', label: 'Marriage timeline', type: 'select', options: ['ASAP', 'Within 6 Months', 'Within 1 Year', '1-2 Years', '3-5 Years', '5+ Years', 'Not sure yet'] },
-      { key: 'children', label: 'Children', type: 'select', options: ['Has children', 'No children'] },
       { key: 'family_plans', label: 'Family plans', type: 'select', options: ['Wants children', 'Open to children', 'Does not want children'] },
+      { key: 'settling_abroad', label: 'Settling abroad', type: 'select', options: SETTLING_ABROAD },
       { key: 'love_language', label: 'Love language', type: 'select', options: ['Words of Affirmation', 'Acts of Service', 'Receiving Gifts', 'Quality Time', 'Physical Touch'] },
       { key: 'pets', label: 'Pets', type: 'text', placeholder: 'e.g. Dog, Cat, None' },
-      { key: 'family_closeness', label: 'Family closeness', type: 'select', options: ['Very Close', 'Moderately Close', 'Distant', 'No Contact'] },
-    ],
-  },
-  {
-    title: 'A bit about you',
-    subtitle: 'How you relate. This shapes who you match well with.',
-    emoji: '🧠',
-    fields: [
       { key: 'social_battery', label: 'Social battery', type: 'select', options: ['Introvert', 'Ambivert', 'Extrovert', 'Social Butterfly', 'Homebody'] },
       { key: 'attachment_style', label: 'Attachment style', type: 'select', options: ['Secure', 'Anxious', 'Avoidant', 'Disorganized', `Don't know`] },
       { key: 'conflict_resolution', label: 'When there\'s a disagreement, I…', type: 'select', options: ['Calm discussion', 'Needs space', 'Direct & assertive', 'Avoidant'] },
       { key: 'financial_approach', label: 'Money', type: 'select', options: ['Saver', 'Spender', 'Balanced', 'Investor'] },
+      { key: 'politics', label: 'Politics', type: 'select', options: ['Liberal', 'Moderate', 'Conservative', 'Apolitical', 'Other'] },
       { key: 'description', label: 'About me', type: 'textarea', placeholder: 'A few sentences in your own voice. Optional but helpful.' },
     ],
   },
 ];
 
+const labelOf = (field: FieldDef, v: Values) => (typeof field.label === 'function' ? field.label(v) : field.label);
+const optionsOf = (field: FieldDef, v: Values) => (typeof field.options === 'function' ? field.options(v) : field.options);
+
+// Answers that stop applying when another one changes
+function withDependentsCleared(values: Values, key: string, val: string): Values {
+  if ((values[key] ?? '') === val) return values;
+  const next = { ...values, [key]: val };
+  if (key === 'religion') {
+    next.caste = '';
+    next.sub_caste = '';
+    if (!SECTS[val]) next.sect = '';
+    else if (!SECTS[val].includes(values.sect ?? '')) next.sect = '';
+    if (!GOTRA_RELIGIONS.includes(val)) next.gotra = '';
+  }
+  if (key === 'caste') next.sub_caste = '';
+  if (key === 'brothers' && !hasSiblings(val)) next.brothers_married = '';
+  if (key === 'sisters' && !hasSiblings(val)) next.sisters_married = '';
+  // A degree fills in the qualification when that's still empty
+  if (key === 'degree' && !values.education_level) {
+    const level = educationLevelForDegree(val);
+    if (level) next.education_level = level;
+  }
+  return next;
+}
+
 const StepProfileDetails: React.FC<StepProfileDetailsProps> = ({ onComplete, onBack }) => {
-  const { session, refreshProfile } = useAuth();
+  const { session, profileRow, refreshProfile } = useAuth();
   const [pageIndex, setPageIndex] = useState(0);
-  const [values, setValues] = useState<Record<string, string>>({});
+  // Start from what's already saved, so coming back to a page shows it
+  const [values, setValues] = useState<Values>(() => {
+    const row = (profileRow ?? {}) as Record<string, unknown>;
+    const start: Values = {};
+    for (const field of PAGES.flatMap((p) => p.fields)) {
+      const saved = row[field.key];
+      if (saved !== null && saved !== undefined) start[field.key] = String(saved);
+    }
+    return start;
+  });
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const page = PAGES[pageIndex];
   const isLast = pageIndex === PAGES.length - 1;
+  // Conditions can look at answers from step 1 too (country)
+  const context: Values = { country: profileRow?.country ?? '', ...values };
+  const shownFields = page.fields.filter((f) => !f.when || f.when(context));
 
   const setField = (key: string, val: string) => {
-    setValues(prev => ({ ...prev, [key]: val }));
+    setValues(prev => withDependentsCleared(prev, key, val));
   };
 
   // Save the current page's values to Supabase, then advance.
@@ -123,14 +223,14 @@ const StepProfileDetails: React.FC<StepProfileDetailsProps> = ({ onComplete, onB
   const saveCurrentPage = async (): Promise<boolean> => {
     if (!session?.user.id) { setError('Not signed in.'); return false; }
 
-    // Build the update payload from the fields on the current page that have values.
+    // Build the update payload from the fields on the current page that have
+    // values (including answers cleared because another one changed).
     const update: Record<string, string | null> = {};
     for (const field of page.fields) {
       if (field.key in values) {
         update[field.key] = values[field.key].trim() || null;
       }
     }
-
     if (Object.keys(update).length === 0) return true; // nothing to save
 
     setIsSaving(true);
@@ -194,7 +294,8 @@ const StepProfileDetails: React.FC<StepProfileDetailsProps> = ({ onComplete, onB
     }
   };
 
-  const filledOnPage = page.fields.filter(f => values[f.key]?.trim()).length;
+  const filledOnPage = shownFields.filter(f => values[f.key]?.trim()).length;
+  const textClass = 'w-full h-11 px-3 border border-gray-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-gray-900 dark:text-white outline-none focus:border-black dark:focus:border-white focus:ring-1 focus:ring-black dark:focus:ring-white transition-all';
 
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-[#191919] animate-fade-in">
@@ -234,10 +335,10 @@ const StepProfileDetails: React.FC<StepProfileDetailsProps> = ({ onComplete, onB
           )}
 
           <div className="space-y-5">
-            {page.fields.map(field => (
+            {shownFields.map(field => (
               <div key={field.key}>
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">
-                  {field.label}
+                  {labelOf(field, context)}
                 </label>
                 {field.type === 'text' && (
                   <input
@@ -245,7 +346,16 @@ const StepProfileDetails: React.FC<StepProfileDetailsProps> = ({ onComplete, onB
                     value={values[field.key] || ''}
                     onChange={(e) => setField(field.key, e.target.value)}
                     placeholder={field.placeholder}
-                    className="w-full h-11 px-3 border border-gray-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-gray-900 dark:text-white outline-none focus:border-black dark:focus:border-white focus:ring-1 focus:ring-black dark:focus:ring-white transition-all"
+                    maxLength={100}
+                    className={textClass}
+                  />
+                )}
+                {field.type === 'time' && (
+                  <input
+                    type="time"
+                    value={values[field.key] || ''}
+                    onChange={(e) => setField(field.key, e.target.value)}
+                    className={textClass}
                   />
                 )}
                 {field.type === 'textarea' && (
@@ -254,19 +364,30 @@ const StepProfileDetails: React.FC<StepProfileDetailsProps> = ({ onComplete, onB
                     onChange={(e) => setField(field.key, e.target.value)}
                     placeholder={field.placeholder}
                     rows={4}
+                    maxLength={field.key === 'description' ? 2000 : 1000}
                     className="w-full p-3 border border-gray-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-gray-900 dark:text-white outline-none focus:border-black dark:focus:border-white focus:ring-1 focus:ring-black dark:focus:ring-white transition-all resize-y"
                   />
                 )}
-                {field.type === 'select' && field.options && (
-                  <select
+                {field.type === 'select' && (
+                  <ChoiceField
                     value={values[field.key] || ''}
-                    onChange={(e) => setField(field.key, e.target.value)}
-                    className="w-full h-11 px-3 border border-gray-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-gray-900 dark:text-white outline-none focus:border-black dark:focus:border-white focus:ring-1 focus:ring-black dark:focus:ring-white transition-all cursor-pointer"
-                  >
-                    <option value="">Skip / prefer not to say</option>
-                    {field.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                  </select>
+                    onChange={(v) => setField(field.key, v)}
+                    options={optionsOf(field, context)}
+                    groups={field.groups}
+                    allowCustom={field.allowCustom}
+                    placeholder={field.placeholder ?? 'Skip / prefer not to say'}
+                    ariaLabel={labelOf(field, context)}
+                  />
                 )}
+                {field.type === 'chips' && (
+                  <ChipsField
+                    value={values[field.key] || ''}
+                    onChange={(v) => setField(field.key, v)}
+                    options={optionsOf(field, context)}
+                    groups={field.groups}
+                  />
+                )}
+                {field.hint && <p className="text-[10px] text-gray-400 mt-1">{field.hint}</p>}
               </div>
             ))}
           </div>
@@ -288,7 +409,7 @@ const StepProfileDetails: React.FC<StepProfileDetailsProps> = ({ onComplete, onB
 
           {filledOnPage > 0 && (
             <p className="mt-4 text-center text-[11px] text-gray-400">
-              You've filled {filledOnPage} of {page.fields.length} on this page.
+              You've filled {filledOnPage} of {shownFields.length} on this page.
             </p>
           )}
         </div>

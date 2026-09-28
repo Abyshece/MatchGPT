@@ -18,7 +18,7 @@ const reply = (plan: unknown) =>
   new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(plan) }] }, finishReason: 'STOP' }] }));
 
 const emptyPlan = {
-  gender: 'any', age_min: 0, age_max: 0, near_me: false, city: '', online_now: false,
+  gender: 'any', age_min: 0, age_max: 0, height_min_cm: 0, height_max_cm: 0, near_me: false, city: '', online_now: false,
   recently_active: false, verified_only: false, avoid: [], preferences: [], keywords: [],
 };
 
@@ -57,7 +57,7 @@ Deno.test('readPlan: keeps what makes sense, drops the rest', () => {
     candidates: [{ content: { parts: [{ text: JSON.stringify({
       ...emptyPlan,
       gender: 'woman', age_min: 25, age_max: 120, city: 'Pune', near_me: true,
-      avoid: ['smoking', 'gambling'],
+      avoid: ['smoking', 'gambling', 'marijuana'],
       preferences: [
         { field: 'dietary_preferences', answers: ['vegetarian', 'Vegan', 'Meat'], negated: false },
         { field: 'height', answers: ['tall'], negated: false },
@@ -67,7 +67,7 @@ Deno.test('readPlan: keeps what makes sense, drops the rest', () => {
     }) }] } }],
   }, 'a vegetarian girl in pune near me', catalog);
   assertEquals(plan, {
-    gender: 'woman', ageMin: 25, ageMax: null, nearMe: true, city: 'Pune', online: false,
+    gender: 'woman', ageMin: 25, ageMax: null, heightMinCm: null, heightMaxCm: null, nearMe: true, city: 'Pune', online: false,
     recentlyActive: false, verified: false, avoid: ['smoking'],
     preferences: [
       { field: 'dietary_preferences', answers: ['Vegetarian', 'Vegan'], negated: false },
@@ -75,6 +75,24 @@ Deno.test('readPlan: keeps what makes sense, drops the rest', () => {
     ],
     keywords: [{ words: ['doctor', 'MBBS'], negated: false }],
   });
+});
+
+Deno.test('readPlan: heights between 120 and 230 cm, the lower one first', () => {
+  const read = (min: number, max: number) => {
+    const p = readPlan({ candidates: [{ content: { parts: [{ text: JSON.stringify({
+      ...emptyPlan, height_min_cm: min, height_max_cm: max,
+    }) }] } }] }, 'taller than 5 feet 6', catalog);
+    return [p?.heightMinCm, p?.heightMaxCm];
+  };
+  assertEquals(read(170, 0), [170, null]);
+  assertEquals(read(163, 173), [163, 173]);
+  assertEquals(read(180, 160), [null, null]);
+  assertEquals(read(12, 999), [null, null]);
+});
+
+Deno.test('request: the plan asks for heights, and only smoking and drinking as habits', () => {
+  const schema = requestBody('gemini-3.1-flash-lite', 'x', {}).generationConfig.responseJsonSchema;
+  assertEquals([schema.properties.height_min_cm.type, schema.properties.avoid.items.enum], ['integer', ['smoking', 'drinking']]);
 });
 
 Deno.test('readPlan: a place that is not in the prompt is ignored; unreadable replies give nothing', () => {

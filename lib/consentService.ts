@@ -11,7 +11,7 @@ import { supabase } from './supabase';
 
 // Bump these whenever the legal documents change. The user will be re-prompted.
 export const TERMS_VERSION = 'terms-v1-2026-05-11';
-export const PRIVACY_VERSION = 'privacy-v3-2026-09-27';
+export const PRIVACY_VERSION = 'privacy-v4-2026-09-28';
 
 export type ConsentEventType =
   | 'terms_accepted'

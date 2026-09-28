@@ -113,6 +113,47 @@ const FIELD_MAP: Partial<Record<keyof UserProfile, keyof ProfileRow>> = {
   sleepSchedule: 'sleep_schedule',
   financialApproach: 'financial_approach',
 
+  // Phase 12: India fields
+  profileCreatedFor: 'profile_created_for',
+  dateOfBirth: 'date_of_birth',
+  maritalStatus: 'marital_status',
+  childrenCount: 'children_count',
+  heightCm: 'height_cm',
+  disability: 'disability',
+  motherTongue: 'mother_tongue',
+  caste: 'caste',
+  subCaste: 'sub_caste',
+  sect: 'sect',
+  openToOtherCommunities: 'open_to_other_communities',
+  gotra: 'gotra',
+  manglik: 'manglik',
+  rashi: 'rashi',
+  nakshatra: 'nakshatra',
+  birthTime: 'birth_time',
+  birthPlace: 'birth_place',
+  horoscopeMatch: 'horoscope_match',
+  degree: 'degree',
+  employedIn: 'employed_in',
+  occupation: 'occupation',
+  annualIncome: 'annual_income',
+  country: 'country',
+  state: 'state',
+  city: 'city',
+  residentialStatus: 'residential_status',
+  settlingAbroad: 'settling_abroad',
+  familyType: 'family_type',
+  familyStatus: 'family_status',
+  familyValues: 'family_values',
+  fatherOccupation: 'father_occupation',
+  motherOccupation: 'mother_occupation',
+  brothers: 'brothers',
+  brothersMarried: 'brothers_married',
+  sisters: 'sisters',
+  sistersMarried: 'sisters_married',
+  familyLocation: 'family_location',
+  livingWithFamily: 'living_with_family',
+  aboutFamily: 'about_family',
+
   description: 'description',
   linkedin: 'linkedin',
   instagram: 'instagram',
@@ -184,7 +225,8 @@ export function rowToProfile(row: ProfileRow): UserProfile {
 
 // ----------------------------------------------------------------------------
 // UI profile (or partial) → DB update payload
-// Only includes keys that have values. Useful for incremental saves.
+// Only includes keys that have values. Useful for incremental saves. An empty
+// answer is saved as null (a date or number column can't hold '').
 // ----------------------------------------------------------------------------
 
 export function profileToRowUpdate(
@@ -196,8 +238,8 @@ export function profileToRowUpdate(
     if (uiKey in profile) {
       const value = profile[uiKey];
       if (value !== undefined) {
-        // string '' is a valid update — it clears the field
-        (update as Record<string, unknown>)[dbKey] = value;
+        // '' clears the field
+        (update as Record<string, unknown>)[dbKey] = value === '' ? null : value;
       }
     }
   }

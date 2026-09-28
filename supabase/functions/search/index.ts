@@ -37,7 +37,7 @@ const GEMINI_API_BASE = Deno.env.get('GEMINI_API_BASE') || undefined;  // only f
 const MAX_RESULTS = 50;          // everyone gets the Pro-size result list for now (PRO_FOR_ALL)
 const STANDOUTS_PER_DAY = 5;
 const LOCKOUT_HOURS = 72;        // unverified accounts can search for 3 days
-const PLAN_VERSION = 1;          // bump when ai.ts's instructions change, so old plans aren't reused
+const PLAN_VERSION = 2;          // bump when ai.ts's instructions change, so old plans aren't reused
 const PLAN_CACHE_DAYS = 30;
 
 function json(body: unknown, status = 200): Response {

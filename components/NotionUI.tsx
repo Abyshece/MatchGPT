@@ -109,6 +109,8 @@ interface PropertyRowProps {
   options?: string[];
   isHidden?: boolean;
   onToggleVisibility?: () => void;
+  editor?: React.ReactNode;       // replaces the built-in input while editing
+  displayValue?: string;          // shown instead of value when not editing
 }
 
 export const PropertyRow: React.FC<PropertyRowProps> = React.memo(({ 
@@ -123,7 +125,9 @@ export const PropertyRow: React.FC<PropertyRowProps> = React.memo(({
   inputType = 'text',
   options = [],
   isHidden = false,
-  onToggleVisibility
+  onToggleVisibility,
+  editor,
+  displayValue,
 }) => {
   const isEmpty = value === null || value === undefined || value === '';
 
@@ -140,7 +144,9 @@ export const PropertyRow: React.FC<PropertyRowProps> = React.memo(({
       <div className="flex-1 text-gray-800 dark:text-gray-200 text-sm font-medium flex items-center justify-between min-w-0">
         {isEditing ? (
           <div className="flex items-start gap-2 w-full">
-            {inputType === 'textarea' ? (
+            {editor ? (
+                <div className="flex-1 min-w-0">{editor}</div>
+            ) : inputType === 'textarea' ? (
                 <textarea
                   value={editValue}
                   onChange={(e) => onEditChange && onEditChange(e.target.value)}
@@ -180,7 +186,7 @@ export const PropertyRow: React.FC<PropertyRowProps> = React.memo(({
         ) : (
           <>
             <span className={`flex-1 flex gap-2 pt-1.5 ${inputType === 'textarea' ? 'whitespace-pre-wrap' : 'truncate items-center'}`}>
-              {value || <span className="text-gray-300 dark:text-gray-600 italic text-xs">Empty</span>}
+              {(displayValue || value) || <span className="text-gray-300 dark:text-gray-600 italic text-xs">Empty</span>}
               {isHidden && <span className="text-[10px] bg-gray-200 dark:bg-zinc-700 text-gray-500 dark:text-gray-300 px-1.5 rounded self-center">Hidden</span>}
             </span>
             <div className={`flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity pt-1`}>
@@ -226,9 +232,12 @@ export const SelectField = ({ label, value, options, onChange }: { label: string
 );
 
 // Helper for Profile Sections
-export const InfoSection = ({ title, children }: { title: string, children?: React.ReactNode }) => (
+export const InfoSection = ({ title, badge, children }: { title: string, badge?: string, children?: React.ReactNode }) => (
     <div className="mb-8">
-        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 border-b border-gray-100 dark:border-zinc-800 pb-1">{title}</h4>
+        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 border-b border-gray-100 dark:border-zinc-800 pb-1 flex items-center gap-2">
+          {title}
+          {badge && <span className="normal-case tracking-normal text-[10px] font-bold bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 px-1.5 py-0.5 rounded">{badge}</span>}
+        </h4>
         <div className="space-y-0.5">
             {children}
         </div>

@@ -1,6 +1,6 @@
 # MatchGPT roadmap
 
-11 phases in total. Phases 1–5 and 7–9 are done, Phase 6 is mostly done; **Phase 10 is next**.
+12 phases in total. Phases 1–5, 7–9 and 12 are done, Phase 6 is mostly done; **Phase 10 is next**.
 AI search (Gemini) is built and live; it switches on once you add the `GEMINI_API_KEY` secret (Phase 9).
 Payments (MatchGPT+ through Razorpay, Phase 11) are built too and switch on once you add the Razorpay keys.
 Items left unfinished in earlier phases were moved into later ones, so each open item appears once.
@@ -19,6 +19,7 @@ Items left unfinished in earlier phases were moved into later ones, so each open
 | 9 | Smarter search that scales | **Done** (add the Gemini key to switch AI on) |
 | 10 | Launch readiness → public launch | To do — next |
 | 11 | Payments (MatchGPT+ via Razorpay) | Built; waiting for your Razorpay account |
+| 12 | Profile details for India (community, family, horoscope) | **Done** |
 
 ---
 
@@ -262,6 +263,39 @@ edge functions `billing` and `razorpay-webhook` (deployed, idle without keys).
   say in the Terms whether prices include GST
 - [ ] Decide when to start charging; then turn off `PRO_FOR_ALL` (today everyone sees the Likes You list for
   free) and make every Pro check follow one rule (the like button and chat ignore `PRO_FOR_ALL` today)
+
+---
+
+## Phase 12 — Profile details for India (done 2026-09-28)
+The sign-up questions of Shaadi.com, BharatMatrimony and Jeevansathi, compared with MatchGPT's in
+[the research page](https://claude.ai/artifact/YDnK5UxggV5mLcVoyP5hHG); everything marked "Add" or
+"Improve" there is in. Migration `20260928…_phase12_india_profile_fields`; `search` function redeployed.
+
+- [x] 39 new optional answers: who the profile is for, date of birth (only the age is ever shown; ages
+  move on at birthdays), marital status and children, mother tongue (78, with Hindi by region), caste
+  (479 over Hindu, Muslim, Sikh and Jain, with "Prefer not to say" and your own answer), sub-caste
+  (1,203), sect or denomination, gotra (155), open to other communities ("caste no bar"), Manglik, rashi,
+  nakshatra, time and place of birth, horoscope match, degree (168), employed in, occupation (245),
+  annual income (₹ and $), country / state / city (all countries, 28 states and 8 union territories),
+  residential status abroad, settling abroad, and family (type, status, values, parents' occupations,
+  brothers and sisters with how many are married, where the family lives, about the family), disability
+- [x] Improved: height from a list (4'0"–7'0" with cm), diet adds Non-vegetarian, religion adds Parsi,
+  Bahai and No religion, hobbies and languages are tapped on and off, long lists can be typed into
+- [x] No longer asked or shown: cannabis, other drugs, relationship type (monogamous/open/…). The answers
+  already given stay in the database but are not shown, searched or scored
+- [x] Sign-up: step 1 asks date of birth, marital status, height and country → state → city; step 3 has
+  6 optional pages (religion & community, education & career, family, horoscope, lifestyle, you)
+- [x] My Profile and other people's profiles show the new sections; any answer can be hidden (hiding the
+  location hides city, state and country too). Members who joined before see an invitation to add them
+- [x] Search: filters for country, state, religion, mother tongue, caste, marital status, height range,
+  Manglik, diet and children; typed searches understand heights ("taller than 5'6""), "never married",
+  "divorced", "Manglik", "NRI"; Gemini also knows the new answers. Scoring adds community (only when
+  someone prefers their own), mother tongue, Manglik when a horoscope match is wanted, veg vs non-veg,
+  settling abroad and family values
+- [x] Privacy Policy lists the new details (`privacy-v4-2026-09-28`)
+- [x] Tests: database checks, unit tests for the search, and a browser run through sign-up and profile
+- [ ] Later (not in this phase): religious-practice questions, owns house/car, profile prompts, biodata
+  upload, partner preferences
 
 ---
 

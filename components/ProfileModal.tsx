@@ -3,6 +3,8 @@ import CompatibilityReport from './CompatibilityReport';
 import LikeButton from './LikeButton';
 import BlockReportModal from './BlockReportModal';
 import { IconX, IconCheck, IconChevronLeft, IconChevronRight, IconUser } from '../constants';
+import { SECT_LABEL, profileManagedBy } from '../lib/matrimonyOptions';
+import { formatBirthTime, formatChildren, formatSiblings } from '../lib/profileDisplay';
 import type { MatchCandidate } from '../types';
 
 // ============================================================================
@@ -48,17 +50,38 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose, lightbox.open, photos.length]);
 
-  const Field = ({ k, label }: { k: keyof MatchCandidate; label: string }) => {
+  // An answer is shown unless it's empty or its owner hid it (the server
+  // already leaves hidden answers out; this is a second check).
+  const answer = (k: keyof MatchCandidate): string | null => {
     if (hidden.includes(k as string)) return null;
     const val = candidate[k];
-    if (!val || val === 'Not specified') return null;
+    if (val === undefined || val === null || val === '' || val === 'Not specified') return null;
+    return String(val);
+  };
+
+  // Rows are [field, label, text shown (defaults to the answer)]
+  type Row = [keyof MatchCandidate, string, (string | null)?];
+  const Section = ({ title, rows, children }: { title: string; rows: Row[]; children?: React.ReactNode }) => {
+    const visible = rows
+      .map(([k, label, text]) => [k, label, answer(k) ? (text ?? answer(k)) : null] as const)
+      .filter(([, , text]) => !!text);
+    if (visible.length === 0 && !children) return null;
     return (
-      <div className="flex justify-between py-1.5 text-sm border-b border-gray-100 dark:border-zinc-800/50 last:border-0">
-        <span className="text-gray-500 dark:text-gray-400">{label}</span>
-        <span className="text-gray-900 dark:text-gray-200 font-medium text-right truncate max-w-[60%]">{String(val)}</span>
+      <div className="mb-6">
+        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">{title}</h4>
+        <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-3">
+          {visible.map(([k, label, text]) => (
+            <div key={k as string} className="flex justify-between gap-3 py-1.5 text-sm border-b border-gray-100 dark:border-zinc-800/50 last:border-0">
+              <span className="text-gray-500 dark:text-gray-400 flex-shrink-0">{label}</span>
+              <span className="text-gray-900 dark:text-gray-200 font-medium text-right break-words min-w-0 max-w-[65%]">{text}</span>
+            </div>
+          ))}
+          {children}
+        </div>
       </div>
     );
   };
+  const c = candidate;
 
   return (
     <div
@@ -233,80 +256,99 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                 </div>
               )}
 
-              <div className="mb-6">
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">The Basics</h4>
-                <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-3">
-                  <Field k="height" label="Height" />
-                  <Field k="ethnicity" label="Ethnicity" />
-                  <Field k="religion" label="Religion" />
-                  <Field k="politics" label="Politics" />
-                  <Field k="zodiac" label="Zodiac" />
-                  <Field k="languages" label="Languages" />
-                  <Field k="hometown" label="Hometown" />
-                </div>
-              </div>
+              <Section title="The Basics" rows={[
+                ['profileCreatedFor', 'Profile managed by', profileManagedBy(c.profileCreatedFor)],
+                ['maritalStatus', 'Marital status'],
+                ['children', 'Children', formatChildren(c.children, answer('childrenCount'))],
+                ['height', 'Height'],
+                ['dietaryPreferences', 'Diet'],
+                ['hometown', 'Grew up in'],
+                ['residentialStatus', 'Residential status'],
+                ['settlingAbroad', 'Settling abroad'],
+                ['languages', 'Languages'],
+                ['disability', 'Disability'],
+              ]} />
 
-              <div className="mb-6">
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Looking For</h4>
-                <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-3">
-                  <Field k="datingIntention" label="Intent" />
-                  <Field k="relationshipType" label="Relationship type" />
-                  <Field k="marriageTimeline" label="Marriage timeline" />
-                  <Field k="children" label="Has children" />
-                  <Field k="familyPlans" label="Family plans" />
-                  <Field k="loveLanguage" label="Love language" />
-                </div>
-              </div>
+              <Section title="Religion & Community" rows={[
+                ['religion', 'Religion'],
+                ['motherTongue', 'Mother tongue'],
+                ['sect', SECT_LABEL[c.religion ?? ''] ?? 'Sect'],
+                ['caste', 'Caste'],
+                ['subCaste', 'Sub-caste'],
+                ['gotra', 'Gotra'],
+                ['openToOtherCommunities', 'Other communities'],
+                ['ethnicity', 'Ethnicity'],
+              ]} />
 
-              <div className="mb-6">
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Lifestyle</h4>
-                <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-3">
-                  <Field k="drinking" label="Drinking" />
-                  <Field k="smoking" label="Smoking" />
-                  <Field k="marijuana" label="Marijuana" />
-                  <Field k="drugs" label="Other drugs" />
-                  <Field k="gymRoutine" label="Exercise" />
-                  <Field k="dietaryPreferences" label="Diet" />
-                  <Field k="sleepSchedule" label="Sleep" />
-                  <Field k="livingPreference" label="Living" />
-                  <Field k="canCook" label="Cooking" />
-                </div>
-              </div>
+              <Section title="Horoscope" rows={[
+                ['manglik', 'Manglik'],
+                ['rashi', 'Rashi'],
+                ['nakshatra', 'Nakshatra'],
+                ['birthTime', 'Time of birth', formatBirthTime(c.birthTime)],
+                ['birthPlace', 'Place of birth'],
+                ['horoscopeMatch', 'Horoscope match'],
+                ['zodiac', 'Zodiac'],
+              ]} />
 
-              <div className="mb-6">
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Personality</h4>
-                <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-3">
-                  <Field k="socialBattery" label="Social battery" />
-                  <Field k="attachmentStyle" label="Attachment" />
-                  <Field k="conflictResolution" label="Conflict style" />
-                  <Field k="financialApproach" label="Money" />
-                </div>
-              </div>
+              <Section title="Education & Career" rows={[
+                ['educationLevel', 'Highest qualification'],
+                ['degree', 'Degree'],
+                ['university', 'College / university'],
+                ['employedIn', 'Employed in'],
+                ['occupation', 'Occupation'],
+                ['annualIncome', 'Annual income'],
+                ['workStyle', 'Work style'],
+              ]} />
 
-              {(candidate.hobbies || candidate.travelStyle || candidate.musicGenre || candidate.sportsInterest) && (
-                <div className="mb-6">
-                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">More Interests</h4>
-                  <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-3">
-                    <Field k="hobbies" label="Hobbies" />
-                    <Field k="travelStyle" label="Travel" />
-                    <Field k="musicGenre" label="Music" />
-                    <Field k="sportsInterest" label="Sports" />
-                    <Field k="readingInterest" label="Reading" />
-                    <Field k="nextTravelDestination" label="Next trip" />
-                  </div>
-                </div>
-              )}
+              <Section title="Family" rows={[
+                ['familyType', 'Family type'],
+                ['familyStatus', 'Family status'],
+                ['familyValues', 'Family values'],
+                ['fatherOccupation', 'Father'],
+                ['motherOccupation', 'Mother'],
+                ['brothers', 'Brothers', formatSiblings(c.brothers, answer('brothersMarried'))],
+                ['sisters', 'Sisters', formatSiblings(c.sisters, answer('sistersMarried'))],
+                ['familyLocation', 'Family lives in'],
+                ['livingWithFamily', 'Lives with family'],
+                ['familyCloseness', 'Closeness to family'],
+              ]}>
+                {answer('aboutFamily') && (
+                  <p className="pt-2 text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{answer('aboutFamily')}</p>
+                )}
+              </Section>
 
-              {(candidate.educationLevel || candidate.university || candidate.workStyle) && (
-                <div className="mb-6">
-                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Education & Work</h4>
-                  <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-3">
-                    <Field k="educationLevel" label="Education" />
-                    <Field k="university" label="University" />
-                    <Field k="workStyle" label="Work style" />
-                  </div>
-                </div>
-              )}
+              <Section title="Looking For" rows={[
+                ['datingIntention', 'Intent'],
+                ['marriageTimeline', 'Marriage timeline'],
+                ['familyPlans', 'Family plans'],
+                ['loveLanguage', 'Love language'],
+              ]} />
+
+              <Section title="Lifestyle" rows={[
+                ['drinking', 'Drinking'],
+                ['smoking', 'Smoking'],
+                ['gymRoutine', 'Exercise'],
+                ['sleepSchedule', 'Sleep'],
+                ['livingPreference', 'Living'],
+                ['canCook', 'Cooking'],
+              ]} />
+
+              <Section title="Personality" rows={[
+                ['socialBattery', 'Social battery'],
+                ['attachmentStyle', 'Attachment'],
+                ['conflictResolution', 'Conflict style'],
+                ['financialApproach', 'Money'],
+                ['politics', 'Politics'],
+              ]} />
+
+              <Section title="More Interests" rows={[
+                ['hobbies', 'Hobbies'],
+                ['travelStyle', 'Travel'],
+                ['musicGenre', 'Music'],
+                ['sportsInterest', 'Sports'],
+                ['readingInterest', 'Reading'],
+                ['nextTravelDestination', 'Next trip'],
+              ]} />
             </div>
           </div>
         </div>
