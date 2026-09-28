@@ -9,7 +9,7 @@ supabase/tests/run_local.sh
 ```
 
 Rebuilds an empty local database from every migration, loads `test_data.sql`
-and runs `security_tests.sh`: 30 attacks that must be blocked and 33 normal
+and runs `security_tests.sh`: 36 attacks that must be blocked and 41 normal
 app actions that must keep working. It exits non-zero if any check fails.
 `UP_TO=<version>` stops after that migration (useful to see a bug before its fix).
 
@@ -26,8 +26,8 @@ VITE_SUPABASE_URL=http://127.0.0.1:54321 VITE_SUPABASE_ANON_KEY=<anon key from `
 ```
 
 Search runs in the `search` edge function; `npx supabase functions serve` serves
-it (and the others) locally. Its matching logic and the Gemini client have unit
-tests: `deno test --no-config supabase/functions/search/`. Prompts are understood
+it (and the others) locally. Its matching logic, the Gemini client and the
+Razorpay helpers have unit tests: `deno test --no-config supabase/functions/`. Prompts are understood
 by Google Gemini when the function has a `GEMINI_API_KEY` secret, otherwise by
 rules; `tests/e2e/gemini-standin.cjs` stands in for Gemini locally.
 

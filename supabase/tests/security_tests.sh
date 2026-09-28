@@ -122,6 +122,22 @@ check ALLOWED "A30 signed-in user reads or fills the AI plan cache" authenticate
        || ' writable=' || has_table_privilege('authenticated', 'public.search_prompt_cache', 'insert')
        || ' anon=' || has_table_privilege('anon', 'public.search_prompt_cache', 'select');" "readable=false writable=false anon=false"
 
+check BLOCKED "A31 user adds a Pro subscription for themself" authenticated "$USER_X" "x@example.com" \
+  "insert into public.subscriptions (user_id, plan_id, mode, razorpay_subscription_id, status)
+   values ('$USER_X', 'monthly', 'live', 'sub_fake', 'active');" "permission denied"
+check BLOCKED "A32 user marks their own subscription active" authenticated "$USER_X" "x@example.com" \
+  "reset role; insert into public.subscriptions (id, user_id, plan_id, mode, razorpay_subscription_id, status) values ('00000000-0000-0000-0000-0000000000d1', '$USER_X', 'monthly', 'test', 'sub_x', 'active'), ('00000000-0000-0000-0000-0000000000d2', '$OTHER', 'monthly', 'test', 'sub_v', 'active'); insert into public.payments (user_id, subscription_id, razorpay_payment_id, amount, status) values ('$OTHER', '00000000-0000-0000-0000-0000000000d2', 'pay_v', 99900, 'captured'); update public.subscriptions set status = 'created' where user_id = '$USER_X'; set local role authenticated;
+   update public.subscriptions set status = 'active' where user_id = '$USER_X';" "permission denied"
+check ALLOWED "A33 user reads someone else's subscription and payments" authenticated "$USER_X" "x@example.com" \
+  "reset role; insert into public.subscriptions (id, user_id, plan_id, mode, razorpay_subscription_id, status) values ('00000000-0000-0000-0000-0000000000d1', '$USER_X', 'monthly', 'test', 'sub_x', 'active'), ('00000000-0000-0000-0000-0000000000d2', '$OTHER', 'monthly', 'test', 'sub_v', 'active'); insert into public.payments (user_id, subscription_id, razorpay_payment_id, amount, status) values ('$OTHER', '00000000-0000-0000-0000-0000000000d2', 'pay_v', 99900, 'captured'); set local role authenticated;
+   select 'subs=' || (select count(*) from public.subscriptions where user_id <> '$USER_X')
+       || ' payments=' || (select count(*) from public.payments);" "subs=0 payments=0"
+check BLOCKED "A34 user reads the plans' Razorpay ids and webhook log" authenticated "$USER_X" "x@example.com" \
+  "select razorpay_plan_id_live from public.billing_plans union all select id from public.billing_events;" "permission denied"
+check BLOCKED "A35 user runs the Pro sync to make themself Pro" authenticated "$USER_X" "x@example.com" \
+  "select public.sync_pro_status('$USER_X');" "permission denied"
+check BLOCKED "A36 signed-out visitor reads subscriptions" anon "" "" \
+  "select count(*) from public.subscriptions;" "permission denied"
 echo
 echo "Normal app use — must keep working:"
 check ALLOWED "N1  user reads their own profile row" authenticated "$USER_X" "x@example.com" \
@@ -225,5 +241,62 @@ check ALLOWED "N33 search function saves and reuses a Gemini plan (service role)
      on conflict (key) do update set plan = excluded.plan, created_at = now();
    select 'plan=' || (plan ->> 'gender') from public.search_prompt_cache where key = 'k1';" "plan=man"
 
+check ALLOWED "N34 user reads their own subscription and payments" authenticated "$USER_X" "x@example.com" \
+  "reset role; insert into public.subscriptions (id, user_id, plan_id, mode, razorpay_subscription_id, status) values ('00000000-0000-0000-0000-0000000000d1', '$USER_X', 'monthly', 'test', 'sub_x', 'active'), ('00000000-0000-0000-0000-0000000000d2', '$OTHER', 'monthly', 'test', 'sub_v', 'active'); insert into public.payments (user_id, subscription_id, razorpay_payment_id, amount, status) values ('$OTHER', '00000000-0000-0000-0000-0000000000d2', 'pay_v', 99900, 'captured'); insert into public.payments (user_id, subscription_id, razorpay_payment_id, amount, status) values ('$USER_X', '00000000-0000-0000-0000-0000000000d1', 'pay_x', 99900, 'captured');
+   set local role authenticated;
+   select 'subs=' || (select count(*) from public.subscriptions) || ' payments=' || (select count(*) from public.payments);" "subs=1 payments=1"
+check ALLOWED "N35 a paid subscription gives Pro until the period ends, then it ends" service_role "" "" \
+  "insert into public.subscriptions (user_id, plan_id, mode, razorpay_subscription_id, status, current_start, current_end)
+   values ('$USER_X', 'monthly', 'test', 'sub_n35', 'active', '2030-01-01', '2030-02-01');
+   do \$\$ begin perform public.sync_pro_status('$USER_X'); end \$\$;
+   select 'paid=' || (select subscription_tier || '/' || coalesce(to_char(subscription_renews_at, 'YYYY-MM-DD'), '-') from public.profiles where id = '$USER_X');
+   update public.subscriptions set status = 'cancelled', current_end = now() - interval '4 days' where razorpay_subscription_id = 'sub_n35';
+   do \$\$ begin perform public.sync_pro_status('$USER_X'); end \$\$;
+   select 'ended=' || (select subscription_tier || '/' || coalesce(to_char(subscription_renews_at, 'YYYY-MM-DD'), '-') from public.profiles where id = '$USER_X');" "paid=PRO/2030-02-01
+ended=FREE/-"
+check ALLOWED "N36 free trial gives Pro until it ends; cancelling during the trial keeps it" service_role "" "" \
+  "insert into public.subscriptions (user_id, plan_id, mode, razorpay_subscription_id, status, trial_ends_at)
+   values ('$USER_X', 'yearly', 'test', 'sub_n36', 'authenticated', '2030-03-01');
+   do \$\$ begin perform public.sync_pro_status('$USER_X'); end \$\$;
+   select 'trial=' || (select subscription_tier || '/' || coalesce(to_char(subscription_renews_at, 'YYYY-MM-DD'), '-') from public.profiles where id = '$USER_X');
+   update public.subscriptions set status = 'cancelled' where razorpay_subscription_id = 'sub_n36';
+   do \$\$ begin perform public.sync_pro_status('$USER_X'); end \$\$;
+   select 'cancelled=' || (select subscription_tier || '/' || coalesce(to_char(subscription_renews_at, 'YYYY-MM-DD'), '-') from public.profiles where id = '$USER_X');" "trial=PRO/2030-03-01
+cancelled=PRO/2030-03-01"
+check ALLOWED "N40 cancelled after being charged: the old trial doesn't count" service_role "" "" \
+  "insert into public.subscriptions (user_id, plan_id, mode, razorpay_subscription_id, status, trial_ends_at, current_start, current_end)
+   values ('$USER_X', 'monthly', 'test', 'sub_n40', 'cancelled', now() + interval '5 days', now() - interval '40 days', now() - interval '10 days');
+   do \$\$ begin perform public.sync_pro_status('$USER_X'); end \$\$;
+   select 'charged_then_cancelled=' || (select subscription_tier || '/' || coalesce(to_char(subscription_renews_at, 'YYYY-MM-DD'), '-') from public.profiles where id = '$USER_X');" "charged_then_cancelled=FREE/-"
+check ALLOWED "N37 failed renewal: Pro through a 3-day grace; halted ends it" service_role "" "" \
+  "insert into public.subscriptions (user_id, plan_id, mode, razorpay_subscription_id, status, current_end)
+   values ('$USER_X', 'monthly', 'test', 'sub_n37', 'pending', now() - interval '1 day');
+   do \$\$ begin perform public.sync_pro_status('$USER_X'); end \$\$;
+   select 'retrying=' || (select subscription_tier from public.profiles where id = '$USER_X');
+   update public.subscriptions set status = 'halted' where razorpay_subscription_id = 'sub_n37';
+   do \$\$ begin perform public.sync_pro_status('$USER_X'); end \$\$;
+   select 'halted=' || (select subscription_tier from public.profiles where id = '$USER_X');" "retrying=PRO
+halted=FREE"
+check ALLOWED "N38 hourly job ends Pro 3 days after the period; hand-given Pro stays" service_role "" "" \
+  "update public.profiles set subscription_tier = 'PRO', subscription_renews_at = now() - interval '4 days' where id = '$USER_X';
+   update public.profiles set subscription_tier = 'PRO', subscription_renews_at = null where id = '$OTHER';
+   select 'ended=' || public.expire_pro_subscriptions();
+   select 'x=' || (select subscription_tier || '/' || coalesce(to_char(subscription_renews_at, 'YYYY-MM-DD'), '-') from public.profiles where id = '$USER_X') || ' v=' || (select subscription_tier from public.profiles where id = '$OTHER');" "ended=1
+x=FREE/- v=PRO"
+check ALLOWED "N39 a new price clears the saved Razorpay plan ids" service_role "" "" \
+  "update public.billing_plans set razorpay_plan_id_test = 'plan_test', razorpay_plan_id_live = 'plan_live' where id = 'monthly';
+   update public.billing_plans set name = 'MatchGPT+ monthly' where id = 'monthly';
+   select 'kept=' || razorpay_plan_id_test from public.billing_plans where id = 'monthly';
+   update public.billing_plans set amount = 79900 where id = 'monthly';
+   select 'cleared=' || coalesce(razorpay_plan_id_test, '-') || coalesce(razorpay_plan_id_live, '-') from public.billing_plans where id = 'monthly';" "kept=plan_test
+cleared=--"
+check ALLOWED "N41 the database stamps when a subscription first goes through, once" service_role "" "" \
+  "insert into public.subscriptions (user_id, plan_id, mode, razorpay_subscription_id) values ('$USER_X', 'monthly', 'test', 'sub_n41');
+   select set_config('n41.created', coalesce(live_since::text, 'none'), true) from public.subscriptions where razorpay_subscription_id = 'sub_n41';
+   update public.subscriptions set status = 'authenticated' where razorpay_subscription_id = 'sub_n41';
+   select set_config('n41.approved', live_since::text, true) from public.subscriptions where razorpay_subscription_id = 'sub_n41';
+   update public.subscriptions set status = 'active' where razorpay_subscription_id = 'sub_n41';
+   select 'created=' || current_setting('n41.created') || ' kept=' || (live_since::text = current_setting('n41.approved'))::text
+     from public.subscriptions where razorpay_subscription_id = 'sub_n41';" "created=none kept=true"
 echo
 if [[ $fails -eq 0 ]]; then echo "All checks passed."; else echo "$fails check(s) FAILED."; exit 1; fi

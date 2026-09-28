@@ -2,6 +2,7 @@
 
 11 phases in total. Phases 1–5 and 7–9 are done, Phase 6 is mostly done; **Phase 10 is next**.
 AI search (Gemini) is built and live; it switches on once you add the `GEMINI_API_KEY` secret (Phase 9).
+Payments (MatchGPT+ through Razorpay, Phase 11) are built too and switch on once you add the Razorpay keys.
 Items left unfinished in earlier phases were moved into later ones, so each open item appears once.
 (`PHASE_1_README.md`–`PHASE_3_README.md` are historical setup notes.)
 
@@ -17,7 +18,7 @@ Items left unfinished in earlier phases were moved into later ones, so each open
 | 8 | Finish half-built features | **Done** (owner checks listed) |
 | 9 | Smarter search that scales | **Done** (add the Gemini key to switch AI on) |
 | 10 | Launch readiness → public launch | To do — next |
-| 11 | Payments (Pro via Razorpay) | To do |
+| 11 | Payments (MatchGPT+ via Razorpay) | Built; waiting for your Razorpay account |
 
 ---
 
@@ -218,15 +219,49 @@ Search and Standouts run in a new `search` edge function instead of the browser.
 - [ ] Plan how admins keep up with verification requests (new users are locked out of search after 72 hours)
 - [ ] Legal review of Terms and Privacy; mobile and accessibility check
 
-## Phase 11 — Payments (Pro via Razorpay)
-Must come after Phase 7 — until then, users could give themselves Pro for free.
-- [ ] **Decision:** price, what Pro includes, and when to start charging
-- [ ] Make every Pro check follow one rule (the like button and chat ignore `PRO_FOR_ALL` today)
-- [ ] Razorpay checkout
-- [ ] Payment confirmation on the server that upgrades the account
-- [ ] Renewals, expiry and cancellation, with subscription status in Settings
-- [ ] GST invoices, and a refund policy in the Terms
-- [ ] Turn off `PRO_FOR_ALL`
+## Phase 11 — Payments (MatchGPT+ via Razorpay)
+Built 2026-09-27; waiting for a Razorpay account. Until its keys are set, the upgrade screens say
+"coming soon" and nothing can be charged. Migrations `20260927231921_phase11_billing`,
+`20260927232811_phase11_trial_rule` and `20260928000736_phase11_one_live_subscription` (applied live);
+edge functions `billing` and `razorpay-webhook` (deployed, idle without keys).
+
+- [x] Prices as in the Terms: ₹999 a month or ₹9,999 a year (17% less), a 7-day free trial for
+  first-time subscribers, renewing automatically. Cancel any time in Settings: Pro stays to the end
+  of the period paid for, a trial cancelled in time is never charged, and cancelling after a failed
+  payment stops Razorpay's retries at once. Prices live in the `billing_plans` table; a new price
+  makes a new Razorpay plan for new subscribers
+- [x] What MatchGPT+ adds, as enforced by the server: unlimited AI searches (free: 3 a day), unlimited
+  likes (free: 15 a day), Super Likes, refreshing Standouts; plus the Likes You list
+- [x] "Get MatchGPT+" is back in the sidebar ("MatchGPT+ active" on Pro accounts); the old plan list
+  said ₹2,999 and listed features that don't exist
+- [x] Upgrade screen: monthly or yearly, then Razorpay Checkout (cards, UPI AutoPay, bank mandates)
+- [x] The server confirms payments: Checkout's signature is checked, then Razorpay's webhooks keep the
+  subscription current (renewals, failed payments while Razorpay retries, cancellation, the end).
+  Pro follows the subscription with a 3-day grace, and an hourly job ends lapsed Pro. Pro given by
+  hand (all 12 Pro accounts today) is never touched
+- [x] Settings → MatchGPT+: plan, trial / renewal / end date, cancel, payments with Razorpay's invoices
+- [x] One subscription per person: if two checkouts are finished at once (say, in two tabs), the one
+  that went through first stays; the other is cancelled straight away and anything it charged is
+  refunded, and its popup says so
+- [x] Deleting an account cancels its subscription first, and refuses if Razorpay can't be reached
+- [x] Privacy Policy lists the payment details kept (`privacy-v3-2026-09-27`)
+- [x] Tests: 14 database checks, 7 unit tests (`_shared/razorpay_test.ts`), and a browser test against a
+  local Razorpay stand-in (`tests/e2e/billing-flow.mjs`, `tests/e2e/razorpay-standin.cjs`)
+- [ ] **Owner, to try it (test mode, no real money; no business documents needed yet):**
+  1. Create an account at razorpay.com
+  2. Dashboard → Account & Settings → API Keys → generate a **test** key (`rzp_test_…` and its secret)
+  3. Check that Subscriptions is available on the account, and turn on Flash Checkout (Account & Settings)
+  4. Account & Settings → Webhooks → add one: URL
+     `https://fmrbzzdjtarsaqvfukum.supabase.co/functions/v1/razorpay-webhook`, a secret you make up (a long
+     random string), and every `subscription.*` event
+  5. Supabase → Edge Functions → Secrets: `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`
+     (optional: `PRO_TRIAL_DAYS`, default 7). Then I test it end to end with Razorpay's test cards
+- [ ] **Owner, to take real payments:** finish Razorpay's activation (KYC), generate **live** keys, add the
+  same webhook in live mode, and replace the three secrets with the live ones
+- [ ] GST: if MatchGPT is GST-registered, add the GST details in Razorpay (its invoices then show GST), and
+  say in the Terms whether prices include GST
+- [ ] Decide when to start charging; then turn off `PRO_FOR_ALL` (today everyone sees the Likes You list for
+  free) and make every Pro check follow one rule (the like button and chat ignore `PRO_FOR_ALL` today)
 
 ---
 
@@ -261,5 +296,5 @@ Must come after Phase 7 — until then, users could give themselves Pro for free
 - [x] Admin panel: stats, reports, verifications, users, ban/unban, audit log
 - [x] Full account deletion; push notifications (browser side and the sending function)
 - [x] Incognito mode; liked profiles hidden from search
-- [ ] Razorpay payments → Phase 11
+- [x] Razorpay payments → built in Phase 11
 - [ ] Delete unused prototype files → Phase 10

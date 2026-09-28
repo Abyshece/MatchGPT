@@ -434,3 +434,11 @@ verify_jwt = false
 # Checks the signed-in user itself (supabase/functions/search/index.ts).
 [functions.search]
 verify_jwt = false
+
+# Checks the signed-in user itself (supabase/functions/billing/index.ts).
+[functions.billing]
+verify_jwt = false
+
+# Called by Razorpay, which signs its requests instead (razorpay-webhook/index.ts).
+[functions.razorpay-webhook]
+verify_jwt = false

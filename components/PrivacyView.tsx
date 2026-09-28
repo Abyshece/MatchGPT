@@ -71,7 +71,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
             <li><strong>Profile data:</strong> name, age, gender, sexuality, ethnicity, religion, languages, location, hometown, photos, bio, and roughly 80 other optional profile attributes you choose to share (lifestyle, personality, relationship preferences, etc.)</li>
             <li><strong>Activity data:</strong> likes you send and receive, matches, messages, search queries, login history</li>
             <li><strong>Technical data:</strong> IP address, browser type, device information, cookies (see Section 8)</li>
-            <li><strong>Payment data:</strong> if you upgrade to Pro, payment is processed by Razorpay; we never see your card details. We retain only the Razorpay subscription ID and transaction status.</li>
+            <li><strong>Payment data:</strong> if you subscribe to MatchGPT+, Razorpay processes the payment; we never see your card, UPI or bank details. We keep the Razorpay subscription and payment IDs, the plan, amounts, dates, the kind of payment method (card, UPI and so on), the payment status and links to Razorpay's invoices.</li>
           </ul>
           <p className="mt-2">
             Some categories — religion, sexuality, ethnicity, health-related fields — are considered
