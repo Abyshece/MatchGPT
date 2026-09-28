@@ -269,7 +269,8 @@ edge functions `billing` and `razorpay-webhook` (deployed, idle without keys).
 ## Phase 12 — Profile details for India (done 2026-09-28)
 The sign-up questions of Shaadi.com, BharatMatrimony and Jeevansathi, compared with MatchGPT's in
 [the research page](https://claude.ai/artifact/YDnK5UxggV5mLcVoyP5hHG); everything marked "Add" or
-"Improve" there is in. Migration `20260928…_phase12_india_profile_fields`; `search` function redeployed.
+"Improve" there is in. Migrations `20260928210206_phase12_india_profile_fields` and
+`20260928210509_phase12_location_text` (applied live); `search` function redeployed.
 
 - [x] 39 new optional answers: who the profile is for, date of birth (only the age is ever shown; ages
   move on at birthdays), marital status and children, mother tongue (78, with Hindi by region), caste

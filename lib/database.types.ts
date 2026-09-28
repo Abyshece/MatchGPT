@@ -1458,6 +1458,7 @@ export type Database = {
         Returns: undefined
       }
       admin_verify_user: { Args: { target_id: string }; Returns: undefined }
+      age_on_today: { Args: { p_date_of_birth: string }; Returns: number }
       consume_search: { Args: { p_user_id: string }; Returns: Json }
       expire_pro_subscriptions: { Args: never; Returns: number }
       export_my_data: { Args: never; Returns: Json }
@@ -1515,6 +1516,8 @@ export type Database = {
           subscription_tier: string
         }[]
       }
+      height_label: { Args: { p_cm: number }; Returns: string }
+      height_to_cm: { Args: { p_height: string }; Returns: number }
       increment_push_failure: { Args: { sub_id: string }; Returns: undefined }
       is_admin: { Args: never; Returns: boolean }
       mark_messages_read: { Args: { p_match_id: string }; Returns: number }

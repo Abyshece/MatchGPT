@@ -330,8 +330,11 @@ check ALLOWED "N46 city, state and country make the location people see" authent
   "update public.profiles set city = 'Surat', state = 'Gujarat', country = 'India' where id = '$USER_X';
    select 'india=' || location from public.profiles where id = '$USER_X';
    update public.profiles set city = 'Austin', state = 'Texas', country = 'United States' where id = '$USER_X';
-   select 'abroad=' || location from public.profiles where id = '$USER_X';" "india=Surat, Gujarat
-abroad=Austin, United States"
+   select 'abroad=' || location from public.profiles where id = '$USER_X';
+   update public.profiles set city = 'Delhi', state = 'Delhi', country = 'India' where id = '$USER_X';
+   select 'same_name=' || location from public.profiles where id = '$USER_X';" "india=Surat, Gujarat
+abroad=Austin, United States
+same_name=Delhi"
 check BLOCKED "N47 the new answers have limits (about the family: 1,000 characters)" authenticated "$USER_X" "x@example.com" \
   "update public.profiles set about_family = repeat('x', 1001) where id = '$USER_X';" "profiles_about_family_length"
 check BLOCKED "N48 time of birth must be a time" authenticated "$USER_X" "x@example.com" \
