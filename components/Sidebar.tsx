@@ -4,6 +4,7 @@ import { useIsAdmin } from '../lib/useIsAdmin';
 import { listLikesReceived } from '../lib/likesService';
 import { listMatches } from '../lib/matchesService';
 import VerificationRequestModal from './VerificationRequestModal';
+import UpgradeModal from './UpgradeModal';
 import {
   IconSearch, IconHistory, IconHeart, IconMessageCircle, IconStar, IconUser,
   IconX, IconZap, IconLogOut, IconSettings, IconChevronLeft, IconChevronRight,
@@ -32,6 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const isPro = tier === 'PRO';
   const isAdmin = useIsAdmin() === true;
   const [showVerifyModal, setShowVerifyModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
   const [unreadMatches, setUnreadMatches] = useState(0);
 
@@ -190,9 +192,26 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
         )}
 
-        {/* GET MATCHGPT+ CTA — hidden while the product is free for everyone.
-            (See PRO_FOR_ALL in profileService.ts.) Re-enable this block when
-            paid Pro tier launches. */}
+        {/* MatchGPT+: free accounts get the upgrade; Pro accounts go to their subscription in Settings */}
+        {profile && (
+          <div
+            onClick={() => (isPro ? onTabChange('settings') : setShowUpgradeModal(true))}
+            className={`rounded-lg border cursor-pointer transition-all duration-300 mb-3 overflow-hidden group bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 border-blue-100 dark:border-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/20 ${
+              isCollapsed ? 'p-2 flex justify-center items-center' : 'px-3 py-3'
+            }`}
+            title={isCollapsed ? (isPro ? 'MatchGPT+ active' : 'Get MatchGPT+') : undefined}
+          >
+            {!isCollapsed ? (
+              <div className="flex items-center gap-2 font-bold text-xs uppercase tracking-wide text-blue-700 dark:text-blue-300">
+                <IconZap /> {isPro ? 'MatchGPT+ active' : 'Get MatchGPT+'}
+              </div>
+            ) : (
+              <div className="text-blue-600 dark:text-blue-400">
+                <IconZap />
+              </div>
+            )}
+          </div>
+        )}
 
         <div className={`flex items-center ${isCollapsed ? 'justify-center flex-col gap-2' : 'gap-3'} mt-2`}>
           {!isCollapsed && (
@@ -211,9 +230,12 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      {/* Verification modal, opened from the box above (it renders into <body>) */}
+      {/* Opened from the boxes above (both render into <body>) */}
       {showVerifyModal && (
         <VerificationRequestModal onClose={() => setShowVerifyModal(false)} />
+      )}
+      {showUpgradeModal && (
+        <UpgradeModal reason="pro_feature" onClose={() => setShowUpgradeModal(false)} />
       )}
     </aside>
   );

@@ -89,6 +89,66 @@ export type Database = {
           },
         ]
       }
+      billing_events: {
+        Row: {
+          event: string
+          id: string
+          razorpay_subscription_id: string | null
+          received_at: string
+        }
+        Insert: {
+          event: string
+          id: string
+          razorpay_subscription_id?: string | null
+          received_at?: string
+        }
+        Update: {
+          event?: string
+          id?: string
+          razorpay_subscription_id?: string | null
+          received_at?: string
+        }
+        Relationships: []
+      }
+      billing_plans: {
+        Row: {
+          amount: number
+          currency: string
+          id: string
+          is_active: boolean
+          name: string
+          period: string
+          razorpay_plan_id_live: string | null
+          razorpay_plan_id_test: string | null
+          total_count: number
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          currency?: string
+          id: string
+          is_active?: boolean
+          name: string
+          period: string
+          razorpay_plan_id_live?: string | null
+          razorpay_plan_id_test?: string | null
+          total_count: number
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          currency?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          period?: string
+          razorpay_plan_id_live?: string | null
+          razorpay_plan_id_test?: string | null
+          total_count?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       blocks: {
         Row: {
           blocked_id: string
@@ -370,6 +430,66 @@ export type Database = {
           {
             foreignKeyName: "messages_sender_id_fkey"
             columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          invoice_url: string | null
+          method: string | null
+          paid_at: string
+          razorpay_invoice_id: string | null
+          razorpay_payment_id: string
+          status: string
+          subscription_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          invoice_url?: string | null
+          method?: string | null
+          paid_at?: string
+          razorpay_invoice_id?: string | null
+          razorpay_payment_id: string
+          status: string
+          subscription_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          invoice_url?: string | null
+          method?: string | null
+          paid_at?: string
+          razorpay_invoice_id?: string | null
+          razorpay_payment_id?: string
+          status?: string
+          subscription_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -997,6 +1117,75 @@ export type Database = {
           },
         ]
       }
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean
+          created_at: string
+          current_end: string | null
+          current_start: string | null
+          ended_at: string | null
+          id: string
+          live_since: string | null
+          mode: string
+          plan_id: string
+          razorpay_subscription_id: string
+          razorpay_updated_at: string | null
+          status: string
+          trial_ends_at: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_end?: string | null
+          current_start?: string | null
+          ended_at?: string | null
+          id?: string
+          live_since?: string | null
+          mode: string
+          plan_id: string
+          razorpay_subscription_id: string
+          razorpay_updated_at?: string | null
+          status?: string
+          trial_ends_at?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_end?: string | null
+          current_start?: string | null
+          ended_at?: string | null
+          id?: string
+          live_since?: string | null
+          mode?: string
+          plan_id?: string
+          razorpay_subscription_id?: string
+          razorpay_updated_at?: string | null
+          status?: string
+          trial_ends_at?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "billing_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       verification_requests: {
         Row: {
           admin_notes: string | null
@@ -1153,6 +1342,7 @@ export type Database = {
       }
       admin_verify_user: { Args: { target_id: string }; Returns: undefined }
       consume_search: { Args: { p_user_id: string }; Returns: Json }
+      expire_pro_subscriptions: { Args: never; Returns: number }
       export_my_data: { Args: never; Returns: Json }
       gender_preference_fits: {
         Args: { p_preference: string; p_target: string }
@@ -1245,6 +1435,7 @@ export type Database = {
         }
         Returns: string
       }
+      sync_pro_status: { Args: { p_user_id: string }; Returns: undefined }
       unmatch: { Args: { p_match_id: string }; Returns: undefined }
       vapid_public_key: { Args: never; Returns: string }
     }

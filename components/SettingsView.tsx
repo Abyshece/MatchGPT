@@ -6,6 +6,7 @@ import { updateSettings, setPauseStatus } from '../lib/profileService';
 import { deleteAccount } from '../lib/deleteAccountService';
 import PushNotifSetup from './PushNotifSetup';
 import BlockedPeopleList from './BlockedPeopleList';
+import SubscriptionSettings from './SubscriptionSettings';
 import {
   IconMoon, IconSun, IconUser, IconLogOut, IconChevronRight, IconTrash, IconX,
 } from '../constants';
@@ -135,11 +136,11 @@ const SettingsView: React.FC<SettingsViewProps> = ({
                 <span className="text-sm text-gray-600 dark:text-gray-300">Phone</span>
                 <span className="text-sm font-mono text-gray-800 dark:text-gray-200">{profile.phoneNumber || '—'}</span>
               </div>
-              <div className="flex justify-between py-3 border-b border-gray-50 dark:border-zinc-800/50 px-2">
-                <span className="text-sm text-gray-600 dark:text-gray-300">Plan</span>
-                <span className="text-sm font-mono text-gray-800 dark:text-gray-200">{profile.subscriptionTier || 'FREE'}</span>
-              </div>
             </div>
+          </InfoSection>
+
+          <InfoSection title="MatchGPT+">
+            <SubscriptionSettings />
           </InfoSection>
 
           <InfoSection title="Privacy & Visibility">

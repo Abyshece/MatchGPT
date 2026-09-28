@@ -110,7 +110,7 @@ try {
   const refused = await search('someone kind');
   await page.screenshot({ path: `${OUT}4-limit.png` });
   check(refused.status === 429 && refused.json.code === 'LIMIT_REACHED', `4th search refused by the server (${refused.status})`);
-  check(await page.getByText(/Pro subscriptions are coming soon/i).isVisible(), 'the page shows the upgrade prompt');
+  check(await page.getByText("You've used today's free searches").isVisible(), 'the page shows the upgrade prompt');
   check(sql(`select daily_search_count from profiles where id = '${me}';`) === '3', 'count stays at 3');
   await page.getByText('Maybe later').click();
 
