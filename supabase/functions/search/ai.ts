@@ -2,9 +2,10 @@
 // Understanding search prompts with Google Gemini (free tier)
 //
 // Turns what someone typed ("a vegetarian doctor in Pune who doesn't smoke")
-// into a SearchPlan (matching.ts): hard filters (gender, age, place, online,
-// habits to avoid) and preferences that raise the score (profile answers, and
-// words with synonyms to look for in bios, hobbies and jobs).
+// into a SearchPlan (matching.ts): hard filters (gender, age, height, place,
+// online, habits to avoid) and preferences that raise the score (profile
+// answers such as mother tongue, community or marital status, and words with
+// synonyms to look for in bios, hobbies and jobs).
 //
 // Sent to Google: the typed text (emails and phone numbers removed) and the
 // list of profile answers people in the pool have. Never names, photos or
@@ -39,7 +40,7 @@ const API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
 export const DEFAULT_MODELS = ['gemini-3.1-flash-lite', 'gemini-3.5-flash-lite', 'gemini-2.5-flash-lite'];
 const TIMEOUT_MS = 5000;
 const QUOTA_PAUSE_MS = 60_000;  // after "out of free quota", don't ask again for a minute
-const HABITS: Habit[] = ['smoking', 'drinking', 'marijuana', 'drugs'];
+const HABITS: Habit[] = ['smoking', 'drinking'];
 
 let workingModel: string | null = null;
 let pausedUntil = 0;
@@ -49,22 +50,31 @@ export function resetAiState() {
   pausedUntil = 0;
 }
 
-const INSTRUCTIONS = `You turn a search typed into a dating and marriage app into a JSON search plan.
+const INSTRUCTIONS = `You turn a search typed into an Indian dating and marriage app into a JSON search plan.
 The person describes who they want to meet. Record only what they asked for and leave the rest empty
-(gender "any", ages 0, city "", false, empty lists). Never guess.
+(gender "any", ages and heights 0, city "", false, empty lists). Never guess.
 
-- gender: who they want to meet. girl, woman, lady, wife, bride -> "woman"; boy, guy, man, husband, groom -> "man".
+- gender: who they want to meet. girl, woman, lady, wife, bride, ladki -> "woman"; boy, guy, man, husband, groom,
+  ladka -> "man".
 - age_min, age_max: "under 30" -> age_max 29; "over 25" -> age_min 26; "25-30" or "between 25 and 30" -> 25 and 30;
   "in her 20s" -> 20 and 29; "late 20s" -> 26 and 29; "early 30s" -> 30 and 33. 0 when not said.
+- height_min_cm, height_max_cm: heights in cm (1 inch = 2.54 cm). "taller than 5'6\"" -> height_min_cm 170;
+  "at least 5'6" -> 168; "under 6 feet" -> height_max_cm 180; "5'4 to 5'8" -> 163 and 173; "tall" alone is not a
+  height. 0 when not said.
 - near_me: "near me", "nearby", "around me", "local", "in my city".
-- city: a city, area or country they name ("in Pune" -> "Pune"), written as they wrote it.
+- city: a city, state, area or country they name ("in Pune" -> "Pune", "from Gujarat" -> "Gujarat"), written as
+  they wrote it.
 - online_now: "online", "active now". recently_active: "recently active", "active this week". verified_only: "verified".
 - avoid: habits they don't want. "doesn't smoke", "non-smoker", "no smoking" -> smoking; "doesn't drink", "sober",
-  "teetotaller" -> drinking; "no weed", "no cannabis" -> marijuana; "no drugs" -> drugs.
+  "teetotaller" -> drinking.
 - preferences: anything that matches a profile answer in the list sent with the search. Use only those fields and
   answers, copied exactly, and include every answer that fits ("vegetarian" -> dietary_preferences: Vegetarian,
-  Vegan, Jain when listed; "wants kids" -> family_plans: Wants children, Open to children). negated = true when they
-  want to avoid those answers.
+  Vegan, Jain, Eggetarian when listed; "wants kids" -> family_plans: Wants children, Open to children; "Tamil" ->
+  mother_tongue: Tamil; "Punjabi Hindi-speaking" -> mother_tongue: Punjabi and every Hindi answer; "never married" ->
+  marital_status: Never Married; "divorced" -> marital_status: Divorced, Awaiting Divorce; "non-manglik" ->
+  manglik: Non Manglik; "NRI" or "settled abroad" -> country: India with negated = true; "Brahmin", "Jat",
+  "Iyer" -> caste or sub_caste with that answer; "from a joint family" -> family_type: Joint family). negated = true
+  when they want to avoid those answers.
 - keywords: everything else to look for in bios, hobbies and jobs, each as a few words or synonyms ("book lover" ->
   books, reading, novels, literature; "doctor" -> doctor, physician, MBBS, surgeon; "ambitious" -> ambitious,
   driven, motivated). negated = true for things they don't want ("not a lawyer").
@@ -78,6 +88,8 @@ function responseSchema(fields: string[]) {
       gender: { type: 'string', enum: ['any', 'woman', 'man', 'nonbinary'] },
       age_min: { type: 'integer' },
       age_max: { type: 'integer' },
+      height_min_cm: { type: 'integer' },
+      height_max_cm: { type: 'integer' },
       near_me: { type: 'boolean' },
       city: { type: 'string' },
       online_now: { type: 'boolean' },
@@ -106,7 +118,7 @@ function responseSchema(fields: string[]) {
       },
     },
     required: [
-      'gender', 'age_min', 'age_max', 'near_me', 'city', 'online_now', 'recently_active',
+      'gender', 'age_min', 'age_max', 'height_min_cm', 'height_max_cm', 'near_me', 'city', 'online_now', 'recently_active',
       'verified_only', 'avoid', 'preferences', 'keywords',
     ],
   };
@@ -146,11 +158,13 @@ export function scrub(prompt: string): string {
 }
 
 const asAge = (n: unknown) => (typeof n === 'number' && Number.isInteger(n) && n >= 18 && n <= 99 ? n : null);
+const asHeight = (n: unknown) => (typeof n === 'number' && Number.isInteger(n) && n >= 120 && n <= 230 ? n : null);
 const asText = (s: unknown, max: number) => (typeof s === 'string' && s.trim() && s.trim().length <= max ? s.trim() : null);
 
 // Gemini's answer → a SearchPlan, keeping only what makes sense: known
 // habits, fields and answers from the catalog (matched without regard to
-// case), a place that appears in the prompt, ages between 18 and 99.
+// case), a place that appears in the prompt, ages between 18 and 99, heights
+// between 120 and 230 cm.
 export function readPlan(data: unknown, prompt: string, catalog: Catalog): SearchPlan | null {
   // deno-lint-ignore no-explicit-any
   const parts = (data as any)?.candidates?.[0]?.content?.parts;
@@ -168,6 +182,9 @@ export function readPlan(data: unknown, prompt: string, catalog: Catalog): Searc
   let ageMin = asAge(out.age_min);
   let ageMax = asAge(out.age_max);
   if (ageMin !== null && ageMax !== null && ageMin > ageMax) ageMin = ageMax = null;
+  let heightMinCm = asHeight(out.height_min_cm);
+  let heightMaxCm = asHeight(out.height_max_cm);
+  if (heightMinCm !== null && heightMaxCm !== null && heightMinCm > heightMaxCm) heightMinCm = heightMaxCm = null;
 
   const city = asText(out.city, 60);
 
@@ -200,6 +217,8 @@ export function readPlan(data: unknown, prompt: string, catalog: Catalog): Searc
     gender: ['woman', 'man', 'nonbinary'].includes(out.gender) ? out.gender : null,
     ageMin,
     ageMax,
+    heightMinCm,
+    heightMaxCm,
     nearMe: out.near_me === true,
     city: city && prompt.toLowerCase().includes(city.toLowerCase()) ? city : null,
     online: out.online_now === true,

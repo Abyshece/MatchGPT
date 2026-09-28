@@ -1,11 +1,14 @@
-// New-user journey against the local stack: email sign-up → onboarding (3 steps)
-// → dashboard → search → sign out → sign back in.
+// New-user journey against the local stack: email sign-up → onboarding (3 steps,
+// with the India details) → dashboard → search → sign out → sign back in.
 // Usage: node signup-flow.mjs [email]
 import { chromium } from 'playwright';
+import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import zlib from 'node:zlib';
 
 const BASE = process.env.BASE_URL || 'http://localhost:3000';
+const DB = process.env.DB_CONTAINER || 'supabase_db_MatchGPT';  // `docker ps` shows the name
+const sql = (q) => execSync(`docker exec -i ${DB} psql -U postgres -At`, { input: q }).toString().trim();
 const OUT = new URL('./.shots/shots/', import.meta.url).pathname;
 fs.mkdirSync(OUT, { recursive: true });
 const email = process.argv[2] || `newuser_${Date.now()}@shaadigpt.dev`;
@@ -76,16 +79,33 @@ try {
     if (await page.getByText('Before you start').isVisible()) throw new Error('email sign-up was asked for Terms consent again');
   });
 
+  // A label's own select (the form's labels sit right before their input)
+  const selectAfter = (label) => page.locator(`label:text-is("${label}") + select`);
+  const pick = async (name, typed, option) => {
+    const box = page.getByRole('combobox', { name });
+    await box.click();
+    await box.fill(typed);
+    await page.getByRole('option', { name: option, exact: true }).click();
+  };
+
   await step('onboarding step 1: basic info', async () => {
+    if ((await selectAfter('This profile is for').inputValue()) !== 'Myself') throw new Error('"This profile is for" should start at Myself');
     await page.getByPlaceholder("As you'd like it shown").fill('Test Newuser');
-    await page.getByPlaceholder('25').fill('29');
-    const selects = page.locator('select');
-    await selects.nth(0).selectOption('He/Him');
-    await selects.nth(1).selectOption('Male');
-    await selects.nth(2).selectOption('Women');
-    await selects.nth(3).selectOption('Marriage');
-    await page.getByPlaceholder('e.g. Mumbai, MH').fill('Mumbai, MH');
-    await page.getByPlaceholder('Where you grew up').fill('Pune');
+    await page.getByLabel('Day').selectOption('15');
+    await page.getByLabel('Month').selectOption({ label: 'Jan' });
+    await page.getByLabel('Year').selectOption('1997');
+    await selectAfter('Gender').selectOption('Male');
+    await page.locator('label:text-is("Pronouns (optional)") + select').selectOption('He/Him');
+    await selectAfter('Interested in').selectOption('Women');
+    await selectAfter('Looking for').selectOption('Marriage');
+    await selectAfter('Marital status').selectOption('Divorced');
+    await selectAfter('Children (optional)').selectOption('No');     // asked because not "Never Married"
+    await selectAfter('Height (optional)').selectOption(`5' 8" (173 cm)`);
+    if ((await page.getByRole('combobox', { name: 'Country' }).inputValue()) !== 'India') throw new Error('country should start at India');
+    await pick('State', 'guj', 'Gujarat');
+    await pick('City', 'sur', 'Surat');
+    await page.getByPlaceholder('Hometown').fill('Pune');
+    await shot('onboarding-step1-filled');
     await page.getByRole('button', { name: /Continue/ }).click();
     await page.getByText('Add your photos').waitFor({ timeout: 15000 });
     await shot('onboarding-step2');
@@ -102,21 +122,69 @@ try {
     await shot('onboarding-step3');
   });
 
-  await step('onboarding step 3: details (5 pages)', async () => {
-    await page.locator('select').first().selectOption('Athletic');            // Appearance: body type
+  const next = async (title) => {
     await page.getByRole('button', { name: /Next/ }).click();
-    await page.getByText('Lifestyle', { exact: true }).waitFor();
-    await page.locator('select').nth(5).selectOption('Vegetarian');           // Lifestyle: diet
-    await page.getByRole('button', { name: /Next/ }).click();
-    await page.getByText('Career & Background').waitFor();
+    await page.getByRole('heading', { name: title }).waitFor();
+  };
+
+  await step('onboarding step 3: details (6 pages)', async () => {
+    // Religion & community
+    await page.getByRole('heading', { name: 'Religion & community' }).waitFor();
+    await page.getByLabel('Religion', { exact: true }).selectOption('Hindu');
+    await pick('Mother tongue', 'gujar', 'Gujarati');
+    await pick('Caste', 'pat', 'Patel');
+    await pick('Sub-caste', 'leva', 'Leva Patel');
+    if (!(await page.getByRole('combobox', { name: 'Gotra' }).isVisible())) throw new Error('gotra not asked for a Hindu');
+    if (await page.getByText('Denomination').isVisible()) throw new Error('denomination asked for a Hindu');
+    await page.getByLabel('Open to marrying outside your community?').selectOption('Yes, caste no bar');
+    for (const lang of ['English', 'Gujarati', 'Hindi']) await page.getByRole('button', { name: lang, exact: true }).click();
+    await shot('details-religion-community');
+
+    await next('Education & career');
+    await pick('Degree', 'btech', 'B.E/B.Tech (Bachelor of Engineering / Bachelor of Technology)');
+    if ((await page.getByLabel('Highest qualification').inputValue()) !== "Bachelor's") throw new Error('the degree did not fill in the qualification');
+    await pick('Occupation', 'software prof', 'Software Professional');
     await page.getByPlaceholder('e.g. Product Manager').fill('Engineer');
-    await page.getByRole('button', { name: /Next/ }).click();
-    await page.getByText('Family & Dating').waitFor();
-    await page.getByRole('button', { name: /Next/ }).click();
-    await page.getByText('A bit about you').waitFor();
+    await page.getByRole('combobox', { name: 'Annual income' }).click();
+    await page.getByRole('option', { name: '₹10–15 lakh', exact: true }).click();
+    if (await page.getByText('Residential status').isVisible()) throw new Error('residential status asked of someone in India');
+    await shot('details-education');
+
+    await next('Family');
+    await page.getByLabel('Family type').selectOption('Joint family');
+    await page.getByLabel('Brothers').selectOption('2');
+    await page.getByLabel('Of them married').first().selectOption('1');
+    await page.getByPlaceholder(/A few lines about your family/).fill('We run a textile shop in Surat.');
+    await shot('details-family');
+
+    await next('Horoscope');
+    await page.getByLabel('Manglik').selectOption('Non Manglik');
+    await page.locator('input[type=time]').fill('06:45');
+
+    await next('Lifestyle & appearance');
+    await page.getByLabel('Diet').selectOption('Vegetarian');
+    await page.getByRole('button', { name: 'Cricket', exact: true }).click();
+    for (const gone of ['Marijuana', 'Other drugs']) {
+      if (await page.getByText(gone, { exact: true }).count()) throw new Error(`"${gone}" is still asked`);
+    }
+    await shot('details-lifestyle');
+
+    await next('Relationship & you');
+    if (await page.getByText('Relationship type', { exact: true }).count()) throw new Error('"Relationship type" is still asked');
     await page.getByPlaceholder(/A few sentences/).fill('Testing the sign-up flow.');
     await shot('details-last-page');
     await page.getByRole('button', { name: /Finish/ }).click();
+  });
+
+  await step('saved as chosen, with age, location and height worked out', async () => {
+    await page.getByPlaceholder(/Describe your ideal match/).waitFor({ timeout: 20000 });
+    const row = sql(`select concat_ws(' | ', age = extract(year from age(current_date, date '1997-01-15')), location, height_cm,
+        marital_status, children, mother_tongue, caste, sub_caste, education_level, occupation, brothers || '+' || brothers_married,
+        birth_time, manglik, dietary_preferences, hobbies, languages, profile_created_for, annual_income)
+      from profiles where email = '${email}';`);
+    const want = "t | Surat, Gujarat | 173 | Divorced | No | Gujarati | Patel | Leva Patel | Bachelor's | Software Professional | 2+1 | 06:45 | Non Manglik | Vegetarian | Cricket | English, Gujarati, Hindi | Myself | ₹10–15 lakh";
+    if (row !== want) throw new Error(`saved: ${row}\n  wanted: ${want}`);
+    log('  saved:', row);
   });
 
   await step('reach the dashboard', async () => {

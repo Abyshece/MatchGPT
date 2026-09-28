@@ -498,29 +498,42 @@ export type Database = {
       }
       profiles: {
         Row: {
+          about_family: string | null
           account_created: string
           age: number | null
           age_changed_once: boolean | null
+          annual_income: string | null
           attachment_style: string | null
           baking_interest: string | null
           ban_reason: string | null
           banned_at: string | null
+          birth_place: string | null
+          birth_time: string | null
           body_hair: string | null
           body_type: string | null
+          brothers: string | null
+          brothers_married: string | null
           can_cook: string | null
+          caste: string | null
           childhood_description: string | null
           children: string | null
+          children_count: string | null
+          city: string | null
           clothing_style: string | null
           conflict_resolution: string | null
           cookie_preferences: Json | null
+          country: string | null
           covid_vaccine: string | null
           criminal_record: string | null
           daily_like_count: number | null
           daily_search_count: number | null
           daily_super_like_count: number | null
+          date_of_birth: string | null
           dating_intention: string | null
+          degree: string | null
           description: string | null
           dietary_preferences: string | null
+          disability: string | null
           dream_house_type: string | null
           dresses_well: string | null
           drinking: string | null
@@ -529,27 +542,36 @@ export type Database = {
           education_level: string | null
           email: string | null
           email_verified: boolean | null
+          employed_in: string | null
           ethnicity: string | null
           eye_color: string | null
           facebook: string | null
           facial_hair: string | null
           family_closeness: string | null
           family_health_history: string | null
+          family_location: string | null
           family_plans: string | null
+          family_status: string | null
+          family_type: string | null
+          family_values: string | null
+          father_occupation: string | null
           favorite_drink: string | null
           financial_approach: string | null
           financial_splitting: string | null
           future_plans: string | null
           gender: string | null
+          gotra: string | null
           gym_routine: string | null
           hair_color: string | null
           hair_type: string | null
           has_drivers_license: string | null
           has_tattoos: string | null
           height: string | null
+          height_cm: number | null
           hidden_fields: string[] | null
           hobbies: string | null
           hometown: string | null
+          horoscope_match: string | null
           hygiene: string | null
           id: string
           instagram: string | null
@@ -567,18 +589,26 @@ export type Database = {
           last_super_like_date: string | null
           linkedin: string | null
           living_preference: string | null
+          living_with_family: string | null
           location: string | null
           love_language: string | null
           loves_travel: string | null
           makeup_routine: string | null
+          manglik: string | null
           marijuana: string | null
+          marital_status: string | null
           marketing_consent: boolean | null
           marriage_timeline: string | null
+          mother_occupation: string | null
+          mother_tongue: string | null
           music_genre: string | null
+          nakshatra: string | null
           name: string | null
           nationality_count: number | null
           next_travel_destination: string | null
+          occupation: string | null
           onboarding_complete: boolean | null
+          open_to_other_communities: string | null
           paused_at: string | null
           pets: string | null
           phone_number: string | null
@@ -587,26 +617,35 @@ export type Database = {
           photo_urls: string[] | null
           politics: string | null
           privacy_accepted_at: string | null
+          profile_created_for: string | null
           pronouns: string | null
           race: string | null
+          rashi: string | null
           reading_interest: string | null
           relationship_type: string | null
           religion: string | null
+          residential_status: string | null
+          sect: string | null
           settings_email_notifs: boolean | null
           settings_incognito: boolean | null
           settings_push_notifs: boolean | null
           settings_read_receipts: boolean | null
           settings_show_online: boolean | null
           settings_theme: string | null
+          settling_abroad: string | null
           sex_style: string | null
           sexuality: string | null
           shopping_preference: string | null
           siblings: string | null
+          sisters: string | null
+          sisters_married: string | null
           sleep_schedule: string | null
           smoking: string | null
           snoring: string | null
           social_battery: string | null
           sports_interest: string | null
+          state: string | null
+          sub_caste: string | null
           subscription_renews_at: string | null
           subscription_tier: string | null
           terms_accepted_at: string | null
@@ -624,29 +663,42 @@ export type Database = {
           zodiac: string | null
         }
         Insert: {
+          about_family?: string | null
           account_created?: string
           age?: number | null
           age_changed_once?: boolean | null
+          annual_income?: string | null
           attachment_style?: string | null
           baking_interest?: string | null
           ban_reason?: string | null
           banned_at?: string | null
+          birth_place?: string | null
+          birth_time?: string | null
           body_hair?: string | null
           body_type?: string | null
+          brothers?: string | null
+          brothers_married?: string | null
           can_cook?: string | null
+          caste?: string | null
           childhood_description?: string | null
           children?: string | null
+          children_count?: string | null
+          city?: string | null
           clothing_style?: string | null
           conflict_resolution?: string | null
           cookie_preferences?: Json | null
+          country?: string | null
           covid_vaccine?: string | null
           criminal_record?: string | null
           daily_like_count?: number | null
           daily_search_count?: number | null
           daily_super_like_count?: number | null
+          date_of_birth?: string | null
           dating_intention?: string | null
+          degree?: string | null
           description?: string | null
           dietary_preferences?: string | null
+          disability?: string | null
           dream_house_type?: string | null
           dresses_well?: string | null
           drinking?: string | null
@@ -655,27 +707,36 @@ export type Database = {
           education_level?: string | null
           email?: string | null
           email_verified?: boolean | null
+          employed_in?: string | null
           ethnicity?: string | null
           eye_color?: string | null
           facebook?: string | null
           facial_hair?: string | null
           family_closeness?: string | null
           family_health_history?: string | null
+          family_location?: string | null
           family_plans?: string | null
+          family_status?: string | null
+          family_type?: string | null
+          family_values?: string | null
+          father_occupation?: string | null
           favorite_drink?: string | null
           financial_approach?: string | null
           financial_splitting?: string | null
           future_plans?: string | null
           gender?: string | null
+          gotra?: string | null
           gym_routine?: string | null
           hair_color?: string | null
           hair_type?: string | null
           has_drivers_license?: string | null
           has_tattoos?: string | null
           height?: string | null
+          height_cm?: number | null
           hidden_fields?: string[] | null
           hobbies?: string | null
           hometown?: string | null
+          horoscope_match?: string | null
           hygiene?: string | null
           id: string
           instagram?: string | null
@@ -693,18 +754,26 @@ export type Database = {
           last_super_like_date?: string | null
           linkedin?: string | null
           living_preference?: string | null
+          living_with_family?: string | null
           location?: string | null
           love_language?: string | null
           loves_travel?: string | null
           makeup_routine?: string | null
+          manglik?: string | null
           marijuana?: string | null
+          marital_status?: string | null
           marketing_consent?: boolean | null
           marriage_timeline?: string | null
+          mother_occupation?: string | null
+          mother_tongue?: string | null
           music_genre?: string | null
+          nakshatra?: string | null
           name?: string | null
           nationality_count?: number | null
           next_travel_destination?: string | null
+          occupation?: string | null
           onboarding_complete?: boolean | null
+          open_to_other_communities?: string | null
           paused_at?: string | null
           pets?: string | null
           phone_number?: string | null
@@ -713,26 +782,35 @@ export type Database = {
           photo_urls?: string[] | null
           politics?: string | null
           privacy_accepted_at?: string | null
+          profile_created_for?: string | null
           pronouns?: string | null
           race?: string | null
+          rashi?: string | null
           reading_interest?: string | null
           relationship_type?: string | null
           religion?: string | null
+          residential_status?: string | null
+          sect?: string | null
           settings_email_notifs?: boolean | null
           settings_incognito?: boolean | null
           settings_push_notifs?: boolean | null
           settings_read_receipts?: boolean | null
           settings_show_online?: boolean | null
           settings_theme?: string | null
+          settling_abroad?: string | null
           sex_style?: string | null
           sexuality?: string | null
           shopping_preference?: string | null
           siblings?: string | null
+          sisters?: string | null
+          sisters_married?: string | null
           sleep_schedule?: string | null
           smoking?: string | null
           snoring?: string | null
           social_battery?: string | null
           sports_interest?: string | null
+          state?: string | null
+          sub_caste?: string | null
           subscription_renews_at?: string | null
           subscription_tier?: string | null
           terms_accepted_at?: string | null
@@ -750,29 +828,42 @@ export type Database = {
           zodiac?: string | null
         }
         Update: {
+          about_family?: string | null
           account_created?: string
           age?: number | null
           age_changed_once?: boolean | null
+          annual_income?: string | null
           attachment_style?: string | null
           baking_interest?: string | null
           ban_reason?: string | null
           banned_at?: string | null
+          birth_place?: string | null
+          birth_time?: string | null
           body_hair?: string | null
           body_type?: string | null
+          brothers?: string | null
+          brothers_married?: string | null
           can_cook?: string | null
+          caste?: string | null
           childhood_description?: string | null
           children?: string | null
+          children_count?: string | null
+          city?: string | null
           clothing_style?: string | null
           conflict_resolution?: string | null
           cookie_preferences?: Json | null
+          country?: string | null
           covid_vaccine?: string | null
           criminal_record?: string | null
           daily_like_count?: number | null
           daily_search_count?: number | null
           daily_super_like_count?: number | null
+          date_of_birth?: string | null
           dating_intention?: string | null
+          degree?: string | null
           description?: string | null
           dietary_preferences?: string | null
+          disability?: string | null
           dream_house_type?: string | null
           dresses_well?: string | null
           drinking?: string | null
@@ -781,27 +872,36 @@ export type Database = {
           education_level?: string | null
           email?: string | null
           email_verified?: boolean | null
+          employed_in?: string | null
           ethnicity?: string | null
           eye_color?: string | null
           facebook?: string | null
           facial_hair?: string | null
           family_closeness?: string | null
           family_health_history?: string | null
+          family_location?: string | null
           family_plans?: string | null
+          family_status?: string | null
+          family_type?: string | null
+          family_values?: string | null
+          father_occupation?: string | null
           favorite_drink?: string | null
           financial_approach?: string | null
           financial_splitting?: string | null
           future_plans?: string | null
           gender?: string | null
+          gotra?: string | null
           gym_routine?: string | null
           hair_color?: string | null
           hair_type?: string | null
           has_drivers_license?: string | null
           has_tattoos?: string | null
           height?: string | null
+          height_cm?: number | null
           hidden_fields?: string[] | null
           hobbies?: string | null
           hometown?: string | null
+          horoscope_match?: string | null
           hygiene?: string | null
           id?: string
           instagram?: string | null
@@ -819,18 +919,26 @@ export type Database = {
           last_super_like_date?: string | null
           linkedin?: string | null
           living_preference?: string | null
+          living_with_family?: string | null
           location?: string | null
           love_language?: string | null
           loves_travel?: string | null
           makeup_routine?: string | null
+          manglik?: string | null
           marijuana?: string | null
+          marital_status?: string | null
           marketing_consent?: boolean | null
           marriage_timeline?: string | null
+          mother_occupation?: string | null
+          mother_tongue?: string | null
           music_genre?: string | null
+          nakshatra?: string | null
           name?: string | null
           nationality_count?: number | null
           next_travel_destination?: string | null
+          occupation?: string | null
           onboarding_complete?: boolean | null
+          open_to_other_communities?: string | null
           paused_at?: string | null
           pets?: string | null
           phone_number?: string | null
@@ -839,26 +947,35 @@ export type Database = {
           photo_urls?: string[] | null
           politics?: string | null
           privacy_accepted_at?: string | null
+          profile_created_for?: string | null
           pronouns?: string | null
           race?: string | null
+          rashi?: string | null
           reading_interest?: string | null
           relationship_type?: string | null
           religion?: string | null
+          residential_status?: string | null
+          sect?: string | null
           settings_email_notifs?: boolean | null
           settings_incognito?: boolean | null
           settings_push_notifs?: boolean | null
           settings_read_receipts?: boolean | null
           settings_show_online?: boolean | null
           settings_theme?: string | null
+          settling_abroad?: string | null
           sex_style?: string | null
           sexuality?: string | null
           shopping_preference?: string | null
           siblings?: string | null
+          sisters?: string | null
+          sisters_married?: string | null
           sleep_schedule?: string | null
           smoking?: string | null
           snoring?: string | null
           social_battery?: string | null
           sports_interest?: string | null
+          state?: string | null
+          sub_caste?: string | null
           subscription_renews_at?: string | null
           subscription_tier?: string | null
           terms_accepted_at?: string | null
@@ -1341,6 +1458,7 @@ export type Database = {
         Returns: undefined
       }
       admin_verify_user: { Args: { target_id: string }; Returns: undefined }
+      age_on_today: { Args: { p_date_of_birth: string }; Returns: number }
       consume_search: { Args: { p_user_id: string }; Returns: Json }
       expire_pro_subscriptions: { Args: never; Returns: number }
       export_my_data: { Args: never; Returns: Json }
@@ -1398,6 +1516,8 @@ export type Database = {
           subscription_tier: string
         }[]
       }
+      height_label: { Args: { p_cm: number }; Returns: string }
+      height_to_cm: { Args: { p_height: string }; Returns: number }
       increment_push_failure: { Args: { sub_id: string }; Returns: undefined }
       is_admin: { Args: never; Returns: boolean }
       mark_messages_read: { Args: { p_match_id: string }; Returns: number }

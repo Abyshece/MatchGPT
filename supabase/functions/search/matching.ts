@@ -17,8 +17,13 @@
 //      much of the prompt the profile matches; the total is capped at 100
 //   4. The top N, with only the fields the profile screen shows
 //
-// Weights: relationship goals 20, lifestyle 15, values 15, location and
-// background 15, age 10, personality 10, physical 5, education and family 5.
+// Weights: relationship goals 20 (intent, timeline, children, marital history,
+// horoscope), lifestyle 15, values 15 (religion, community, politics, money),
+// location and background 15 (city, mother tongue, languages, ethnicity,
+// settling abroad), age 10, personality 10, physical 5, education and family 5.
+//
+// The cannabis, other-drugs and relationship-type answers are no longer asked
+// (Phase 12), so nothing here reads them.
 // ============================================================================
 
 export type Row = Record<string, unknown> & { id: string };
@@ -43,17 +48,21 @@ export interface FilterOptions {
   ageRange?: [number, number];
   ethnicity?: string;
   religion?: string;
-  relationshipType?: string;
-  height?: string;
   datingIntention?: string;
-  children?: string;
+  children?: string;           // 'No' or 'Yes'
   familyPlans?: string;
-  drugs?: string;
   smoking?: string;
-  marijuana?: string;
   drinking?: string;
   politics?: string;
   educationLevel?: string;
+  motherTongue?: string;       // 'Hindi' also finds the regional kinds of Hindi
+  caste?: string;
+  maritalStatus?: string;
+  manglik?: string;
+  dietaryPreferences?: string;
+  country?: string;
+  state?: string;
+  heightRange?: [number, number];  // cm
 }
 
 export interface MatchCandidate {
@@ -79,12 +88,19 @@ export interface MatchCandidate {
 const SHOWN_FIELDS = [
   'jobTitle', 'work', 'workStyle', 'university', 'educationLevel', 'hometown',
   'height', 'ethnicity', 'religion', 'politics', 'zodiac', 'languages',
-  'datingIntention', 'relationshipType', 'marriageTimeline', 'children', 'familyPlans',
-  'loveLanguage', 'drinking', 'smoking', 'marijuana', 'drugs', 'gymRoutine',
+  'datingIntention', 'marriageTimeline', 'children', 'familyPlans',
+  'loveLanguage', 'drinking', 'smoking', 'gymRoutine',
   'dietaryPreferences', 'sleepSchedule', 'livingPreference', 'canCook',
   'socialBattery', 'attachmentStyle', 'conflictResolution', 'financialApproach',
   'hobbies', 'travelStyle', 'musicGenre', 'sportsInterest', 'readingInterest',
   'nextTravelDestination', 'linkedin', 'instagram',
+  // Phase 12 (the date of birth is never read from the database for search)
+  'profileCreatedFor', 'maritalStatus', 'childrenCount', 'disability', 'motherTongue', 'caste', 'subCaste',
+  'sect', 'openToOtherCommunities', 'gotra', 'manglik', 'rashi', 'nakshatra', 'birthTime', 'birthPlace',
+  'horoscopeMatch', 'degree', 'employedIn', 'occupation', 'annualIncome', 'country', 'state', 'city',
+  'residentialStatus', 'settlingAbroad', 'familyType', 'familyStatus', 'familyValues', 'fatherOccupation',
+  'motherOccupation', 'brothers', 'brothersMarried', 'sisters', 'sistersMarried', 'familyLocation',
+  'livingWithFamily', 'aboutFamily', 'familyCloseness',
 ];
 
 // ============================================================================
@@ -106,10 +122,20 @@ export function ownProfile(row: Row): Profile {
   return p;
 }
 
+// Answers hidden together with another: hiding the location hides city,
+// state and country; hiding the height hides the height in cm.
+const HIDDEN_WITH: Record<string, string[]> = {
+  location: ['city', 'state', 'country'],
+  height: ['heightCm'],
+};
+
 // Someone else's profile as other users see it: hidden fields left out.
 function asSeenByOthers(row: Row): Profile {
   const p = ownProfile(row);
-  for (const key of (row.hidden_fields as string[] | null) ?? []) delete p[key];
+  for (const key of (row.hidden_fields as string[] | null) ?? []) {
+    delete p[key];
+    for (const linked of HIDDEN_WITH[key] ?? []) delete p[linked];
+  }
   return p;
 }
 
@@ -134,19 +160,57 @@ function genderOf(value: unknown): Gender | null {
   return null;
 }
 
-// Loose: "Mumbai" matches "Mumbai, MH" and "Navi Mumbai".
+// Cities known by two names
+const CITY_NAMES: Record<string, string> = {
+  bengaluru: 'bangalore', gurugram: 'gurgaon', mysuru: 'mysore', mangaluru: 'mangalore', belagavi: 'belgaum',
+  kalaburagi: 'gulbarga', prayagraj: 'allahabad', bombay: 'mumbai', madras: 'chennai', calcutta: 'kolkata',
+  trivandrum: 'thiruvananthapuram', cochin: 'kochi', poona: 'pune', baroda: 'vadodara', secunderabad: 'hyderabad',
+  'new delhi': 'delhi', 'chhatrapati sambhajinagar': 'aurangabad', 'navi mumbai': 'mumbai',
+};
+
+// Loose: "Mumbai" matches "Mumbai, MH" and "Navi Mumbai"; "Bengaluru" matches "Bangalore".
 function sameCity(a: string, b: string): boolean {
-  const city = (s: string) => s.toLowerCase().split(',')[0].trim();
+  const city = (s: string) => {
+    const name = s.toLowerCase().split(',')[0].trim();
+    return CITY_NAMES[name] ?? name;
+  };
   return city(a) === city(b) || city(a).includes(city(b)) || city(b).includes(city(a));
 }
 
-// Same state or country: the last comma-separated part matches.
+// Indian state codes in locations typed before Phase 12 ("Mumbai, MH")
+const STATE_CODES: Record<string, string> = {
+  an: 'andaman and nicobar islands', ap: 'andhra pradesh', ar: 'arunachal pradesh', as: 'assam', br: 'bihar',
+  ch: 'chandigarh', cg: 'chhattisgarh', ct: 'chhattisgarh', dl: 'delhi', ga: 'goa', gj: 'gujarat', hr: 'haryana',
+  hp: 'himachal pradesh', jk: 'jammu and kashmir', jh: 'jharkhand', ka: 'karnataka', kl: 'kerala', la: 'ladakh',
+  mp: 'madhya pradesh', mh: 'maharashtra', mn: 'manipur', ml: 'meghalaya', mz: 'mizoram', nl: 'nagaland',
+  od: 'odisha', or: 'odisha', py: 'puducherry', pb: 'punjab', rj: 'rajasthan', sk: 'sikkim', tn: 'tamil nadu',
+  tg: 'telangana', ts: 'telangana', tr: 'tripura', up: 'uttar pradesh', ut: 'uttarakhand', wb: 'west bengal',
+};
+
+// Same state or country: the last comma-separated part matches ("MH" and
+// "Maharashtra" count as the same).
 function sameRegion(a: string, b: string): boolean {
   const region = (s: string) => {
     const parts = s.toLowerCase().split(',').map((x) => x.trim());
-    return parts[parts.length - 1] || parts[0];
+    const last = parts[parts.length - 1] || parts[0];
+    return STATE_CODES[last] ?? last;
   };
   return region(a) === region(b);
+}
+
+// Where someone lives: city and state (or country) when they chose them,
+// otherwise the location as typed before Phase 12.
+function placeOf(p: Profile): string | undefined {
+  return p.city ? [p.city, p.state || p.country].filter(Boolean).join(', ') : p.location;
+}
+
+// Same city, or the same state (compared by the state answers when both have one)
+function nearby(a: Profile, b: Profile): boolean {
+  const pa = placeOf(a);
+  const pb = placeOf(b);
+  if (!pa || !pb) return false;
+  if (sameCity(pa, pb)) return true;
+  return a.state && b.state ? a.state === b.state : sameRegion(pa, pb);
 }
 
 // ============================================================================
@@ -155,8 +219,9 @@ function sameRegion(a: string, b: string): boolean {
 
 const BOOLEAN_FILTERS = ['isOnline', 'recentlyActive', 'isVerified', 'isPremium', 'hasLinkedin', 'hasInstagram'] as const;
 const TEXT_FILTERS = [
-  'neighborhood', 'ethnicity', 'religion', 'relationshipType', 'height', 'datingIntention',
-  'children', 'familyPlans', 'drugs', 'smoking', 'marijuana', 'drinking', 'politics', 'educationLevel',
+  'neighborhood', 'ethnicity', 'religion', 'datingIntention', 'children', 'familyPlans', 'smoking', 'drinking',
+  'politics', 'educationLevel', 'motherTongue', 'caste', 'maritalStatus', 'manglik', 'dietaryPreferences',
+  'country', 'state',
 ] as const;
 
 // Keep only known filters with values of the right type.
@@ -172,6 +237,10 @@ export function sanitizeFilters(input: unknown): FilterOptions {
   const range = src.ageRange;
   if (Array.isArray(range) && range.length === 2 && range.every((n) => typeof n === 'number' && Number.isFinite(n))) {
     filters.ageRange = [Math.min(range[0], range[1]), Math.max(range[0], range[1])];
+  }
+  const heights = src.heightRange;
+  if (Array.isArray(heights) && heights.length === 2 && heights.every((n) => typeof n === 'number' && Number.isFinite(n))) {
+    filters.heightRange = [Math.min(heights[0], heights[1]), Math.max(heights[0], heights[1])];
   }
   return filters;
 }
@@ -295,10 +364,6 @@ const INTENT_LIST: Intent[] = [
   { words: ['drink', 'drinking', 'drinker', 'alcohol', 'booze', 'beer', 'wine', 'whisky', 'whiskey', 'cocktail'],
     flips: ['sober', 'teetotal', 'teetotaler', 'teetotaller'],
     answer: fieldAnswer('drinking', ['Socially', 'Regularly'], ['No']), strictWhenNot: true },
-  { words: ['weed', 'marijuana', 'cannabis', 'pot', 'ganja', 'stoner', '420'],
-    answer: fieldAnswer('marijuana', ['Socially', 'Regularly'], ['No']), strictWhenNot: true },
-  { words: ['drug'],
-    answer: fieldAnswer('drugs', ['Sometimes', 'Often'], ['No']), strictWhenNot: true },
   { words: ['kid', 'kiddo', 'child', 'children', 'baby'],
     answer: fieldAnswer('familyPlans',
       ['Wants children', 'Open to children', 'Already have, want more'],
@@ -308,10 +373,7 @@ const INTENT_LIST: Intent[] = [
   { words: ['serious', 'committed', 'commitment', 'long term', 'longterm'],
     answer: (p) => (p.datingIntention ? LONG_TERM.includes(p.datingIntention) : undefined) },
   { words: ['casual', 'fling', 'hookup', 'hook up', 'short term'],
-    answer: (p) => {
-      if (p.datingIntention === 'Casual / Dating' || p.relationshipType === 'Casual') return true;
-      return p.datingIntention ? false : undefined;
-    } },
+    answer: (p) => (p.datingIntention ? p.datingIntention === 'Casual / Dating' : undefined) },
   { words: ['friend', 'friendship', 'bff'],
     answer: (p) => (p.datingIntention ? p.datingIntention === 'Friendship' : undefined) },
   { words: ['religious', 'devout', 'practicing', 'practising'],
@@ -343,6 +405,19 @@ const INTENT_LIST: Intent[] = [
     answer: fieldAnswer('socialBattery', ['Extrovert', 'Social Butterfly'], ['Introvert', 'Homebody']) },
   { words: ['tattoo', 'tattooed', 'inked'],
     answer: fieldAnswer('hasTattoos', ['Yes', 'A few small ones'], ['No']) },
+  // Phase 12
+  { words: ['never married', 'unmarried', 'first marriage'],
+    answer: (p) => (p.maritalStatus ? p.maritalStatus === 'Never Married' : undefined) },
+  { words: ['divorced', 'divorcee'],
+    answer: fieldAnswer('maritalStatus', ['Divorced', 'Awaiting Divorce'], ['Never Married', 'Widowed', 'Annulled']) },
+  { words: ['widow', 'widowed', 'widower'],
+    answer: fieldAnswer('maritalStatus', ['Widowed'], ['Never Married', 'Divorced', 'Awaiting Divorce', 'Annulled']) },
+  { words: ['second marriage', 'remarriage'],
+    answer: (p) => (p.maritalStatus ? p.maritalStatus !== 'Never Married' : undefined) },
+  { words: ['manglik', 'mangalik'],
+    answer: fieldAnswer('manglik', ['Manglik', 'Angshik (partial Manglik)'], ['Non Manglik']) },
+  { words: ['nri', 'abroad', 'overseas'],
+    answer: (p) => (p.country ? p.country !== 'India' : undefined) },
 ];
 const INTENTS: Intent[] = INTENT_LIST.map((intent) => ({
   ...intent, words: normalizeAll(intent.words), flips: normalizeAll(intent.flips ?? []),
@@ -373,6 +448,61 @@ export interface ParsedPrompt {
   verified: boolean;
   gender: Gender | null;
   ageRange: [number, number] | null;
+  heightRange: [number, number] | null;  // cm
+}
+
+// Heights in the prompt: 5'8", 5 ft 8 in, 6 feet, 170 cm, with "taller than",
+// "under", "between ... and ...", "5'4 to 5'8", "5'6+". Only a number with a
+// unit counts, so ages are never read as heights. Taken from the prompt
+// before it is normalized (which drops the ' and ").
+const HEIGHT = String.raw`(?:([4-7])\s*(?:'|’|ft|feet|foot)\s*(?:(1[01]|\d)(?!\d)\s*(?:"|”|''|in\b|inch\b|inches\b)?)?|(1\d\d|2[0-2]\d)\s*cm\b)`;
+const HEIGHT_CM_MIN = 120;
+const HEIGHT_CM_MAX = 230;
+
+const inchesToCm = (inches: number) => Math.round(inches * 2.54);
+
+// The height a match stands for, in cm. `step` moves it by one step of the
+// height list (an inch), or a cm when it was given in cm: "taller than 5'6"
+// starts at 5'7".
+function heightCm(m: RegExpMatchArray, from: number, step = 0): number {
+  if (m[from + 2]) return Number(m[from + 2]) + step;
+  return inchesToCm(Number(m[from]) * 12 + Number(m[from + 1] ?? 0) + step);
+}
+
+export function takeHeight(prompt: string): { text: string; range: [number, number] | null } {
+  let text = prompt;
+  let min = HEIGHT_CM_MIN;
+  let max = HEIGHT_CM_MAX;
+  let found = false;
+  const rules: Array<[RegExp, (m: RegExpMatchArray) => void]> = [
+    [new RegExp(String.raw`\b(?:between|from)?\s*${HEIGHT}\s*(?:and|to|-|–)\s*${HEIGHT}`, 'i'), (m) => {
+      const a = heightCm(m, 1);
+      const b = heightCm(m, 4);
+      min = Math.max(min, Math.min(a, b)); max = Math.min(max, Math.max(a, b)); found = true;
+    }],
+    [new RegExp(String.raw`\b(taller than|above|over|more than|at least|min(?:imum)?)\s*${HEIGHT}`, 'i'), (m) => {
+      min = Math.max(min, heightCm(m, 2, /at least|min/i.test(m[1]) ? 0 : 1)); found = true;
+    }],
+    [new RegExp(String.raw`\b(shorter than|under|below|less than|at most|max(?:imum)?|up ?to)\s*${HEIGHT}`, 'i'), (m) => {
+      max = Math.min(max, heightCm(m, 2, /at most|max|up ?to/i.test(m[1]) ? 0 : -1)); found = true;
+    }],
+    [new RegExp(String.raw`${HEIGHT}\s*(?:\+|or (?:taller|more|above)|and (?:above|taller|more))`, 'i'), (m) => {
+      min = Math.max(min, heightCm(m, 1)); found = true;
+    }],
+    [new RegExp(HEIGHT, 'i'), (m) => {
+      // "a 5'8 guy": about that height
+      const h = heightCm(m, 1);
+      min = Math.max(min, h - 3); max = Math.min(max, h + 3); found = true;
+    }],
+  ];
+  for (const [pattern, apply] of rules) {
+    const m = text.match(pattern);
+    if (m) {
+      apply(m);
+      text = text.replace(pattern, ' ');
+    }
+  }
+  return { text, range: found && min <= max ? [min, max] : null };
 }
 
 function takeAge(text: string): { text: string; range: [number, number] | null } {
@@ -425,7 +555,8 @@ for (const intent of INTENTS) {
 }
 
 export function parsePrompt(prompt: string): ParsedPrompt {
-  let text = normalize(prompt.slice(0, 500));
+  const height = takeHeight(prompt.slice(0, 500));
+  let text = normalize(height.text);
 
   const age = takeAge(text);
   text = age.text;
@@ -500,6 +631,7 @@ export function parsePrompt(prompt: string): ParsedPrompt {
     verified: verified.found,
     gender: genders.size === 1 ? [...genders][0] : null,
     ageRange: age.range,
+    heightRange: height.range,
   };
 }
 
@@ -509,10 +641,12 @@ const TEXT_FIELDS = [
   'name', 'description', 'hobbies', 'jobTitle', 'work', 'workStyle', 'university', 'educationLevel',
   'location', 'hometown', 'religion', 'politics', 'ethnicity', 'languages', 'zodiac',
   'bodyType', 'hairColor', 'eyeColor', 'clothingStyle',
-  'datingIntention', 'relationshipType', 'marriageTimeline',
+  'datingIntention', 'marriageTimeline',
   'dietaryPreferences', 'sleepSchedule', 'livingPreference', 'travelStyle', 'musicGenre',
   'nextTravelDestination', 'favoriteDrink', 'futurePlans', 'dreamHouseType',
   'loveLanguage', 'socialBattery', 'attachmentStyle', 'conflictResolution', 'financialApproach',
+  'motherTongue', 'caste', 'subCaste', 'sect', 'gotra', 'degree', 'occupation', 'employedIn',
+  'city', 'state', 'country', 'familyLocation', 'aboutFamily',
 ];
 
 function profileText(p: Profile): string {
@@ -546,13 +680,15 @@ function promptBonus(parsed: ParsedPrompt, p: Profile): number {
 // Prompts understood by Gemini (ai.ts)
 // ============================================================================
 
-export type Habit = 'smoking' | 'drinking' | 'marijuana' | 'drugs';
+export type Habit = 'smoking' | 'drinking';
 
 // What Gemini made of a prompt, already checked by ai.ts.
 export interface SearchPlan {
   gender: Gender | null;
   ageMin: number | null;
   ageMax: number | null;
+  heightMinCm?: number | null;  // plans saved before Phase 12 have no heights
+  heightMaxCm?: number | null;
   nearMe: boolean;
   city: string | null;
   online: boolean;
@@ -566,26 +702,35 @@ export interface SearchPlan {
 // Profile answers Gemini may choose from: the ones people in the pool have.
 export const AI_FIELDS: Record<string, string> = {
   religion: 'Religion', politics: 'Politics', dating_intention: 'Looking for',
-  relationship_type: 'Relationship', marriage_timeline: 'Marriage', family_plans: 'Kids',
+  marriage_timeline: 'Marriage', family_plans: 'Kids',
   children: 'Has kids', education_level: 'Education', work_style: 'Work',
-  drinking: 'Drinks', smoking: 'Smokes', marijuana: 'Cannabis', drugs: 'Drugs',
+  drinking: 'Drinks', smoking: 'Smokes',
   dietary_preferences: 'Diet', gym_routine: 'Exercise', sleep_schedule: 'Sleep',
   can_cook: 'Cooks', pets: 'Pets', living_preference: 'Lives', social_battery: 'Personality',
   love_language: 'Love language', attachment_style: 'Attachment', conflict_resolution: 'Conflict style',
   financial_approach: 'Money', family_closeness: 'Family', travel_style: 'Travel',
   loves_travel: 'Loves travel', reading_interest: 'Reading', sports_interest: 'Sports',
   has_tattoos: 'Tattoos', body_type: 'Body type', ethnicity: 'Ethnicity', zodiac: 'Zodiac',
+  // Phase 12
+  marital_status: 'Marital status', mother_tongue: 'Mother tongue', caste: 'Caste', sub_caste: 'Sub-caste',
+  sect: 'Sect', gotra: 'Gotra', open_to_other_communities: 'Other communities', manglik: 'Manglik',
+  rashi: 'Rashi', nakshatra: 'Nakshatra', horoscope_match: 'Horoscope match', degree: 'Degree',
+  employed_in: 'Employed in', occupation: 'Occupation', annual_income: 'Income', country: 'Country',
+  state: 'State', city: 'City', residential_status: 'Residential status', settling_abroad: 'Settling abroad',
+  family_type: 'Family type', family_status: 'Family status', family_values: 'Family values',
+  living_with_family: 'Lives with family', profile_created_for: 'Profile made for',
 };
 
 // Field → the answers visible in the pool (hidden ones left out), sorted.
-// Fields with free text (more than 25 different answers) are skipped.
+// Fields with mostly free text (more than 40 different answers) are skipped;
+// the prompt's words are still looked for in them.
 export function buildCatalog(pool: Row[]): Record<string, string[]> {
   const seen = new Map<string, Set<string>>();
   for (const row of pool) {
     const p = asSeenByOthers(row);
     for (const field of Object.keys(AI_FIELDS)) {
       const value = p[toCamel(field)];
-      if (typeof value !== 'string' || value.length > 40) continue;
+      if (typeof value !== 'string' || value.length > 80) continue;
       if (!seen.has(field)) seen.set(field, new Set());
       seen.get(field)!.add(value);
     }
@@ -593,12 +738,12 @@ export function buildCatalog(pool: Row[]): Record<string, string[]> {
   const catalog: Record<string, string[]> = {};
   for (const field of Object.keys(AI_FIELDS)) {
     const values = seen.get(field);
-    if (values && values.size <= 25) catalog[field] = [...values].sort();
+    if (values && values.size <= 40) catalog[field] = [...values].sort();
   }
   return catalog;
 }
 
-const HABIT_INTENT: Record<Habit, string> = { smoking: 'smoke', drinking: 'drink', marijuana: 'weed', drugs: 'drug' };
+const HABIT_INTENT: Record<Habit, string> = { smoking: 'smoke', drinking: 'drink' };
 
 export function planToParsed(plan: SearchPlan): ParsedPrompt {
   const terms: Term[] = [];
@@ -617,6 +762,7 @@ export function planToParsed(plan: SearchPlan): ParsedPrompt {
     if (phrases.length > 0) terms.push({ phrases, negated: keyword.negated, label: keyword.words[0] });
   }
   const hasAge = plan.ageMin !== null || plan.ageMax !== null;
+  const hasHeight = !!plan.heightMinCm || !!plan.heightMaxCm;
   return {
     terms,
     nearMe: plan.nearMe,
@@ -626,13 +772,19 @@ export function planToParsed(plan: SearchPlan): ParsedPrompt {
     verified: plan.verified,
     gender: plan.gender,
     ageRange: hasAge ? [plan.ageMin ?? 18, plan.ageMax ?? 99] : null,
+    heightRange: hasHeight ? [plan.heightMinCm || HEIGHT_CM_MIN, plan.heightMaxCm || HEIGHT_CM_MAX] : null,
   };
 }
 
 const HABIT_CHIPS: Record<string, [string, string]> = {
   smoke: ['Smokes', "Doesn't smoke"], drink: ['Drinks', "Doesn't drink"],
-  weed: ['Cannabis', 'No cannabis'], drug: ['Drugs', 'No drugs'],
 };
+
+// 173 -> 5'8"
+function feetAndInches(cm: number): string {
+  const inches = Math.round(cm / 2.54);
+  return `${Math.floor(inches / 12)}'${inches % 12}"`;
+}
 
 // Short labels for what the search understood ("Women", "Age 25–30",
 // "Doesn't smoke", "Diet: Vegetarian / Vegan", "reading"), shown above results.
@@ -642,6 +794,12 @@ export function describeParsed(parsed: ParsedPrompt): string[] {
   if (parsed.ageRange) {
     const [min, max] = parsed.ageRange;
     chips.push(min <= 18 ? `Under ${max + 1}` : max >= 99 ? `Over ${min - 1}` : `Age ${min}–${max}`);
+  }
+  if (parsed.heightRange) {
+    const [min, max] = parsed.heightRange;
+    chips.push(min <= HEIGHT_CM_MIN ? `${feetAndInches(max)} or shorter`
+      : max >= HEIGHT_CM_MAX ? `${feetAndInches(min)} or taller`
+      : `Height ${feetAndInches(min)}–${feetAndInches(max)}`);
   }
   if (parsed.city) chips.push(`In ${parsed.city}`);
   if (parsed.nearMe) chips.push('Near you');
@@ -673,17 +831,24 @@ function passesFilters(
     if (typeof c.age !== 'number' || c.age < min || c.age > max) return false;
   }
 
-  if (filters.neighborhood) {
-    const hay = `${c.location ?? ''} ${c.hometown ?? ''}`.toLowerCase();
-    if (!hay.includes(filters.neighborhood.toLowerCase())) return false;
+  // Height: the filter panel and the prompt combined; unknown is left out
+  const heights = [filters.heightRange, parsed.heightRange].filter(Boolean) as [number, number][];
+  if (heights.length > 0) {
+    const min = Math.max(...heights.map((r) => r[0]));
+    const max = Math.min(...heights.map((r) => r[1]));
+    if (typeof c.heightCm !== 'number' || c.heightCm < min || c.heightCm > max) return false;
   }
+
+  const places = `${c.location ?? ''} ${c.hometown ?? ''} ${c.city ?? ''} ${c.state ?? ''}`.toLowerCase();
+  if (filters.neighborhood && !places.includes(filters.neighborhood.toLowerCase())) return false;
   if (parsed.city) {
-    const hay = `${c.location ?? ''} ${c.hometown ?? ''}`.toLowerCase();
+    // "from Gujarat" can be where they live, grew up or where the family is
+    const hay = `${places} ${c.country ?? ''} ${c.familyLocation ?? ''}`.toLowerCase();
     if (!hay.includes(parsed.city.toLowerCase())) return false;
   }
-  if (parsed.nearMe && me.location) {
-    if (!c.location || !(sameCity(me.location, c.location) || sameRegion(me.location, c.location))) return false;
-  }
+  if (filters.country && c.country !== filters.country) return false;
+  if (filters.state && c.state !== filters.state) return false;
+  if (parsed.nearMe && placeOf(me) && !nearby(me, c)) return false;
 
   if ((filters.isVerified || parsed.verified) && row.is_verified !== true) return false;
   if ((filters.isOnline || parsed.online) && !activeWithin(row, ONLINE_WINDOW_MS, now)) return false;
@@ -697,18 +862,31 @@ function passesFilters(
 
   // Exact-value filters: the person must show that answer.
   const exact: (keyof FilterOptions)[] = [
-    'ethnicity', 'religion', 'relationshipType', 'datingIntention', 'children', 'familyPlans',
-    'educationLevel', 'politics', 'height', 'smoking', 'drinking', 'marijuana', 'drugs',
+    'ethnicity', 'religion', 'datingIntention', 'familyPlans', 'educationLevel', 'politics', 'smoking',
+    'drinking', 'maritalStatus', 'manglik', 'dietaryPreferences',
   ];
   for (const key of exact) {
     if (filters[key] && c[key] !== filters[key]) return false;
   }
+  if (filters.children && hasChildren(c.children) !== ['Yes', 'Has children'].includes(filters.children)) return false;
+  // "Hindi" also finds "Hindi (Delhi)" and the other regional kinds
+  if (filters.motherTongue && !(c.motherTongue === filters.motherTongue
+    || (filters.motherTongue === 'Hindi' && String(c.motherTongue ?? '').startsWith('Hindi')))) return false;
+  if (filters.caste && String(c.caste ?? '').toLowerCase() !== filters.caste.toLowerCase()) return false;
 
   // "doesn't smoke": leave out people who say they do
   for (const term of parsed.terms) {
     if (term.negated && term.intent?.strictWhenNot && term.intent.answer(c) === true) return false;
   }
   return true;
+}
+
+// Children: "No" (or the older "No children"), any "Yes, ..." (or the older
+// "Has children"), or unknown.
+function hasChildren(value: unknown): boolean | undefined {
+  if (value === 'No' || value === 'No children') return false;
+  if (typeof value === 'string' && (value.startsWith('Yes') || value === 'Has children')) return true;
+  return undefined;
 }
 
 // ============================================================================
@@ -740,18 +918,18 @@ function scoreRelationshipGoals(s: Profile, c: Profile): Dimension {
     score += 4;
   }
 
-  // Marriage timeline (5)
+  // Marriage timeline (4)
   if (s.marriageTimeline && c.marriageTimeline) {
-    if (s.marriageTimeline === c.marriageTimeline) {
-      score += 5;
+    if (s.marriageTimeline.toLowerCase() === c.marriageTimeline.toLowerCase()) {
+      score += 4;
       items.push({ icon: '⏳', text: `Same marriage timeline: ${c.marriageTimeline}`, color: 'green' });
     } else if (closeTimelines(s.marriageTimeline, c.marriageTimeline)) {
-      score += 3;
+      score += 2.5;
     } else {
       items.push({ icon: '⚠️', text: 'Different marriage timelines', color: 'amber' });
     }
   } else {
-    score += 2.5;
+    score += 2;
   }
 
   // Family plans (4) — high stakes
@@ -774,11 +952,27 @@ function scoreRelationshipGoals(s: Profile, c: Profile): Dimension {
     score += 2;
   }
 
-  // Relationship type (3)
-  if (s.relationshipType && c.relationshipType) {
-    if (s.relationshipType === c.relationshipType) score += 3;
+  // Marital history (2): both marrying for the first time, or both not
+  if (s.maritalStatus && c.maritalStatus) {
+    const first = (m: string) => m === 'Never Married';
+    score += first(s.maritalStatus) === first(c.maritalStatus) ? 2 : 0.5;
   } else {
-    score += 1.5;
+    score += 1;
+  }
+
+  // Horoscope (2): when either wants the horoscopes to match, Manglik status
+  // is compared (Manglik with Manglik, non-Manglik with non-Manglik)
+  const wantsMatch = s.horoscopeMatch === 'Must match' || c.horoscopeMatch === 'Must match';
+  const dosha = (m: unknown) => (m === 'Manglik' || m === 'Angshik (partial Manglik)' ? true : m === 'Non Manglik' ? false : undefined);
+  if (!wantsMatch) {
+    score += 2;
+  } else if (dosha(s.manglik) === undefined || dosha(c.manglik) === undefined) {
+    score += 1;
+  } else if (dosha(s.manglik) === dosha(c.manglik)) {
+    score += 2;
+    items.push({ icon: '🪔', text: 'Manglik status matches', color: 'green' });
+  } else {
+    items.push({ icon: '⚠️', text: 'Manglik status differs, and a horoscope match is wanted', color: 'red' });
   }
 
   return { score: Math.min(20, score), items };
@@ -796,38 +990,43 @@ function scoreLifestyle(s: Profile, c: Profile): Dimension {
   let score = 0;
   const items: CompatibilityItem[] = [];
 
-  // Drinking, smoking, cannabis (2 each)
+  // Drinking and smoking (3 each)
   const vices: Array<[string, string]> = [
     ['drinking', 'drinking habits'],
     ['smoking', 'smoking habits'],
-    ['marijuana', 'cannabis habits'],
   ];
   let viceMatches = 0;
   for (const [key, label] of vices) {
     const sv = s[key];
     const cv = c[key];
     if (sv && cv) {
-      if (sv === cv) { score += 2; viceMatches++; }
-      else if (vicesSimilar(sv, cv)) score += 1;
+      if (sv === cv) { score += 3; viceMatches++; }
+      else if (vicesSimilar(sv, cv)) score += 1.5;
       else if (sv === 'No' && cv === 'Regularly') {
         items.push({ icon: '⚠️', text: `Different ${label}`, color: 'red' });
       }
     } else {
-      score += 1;
+      score += 1.5;
     }
   }
-  if (viceMatches >= 2) items.push({ icon: '🍸', text: 'Aligned lifestyle habits', color: 'green' });
+  if (viceMatches === 2) items.push({ icon: '🍸', text: 'Aligned lifestyle habits', color: 'green' });
 
-  // Diet (2)
+  // Diet (4): matters to many families; vegetarian and non-vegetarian is the big split
   if (s.dietaryPreferences && c.dietaryPreferences) {
+    const veg = (d: string) => VEGGIE_DIETS.includes(d);
     if (s.dietaryPreferences === c.dietaryPreferences) {
-      score += 2;
+      score += 4;
       items.push({ icon: '🥗', text: `Both ${c.dietaryPreferences.toLowerCase()}`, color: 'green' });
-    } else if (VEGGIE_DIETS.includes(s.dietaryPreferences) && VEGGIE_DIETS.includes(c.dietaryPreferences)) {
-      score += 1;
+    } else if (veg(s.dietaryPreferences) && veg(c.dietaryPreferences)) {
+      score += 3;
+    } else if (veg(s.dietaryPreferences) && c.dietaryPreferences === 'Non-vegetarian'
+      || veg(c.dietaryPreferences) && s.dietaryPreferences === 'Non-vegetarian') {
+      items.push({ icon: '⚠️', text: `Different diets (${s.dietaryPreferences} vs ${c.dietaryPreferences})`, color: 'amber' });
+    } else {
+      score += 2;
     }
   } else {
-    score += 1;
+    score += 2;
   }
 
   // Exercise (2)
@@ -872,32 +1071,52 @@ function closeExerciseLevels(a: string, b: string): boolean {
   return ai !== -1 && bi !== -1 && Math.abs(ai - bi) <= 1;
 }
 
-// Values (max 15) — religion, politics, money
+// Values (max 15) — religion, community, politics, money
 function scoreValues(s: Profile, c: Profile): Dimension {
   let score = 0;
   const items: CompatibilityItem[] = [];
 
-  // Religion (6)
+  // Religion (5)
   if (s.religion && c.religion) {
     if (s.religion === c.religion) {
-      score += 6;
+      score += 5;
       items.push({ icon: '🕉️', text: `Both ${c.religion}`, color: 'green' });
-    } else if (['Spiritual', 'Agnostic', 'Atheist', 'Other'].some((r) => r === s.religion || r === c.religion)) {
-      score += 3;
+    } else if (['Spiritual', 'Agnostic', 'Atheist', 'No religion', 'Other'].some((r) => r === s.religion || r === c.religion)) {
+      score += 2.5;
     } else {
       items.push({ icon: '⚠️', text: `Different religions (${s.religion} vs ${c.religion})`, color: 'amber' });
     }
   } else {
-    score += 3;
+    score += 2.5;
   }
 
-  // Politics (5)
+  // Community (3): only counts when someone prefers their own community;
+  // "caste no bar" on both sides, or not saying, is neutral
+  const prefersOwn = (p: Profile) => ['Prefer my own community', 'Only my own community'].includes(p.openToOtherCommunities);
+  const onlyOwn = (p: Profile) => p.openToOtherCommunities === 'Only my own community';
+  const known = (caste: unknown) => typeof caste === 'string' && caste !== 'Prefer not to say' && caste !== 'Other';
+  if (!prefersOwn(s) && !prefersOwn(c)) {
+    score += s.openToOtherCommunities === 'Yes, caste no bar' && c.openToOtherCommunities === 'Yes, caste no bar' ? 3 : 2;
+  } else if (!known(s.caste) || !known(c.caste)) {
+    score += 1.5;
+  } else if (String(s.caste).toLowerCase() === String(c.caste).toLowerCase()) {
+    score += 3;
+    items.push({ icon: '🤝', text: 'Same community', color: 'green' });
+  } else {
+    items.push({
+      icon: '⚠️',
+      text: onlyOwn(s) || onlyOwn(c) ? 'Different communities; one of you only wants their own' : 'Different communities',
+      color: onlyOwn(s) || onlyOwn(c) ? 'red' : 'amber',
+    });
+  }
+
+  // Politics (3)
   if (s.politics && c.politics) {
     if (s.politics === c.politics) {
-      score += 5;
+      score += 3;
       items.push({ icon: '🗳️', text: `Both ${c.politics.toLowerCase()}`, color: 'green' });
     } else if (['Moderate', 'Apolitical'].some((x) => x === s.politics || x === c.politics)) {
-      score += 2;
+      score += 1.5;
     } else if (
       (s.politics === 'Liberal' && c.politics === 'Conservative') ||
       (s.politics === 'Conservative' && c.politics === 'Liberal')
@@ -905,7 +1124,7 @@ function scoreValues(s: Profile, c: Profile): Dimension {
       items.push({ icon: '⚠️', text: 'Different political views', color: 'red' });
     }
   } else {
-    score += 2.5;
+    score += 1.5;
   }
 
   // Money (4)
@@ -933,41 +1152,57 @@ function scoreLocationBackground(s: Profile, c: Profile): Dimension {
   let score = 0;
   const items: CompatibilityItem[] = [];
 
-  // Same city (8) — the biggest single signal
-  if (s.location && c.location) {
-    if (sameCity(s.location, c.location)) {
-      score += 8;
-      items.push({ icon: '📍', text: `Both in ${c.location}`, color: 'green' });
-    } else if (sameRegion(s.location, c.location)) {
-      score += 4;
+  // Same city (6) — the biggest single signal. City and state when both
+  // have them, otherwise the location text.
+  const myPlace = placeOf(s);
+  const theirPlace = placeOf(c);
+  if (myPlace && theirPlace) {
+    if (sameCity(myPlace, theirPlace)) {
+      score += 6;
+      items.push({ icon: '📍', text: `Both in ${c.city || c.location}`, color: 'green' });
+    } else if (s.state && c.state ? s.state === c.state : sameRegion(myPlace, theirPlace)) {
+      score += 3;
     } else {
       items.push({ icon: '✈️', text: 'Different cities', color: 'amber' });
     }
   } else {
-    score += 3;
+    score += 2.5;
   }
 
-  // Shared languages (4)
+  // Mother tongue (3): the same one, or two kinds of Hindi
+  if (s.motherTongue && c.motherTongue) {
+    const hindi = (m: string) => m.startsWith('Hindi');
+    if (s.motherTongue === c.motherTongue) {
+      score += 3;
+      items.push({ icon: '🗣️', text: `Both speak ${c.motherTongue} at home`, color: 'green' });
+    } else if (hindi(s.motherTongue) && hindi(c.motherTongue)) {
+      score += 2.5;
+    }
+  } else {
+    score += 1.5;
+  }
+
+  // Shared languages (2)
   if (s.languages && c.languages) {
     const split = (x: string) => x.toLowerCase().split(/[,;/]/).map((l) => l.trim()).filter(Boolean);
     const theirs = split(c.languages);
     const shared = split(s.languages).filter((lang) => theirs.includes(lang));
     if (shared.length >= 2) {
-      score += 4;
-      items.push({ icon: '🗣️', text: `Speak ${shared.length} common languages`, color: 'green' });
-    } else if (shared.length === 1) {
       score += 2;
+      items.push({ icon: '💬', text: `Speak ${shared.length} common languages`, color: 'green' });
+    } else if (shared.length === 1) {
+      score += 1;
     }
   } else {
-    score += 2;
+    score += 1;
   }
 
-  // Ethnicity and openness to an interracial marriage (3)
+  // Ethnicity and openness to an interracial marriage (2)
   if (s.ethnicity && c.ethnicity) {
     if (s.ethnicity === c.ethnicity) {
-      score += 3;
-    } else if (s.interracialMarriage === 'Yes' || c.interracialMarriage === 'Yes') {
       score += 2;
+    } else if (s.interracialMarriage === 'Yes' || c.interracialMarriage === 'Yes') {
+      score += 1.5;
       items.push({ icon: '🌏', text: 'Open to interracial relationship', color: 'green' });
     } else if (
       ['No', 'Prefer same race'].includes(s.interracialMarriage) ||
@@ -975,10 +1210,24 @@ function scoreLocationBackground(s: Profile, c: Profile): Dimension {
     ) {
       items.push({ icon: '⚠️', text: 'One side prefers same ethnicity', color: 'red' });
     } else {
-      score += 1;
+      score += 0.5;
     }
   } else {
-    score += 1.5;
+    score += 1;
+  }
+
+  // Settling abroad (2)
+  const abroad = (p: Profile) => (p.settlingAbroad === 'Interested in settling abroad' ? true
+    : p.settlingAbroad === 'Not interested in settling abroad' ? false : undefined);
+  if (abroad(s) !== undefined && abroad(c) !== undefined) {
+    if (abroad(s) === abroad(c)) {
+      score += 2;
+      if (abroad(c)) items.push({ icon: '🌍', text: 'Both open to settling abroad', color: 'green' });
+    } else {
+      items.push({ icon: '⚠️', text: 'Different plans about settling abroad', color: 'amber' });
+    }
+  } else {
+    score += 1;
   }
 
   return { score: Math.min(15, score), items };
@@ -1084,26 +1333,43 @@ function scoreEducation(s: Profile, c: Profile): Dimension {
   let score = 0;
   const items: CompatibilityItem[] = [];
 
+  // Education (2)
   if (s.educationLevel && c.educationLevel) {
     if (s.educationLevel === c.educationLevel) {
-      score += 3;
+      score += 2;
       items.push({ icon: '🎓', text: `Same education: ${c.educationLevel}`, color: 'green' });
     } else if (educationLevelsClose(s.educationLevel, c.educationLevel)) {
-      score += 2;
+      score += 1.5;
     }
   } else {
-    score += 1.5;
+    score += 1;
   }
 
-  // Closeness to family (2)
-  if (s.familyCloseness && c.familyCloseness && s.familyCloseness === c.familyCloseness) score += 2;
-  else score += 1;
+  // Family values (2): the same, or next to each other on the scale
+  const valuesOrder = ['Orthodox', 'Conservative', 'Moderate', 'Liberal'];
+  const mine = valuesOrder.indexOf(s.familyValues);
+  const theirs = valuesOrder.indexOf(c.familyValues);
+  if (mine >= 0 && theirs >= 0) {
+    const gap = Math.abs(mine - theirs);
+    if (gap === 0) {
+      score += 2;
+      items.push({ icon: '🏡', text: `Both from ${c.familyValues.toLowerCase()} families`, color: 'green' });
+    } else if (gap === 1) {
+      score += 1;
+    }
+  } else {
+    score += 1;
+  }
+
+  // Closeness to family (1)
+  if (s.familyCloseness && c.familyCloseness && s.familyCloseness === c.familyCloseness) score += 1;
+  else score += 0.5;
 
   return { score: Math.min(5, score), items };
 }
 
 function educationLevelsClose(a: string, b: string): boolean {
-  const order = ['High School', 'Trade School', "Bachelor's", "Master's", 'PhD'];
+  const order = ['High School', 'Trade School', 'Diploma', "Bachelor's", "Master's", 'PhD'];
   const ai = order.indexOf(a);
   const bi = order.indexOf(b);
   return ai !== -1 && bi !== -1 && Math.abs(ai - bi) <= 1;

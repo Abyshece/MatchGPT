@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { IconX, IconLock, IconZap } from '../constants';
+import { ChoiceField } from './ProfileInputs';
+import {
+  CASTES, COUNTRIES, DIETS, EDUCATION_LEVELS, HEIGHTS, INDIAN_STATES, MANGLIK, MARITAL_STATUS, MOTHER_TONGUES,
+  RELIGIONS,
+} from '../lib/matrimonyOptions';
 import type { FilterOptions } from '../types';
 
 // ============================================================================
@@ -19,6 +24,66 @@ interface FilterPanelProps {
 }
 
 const FREE_FILTERS_KEYS = ['ageRange', 'neighborhood'] as const;
+
+// ---- helper components -----------------------------------------------------
+// Outside FilterPanel, so typing in a field doesn't remount it.
+
+const FilterRow = ({
+  label, locked, onUpgrade, children,
+}: { label: string; locked?: boolean; onUpgrade: () => void; children: React.ReactNode }) => (
+  <div className={`py-3 ${locked ? 'opacity-60' : ''}`}>
+    <div className="flex items-center justify-between mb-2">
+      <label className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+        {label}
+      </label>
+      {locked && (
+        <button
+          onClick={onUpgrade}
+          className="flex items-center gap-1 text-[10px] font-bold text-yellow-700 dark:text-yellow-400 hover:underline"
+        >
+          <IconLock /> Pro
+        </button>
+      )}
+    </div>
+    <div className={locked ? 'pointer-events-none' : ''}>{children}</div>
+  </div>
+);
+
+const selectClass = 'w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500';
+
+const Select = ({
+  value, onChange, options,
+}: { value: string | undefined; onChange: (v: string) => void; options: { value: string; label: string }[] }) => (
+  <select value={value ?? ''} onChange={(e) => onChange(e.target.value)} className={selectClass}>
+    {options.map((o) => (
+      <option key={o.value} value={o.value}>{o.label}</option>
+    ))}
+  </select>
+);
+
+// "Any" plus the list, each answer as its own label
+const anyOf = (list: string[]) => [{ value: '', label: 'Any' }, ...list.map((v) => ({ value: v, label: v }))];
+
+const Toggle = ({
+  checked, onChange, label,
+}: { checked: boolean; onChange: (v: boolean) => void; label: string }) => (
+  <button
+    onClick={() => onChange(!checked)}
+    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg border transition-colors ${
+      checked
+        ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-200'
+        : 'bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-zinc-600'
+    }`}
+  >
+    <span className="text-sm">{label}</span>
+    <div className={`w-9 h-5 rounded-full relative transition-colors ${checked ? 'bg-blue-500' : 'bg-gray-300 dark:bg-zinc-600'}`}>
+      <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${checked ? 'left-4' : 'left-0.5'}`} />
+    </div>
+  </button>
+);
+
+// Height list as cm values, for the height range
+const HEIGHT_CM = HEIGHTS.map((label) => ({ label, cm: Number(/\((\d+) cm\)/.exec(label)?.[1]) }));
 
 const FilterPanel: React.FC<FilterPanelProps> = ({
   isOpen, initialFilters, isPro, onApply, onClose, onUpgrade,
@@ -48,61 +113,6 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   };
 
   const ageRange = filters.ageRange ?? [21, 45];
-
-  // ---- helper components ---------------------------------------------------
-
-  const FilterRow = ({
-    label, locked, children,
-  }: { label: string; locked?: boolean; children: React.ReactNode }) => (
-    <div className={`py-3 ${locked ? 'opacity-60' : ''}`}>
-      <div className="flex items-center justify-between mb-2">
-        <label className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
-          {label}
-        </label>
-        {locked && (
-          <button
-            onClick={onUpgrade}
-            className="flex items-center gap-1 text-[10px] font-bold text-yellow-700 dark:text-yellow-400 hover:underline"
-          >
-            <IconLock /> Pro
-          </button>
-        )}
-      </div>
-      <div className={locked ? 'pointer-events-none' : ''}>{children}</div>
-    </div>
-  );
-
-  const Select = ({
-    value, onChange, options,
-  }: { value: string | undefined; onChange: (v: string) => void; options: { value: string; label: string }[] }) => (
-    <select
-      value={value ?? ''}
-      onChange={(e) => onChange(e.target.value)}
-      className="w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-    >
-      {options.map((o) => (
-        <option key={o.value} value={o.value}>{o.label}</option>
-      ))}
-    </select>
-  );
-
-  const Toggle = ({
-    checked, onChange, label,
-  }: { checked: boolean; onChange: (v: boolean) => void; label: string }) => (
-    <button
-      onClick={() => onChange(!checked)}
-      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg border transition-colors ${
-        checked
-          ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-200'
-          : 'bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-zinc-600'
-      }`}
-    >
-      <span className="text-sm">{label}</span>
-      <div className={`w-9 h-5 rounded-full relative transition-colors ${checked ? 'bg-blue-500' : 'bg-gray-300 dark:bg-zinc-600'}`}>
-        <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${checked ? 'left-4' : 'left-0.5'}`} />
-      </div>
-    </button>
-  );
 
   return (
     <>
@@ -137,7 +147,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-4 divide-y divide-gray-100 dark:divide-zinc-800">
           {/* Age range — always free */}
-          <FilterRow label="Age range">
+          <FilterRow label="Age range" onUpgrade={onUpgrade}>
             <div className="flex items-center gap-3 mb-2">
               <span className="text-2xl font-bold text-gray-900 dark:text-white">{ageRange[0]}</span>
               <div className="flex-1 px-2">
@@ -168,8 +178,34 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             </div>
           </FilterRow>
 
-          {/* Location/neighborhood — always free */}
-          <FilterRow label="Location contains">
+          {/* Where they live — always free */}
+          <FilterRow label="Country" onUpgrade={onUpgrade}>
+            <ChoiceField
+              value={filters.country ?? ''}
+              onChange={(v) => setFilters((prev) => ({ ...prev, country: v || undefined, state: undefined }))}
+              groups={COUNTRIES}
+              placeholder="Any"
+              clearLabel="Any"
+              size="compact"
+              ariaLabel="Country"
+            />
+          </FilterRow>
+
+          {(filters.country ?? '') === 'India' && (
+            <FilterRow label="State" onUpgrade={onUpgrade}>
+              <ChoiceField
+                value={filters.state ?? ''}
+                onChange={(v) => update('state', v || undefined)}
+                options={INDIAN_STATES}
+                placeholder="Any"
+                clearLabel="Any"
+                size="compact"
+                ariaLabel="State"
+              />
+            </FilterRow>
+          )}
+
+          <FilterRow label="City or area contains" onUpgrade={onUpgrade}>
             <input
               type="text"
               value={filters.neighborhood ?? ''}
@@ -179,97 +215,145 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             />
           </FilterRow>
 
-          {/* Religion — Pro */}
-          <FilterRow label="Religion" locked={!isPro}>
+          {/* Religion and community — Pro */}
+          <FilterRow label="Religion" locked={!isPro} onUpgrade={onUpgrade}>
             <Select
               value={filters.religion}
-              onChange={(v) => update('religion', v || undefined)}
-              options={[
-                { value: '', label: 'Any' },
-                { value: 'Hindu', label: 'Hindu' },
-                { value: 'Muslim', label: 'Muslim' },
-                { value: 'Christian', label: 'Christian' },
-                { value: 'Sikh', label: 'Sikh' },
-                { value: 'Jain', label: 'Jain' },
-                { value: 'Buddhist', label: 'Buddhist' },
-                { value: 'Jewish', label: 'Jewish' },
-                { value: 'Spiritual', label: 'Spiritual' },
-                { value: 'Agnostic', label: 'Agnostic' },
-                { value: 'Atheist', label: 'Atheist' },
-              ]}
+              onChange={(v) => setFilters((prev) => ({ ...prev, religion: v || undefined, caste: undefined }))}
+              options={anyOf(RELIGIONS)}
+            />
+          </FilterRow>
+
+          <FilterRow label="Mother tongue" locked={!isPro} onUpgrade={onUpgrade}>
+            <ChoiceField
+              value={filters.motherTongue ?? ''}
+              onChange={(v) => update('motherTongue', v || undefined)}
+              groups={MOTHER_TONGUES}
+              placeholder="Any"
+              clearLabel="Any"
+              size="compact"
+              ariaLabel="Mother tongue"
+            />
+          </FilterRow>
+
+          <FilterRow label="Caste / community" locked={!isPro} onUpgrade={onUpgrade}>
+            <ChoiceField
+              value={filters.caste ?? ''}
+              onChange={(v) => update('caste', v || undefined)}
+              options={CASTES[filters.religion ?? ''] ?? Object.values(CASTES).flat().filter((c, i, all) => all.indexOf(c) === i && c !== 'Other')}
+              allowCustom
+              placeholder="Any"
+              clearLabel="Any"
+              size="compact"
+              ariaLabel="Caste or community"
+            />
+            <p className="text-[10px] text-gray-400 mt-1">People who chose "Prefer not to say" or hid it won't show up with this on.</p>
+          </FilterRow>
+
+          <FilterRow label="Marital status" locked={!isPro} onUpgrade={onUpgrade}>
+            <Select
+              value={filters.maritalStatus}
+              onChange={(v) => update('maritalStatus', v || undefined)}
+              options={anyOf(MARITAL_STATUS)}
+            />
+          </FilterRow>
+
+          <FilterRow label="Height" locked={!isPro} onUpgrade={onUpgrade}>
+            <div className="grid grid-cols-2 gap-2">
+              <select
+                value={filters.heightRange?.[0] ?? ''}
+                onChange={(e) => {
+                  const min = e.target.value ? Number(e.target.value) : undefined;
+                  const max = filters.heightRange?.[1];
+                  update('heightRange', min || max ? [min ?? HEIGHT_CM[0].cm, Math.max(max ?? HEIGHT_CM[HEIGHT_CM.length - 1].cm, min ?? 0)] : undefined);
+                }}
+                className={selectClass}
+                aria-label="Shortest"
+              >
+                <option value="">From: any</option>
+                {HEIGHT_CM.map((h) => <option key={h.cm} value={h.cm}>{h.label}</option>)}
+              </select>
+              <select
+                value={filters.heightRange?.[1] ?? ''}
+                onChange={(e) => {
+                  const max = e.target.value ? Number(e.target.value) : undefined;
+                  const min = filters.heightRange?.[0];
+                  update('heightRange', min || max ? [Math.min(min ?? HEIGHT_CM[0].cm, max ?? Infinity), max ?? HEIGHT_CM[HEIGHT_CM.length - 1].cm] : undefined);
+                }}
+                className={selectClass}
+                aria-label="Tallest"
+              >
+                <option value="">To: any</option>
+                {HEIGHT_CM.map((h) => <option key={h.cm} value={h.cm}>{h.label}</option>)}
+              </select>
+            </div>
+          </FilterRow>
+
+          <FilterRow label="Manglik" locked={!isPro} onUpgrade={onUpgrade}>
+            <Select
+              value={filters.manglik}
+              onChange={(v) => update('manglik', v || undefined)}
+              options={anyOf(MANGLIK.filter((m) => m !== "Don't know"))}
+            />
+          </FilterRow>
+
+          <FilterRow label="Diet" locked={!isPro} onUpgrade={onUpgrade}>
+            <Select
+              value={filters.dietaryPreferences}
+              onChange={(v) => update('dietaryPreferences', v || undefined)}
+              options={anyOf(DIETS)}
             />
           </FilterRow>
 
           {/* Education — Pro */}
-          <FilterRow label="Education" locked={!isPro}>
+          <FilterRow label="Education" locked={!isPro} onUpgrade={onUpgrade}>
             <Select
               value={filters.educationLevel}
               onChange={(v) => update('educationLevel', v || undefined)}
-              options={[
-                { value: '', label: 'Any' },
-                { value: 'High School', label: 'High School' },
-                { value: `Bachelor's`, label: `Bachelor's` },
-                { value: `Master's`, label: `Master's` },
-                { value: 'PhD', label: 'PhD' },
-                { value: 'Trade School', label: 'Trade School' },
-              ]}
+              options={anyOf(EDUCATION_LEVELS)}
             />
           </FilterRow>
 
           {/* Dating intention — Pro */}
-          <FilterRow label="Looking for" locked={!isPro}>
+          <FilterRow label="Looking for" locked={!isPro} onUpgrade={onUpgrade}>
             <Select
               value={filters.datingIntention}
               onChange={(v) => update('datingIntention', v || undefined)}
-              options={[
-                { value: '', label: 'Any' },
-                { value: 'Marriage', label: 'Marriage' },
-                { value: 'Long-term relationship', label: 'Long-term relationship' },
-                { value: 'Long-term, open to short', label: 'Long-term, open to short' },
-                { value: 'Casual / Dating', label: 'Casual / Dating' },
-                { value: 'Friendship', label: 'Friendship' },
-              ]}
+              options={anyOf(['Marriage', 'Long-term relationship', 'Long-term, open to short', 'Casual / Dating', 'Friendship'])}
             />
           </FilterRow>
 
-          {/* Children/family plans — Pro */}
-          <FilterRow label="Wants children" locked={!isPro}>
+          {/* Children — Pro */}
+          <FilterRow label="Has children" locked={!isPro} onUpgrade={onUpgrade}>
+            <Select
+              value={filters.children}
+              onChange={(v) => update('children', v || undefined)}
+              options={[{ value: '', label: 'Any' }, { value: 'No', label: 'No' }, { value: 'Yes', label: 'Yes' }]}
+            />
+          </FilterRow>
+
+          <FilterRow label="Wants children" locked={!isPro} onUpgrade={onUpgrade}>
             <Select
               value={filters.familyPlans}
               onChange={(v) => update('familyPlans', v || undefined)}
-              options={[
-                { value: '', label: 'Any' },
-                { value: 'Wants children', label: 'Wants children' },
-                { value: 'Open to children', label: 'Open to children' },
-                { value: 'Does not want children', label: 'Does not want children' },
-              ]}
+              options={anyOf(['Wants children', 'Open to children', 'Does not want children'])}
             />
           </FilterRow>
 
           {/* Lifestyle filters — Pro */}
-          <FilterRow label="Drinking" locked={!isPro}>
+          <FilterRow label="Drinking" locked={!isPro} onUpgrade={onUpgrade}>
             <Select
               value={filters.drinking}
               onChange={(v) => update('drinking', v || undefined)}
-              options={[
-                { value: '', label: 'Any' },
-                { value: 'No', label: 'No' },
-                { value: 'Socially', label: 'Socially' },
-                { value: 'Regularly', label: 'Regularly' },
-              ]}
+              options={anyOf(['No', 'Socially', 'Regularly'])}
             />
           </FilterRow>
 
-          <FilterRow label="Smoking" locked={!isPro}>
+          <FilterRow label="Smoking" locked={!isPro} onUpgrade={onUpgrade}>
             <Select
               value={filters.smoking}
               onChange={(v) => update('smoking', v || undefined)}
-              options={[
-                { value: '', label: 'Any' },
-                { value: 'No', label: 'No' },
-                { value: 'Socially', label: 'Socially' },
-                { value: 'Regularly', label: 'Regularly' },
-              ]}
+              options={anyOf(['No', 'Socially', 'Regularly'])}
             />
           </FilterRow>
 
@@ -302,7 +386,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   <div>
                     <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-1">Unlock all filters</h4>
                     <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
-                      Pro lets you filter by religion, education, intent, lifestyle, and more.
+                      Pro lets you filter by religion, mother tongue, community, height, education, lifestyle, and more.
                     </p>
                     <button
                       onClick={onUpgrade}

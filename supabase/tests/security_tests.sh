@@ -138,6 +138,14 @@ check BLOCKED "A35 user runs the Pro sync to make themself Pro" authenticated "$
   "select public.sync_pro_status('$USER_X');" "permission denied"
 check BLOCKED "A36 signed-out visitor reads subscriptions" anon "" "" \
   "select count(*) from public.subscriptions;" "permission denied"
+check ALLOWED "A37 user reads someone else's date of birth or caste" authenticated "$USER_X" "x@example.com" \
+  "reset role; update public.profiles set date_of_birth = '1995-05-05', caste = 'Brahmin' where id = '$OTHER'; set local role authenticated;
+   select 'rows=' || count(*) from public.profiles where id = '$OTHER' and (date_of_birth is not null or caste is not null);" "rows=0"
+check ALLOWED "A38 the search pool never has a date of birth or the dropped questions" service_role "" "" \
+  "update public.profiles set date_of_birth = '1995-05-05', marijuana = 'Regularly', drugs = 'Often', relationship_type = 'Open', mother_tongue = 'Tamil';
+   select 'dob=' || count(*) filter (where e ? 'date_of_birth') || ' dropped=' || count(*) filter (where e ?| array['marijuana', 'drugs', 'relationship_type'])
+       || ' mother_tongue=' || count(*) filter (where e ->> 'mother_tongue' = 'Tamil')
+     from jsonb_array_elements(public.search_candidates('$USER_X')) e;" "dob=0 dropped=0 mother_tongue=22"
 echo
 echo "Normal app use — must keep working:"
 check ALLOWED "N1  user reads their own profile row" authenticated "$USER_X" "x@example.com" \
@@ -298,5 +306,45 @@ check ALLOWED "N41 the database stamps when a subscription first goes through, o
    update public.subscriptions set status = 'active' where razorpay_subscription_id = 'sub_n41';
    select 'created=' || current_setting('n41.created') || ' kept=' || (live_since::text = current_setting('n41.approved'))::text
      from public.subscriptions where razorpay_subscription_id = 'sub_n41';" "created=none kept=true"
+check ALLOWED "N42 the date of birth sets the age (India time)" authenticated "$USER_X" "x@example.com" \
+  "update public.profiles set date_of_birth = ((now() at time zone 'Asia/Kolkata')::date - interval '30 years')::date, age = 50 where id = '$USER_X';
+   select 'age=' || age from public.profiles where id = '$USER_X';" "age=30"
+check ALLOWED "N43 the daily job moves ages on at birthdays" service_role "" "" \
+  "reset role;
+   update public.profiles set date_of_birth = ((now() at time zone 'Asia/Kolkata')::date - interval '30 years')::date where id = '$USER_X';
+   set local session_replication_role = replica;  -- yesterday's age, written without the triggers
+   update public.profiles set age = 29 where id = '$USER_X';
+   set local session_replication_role = origin;
+   update public.profiles set age = public.age_on_today(date_of_birth)
+    where date_of_birth is not null and age is distinct from public.age_on_today(date_of_birth);
+   select 'age=' || age from public.profiles where id = '$USER_X';" "age=30"
+check BLOCKED "N44 a date of birth under 18 is refused" authenticated "$USER_X" "x@example.com" \
+  "update public.profiles set date_of_birth = current_date - interval '17 years' where id = '$USER_X';" "profiles_age_check"
+check ALLOWED "N45 height in cm follows the height (and can't be set on its own)" authenticated "$USER_X" "x@example.com" \
+  "update public.profiles set height = '5'' 8\" (173 cm)', height_cm = 250 where id = '$USER_X';
+   select 'cm=' || height_cm from public.profiles where id = '$USER_X';
+   update public.profiles set height = '178' where id = '$USER_X';
+   select 'typed=' || height_cm from public.profiles where id = '$USER_X';" "cm=173
+typed=178"
+check ALLOWED "N46 city, state and country make the location people see" authenticated "$USER_X" "x@example.com" \
+  "update public.profiles set city = 'Surat', state = 'Gujarat', country = 'India' where id = '$USER_X';
+   select 'india=' || location from public.profiles where id = '$USER_X';
+   update public.profiles set city = 'Austin', state = 'Texas', country = 'United States' where id = '$USER_X';
+   select 'abroad=' || location from public.profiles where id = '$USER_X';
+   update public.profiles set city = 'Delhi', state = 'Delhi', country = 'India' where id = '$USER_X';
+   select 'same_name=' || location from public.profiles where id = '$USER_X';" "india=Surat, Gujarat
+abroad=Austin, United States
+same_name=Delhi"
+check BLOCKED "N47 the new answers have limits (about the family: 1,000 characters)" authenticated "$USER_X" "x@example.com" \
+  "update public.profiles set about_family = repeat('x', 1001) where id = '$USER_X';" "profiles_about_family_length"
+check BLOCKED "N48 time of birth must be a time" authenticated "$USER_X" "x@example.com" \
+  "update public.profiles set birth_time = '25:61' where id = '$USER_X';" "profiles_birth_time_format"
+check ALLOWED "N49 user saves the India answers on their own profile" authenticated "$USER_X" "x@example.com" \
+  "update public.profiles set profile_created_for = 'Daughter', marital_status = 'Never Married', mother_tongue = 'Hindi (Delhi)',
+     religion = 'Hindu', caste = 'Brahmin', sub_caste = 'Saraswat', gotra = 'Kashyapa', manglik = 'Non Manglik', birth_time = '06:45',
+     degree = 'MBBS (Bachelor of Medicine and Bachelor of Surgery)', annual_income = '₹10–15 lakh', family_type = 'Joint family',
+     brothers = '2', brothers_married = '1', about_family = 'We live in Delhi.' where id = '$USER_X';
+   select 'saved=' || mother_tongue || '/' || caste || '/' || brothers || '+' || brothers_married from public.profiles where id = '$USER_X';" \
+  "saved=Hindi (Delhi)/Brahmin/2+1"
 echo
 if [[ $fails -eq 0 ]]; then echo "All checks passed."; else echo "$fails check(s) FAILED."; exit 1; fi

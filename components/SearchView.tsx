@@ -1,17 +1,20 @@
-import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo, Suspense, lazy } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { useToast } from '../lib/useToast';
 import { searchProfiles, SearchError } from '../lib/searchService';
 import { saveSearch } from '../lib/searchHistoryService';
 import { computeSearchAllowance, computeVerificationStatus } from '../lib/profileService';
+import { hasIndiaDetails, profileCompletion } from '../lib/profileCompletion';
 import MatchCard from './MatchCard';
 import ProfileModal from './ProfileModal';
 import VerificationBanner from './VerificationBanner';
 import UpgradeModal from './UpgradeModal';
-import FilterPanel from './FilterPanel';
 import MatchCelebrationModal from './MatchCelebrationModal';
 import { IconZap, IconX, IconCheck } from '../constants';
 import type { MatchCandidate, FilterOptions } from '../types';
+
+// The filter panel carries the long answer lists; it loads the first time it's opened
+const FilterPanel = lazy(() => import('./FilterPanel'));
 
 // ============================================================================
 // SearchView (Phase 5 update)
@@ -33,13 +36,16 @@ const DEFAULT_FILTERS: FilterOptions = {
 
 const EXAMPLE_PROMPTS = [
   'Find a match near me',
+  'Marathi-speaking engineer in Pune',
+  'Never married, vegetarian, under 30',
   'Show me all online matches',
   'Find coffee lovers',
-  'Hiking partners',
   'Find an ambitious introvert',
   'Most compatible matches',
-  'Looking for friends',
 ];
+
+// Remembers (in this browser) that the invitation to add the new details was closed
+const INVITE_DISMISSED_KEY = 'matchgpt_india_details_invite_closed';
 
 function countActiveFilters(f: FilterOptions): number {
   let n = 0;
@@ -50,12 +56,17 @@ function countActiveFilters(f: FilterOptions): number {
   if (f.datingIntention) n++;
   if (f.familyPlans) n++;
   if (f.children) n++;
-  if (f.relationshipType) n++;
   if (f.drinking) n++;
   if (f.smoking) n++;
-  if (f.marijuana) n++;
-  if (f.drugs) n++;
   if (f.politics) n++;
+  if (f.motherTongue) n++;
+  if (f.caste) n++;
+  if (f.maritalStatus) n++;
+  if (f.manglik) n++;
+  if (f.dietaryPreferences) n++;
+  if (f.country) n++;
+  if (f.state) n++;
+  if (f.heightRange) n++;
   if (f.ethnicity) n++;
   if (f.isVerified) n++;
   if (f.isPremium) n++;
@@ -79,8 +90,13 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
   const [selectedCandidate, setSelectedCandidate] = useState<MatchCandidate | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const [filterPanelLoaded, setFilterPanelLoaded] = useState(false);
+  useEffect(() => { if (showFilterPanel) setFilterPanelLoaded(true); }, [showFilterPanel]);
   const [matchCelebration, setMatchCelebration] = useState<{ matchId: string; candidate: MatchCandidate } | null>(null);
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [inviteDismissed, setInviteDismissed] = useState(() => {
+    try { return localStorage.getItem(INVITE_DISMISSED_KEY) === '1'; } catch { return false; }
+  });
 
   // Track whether we've already consumed the pending prompt this session so we
   // don't re-trigger on every re-render of SearchView.
@@ -127,41 +143,22 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
   const isLockedOut = verification.isLockedOut;
   const activeFilterCount = countActiveFilters(filters);
 
-  // Profile completion percentage — mirrors the calc in ProfileView.tsx so the
-  // numbers stay consistent across screens. Drives the banner at top of dashboard.
-  const { completionPercentage, estimatedMinutes } = useMemo(() => {
-    if (!profile) return { completionPercentage: 0, estimatedMinutes: 0 };
-    const photos = profileRow?.photo_urls ?? [];
-    const fieldsToCheck: (keyof typeof profile)[] = [
-      'name', 'age', 'location', 'gender', 'pronouns', 'sexuality', 'hometown',
-      'ethnicity', 'race', 'languages', 'jobTitle', 'work', 'workStyle',
-      'educationLevel', 'university', 'religion', 'politics', 'zodiac',
-      'height', 'bodyType', 'hairColor', 'hairType', 'eyeColor', 'facialHair',
-      'clothingStyle', 'wearsGlasses', 'hasTattoos',
-      'drinking', 'smoking', 'marijuana', 'drugs', 'covidVaccine',
-      'gymRoutine', 'canCook', 'hobbies', 'sportsInterest', 'readingInterest',
-      'lovesTravel', 'travelStyle', 'livingPreference', 'phoneType',
-      'interestedIn', 'relationshipType', 'datingIntention', 'marriageTimeline',
-      'children', 'familyPlans', 'pets', 'familyCloseness', 'siblings',
-      'description', 'loveLanguage', 'attachmentStyle', 'socialBattery',
-      'conflictResolution', 'financialApproach', 'dietaryPreferences', 'sleepSchedule',
-      'futurePlans', 'dreamHouseType', 'linkedin', 'instagram',
-    ];
-    let completed = 0;
-    fieldsToCheck.forEach((f) => {
-      const v = profile[f];
-      if (v !== undefined && v !== null && v !== '' && v !== 'Not specified') completed++;
-    });
-    const total = fieldsToCheck.length + 6;
-    const totalCompleted = completed + photos.length;
-    const remaining = total - totalCompleted;
-    return {
-      completionPercentage: Math.min(100, Math.floor((totalCompleted / total) * 100)),
-      estimatedMinutes: Math.max(1, Math.ceil(remaining / 5)),
-    };
-  }, [profile, profileRow]);
+  // Profile completion percentage — the same figure as My Profile. Drives the
+  // banner at top of dashboard.
+  const { completionPercentage, estimatedMinutes } = useMemo(
+    () => (profile ? profileCompletion(profile, profileRow?.photo_urls?.length ?? 0) : { completionPercentage: 0, estimatedMinutes: 0 }),
+    [profile, profileRow],
+  );
 
-  const showCompletionBanner = !!profile && completionPercentage < 100 && !bannerDismissed;
+  // Members from before the India details (mother tongue, community, family,
+  // horoscope) are invited to add them, until they do or close the invitation.
+  const showIndiaInvite = !!profile && !hasIndiaDetails(profile) && !inviteDismissed;
+  const closeInvite = () => {
+    setInviteDismissed(true);
+    try { localStorage.setItem(INVITE_DISMISSED_KEY, '1'); } catch { /* private mode: closes for this visit */ }
+  };
+
+  const showCompletionBanner = !!profile && completionPercentage < 100 && !bannerDismissed && !showIndiaInvite;
 
   const handleSearch = useCallback(async (overridePrompt?: string) => {
     const effectivePrompt = (overridePrompt ?? prompt).trim();
@@ -232,6 +229,31 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
 
   return (
     <div className="h-full overflow-y-auto">
+      {/* Invitation to add the India details (members who joined before them) */}
+      {showIndiaInvite && (
+        <div className="bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-900/30 px-4 py-3 relative animate-fade-in">
+          <div className="max-w-6xl mx-auto flex items-center justify-center gap-3 flex-wrap pr-8">
+            <span className="text-lg flex-shrink-0">🪔</span>
+            <span className="text-sm text-amber-900 dark:text-amber-100 font-medium">
+              <strong>New on your profile:</strong> mother tongue, community, family and horoscope details. Families look for these first, and all of them are optional.
+            </span>
+            <button
+              onClick={() => { closeInvite(); if (onNavigateToProfile) onNavigateToProfile(); }}
+              className="text-xs bg-amber-600 hover:bg-amber-700 text-white px-4 py-1.5 rounded-full font-bold transition-colors shadow-sm whitespace-nowrap"
+            >
+              Add details →
+            </button>
+          </div>
+          <button
+            onClick={closeInvite}
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-amber-500 hover:text-amber-800 dark:hover:text-amber-200 rounded-full transition-colors"
+            aria-label="Close"
+          >
+            <div className="transform scale-75"><IconX /></div>
+          </button>
+        </div>
+      )}
+
       {/* Profile completion banner — full-width, dismissible. Encourages users to
           finish their profile because a 100% profile leads to more accurate matches. */}
       {showCompletionBanner && (
@@ -533,14 +555,18 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
       )}
 
       {/* Filter panel */}
-      <FilterPanel
-        isOpen={showFilterPanel}
-        initialFilters={filters}
-        isPro={profile.subscriptionTier === 'PRO'}
-        onApply={(f) => setFilters(f)}
-        onClose={() => setShowFilterPanel(false)}
-        onUpgrade={() => { setShowFilterPanel(false); setShowUpgradeModal(true); }}
-      />
+      {filterPanelLoaded && (
+        <Suspense fallback={null}>
+          <FilterPanel
+            isOpen={showFilterPanel}
+            initialFilters={filters}
+            isPro={profile.subscriptionTier === 'PRO'}
+            onApply={(f) => setFilters(f)}
+            onClose={() => setShowFilterPanel(false)}
+            onUpgrade={() => { setShowFilterPanel(false); setShowUpgradeModal(true); }}
+          />
+        </Suspense>
+      )}
 
       {/* Match celebration */}
       {matchCelebration && (

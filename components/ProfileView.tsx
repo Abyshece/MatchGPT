@@ -6,10 +6,54 @@ import { updateProfile } from '../lib/profileService';
 import { addPhoto, removePhoto, replacePhoto } from '../lib/photoService';
 import { supabase } from '../lib/supabase';
 import VerificationRequestModal from './VerificationRequestModal';
+import { ChipsField, ChoiceField, DateOfBirthField, ageFromDateOfBirth, formatDateOfBirth } from './ProfileInputs';
 import {
   IconCheck, IconUpload, IconEdit, IconX, IconZap, IconShield, IconClock,
 } from '../constants';
+import { profileCompletion } from '../lib/profileCompletion';
+import { SECT_LABEL, formatBirthTime, formatChildren, formatSiblings } from '../lib/profileDisplay';
+import {
+  ANNUAL_INCOME, CASTES, CHILDREN, CHILDREN_COUNT, CITIES_BY_STATE, COUNTRIES, DEGREES, DIETS, DISABILITY,
+  EDUCATION_LEVELS, EMPLOYED_IN, FAMILY_STATUS, FAMILY_TYPE, FAMILY_VALUES, FATHER_OCCUPATION, GOTRA_RELIGIONS,
+  GOTRAS, HEIGHTS, HOBBY_GROUPS, HOROSCOPE_MATCH, INDIAN_STATES, LANGUAGES_SPOKEN, LIVING_WITH_FAMILY, MANGLIK,
+  MARITAL_STATUS, MOTHER_OCCUPATION, MOTHER_TONGUES, NAKSHATRA, OCCUPATIONS, OPEN_TO_OTHER_COMMUNITIES,
+  PREFER_NOT_TO_SAY, PROFILE_CREATED_FOR, RASHI, RELIGIONS, RESIDENTIAL_STATUS, SECTS, SETTLING_ABROAD,
+  SIBLING_COUNTS, SUB_CASTES, educationLevelForDegree, type OptionGroup,
+} from '../lib/matrimonyOptions';
 import type { UserProfile } from '../types';
+
+const VISIBILITY_KEY: Partial<Record<keyof UserProfile, string>> = {
+  country: 'location', state: 'location', city: 'location', dateOfBirth: 'age',
+};
+
+// When one answer changes, answers that depended on it no longer apply.
+function dependentChanges(profile: UserProfile, field: keyof UserProfile, value: string): Partial<UserProfile> {
+  const changes: Partial<UserProfile> = {};
+  if (field === 'religion' && value !== profile.religion) {
+    changes.caste = '';
+    changes.subCaste = '';
+    if (!SECTS[value]?.includes(profile.sect ?? '')) changes.sect = '';
+    if (!GOTRA_RELIGIONS.includes(value)) changes.gotra = '';
+  }
+  if (field === 'caste' && value !== profile.caste) changes.subCaste = '';
+  if (field === 'brothers' && (value === '' || value === '0')) changes.brothersMarried = '';
+  if (field === 'sisters' && (value === '' || value === '0')) changes.sistersMarried = '';
+  if (field === 'children' && (value === '' || value === 'No')) changes.childrenCount = '';
+  if (field === 'country' && value !== profile.country) {
+    changes.state = '';
+    changes.city = '';
+    if (value === 'India') changes.residentialStatus = '';
+  }
+  if (field === 'state' && value !== profile.state) changes.city = '';
+  // The state list offered without a country is India's
+  if ((field === 'state' || field === 'city') && value && !profile.country
+    && INDIAN_STATES.includes(field === 'state' ? value : profile.state ?? '')) changes.country = 'India';
+  if (field === 'degree' && !profile.educationLevel) {
+    const level = educationLevelForDegree(value);
+    if (level) changes.educationLevel = level;
+  }
+  return changes;
+}
 
 // ============================================================================
 // ProfileView (Phase 3.1 — full attribute set)
@@ -34,40 +78,10 @@ const ProfileView: React.FC = () => {
   const photos = profileRow?.photo_urls ?? [];
 
   // ---- completion calc -----------------------------------------------------
-  const { completionPercentage, estimatedMinutes } = useMemo(() => {
-    if (!profile) return { completionPercentage: 0, estimatedMinutes: 0 };
-
-    // Subset of fields that count toward "completion" (don't include every
-    // single optional field; pick the most important ones for matching).
-    const fieldsToCheck: (keyof UserProfile)[] = [
-      'name', 'age', 'location', 'gender', 'pronouns', 'sexuality', 'hometown',
-      'ethnicity', 'race', 'languages', 'jobTitle', 'work', 'workStyle',
-      'educationLevel', 'university', 'religion', 'politics', 'zodiac',
-      'height', 'bodyType', 'hairColor', 'hairType', 'eyeColor', 'facialHair',
-      'clothingStyle', 'wearsGlasses', 'hasTattoos',
-      'drinking', 'smoking', 'marijuana', 'drugs', 'covidVaccine',
-      'gymRoutine', 'canCook', 'hobbies', 'sportsInterest', 'readingInterest',
-      'lovesTravel', 'travelStyle', 'livingPreference', 'phoneType',
-      'interestedIn', 'relationshipType', 'datingIntention', 'marriageTimeline',
-      'children', 'familyPlans', 'pets', 'familyCloseness', 'siblings',
-      'description', 'loveLanguage', 'attachmentStyle', 'socialBattery',
-      'conflictResolution', 'financialApproach', 'dietaryPreferences', 'sleepSchedule',
-      'futurePlans', 'dreamHouseType', 'linkedin', 'instagram',
-    ];
-    let completed = 0;
-    fieldsToCheck.forEach((f) => {
-      const v = profile[f];
-      if (v !== undefined && v !== null && v !== '' && v !== 'Not specified') completed++;
-    });
-    const photoCount = photos.length;
-    const total = fieldsToCheck.length + 6;
-    const totalCompleted = completed + photoCount;
-    const remaining = total - totalCompleted;
-    return {
-      completionPercentage: Math.min(100, Math.floor((totalCompleted / total) * 100)),
-      estimatedMinutes: Math.max(1, Math.ceil(remaining / 5)),
-    };
-  }, [profile, photos]);
+  const { completionPercentage, estimatedMinutes } = useMemo(
+    () => (profile ? profileCompletion(profile, photos.length) : { completionPercentage: 0, estimatedMinutes: 0 }),
+    [profile, photos],
+  );
 
   // ---- helpers -------------------------------------------------------------
   const startEditing = (field: keyof UserProfile, currentValue: unknown) => {
@@ -93,8 +107,17 @@ const ProfileView: React.FC = () => {
         return;
       }
       (change as Record<string, unknown>)[editingField] = n;
+    } else if (editingField === 'dateOfBirth' && editValue !== '') {
+      const age = ageFromDateOfBirth(String(editValue));
+      if (age === null || age < 18 || age > 99) {
+        showToast('Please choose a full date of birth (18 or older)', 'error');
+        setSavingField(null);
+        return;
+      }
+      change.dateOfBirth = String(editValue);
     } else {
       (change as Record<string, unknown>)[editingField] = editValue;
+      if (profile) Object.assign(change, dependentChanges(profile, editingField, String(editValue)));
     }
 
     const result = await updateProfile(session.user.id, change);
@@ -192,17 +215,23 @@ const ProfileView: React.FC = () => {
     label: string,
     icon?: React.ReactNode,
     inputType: 'text' | 'number' | 'textarea' | 'select' = 'text',
-    options: string[] = []
+    options: string[] = [],
+    extra: { editor?: React.ReactNode; display?: string; editable?: boolean } = {},
   ) => {
     if (!profile) return null;
-    const isHidden = (profile.hiddenFields ?? []).includes(field);
+    // Some answers are shown or hidden together: country, state and city with
+    // the location, the date of birth with the age
+    const visibilityKey = VISIBILITY_KEY[field] ?? field;
+    const isHidden = (profile.hiddenFields ?? []).includes(visibilityKey);
     return (
       <PropertyRow
         key={field}
         label={label}
         value={(profile[field] as string | number | null) ?? null}
+        displayValue={extra.display}
+        editor={editingField === field ? extra.editor : undefined}
         icon={icon}
-        isEditable={true}
+        isEditable={extra.editable ?? true}
         isEditing={editingField === field}
         editValue={editValue}
         onEdit={() => startEditing(field, profile[field])}
@@ -212,10 +241,46 @@ const ProfileView: React.FC = () => {
         inputType={inputType}
         options={options}
         isHidden={isHidden}
-        onToggleVisibility={() => handleToggleVisibility(field as string)}
+        onToggleVisibility={() => handleToggleVisibility(visibilityKey)}
       />
     );
   };
+
+  // A list you can type into (long lists, or ones that take a typed answer)
+  const renderChoice = (
+    field: keyof UserProfile,
+    label: string,
+    list: { options?: string[]; groups?: OptionGroup[]; allowCustom?: boolean },
+    display?: string,
+  ) => renderRow(field, label, undefined, 'select', [], {
+    display,
+    editor: (
+      <ChoiceField
+        value={String(editValue ?? '')}
+        onChange={(v) => setEditValue(v)}
+        options={list.options}
+        groups={list.groups}
+        allowCustom={list.allowCustom}
+        size="compact"
+        clearLabel="Clear"
+        autoFocus
+        ariaLabel={label}
+      />
+    ),
+  });
+
+  // Several answers, tapped on and off
+  const renderChips = (field: keyof UserProfile, label: string, list: { options?: string[]; groups?: OptionGroup[] }) =>
+    renderRow(field, label, undefined, 'textarea', [], {
+      editor: (
+        <ChipsField
+          value={String(editValue ?? '')}
+          onChange={(v) => setEditValue(v)}
+          options={list.options}
+          groups={list.groups}
+        />
+      ),
+    });
 
   // ---- subscription badge --------------------------------------------------
   const renderSubscriptionBadge = () => {
@@ -339,22 +404,113 @@ const ProfileView: React.FC = () => {
 
             {/* === BASICS === */}
             <InfoSection title="The Basics">
+              {renderRow('profileCreatedFor', 'Profile created for', undefined, 'select', PROFILE_CREATED_FOR)}
               {renderRow('name', 'Name')}
-              {renderRow('age', 'Age', undefined, 'number')}
-              {renderRow('location', 'Location')}
-              {renderRow('hometown', 'Hometown')}
+              {renderRow('dateOfBirth', 'Date of birth', undefined, 'text', [], {
+                display: profile.dateOfBirth ? `${formatDateOfBirth(profile.dateOfBirth)} (only your age is shown)` : undefined,
+                editor: <DateOfBirthField value={String(editValue ?? '')} onChange={(v) => setEditValue(v)} size="compact" />,
+              })}
+              {renderRow('age', 'Age', undefined, 'number', [], { editable: !profile.dateOfBirth })}
               {renderRow('gender', 'Gender', undefined, 'select', ['Man', 'Woman', 'Non-binary', 'Other'])}
               {renderRow('pronouns', 'Pronouns', undefined, 'select', ['He/Him', 'She/Her', 'They/Them', 'He/They', 'She/They', 'Other'])}
               {renderRow('sexuality', 'Sexuality', undefined, 'select', ['Straight', 'Gay', 'Lesbian', 'Bisexual', 'Pansexual', 'Asexual', 'Queer', 'Other', 'Prefer not to say'])}
+              {renderRow('maritalStatus', 'Marital status', undefined, 'select', MARITAL_STATUS)}
+              {renderRow('children', 'Children', undefined, 'select', CHILDREN, {
+                display: formatChildren(profile.children, profile.childrenCount),
+              })}
+              {profile.children && profile.children !== 'No' && renderRow('childrenCount', 'Number of children', undefined, 'select', CHILDREN_COUNT)}
+              {renderChoice('height', 'Height', { options: HEIGHTS })}
+              {renderRow('disability', 'Disability', undefined, 'select', DISABILITY)}
+            </InfoSection>
+
+            {/* === LOCATION === */}
+            <InfoSection title="Location">
+              {renderChoice('country', 'Country', { groups: COUNTRIES })}
+              {(profile.country ?? 'India') === 'India'
+                ? renderChoice('state', 'State', { options: INDIAN_STATES })
+                : renderRow('state', 'State / province')}
+              {renderChoice('city', 'City', { options: CITIES_BY_STATE[profile.state ?? ''] ?? [], allowCustom: true })}
+              {!profile.city && renderRow('location', 'Location (as typed before)')}
+              {renderRow('hometown', 'Grew up in')}
+              {profile.country && profile.country !== 'India' && renderRow('residentialStatus', 'Residential status', undefined, 'select', RESIDENTIAL_STATUS)}
+              {renderRow('settlingAbroad', 'Settling abroad', undefined, 'select', SETTLING_ABROAD)}
+            </InfoSection>
+
+            {/* === RELIGION & COMMUNITY === */}
+            <InfoSection title="Religion & Community" badge="New">
+              {renderRow('religion', 'Religion', undefined, 'select', RELIGIONS)}
+              {renderChoice('motherTongue', 'Mother tongue', { groups: MOTHER_TONGUES })}
+              {renderChips('languages', 'Languages', { options: LANGUAGES_SPOKEN })}
+              {SECTS[profile.religion] && renderChoice('sect', SECT_LABEL[profile.religion], { options: SECTS[profile.religion] })}
+              {renderChoice('caste', CASTES[profile.religion] ? 'Caste' : 'Caste / community', {
+                options: [PREFER_NOT_TO_SAY, ...(CASTES[profile.religion] ?? [])], allowCustom: true,
+              })}
+              {renderChoice('subCaste', 'Sub-caste', { options: SUB_CASTES[profile.caste ?? ''] ?? [], allowCustom: true })}
+              {GOTRA_RELIGIONS.includes(profile.religion) && renderChoice('gotra', 'Gotra', { options: GOTRAS, allowCustom: true })}
+              {renderRow('openToOtherCommunities', 'Other communities', undefined, 'select', OPEN_TO_OTHER_COMMUNITIES)}
               {renderRow('ethnicity', 'Ethnicity')}
               {renderRow('race', 'Race', undefined, 'select', ['Asian', 'Black/African', 'Hispanic/Latino', 'Middle Eastern', 'Native American', 'Pacific Islander', 'South Asian', 'White/Caucasian', 'Mixed', 'Other'])}
               {renderRow('nationalityCount', 'Number of nationalities', undefined, 'number')}
-              {renderRow('languages', 'Languages')}
+            </InfoSection>
+
+            {/* === HOROSCOPE === */}
+            <InfoSection title="Horoscope" badge="New">
+              {renderRow('manglik', 'Manglik', undefined, 'select', MANGLIK)}
+              {renderRow('rashi', 'Rashi (moon sign)', undefined, 'select', RASHI)}
+              {renderChoice('nakshatra', 'Nakshatra', { options: NAKSHATRA })}
+              {renderRow('birthTime', 'Time of birth', undefined, 'text', [], {
+                display: formatBirthTime(profile.birthTime),
+                editor: (
+                  <input
+                    type="time"
+                    value={String(editValue ?? '')}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    className="w-full bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded px-2 py-1.5 text-sm outline-none text-gray-900 dark:text-gray-100"
+                    autoFocus
+                  />
+                ),
+              })}
+              {renderRow('birthPlace', 'Place of birth')}
+              {renderRow('horoscopeMatch', 'Horoscope match', undefined, 'select', HOROSCOPE_MATCH)}
+              {renderRow('zodiac', 'Zodiac (sun sign)', undefined, 'select', ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'])}
+            </InfoSection>
+
+            {/* === CAREER & EDUCATION === */}
+            <InfoSection title="Education & Career">
+              {renderRow('educationLevel', 'Highest qualification', undefined, 'select', EDUCATION_LEVELS)}
+              {renderChoice('degree', 'Degree', { groups: DEGREES, allowCustom: true })}
+              {renderRow('university', 'College / university')}
+              {renderRow('employedIn', 'Employed in', undefined, 'select', EMPLOYED_IN)}
+              {renderChoice('occupation', 'Occupation', { groups: OCCUPATIONS, allowCustom: true })}
+              {renderRow('jobTitle', 'Job title')}
+              {renderRow('work', 'Workplace')}
+              {renderRow('workStyle', 'Work style', undefined, 'select', ['Remote', 'Hybrid', 'In-office', 'Self-employed', `Don't work`])}
+              {renderChoice('annualIncome', 'Annual income', { groups: ANNUAL_INCOME })}
+            </InfoSection>
+
+            {/* === FAMILY === */}
+            <InfoSection title="Family" badge="New">
+              {renderRow('familyType', 'Family type', undefined, 'select', FAMILY_TYPE)}
+              {renderRow('familyStatus', 'Family status', undefined, 'select', FAMILY_STATUS)}
+              {renderRow('familyValues', 'Family values', undefined, 'select', FAMILY_VALUES)}
+              {renderRow('fatherOccupation', "Father's occupation", undefined, 'select', FATHER_OCCUPATION)}
+              {renderRow('motherOccupation', "Mother's occupation", undefined, 'select', MOTHER_OCCUPATION)}
+              {renderRow('brothers', 'Brothers', undefined, 'select', SIBLING_COUNTS, {
+                display: formatSiblings(profile.brothers, profile.brothersMarried),
+              })}
+              {profile.brothers && profile.brothers !== '0' && renderRow('brothersMarried', 'Brothers married', undefined, 'select', SIBLING_COUNTS)}
+              {renderRow('sisters', 'Sisters', undefined, 'select', SIBLING_COUNTS, {
+                display: formatSiblings(profile.sisters, profile.sistersMarried),
+              })}
+              {profile.sisters && profile.sisters !== '0' && renderRow('sistersMarried', 'Sisters married', undefined, 'select', SIBLING_COUNTS)}
+              {renderRow('familyLocation', 'Family lives in')}
+              {renderRow('livingWithFamily', 'Lives with family', undefined, 'select', LIVING_WITH_FAMILY)}
+              {renderRow('familyCloseness', 'Closeness to family', undefined, 'select', ['Very close', 'Close', 'Moderate', `We're not close`])}
+              {renderRow('aboutFamily', 'About my family', undefined, 'textarea')}
             </InfoSection>
 
             {/* === APPEARANCE === */}
             <InfoSection title="Appearance">
-              {renderRow('height', 'Height')}
               {renderRow('bodyType', 'Body Type', undefined, 'select', ['Slim', 'Athletic', 'Average', 'Curvy', 'Plus Size', 'Muscular'])}
               {renderRow('hairColor', 'Hair Color', undefined, 'select', ['Black', 'Brown', 'Blonde', 'Red', 'Gray', 'White', 'Dyed/Other'])}
               {renderRow('hairType', 'Hair Type', undefined, 'select', ['Straight', 'Wavy', 'Curly', 'Coily', 'Bald'])}
@@ -373,10 +529,9 @@ const ProfileView: React.FC = () => {
 
             {/* === LIFESTYLE === */}
             <InfoSection title="Lifestyle & Habits">
+              {renderRow('dietaryPreferences', 'Diet', undefined, 'select', DIETS)}
               {renderRow('drinking', 'Drinking', undefined, 'select', ['No', 'Socially', 'Regularly'])}
               {renderRow('smoking', 'Smoking', undefined, 'select', ['No', 'Socially', 'Regularly'])}
-              {renderRow('marijuana', 'Marijuana', undefined, 'select', ['No', 'Socially', 'Regularly'])}
-              {renderRow('drugs', 'Other drugs', undefined, 'select', ['No', 'Sometimes', 'Often'])}
               {renderRow('covidVaccine', 'COVID Vaccine', undefined, 'select', ['Vaccinated', 'Not vaccinated', 'Prefer not to say'])}
               {renderRow('gymRoutine', 'Exercise', undefined, 'select', ['Daily', '3-4 times a week', '1-2 times a week', 'Occasionally', 'Never'])}
               {renderRow('sportsInterest', 'Sports interest', undefined, 'select', ['Avid fan', 'Casual viewer', 'I play, not watch', 'Not interested'])}
@@ -385,14 +540,13 @@ const ProfileView: React.FC = () => {
               {renderRow('favoriteDrink', 'Favorite drink')}
               {renderRow('shoppingPreference', 'Shopping', undefined, 'select', ['In-store', 'Online', 'Both', `I don't enjoy shopping`])}
               {renderRow('readingInterest', 'Reading', undefined, 'select', ['Avid reader', 'Occasional', `I prefer audiobooks`, `I don't read much`])}
-              {renderRow('hobbies', 'Hobbies', undefined, 'textarea')}
+              {renderChips('hobbies', 'Hobbies & interests', { groups: HOBBY_GROUPS })}
               {renderRow('isOrganised', 'Organisation', undefined, 'select', ['Very organised', 'Somewhat', 'Messy but functional', 'Chaotic'])}
               {renderRow('snoring', 'Snoring', undefined, 'select', ['Never', 'Sometimes', 'Often', `I don't know`])}
               {renderRow('drivesCar', 'Drives a car?', undefined, 'select', ['Yes', 'No', 'Sometimes'])}
               {renderRow('hasDriversLicense', `Driver's license`, undefined, 'select', ['Yes', 'No', 'Learner permit'])}
               {renderRow('livingPreference', 'Living situation', undefined, 'select', ['Lives alone', 'With roommates', 'With family', 'With partner', 'Other'])}
               {renderRow('phoneType', 'Phone', undefined, 'select', ['iPhone', 'Android', `Don't care`])}
-              {renderRow('dietaryPreferences', 'Diet', undefined, 'select', ['No restrictions', 'Vegetarian', 'Vegan', 'Eggetarian', 'Jain', 'Halal', 'Kosher', 'Gluten-free', 'Pescatarian'])}
               {renderRow('sleepSchedule', 'Sleep schedule', undefined, 'select', ['Early Bird', 'Night Owl', 'Flexible', 'Irregular'])}
             </InfoSection>
 
@@ -403,20 +557,9 @@ const ProfileView: React.FC = () => {
               {renderRow('nextTravelDestination', 'Next destination')}
             </InfoSection>
 
-            {/* === CAREER & EDUCATION === */}
-            <InfoSection title="Career & Education">
-              {renderRow('jobTitle', 'Job title')}
-              {renderRow('work', 'Workplace')}
-              {renderRow('workStyle', 'Work style', undefined, 'select', ['Remote', 'Hybrid', 'In-office', 'Self-employed', `Don't work`])}
-              {renderRow('university', 'University')}
-              {renderRow('educationLevel', 'Education', undefined, 'select', ['High School', `Bachelor's`, `Master's`, 'PhD', 'Trade School', 'Self-taught'])}
-            </InfoSection>
-
             {/* === BACKGROUND === */}
             <InfoSection title="Background & Beliefs">
-              {renderRow('religion', 'Religion', undefined, 'select', ['Hindu', 'Muslim', 'Christian', 'Sikh', 'Jain', 'Buddhist', 'Jewish', 'Spiritual', 'Agnostic', 'Atheist', 'Other'])}
               {renderRow('politics', 'Politics', undefined, 'select', ['Liberal', 'Moderate', 'Conservative', 'Apolitical', 'Other'])}
-              {renderRow('zodiac', 'Zodiac', undefined, 'select', ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'])}
               {renderRow('musicGenre', 'Favorite music genre')}
               {renderRow('therapyHistory', 'Therapy', undefined, 'select', ['Currently', 'In the past', 'Open to it', 'Not for me'])}
               {renderRow('childhoodDescription', 'Childhood', undefined, 'textarea')}
@@ -424,23 +567,19 @@ const ProfileView: React.FC = () => {
               {renderRow('criminalRecord', 'Criminal record', undefined, 'select', ['No', 'Minor offense', 'Yes — happy to explain'])}
             </InfoSection>
 
-            {/* === FAMILY & RELATIONSHIPS === */}
-            <InfoSection title="Family & Relationships">
-              {renderRow('siblings', 'Siblings', undefined, 'select', ['Only child', '1 sibling', '2 siblings', '3 or more siblings'])}
-              {renderRow('familyCloseness', 'Closeness to family', undefined, 'select', ['Very close', 'Close', 'Moderate', `We're not close`])}
-              {renderRow('pets', 'Pets', undefined, 'select', ['Has pets', 'No pets', 'Wants pets', 'Allergic'])}
-              {renderRow('children', 'Has children?', undefined, 'select', ['Has children', 'No children'])}
-              {renderRow('familyPlans', 'Wants children?', undefined, 'select', ['Wants children', 'Open to children', 'Does not want children', 'Already have, want more', 'Already have, no more'])}
+            {/* === RELATIONSHIPS & PLANS === */}
+            <InfoSection title="Relationships & Plans">
               {renderRow('marriageTimeline', 'Marriage timeline', undefined, 'select', ['ASAP', 'Within 6 months', 'Within 1 year', '1-2 years', '3-5 years', '5+ years', 'Not sure yet'])}
+              {renderRow('familyPlans', 'Wants children?', undefined, 'select', ['Wants children', 'Open to children', 'Does not want children', 'Already have, want more', 'Already have, no more'])}
+              {renderRow('pets', 'Pets', undefined, 'select', ['Has pets', 'No pets', 'Wants pets', 'Allergic'])}
               {renderRow('interracialMarriage', 'Open to interracial marriage?', undefined, 'select', ['Yes', 'No', 'Prefer same race'])}
               {renderRow('financialSplitting', 'Approach to splitting bills', undefined, 'select', ['50/50', 'Proportional to income', `One partner pays`, `It depends`])}
             </InfoSection>
 
-            {/* === RELATIONSHIP STYLE === */}
+            {/* === LOOKING FOR === */}
             <InfoSection title="Looking For">
               {renderRow('interestedIn', 'Interested in')}
-              {renderRow('relationshipType', 'Relationship type', undefined, 'select', ['Monogamous', 'Polyamorous', 'Open', 'Casual'])}
-              {renderRow('datingIntention', 'Dating intent', undefined, 'select', ['Marriage', 'Long-term relationship', 'Long-term, open to short', 'Casual / Dating', 'Friendship'])}
+              {renderRow('datingIntention', 'Looking for', undefined, 'select', ['Marriage', 'Long-term relationship', 'Long-term, open to short', 'Casual / Dating', 'Friendship'])}
               {renderRow('loveLanguage', 'Love Language', undefined, 'select', ['Words of Affirmation', 'Acts of Service', 'Receiving Gifts', 'Quality Time', 'Physical Touch'])}
               {renderRow('sexStyle', 'Sex style', undefined, 'select', ['Adventurous', 'Romantic', 'Vanilla', 'Reserved', 'Open to explore', 'Prefer not to say'])}
             </InfoSection>
@@ -541,7 +680,7 @@ const ProfileView: React.FC = () => {
 
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/30 rounded-lg p-4 text-xs text-blue-800 dark:text-blue-200">
               <p className="font-bold mb-1">💡 Privacy tip</p>
-              <p>Click the eye icon next to any field to hide it from your public profile. Hidden fields are still used for matching, but other users won't see them.</p>
+              <p>Click the eye icon next to any field to hide it from your profile. Hidden answers still help pick your matches, but nobody sees them or can search by them.</p>
             </div>
           </div>
         </div>
