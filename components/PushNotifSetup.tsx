@@ -5,6 +5,7 @@ import {
   isPushSupported, getPermissionState, isCurrentlySubscribed,
   subscribeToPush, unsubscribeFromPush,
 } from '../lib/pushService';
+import { isNativeApp } from '../lib/nativeApp';
 
 // Small inline bell icon (since IconBell isn't in constants yet)
 const IconBell: React.FC = () => (
@@ -33,7 +34,8 @@ const PushNotifSetup: React.FC = () => {
 
   // Check current state on mount
   useEffect(() => {
-    const supp = isPushSupported();
+    // Browser push doesn't reach the phone apps; they'll use Android's and Apple's own
+    const supp = !isNativeApp() && isPushSupported();
     setSupported(supp);
     if (!supp) return;
     setPermission(getPermissionState());
@@ -43,9 +45,15 @@ const PushNotifSetup: React.FC = () => {
   if (!supported) {
     return (
       <div className="text-xs text-gray-500 dark:text-gray-400 py-2 px-1">
-        Push notifications aren't supported on this browser.
-        {/iPhone|iPad|iPod/.test(navigator.userAgent) && (
-          <> On iOS, add MatchGPT to your home screen first (Share → Add to Home Screen).</>
+        {isNativeApp() ? (
+          'Notifications on your phone are coming to the app soon.'
+        ) : (
+          <>
+            Push notifications aren't supported on this browser.
+            {/iPhone|iPad|iPod/.test(navigator.userAgent) && (
+              <> On iOS, add MatchGPT to your home screen first (Share → Add to Home Screen).</>
+            )}
+          </>
         )}
       </div>
     );

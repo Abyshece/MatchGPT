@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Inside the phone apps: no grey flash on every tap (a browser habit) */
+html.native-app {
+  -webkit-tap-highlight-color: transparent;
+}
+
 @layer components {
   /* Behind every popup: a light, see-through blur, so the page behind stays
      faintly visible. Change it here and every popup follows. */

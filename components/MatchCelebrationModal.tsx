@@ -28,6 +28,7 @@ const MatchCelebrationModal: React.FC<MatchCelebrationModalProps> = ({
   return (
     <div
       className="fixed inset-0 z-[400] flex items-center justify-center p-4 animate-fade-in"
+      data-popup
       style={{
         background: 'linear-gradient(135deg, #ec4899 0%, #f97316 50%, #eab308 100%)',
       }}
@@ -52,6 +53,7 @@ const MatchCelebrationModal: React.FC<MatchCelebrationModalProps> = ({
 
       <button
         onClick={onClose}
+        aria-label="Close"
         className="absolute top-6 right-6 p-2 rounded-full text-white/80 hover:text-white hover:bg-white/20 transition-colors z-50"
       >
         <IconX />

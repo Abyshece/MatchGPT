@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The app's page background; values-night has the dark one -->
+    <color name="app_background">#FFFFFF</color>
+    <!-- The icon's gradient, the same pink and orange as "It's a Match!" -->
+    <color name="brand_pink">#EC4899</color>
+    <color name="brand_orange">#F97316</color>
+</resources>

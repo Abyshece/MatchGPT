@@ -2,6 +2,7 @@ import './index.css';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import { startNativeApp } from './lib/nativeApp';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -16,3 +17,4 @@ root.render(
     <App />
   </React.StrictMode>
 );
+startNativeApp();  // inside the Android/iOS app only

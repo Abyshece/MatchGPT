@@ -1,0 +1,30 @@
+import type { CapacitorConfig } from '@capacitor/cli';
+
+// ============================================================================
+// The phone apps (Android now, iOS later): the same React build as the
+// website (dist/), inside a native shell made by Capacitor.
+//
+//   npm run build:android     web build + copy into android/
+//   cd android && ./gradlew assembleDebug    → app/build/outputs/apk/debug/
+//
+// appId is the package name on Google Play (and the bundle ID on the App
+// Store). It can't be changed once the app has been uploaded to a store.
+// ============================================================================
+
+const config: CapacitorConfig = {
+  appId: 'com.matchgpt.app',
+  appName: 'MatchGPT',
+  webDir: 'dist',
+  plugins: {
+    // Hidden by the app as soon as it has drawn (lib/nativeApp.ts); the
+    // timer is only a fallback.
+    SplashScreen: {
+      launchShowDuration: 3000,
+      launchAutoHide: true,
+      backgroundColor: '#ffffff',
+      showSpinner: false,
+    },
+  },
+};
+
+export default config;

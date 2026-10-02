@@ -7,12 +7,15 @@ import {
   periodWord, startSubscription, type BillingConfig, type PlanId,
 } from '../lib/billingService';
 import { CheckoutClosed, openCheckout } from '../lib/razorpayCheckout';
+import { isNativeApp } from '../lib/nativeApp';
 
 // ============================================================================
 // UpgradeModal: MatchGPT+ (Pro) plans and Razorpay checkout
 //
 // Monthly or yearly; first-time subscribers start with the free trial. Until
 // the Razorpay keys are set on the server, the plans show as "coming soon".
+// So do they inside the phone apps, which may only sell through Google's and
+// Apple's own billing (not built yet), never Razorpay.
 // Rendered into <body>, so it isn't trapped inside the sidebar.
 // ============================================================================
 
@@ -30,9 +33,11 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ reason, resetInHours, onClo
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<{ trialEndsAt: string | null; renewsAt: string | null; duplicate: boolean } | null>(null);
 
+  const inApp = isNativeApp();
   useEffect(() => {
+    if (inApp) return;
     getBillingConfig().then(setConfig).catch(() => setConfig(null));
-  }, []);
+  }, [inApp]);
 
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
@@ -47,7 +52,8 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ reason, resetInHours, onClo
   const monthly = plans.find((p) => p.id === 'monthly');
   const yearly = plans.find((p) => p.id === 'yearly');
   const yearlySaving = monthly && yearly ? Math.round((1 - yearly.amount / (monthly.amount * 12)) * 100) : 0;
-  const enabled = !!config?.enabled;
+  const enabled = !inApp && !!config?.enabled;
+  const loadingConfig = !inApp && !config;
   const trialDays = enabled && config.trialEligible ? config.trialDays : 0;
   const trialEnd = formatDate(new Date(Date.now() + trialDays * 86_400_000).toISOString());
   const price = `${formatRupees(plan.amount)}/${periodWord(plan.period)}`;
@@ -208,7 +214,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ reason, resetInHours, onClo
                     className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold py-3 rounded-lg shadow-md hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     <IconZap />
-                    {!config
+                    {loadingConfig
                       ? 'Loading…'
                       : !enabled
                         ? 'Coming soon'
@@ -217,10 +223,10 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ reason, resetInHours, onClo
                           : trialDays > 0 ? `Start ${trialDays}-day free trial` : `Subscribe for ${price}`}
                   </button>
                   <p className="text-[11px] text-gray-500 dark:text-gray-400 text-center mt-3 leading-relaxed">
-                    {!config
+                    {loadingConfig
                       ? ' '
                       : !enabled
-                        ? 'MatchGPT+ is coming soon.'
+                        ? (inApp ? 'MatchGPT+ is coming to the app soon.' : 'MatchGPT+ is coming soon.')
                         : trialDays > 0
                           ? <>Free until {trialEnd}, then {price}. Cancel any time in Settings before then and you won't be charged.</>
                           : <>{price}, renews automatically. Cancel any time in Settings.</>}

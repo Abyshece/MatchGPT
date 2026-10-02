@@ -3,6 +3,7 @@ import { PageHeader, Card, Button } from '../NotionUI';
 import { IconUpload, IconCheck, IconChevronRight, IconChevronLeft, IconX } from '../../constants';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../lib/AuthContext';
+import { BACK, useBackHandler } from '../../lib/nativeApp';
 
 // Categorized photo slots — same idea as the original PhotoUpload component,
 // but wired up to upload to Supabase Storage instead of using URL.createObjectURL.
@@ -37,6 +38,9 @@ const StepPhotos: React.FC<StepPhotosProps> = ({ onComplete, onBack }) => {
   const uploadedCount = Object.keys(photos).length;
   const minRequired = 4;
   const canContinue = uploadedCount >= minRequired;
+
+  // Android back button: back to step 1
+  useBackHandler(BACK.PAGE, () => { onBack(); return true; });
 
   const handleFileChange = async (slotId: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

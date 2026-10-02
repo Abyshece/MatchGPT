@@ -4,6 +4,7 @@ import LikeButton from './LikeButton';
 import BlockReportModal from './BlockReportModal';
 import { IconX, IconCheck, IconChevronLeft, IconChevronRight, IconUser } from '../constants';
 import { SECT_LABEL, formatBirthTime, formatChildren, formatSiblings, profileManagedBy } from '../lib/profileDisplay';
+import { isNativeApp } from '../lib/nativeApp';
 import type { MatchCandidate } from '../types';
 
 // ============================================================================
@@ -388,7 +389,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                   <SvgInstagram />
                 </div>
               )}
-              <button
+              {/* Inside the app there's no web address to share yet */}
+              {!isNativeApp() && <button
                 onClick={() => {
                   if (navigator.share) {
                     navigator.share({ title: candidate.name, text: `Check out ${candidate.name} on MatchGPT`, url: window.location.href }).catch(() => {});
@@ -401,7 +403,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                 aria-label="Share profile"
               >
                 <SvgShare />
-              </button>
+              </button>}
             </div>
 
             <div className="min-w-[180px]">
@@ -421,6 +423,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
       {lightbox.open && photos.length > 0 && (
         <div
           className="fixed inset-0 z-[300] bg-black flex items-center justify-center animate-fade-in"
+          data-popup
           onClick={(e) => { e.stopPropagation(); setLightbox({ open: false, idx: 0 }); }}
         >
           <button

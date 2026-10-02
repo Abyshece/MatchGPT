@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { TERMS_VERSION, PRIVACY_VERSION } from '../lib/consentService';
 import { GOOGLE_CLIENT_ID } from '../lib/googleSignIn';
 import GoogleSignInButton from './GoogleSignInButton';
+import { isNativeApp } from '../lib/nativeApp';
 
 interface AuthProps {
   // Sign-up that needs the emailed code: parent shows the email-verification screen.
@@ -128,8 +129,10 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
     }
     setIsLoading(true);
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-      // The site has one page; the app spots the reset link and asks for the new password.
-      redirectTo: window.location.origin,
+      // The site has one page; the app spots the reset link and asks for the new
+      // password. Inside the phone app there's no web address to come back to,
+      // so the link opens the website (Supabase's Site URL) instead.
+      redirectTo: isNativeApp() ? undefined : window.location.origin,
     });
     setIsLoading(false);
     if (resetError) {
@@ -157,6 +160,7 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
         {onClose && (
           <button
             onClick={onClose}
+            aria-label="Close"
             className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-black dark:text-gray-500 dark:hover:text-white transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800"
           >
             <div className="transform scale-75"><IconX /></div>
@@ -184,7 +188,9 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
 
         {mode === 'MENU' && (
           <div className="flex flex-col gap-2.5">
-            {GOOGLE_CLIENT_ID ? (
+            {/* Google doesn't allow its sign-in page inside apps; the apps get
+                the phone's own Google sign-in later, email until then */}
+            {isNativeApp() ? null : GOOGLE_CLIENT_ID ? (
               <GoogleSignInButton
                 clientId={GOOGLE_CLIENT_ID}
                 onSignedIn={onSignInSuccess}
