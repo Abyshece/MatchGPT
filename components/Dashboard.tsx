@@ -6,6 +6,7 @@ import { subscribeToNewMatches } from '../lib/chatService';
 import { supabase } from '../lib/supabase';
 import { IconMenu, IconEdit } from '../constants';
 import { displayName } from '../lib/profileMapping';
+import { BACK, useBackHandler } from '../lib/nativeApp';
 import type { MatchCandidate } from '../types';
 
 // ============================================================================
@@ -104,6 +105,14 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
     setActiveTab('matches');
     setIsMobileMenuOpen(false);
   }, []);
+
+  // Android back button: from any other tab, back to Find Match
+  useBackHandler(BACK.TAB, () => {
+    if (activeTab === 'search') return false;
+    setPendingMatchOpenId(null);
+    setActiveTab('search');
+    return true;
+  });
 
   if (!profile) {
     return (

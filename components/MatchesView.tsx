@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase';
 import ChatList from './ChatList';
 import ChatWindow from './ChatWindow';
 import UpgradeModal from './UpgradeModal';
+import { BACK, useBackHandler } from '../lib/nativeApp';
 import type { MatchSummary } from '../lib/matchesService';
 
 // ============================================================================
@@ -108,6 +109,13 @@ const MatchesView: React.FC<MatchesViewProps> = ({ initialMatchId }) => {
       supabase.removeChannel(channel).catch(() => {});
     };
   }, [userId, fetchMatches]);
+
+  // Android back button in a chat: back to the list of matches
+  useBackHandler(BACK.PAGE, () => {
+    if (!selectedMatchId) return false;
+    setSelectedMatchId(null);
+    return true;
+  });
 
   if (!profile || !settings || !userId) {
     return <div className="p-12 text-center text-gray-400">Loading…</div>;

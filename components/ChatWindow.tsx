@@ -8,6 +8,7 @@ import { unmatch } from '../lib/matchesService';
 import MessageBubble from './MessageBubble';
 import BlockReportModal from './BlockReportModal';
 import { IconChevronLeft, IconCheck, IconX, IconZap } from '../constants';
+import { isNativeApp } from '../lib/nativeApp';
 import type { Message } from '../lib/chatService';
 import type { MatchSummary } from '../lib/matchesService';
 
@@ -348,9 +349,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             )}
           </button>
         </div>
-        <p className="text-[10px] text-gray-400 mt-1.5 text-center">
-          Press Enter to send, Shift+Enter for newline
-        </p>
+        {/* A keyboard hint; phones have no Shift+Enter */}
+        {!isNativeApp() && (
+          <p className="text-[10px] text-gray-400 mt-1.5 text-center">
+            Press Enter to send, Shift+Enter for newline
+          </p>
+        )}
       </div>
 
       {/* Date proposal builder modal */}

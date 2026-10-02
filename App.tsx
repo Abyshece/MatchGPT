@@ -12,6 +12,7 @@ import Dashboard from './components/Dashboard';
 import TermsView from './components/TermsView';
 import PrivacyView from './components/PrivacyView';
 import CookieBanner from './components/CookieBanner';
+import { BACK, isNativeApp, setNativeTheme, useBackHandler } from './lib/nativeApp';
 
 // ============================================================================
 // App (Phase 6 Batch 3)
@@ -84,9 +85,11 @@ const AppRouter: React.FC<{
 
   const isDarkMode = resolveIsDark(themeMode);
 
-  // Apply the dark class to <html> whenever isDarkMode flips
+  // Apply the dark class to <html> whenever isDarkMode flips (and, in the
+  // Android app, colour the status and gesture bars to match)
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDarkMode);
+    setNativeTheme(isDarkMode);
   }, [isDarkMode]);
 
   // Listen for OS preference changes (only matters when mode is 'system')
@@ -216,6 +219,13 @@ const App: React.FC = () => {
     return () => window.removeEventListener('hashchange', handleHash);
   }, []);
 
+  // Android back button on Terms or Privacy: back to where they came from
+  useBackHandler(BACK.PAGE, () => {
+    if (!legalPage) return false;
+    setLegalPage(null);
+    return true;
+  });
+
   return (
     <ToastProvider>
       <AuthProvider>
@@ -224,7 +234,8 @@ const App: React.FC = () => {
             legalPage={legalPage}
             setLegalPage={setLegalPage}
           />
-          <CookieBanner onNavigateToPrivacy={() => setLegalPage('privacy')} />
+          {/* The apps use no cookies or trackers, so they don't ask about them */}
+          {!isNativeApp() && <CookieBanner onNavigateToPrivacy={() => setLegalPage('privacy')} />}
         </div>
       </AuthProvider>
     </ToastProvider>

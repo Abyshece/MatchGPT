@@ -234,7 +234,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
       {showDeleteModal && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 popup-backdrop animate-fade-in">
           <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl w-full max-w-md overflow-hidden p-6 border border-gray-200 dark:border-zinc-800 relative">
-            <button onClick={() => setShowDeleteModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-black dark:hover:text-white"><IconX /></button>
+            <button onClick={() => setShowDeleteModal(false)} aria-label="Close" className="absolute top-4 right-4 text-gray-400 hover:text-black dark:hover:text-white"><IconX /></button>
 
             <div className="text-center mb-6">
               <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4"><IconTrash /></div>

@@ -4,6 +4,7 @@ import { IconChevronRight, IconChevronLeft, IconCheck } from '../../constants';
 import { supabase } from '../../lib/supabase';
 import type { TablesUpdate } from '../../lib/database.types';
 import { useAuth } from '../../lib/AuthContext';
+import { BACK, useBackHandler } from '../../lib/nativeApp';
 import { ChipsField, ChoiceField } from '../ProfileInputs';
 import {
   ANNUAL_INCOME, CASTES, DEGREES, DIETS, DISABILITY, EDUCATION_LEVELS, EMPLOYED_IN, FAMILY_STATUS, FAMILY_TYPE,
@@ -283,6 +284,12 @@ const StepProfileDetails: React.FC<StepProfileDetailsProps> = ({ onComplete, onB
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
+
+  // Android back button: the previous page, or the photos step from the first
+  useBackHandler(BACK.PAGE, () => {
+    if (!isSaving) handlePrev();
+    return true;
+  });
 
   const handleSkip = () => {
     setError(null);
