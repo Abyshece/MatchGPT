@@ -61,7 +61,10 @@ export function useToast(): ToastContextValue {
 // ----------------------------------------------------------------------------
 
 const ToastViewport: React.FC<{ toasts: Toast[] }> = ({ toasts }) => (
-  <div className="fixed top-4 right-4 z-[1000] flex flex-col gap-2 pointer-events-none">
+  <div
+    className="fixed right-4 z-[1000] flex flex-col gap-2 pointer-events-none"
+    style={{ top: 'calc(1rem + var(--safe-top))' }}  // below an iPhone's notch (index.css)
+  >
     {toasts.map((t) => (
       <div
         key={t.id}

@@ -7,6 +7,52 @@ html.native-app {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* The iPhone app's page fills the whole screen, under the notch (or Dynamic
+   Island) and the home bar (lib/nativeApp.ts). --safe-top and --safe-bottom
+   are their heights there and 0 everywhere else; content keeps clear of them. */
+:root {
+  --safe-top: 0px;
+  --safe-bottom: 0px;
+}
+html.native-ios {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+html.native-ios body {
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+  background-color: #ffffff;
+}
+html.native-ios.dark body {
+  background-color: #191919;
+}
+html.native-ios .h-screen {
+  height: calc(100vh - var(--safe-top) - var(--safe-bottom));
+}
+html.native-ios .min-h-screen {
+  min-height: calc(100vh - var(--safe-top) - var(--safe-bottom));
+}
+/* Popups and the side drawers are pinned to the screen's edges */
+html.native-ios .popup-backdrop,
+html.native-ios [data-popup],
+html.native-ios aside.fixed {
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+}
+/* Tall popups stay between the notch and the home bar */
+html.native-ios .max-h-\[90vh\],
+html.native-ios .max-h-\[92vh\],
+html.native-ios .max-h-\[95vh\] {
+  max-height: calc(100vh - var(--safe-top) - var(--safe-bottom) - 1rem);
+}
+/* ...and the menu on a wide screen sits in the page, so needs no room */
+@media (min-width: 768px) {
+  html.native-ios aside.md\:relative {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}
+
 @layer components {
   /* Behind every popup: a light, see-through blur, so the page behind stays
      faintly visible. Change it here and every popup follows. */

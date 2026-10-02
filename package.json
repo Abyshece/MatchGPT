@@ -7,12 +7,14 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "build:android": "vite build && cap sync android"
+    "build:android": "vite build && cap sync android",
+    "build:ios": "vite build && cap sync ios"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",
     "@capacitor/app": "^8.1.2",
     "@capacitor/core": "^8.5.2",
+    "@capacitor/ios": "^8.5.2",
     "@capacitor/splash-screen": "^8.0.2",
     "@google/genai": "^1.30.0",
     "@supabase/supabase-js": "^2.105.3",

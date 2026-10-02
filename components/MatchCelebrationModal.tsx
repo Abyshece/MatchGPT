@@ -54,7 +54,8 @@ const MatchCelebrationModal: React.FC<MatchCelebrationModalProps> = ({
       <button
         onClick={onClose}
         aria-label="Close"
-        className="absolute top-6 right-6 p-2 rounded-full text-white/80 hover:text-white hover:bg-white/20 transition-colors z-50"
+        className="absolute right-6 p-2 rounded-full text-white/80 hover:text-white hover:bg-white/20 transition-colors z-50"
+        style={{ top: 'calc(1.5rem + var(--safe-top))' }}
       >
         <IconX />
       </button>

@@ -6,11 +6,13 @@
 //   - the Android back button: closes the popup on top, else goes back a
 //     screen (useBackHandler), else puts the app in the background
 //   - status and gesture bar colours that follow the app's theme
+//   - on iPhones, the page fills the screen under the notch and the home bar;
+//     index.css keeps the content clear of them (--safe-top, --safe-bottom)
 //   - hiding the launch screen once the app has drawn
 // ============================================================================
 
 import { useEffect, useRef } from 'react';
-import { Capacitor, registerPlugin } from '@capacitor/core';
+import { Capacitor, registerPlugin, SystemBars, SystemBarsStyle } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { SplashScreen } from '@capacitor/splash-screen';
 
@@ -88,11 +90,19 @@ async function onBackButton(): Promise<void> {
 const AppWindow = registerPlugin<{ setTheme(options: { dark: boolean; color: string }): Promise<void> }>('AppWindow');
 let currentDark: boolean | null = null;
 
-/** The strips behind the status and gesture bars take the app's background colour (Android). */
+/**
+ * The status bar follows the app's theme: light text on the dark theme. On
+ * Android the strips behind the status and gesture bars also take the app's
+ * background colour; on iPhones the page itself runs under them.
+ */
 export function setNativeTheme(dark: boolean): void {
   currentDark = dark;
-  if (Capacitor.getPlatform() !== 'android') return;
-  AppWindow.setTheme({ dark, color: dark ? '#191919' : '#ffffff' }).catch(() => {});
+  const platform = Capacitor.getPlatform();
+  if (platform === 'android') {
+    AppWindow.setTheme({ dark, color: dark ? '#191919' : '#ffffff' }).catch(() => {});
+  } else if (platform === 'ios') {
+    SystemBars.setStyle({ style: dark ? SystemBarsStyle.Dark : SystemBarsStyle.Light }).catch(() => {});
+  }
 }
 
 // ---- Start ----------------------------------------------------------------------
@@ -100,6 +110,14 @@ export function setNativeTheme(dark: boolean): void {
 export function startNativeApp(): void {
   if (!isNativeApp()) return;
   document.documentElement.classList.add('native-app');
+  if (Capacitor.getPlatform() === 'ios') {
+    // The page fills an iPhone's screen, under the notch (or Dynamic Island)
+    // and the home bar. viewport-fit=cover makes the browser report their
+    // sizes as env(safe-area-inset-*), which index.css keeps content clear of.
+    document.querySelector('meta[name="viewport"]')
+      ?.setAttribute('content', 'width=device-width, initial-scale=1.0, viewport-fit=cover');
+    document.documentElement.classList.add('native-ios');
+  }
   App.addListener('backButton', () => { void onBackButton(); });
   // Android can repaint the bars itself (the phone switching to dark mode,
   // say); put the app's colours back when it returns to the front.
