@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../lib/AuthContext';
 import { useToast } from '../lib/useToast';
 import { likeUser, hasLiked, unlikeUser } from '../lib/likesService';
@@ -175,11 +176,14 @@ const LikeButton: React.FC<LikeButtonProps> = ({
     );
   }
 
+  // Rendered into <body> through a portal: inside a match card, whose
+  // transform would otherwise squeeze the popup into the card. Clicks still
+  // bubble to the card in React, so the backdrop stops them there.
   function renderConfirmModal() {
-    return (
+    return createPortal(
       <div
-        className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in"
-        onClick={() => setShowConfirm(null)}
+        className="fixed inset-0 z-[300] flex items-center justify-center p-4 popup-backdrop animate-fade-in"
+        onClick={(e) => { e.stopPropagation(); setShowConfirm(null); }}
       >
         <div
           className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl w-full max-w-sm overflow-hidden border border-gray-200 dark:border-zinc-800 p-6"
@@ -215,7 +219,8 @@ const LikeButton: React.FC<LikeButtonProps> = ({
             </p>
           </div>
         </div>
-      </div>
+      </div>,
+      document.body,
     );
   }
 

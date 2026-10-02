@@ -1,3 +1,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  /* Behind every popup: a light, see-through blur, so the page behind stays
+     faintly visible. Change it here and every popup follows. */
+  .popup-backdrop {
+    @apply bg-white/25 backdrop-blur-[6px] dark:bg-black/25;
+  }
+}

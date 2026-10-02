@@ -364,7 +364,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       {/* Unmatch confirm */}
       {showUnmatchConfirm && (
         <div
-          className="fixed inset-0 z-[400] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in"
+          className="fixed inset-0 z-[400] flex items-center justify-center p-4 popup-backdrop animate-fade-in"
           onClick={() => setShowUnmatchConfirm(false)}
         >
           <div
@@ -448,7 +448,7 @@ const DateProposalBuilder: React.FC<DateProposalBuilderProps> = ({ onSend, onClo
 
   return (
     <div
-      className="fixed inset-0 z-[400] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-[400] flex items-center justify-center p-4 popup-backdrop animate-fade-in"
       onClick={onClose}
     >
       <div

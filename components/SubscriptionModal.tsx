@@ -12,7 +12,7 @@ interface SubscriptionModalProps {
 }
 
 const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose, onSubscribe, processingTier, currentTier = 'FREE' }) => (
-    <div className="fixed inset-0 z-[250] flex items-center justify-center p-4 bg-white/70 backdrop-blur-[14px] animate-fade-in overflow-y-auto">
+    <div className="fixed inset-0 z-[250] flex items-center justify-center p-4 popup-backdrop animate-fade-in overflow-y-auto">
       <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-5xl overflow-hidden relative border border-gray-200 dark:border-zinc-800 flex flex-col my-auto">
         <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-black dark:hover:text-white z-20 bg-gray-100 dark:bg-zinc-800 p-1.5 rounded-full transition-colors"><IconX /></button>
         <div className="p-8 pb-4 text-center">

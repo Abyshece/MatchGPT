@@ -125,7 +125,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
     <div className="flex h-screen bg-white dark:bg-[#191919] overflow-hidden relative font-sans">
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-white/50 backdrop-blur-[10px] z-[60] md:hidden animate-fade-in"
+          className="fixed inset-0 popup-backdrop z-[60] md:hidden animate-fade-in"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}

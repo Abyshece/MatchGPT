@@ -118,7 +118,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 z-[200] bg-black/30 backdrop-blur-sm transition-opacity ${
+        className={`fixed inset-0 z-[200] popup-backdrop transition-opacity ${
           isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         onClick={onClose}

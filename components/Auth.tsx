@@ -141,12 +141,14 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
 
   // ---- presentation ----------------------------------------------------------
 
+  // As a popup, the card centres itself with m-auto, so on a short screen it
+  // starts at the top and scrolls instead of being cut off.
   const containerClasses = onClose
-    ? 'fixed inset-0 z-[200] flex items-center justify-center p-4 bg-white/50 backdrop-blur-[10px] animate-fade-in font-sans'
+    ? 'fixed inset-0 z-[200] flex overflow-y-auto p-4 popup-backdrop animate-fade-in font-sans'
     : 'flex flex-col items-center justify-center p-6 min-h-screen bg-white dark:bg-[#191919] font-sans';
 
   const cardClasses = onClose
-    ? 'w-full max-w-[340px] py-6 px-6 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.35)] dark:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.6)] border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 rounded-xl relative'
+    ? 'm-auto w-full max-w-[340px] py-6 px-6 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.35)] dark:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.6)] border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 rounded-xl relative'
     : 'w-full max-w-sm p-8 shadow-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 rounded-xl relative';
 
   return (

@@ -287,7 +287,7 @@ const Wrapper: React.FC<{ onClose: () => void; labelledBy: string; children: Rea
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[500] flex items-end sm:items-center justify-center sm:p-4 bg-black/40 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-[500] flex items-end sm:items-center justify-center sm:p-4 popup-backdrop animate-fade-in"
       onClick={onClose}
     >
       <div

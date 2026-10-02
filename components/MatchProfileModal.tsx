@@ -50,7 +50,7 @@ const MatchProfileModal: React.FC<MatchProfileModalProps> = ({
     const showAnalysis = userTier === 'PRO' || isStandout;
 
     return (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-white/50 backdrop-blur-[10px] animate-fade-in">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 popup-backdrop animate-fade-in">
              <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
                  <div className="p-4 border-b border-gray-100 dark:border-zinc-800 flex justify-between items-center bg-white dark:bg-zinc-900 z-20 flex-none">
                      <h2 className="text-lg font-bold flex items-center gap-2 text-gray-900 dark:text-white"><IconUser /> Profile Details</h2>

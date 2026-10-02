@@ -104,7 +104,7 @@ const SocialVerificationModal: React.FC<SocialVerificationModalProps> = ({ onClo
     const canSubmit = isLinkedInVerified && isInstagramVerified && isFacebookVerified;
 
     return (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-white/60 backdrop-blur-[12px] animate-fade-in font-sans">
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 popup-backdrop animate-fade-in font-sans">
             <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-200 dark:border-zinc-800 flex flex-col max-h-[90vh]">
                 
                 {/* Header */}

@@ -104,7 +104,7 @@ const FilterModal: React.FC<FilterModalProps> = ({ filters, onApply, onClose, us
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-white/65 backdrop-blur-[10px] animate-fade-in">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 popup-backdrop animate-fade-in">
             {/* Widened max-w-3xl for better layout */}
             <div className="bg-white dark:bg-[#191919] rounded-xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden border border-gray-200 dark:border-zinc-800">
                 {/* Header */}
