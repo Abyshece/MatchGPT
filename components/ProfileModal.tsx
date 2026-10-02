@@ -428,7 +428,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
         >
           <button
             onClick={() => setLightbox({ open: false, idx: 0 })}
-            className="absolute top-4 right-4 text-white/70 hover:text-white p-2 z-20"
+            className="absolute right-4 text-white/70 hover:text-white p-2 z-20"
+            style={{ top: 'calc(1rem + var(--safe-top))' }}
             aria-label="Close"
           >
             <IconX />

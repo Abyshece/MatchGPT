@@ -147,9 +147,11 @@ try {
   await page.waitForTimeout(1500);
   await page.getByRole('button', { name: 'Like', exact: true }).first().click();
   await page.getByText(/likes remaining today/).waitFor({ timeout: 5000 });
+  // Back pressed in the first instant, while the popup is still fully faded out
+  await page.evaluate(() => { document.querySelector('.popup-backdrop').style.opacity = '0'; });
   await back(page);
   check(await popups(page) === 0 && !(await page.getByText('Profile Details').first().isVisible().catch(() => false)),
-    "back closes the like popup (and doesn't open the card)");
+    "back closes the like popup, even as it fades in (and doesn't open the card)");
   await page.locator('h3').first().click();
   await page.getByText('Profile Details').first().waitFor({ timeout: 5000 });
   check(await page.getByRole('button', { name: 'Share profile' }).count() === 0, 'no share button (no web address in the app)');
