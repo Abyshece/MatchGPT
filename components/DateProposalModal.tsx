@@ -54,7 +54,7 @@ const DateProposalModal: React.FC<DateProposalModalProps> = ({ onClose, onSend, 
     };
 
     return (
-        <div className="absolute inset-0 z-[100] bg-white/50 backdrop-blur-[10px] flex items-center justify-center p-4">
+        <div className="absolute inset-0 z-[100] popup-backdrop flex items-center justify-center p-4">
             <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl w-full max-w-sm overflow-hidden animate-fade-in border border-gray-200 dark:border-zinc-700">
                 <div className="p-4 border-b border-gray-100 dark:border-zinc-800 flex justify-between items-center">
                     <h3 className="font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">

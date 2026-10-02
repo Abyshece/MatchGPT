@@ -148,11 +148,11 @@ const LandingView: React.FC<LandingViewProps> = ({ onSignupInitiated, onShowLega
         </div>
       </footer>
 
-      {/* Auth modal — rendered as overlay when triggered.
+      {/* Auth modal — given onClose, Auth draws its own popup and backdrop.
           When signup is initiated, the email flows up to App which unmounts
           LandingView and renders EmailVerification. We don't handle that here. */}
       {showAuth && (
-        <AuthModal
+        <Auth
           onClose={() => setShowAuth(false)}
           onSignupInitiated={(email) => {
             setShowAuth(false);          // Close our modal; App will show EmailVerification
@@ -166,40 +166,6 @@ const LandingView: React.FC<LandingViewProps> = ({ onSignupInitiated, onShowLega
           onShowLegal={onShowLegal}
         />
       )}
-    </div>
-  );
-};
-
-// ----------------------------------------------------------------------------
-// AuthModal — wraps the existing Auth component in a centered modal
-// ----------------------------------------------------------------------------
-
-interface AuthModalProps {
-  onClose: () => void;
-  onSignupInitiated: (email: string) => void;
-  onSignInSuccess: () => void;
-  onShowLegal: (page: 'terms' | 'privacy') => void;
-}
-
-const AuthModal: React.FC<AuthModalProps> = ({
-  onClose, onSignupInitiated, onSignInSuccess, onShowLegal,
-}) => {
-  return (
-    <div
-      className="fixed inset-0 z-[400] flex items-center justify-center p-3 sm:p-6 bg-black/50 backdrop-blur-sm animate-fade-in"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl w-full max-w-md max-h-[95vh] overflow-y-auto border border-gray-200 dark:border-zinc-800 relative"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <Auth
-          onSignupInitiated={onSignupInitiated}
-          onSignInSuccess={onSignInSuccess}
-          onClose={onClose}
-          onShowLegal={onShowLegal}
-        />
-      </div>
     </div>
   );
 };

@@ -84,7 +84,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center p-2 sm:p-4 bg-white/50 dark:bg-black/50 backdrop-blur-[10px] animate-fade-in"
+      className="fixed inset-0 z-[200] flex items-center justify-center p-2 sm:p-4 popup-backdrop animate-fade-in"
       onClick={onClose}
     >
       <div

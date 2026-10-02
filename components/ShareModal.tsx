@@ -14,7 +14,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ onClose, match }) => {
     const handleCopy = () => { navigator.clipboard.writeText(shareLink); setCopied(true); setTimeout(() => setCopied(false), 2000); };
     const shareText = `Check out ${match.name}'s profile on MatchGPT!`;
     return (
-        <div className="fixed inset-0 z-[250] flex items-center justify-center p-4 bg-white/50 backdrop-blur-[10px] animate-fade-in">
+        <div className="fixed inset-0 z-[250] flex items-center justify-center p-4 popup-backdrop animate-fade-in">
             <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl w-full max-w-sm overflow-hidden relative">
                  <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"><IconX /></button>
                  <div className="p-6">

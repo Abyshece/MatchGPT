@@ -8,7 +8,7 @@ interface VerificationLockoutModalProps {
 }
 
 const VerificationLockoutModal: React.FC<VerificationLockoutModalProps> = ({ onVerify }) => (
-    <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-white/50 backdrop-blur-[14px] animate-fade-in">
+    <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 popup-backdrop animate-fade-in">
         <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl w-full max-w-sm overflow-hidden p-8 text-center border border-gray-200 dark:border-zinc-800 relative">
             <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
                 <div className="transform scale-125"><IconLock /></div>

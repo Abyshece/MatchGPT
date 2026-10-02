@@ -118,7 +118,7 @@ const ChatSystem: React.FC<ChatSystemProps> = ({ initialMatches = [], onViewProf
       
       {/* ACTION MODALS */}
       {modalAction && (
-          <div className="fixed inset-0 z-[300] bg-white/50 backdrop-blur-[10px] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[300] popup-backdrop flex items-center justify-center p-4">
               <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-xl w-full max-w-sm overflow-hidden animate-fade-in">
                   <div className="p-4 border-b border-gray-100 dark:border-zinc-800 flex justify-between items-center bg-gray-50 dark:bg-zinc-800">
                       <h3 className="font-bold text-gray-800 dark:text-gray-100">{modalAction === 'BLOCK' ? 'Block User' : modalAction === 'REMOVE' ? 'Remove Match' : 'Report User'}</h3>

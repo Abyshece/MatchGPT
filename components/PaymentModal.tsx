@@ -47,7 +47,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ amount, description, onClos
 
     if (isSuccess) {
         return (
-            <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-white/65 backdrop-blur-[10px] animate-fade-in">
+            <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 popup-backdrop animate-fade-in">
                 <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl w-full max-w-sm overflow-hidden p-8 text-center border border-gray-200 dark:border-zinc-800">
                     <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
                         <IconCheck className="w-8 h-8" />
@@ -60,7 +60,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ amount, description, onClos
     }
 
     return (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-white/65 backdrop-blur-[10px] animate-fade-in">
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 popup-backdrop animate-fade-in">
             <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col relative border border-gray-200 dark:border-zinc-800">
                 <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-black dark:hover:text-white z-10 transition-colors">
                     <IconX />
