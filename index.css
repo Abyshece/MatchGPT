@@ -39,6 +39,11 @@ html.native-ios aside.fixed {
   padding-top: var(--safe-top);
   padding-bottom: var(--safe-bottom);
 }
+/* The phone menu has no top of its own and would start below the page's
+   notch room, then add its own: pin it to the screen's top */
+html.native-ios aside.fixed {
+  top: 0;
+}
 /* Tall popups stay between the notch and the home bar */
 html.native-ios .max-h-\[90vh\],
 html.native-ios .max-h-\[92vh\],

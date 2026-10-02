@@ -1,11 +1,13 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 // ============================================================================
-// The phone apps (Android now, iOS later): the same React build as the
-// website (dist/), inside a native shell made by Capacitor.
+// The phone apps (Android and iPhone): the same React build as the website
+// (dist/), inside native shells made by Capacitor.
 //
 //   npm run build:android     web build + copy into android/
 //   cd android && ./gradlew assembleDebug    → app/build/outputs/apk/debug/
+//   npm run build:ios         web build + copy into ios/ (on a Mac)
+//   npx cap open ios          opens Xcode; press Run
 //
 // appId is the package name on Google Play (and the bundle ID on the App
 // Store). It can't be changed once the app has been uploaded to a store.

@@ -70,12 +70,14 @@ async function appPage(colorScheme = 'light') {
 const calls = (page, pluginId, methodName) =>
   page.evaluate(([p, m]) => window.__native.filter((c) => c.pluginId === p && c.methodName === m), [pluginId, methodName]);
 const box = (locator) => locator.first().boundingBox();
-// Top of the highest visible thing inside an element, and bottom of the lowest
-const contentEdges = (page, selector) => page.evaluate((sel) => {
-  const root = document.querySelector(sel);
-  if (!root) return null;
-  const rects = [...root.querySelectorAll('*')].map((el) => el.getBoundingClientRect()).filter((r) => r.width > 0 && r.height > 0);
-  return { top: Math.min(...rects.map((r) => r.top)), bottom: Math.max(...rects.map((r) => r.bottom)) };
+const rect = (page, selector) => page.evaluate((sel) => {
+  const r = document.querySelector(sel)?.getBoundingClientRect();
+  return r ? { top: r.top, bottom: r.bottom } : null;
+}, selector);
+// A fixed panel draws its first child at the top and its last at the bottom
+const innerEdges = (page, selector) => page.evaluate((sel) => {
+  const kids = [...(document.querySelector(sel)?.children ?? [])].filter((k) => k.getBoundingClientRect().height > 0);
+  return kids.length ? { top: kids[0].getBoundingClientRect().top, bottom: kids.at(-1).getBoundingClientRect().bottom } : null;
 }, selector);
 const clear = (edges, what) => check(!!edges && edges.top >= TOP - 0.5 && edges.bottom <= SCREEN.height - BOTTOM + 0.5,
   `${what} stays clear of the notch and the home bar (${edges ? `${Math.round(edges.top)}–${Math.round(edges.bottom)}` : 'missing'})`);
@@ -92,13 +94,17 @@ try {
     if (scheme === 'dark') { await page.context().close(); continue; }
     check(await page.evaluate(() => document.documentElement.classList.contains('native-ios')
       && document.querySelector('meta[name="viewport"]').content.includes('viewport-fit=cover')), 'knows it\'s an iPhone; page runs edge to edge');
-    clear(await contentEdges(page, '#root'), 'the start screen');
+    clear(await rect(page, 'header'), 'the start screen\'s top bar');
     await page.screenshot({ path: `${OUT}1-start.png` });
+    await page.evaluate(() => scrollTo(0, document.scrollingElement.scrollHeight));
+    await page.waitForTimeout(300);
+    clear(await rect(page, 'footer'), 'its footer, scrolled to the end');
+    await page.evaluate(() => scrollTo(0, 0));
     await page.getByRole('button', { name: 'Sign in' }).click();
     await page.getByRole('button', { name: /Continue with Email/ }).waitFor();
     await page.waitForTimeout(400);
     check(await page.getByText('Continue with Google').count() === 0, 'email-only sign-in');
-    clear(await contentEdges(page, '.popup-backdrop'), 'the sign-in popup');
+    clear(await rect(page, '.popup-backdrop > div'), 'the sign-in popup');
     await page.screenshot({ path: `${OUT}2-sign-in.png` });
     await page.context().close();
   }
@@ -114,7 +120,7 @@ try {
   const prompt = page.getByPlaceholder(/Describe your ideal match/);
   await prompt.waitFor({ timeout: 15000 });
   await page.waitForTimeout(600);
-  clear(await contentEdges(page, '#root'), 'Find Match');
+  clear(await rect(page, 'div.h-screen'), 'the app screen');
   check(await page.evaluate(() => document.scrollingElement.scrollHeight <= innerHeight + 1), 'the screen fits without the page itself scrolling');
   await page.screenshot({ path: `${OUT}3-find-match.png` });
 
@@ -129,25 +135,24 @@ try {
   await page.getByTitle('Filters').click();
   await page.getByText('Refine your search pool').waitFor({ timeout: 5000 });
   await page.waitForTimeout(400);
-  clear(await contentEdges(page, 'aside.fixed.right-0'), 'the filters drawer');
+  clear(await innerEdges(page, 'aside.fixed.right-0'), 'the filters drawer');
   await page.screenshot({ path: `${OUT}5-filters.png` });
-  await page.mouse.click(10, 400);
+  await page.locator('aside.fixed.right-0 button[aria-label="Close"]').click();
   await page.waitForTimeout(400);
 
   await page.locator('main button.md\\:hidden').first().click();
   await page.waitForTimeout(500);
-  clear(await contentEdges(page, 'aside.fixed'), 'the menu');
+  clear(await innerEdges(page, 'aside.fixed.h-full'), 'the menu');
   await page.screenshot({ path: `${OUT}6-menu.png` });
   await page.getByText('Get MatchGPT+', { exact: true }).click();
   await page.waitForTimeout(500);
   check(await page.getByText('MatchGPT+ is coming to the app soon.').isVisible(), 'MatchGPT+ "coming to the app soon"');
-  clear(await contentEdges(page, '[role="dialog"]'), 'the MatchGPT+ sheet');
+  clear(await rect(page, '[role="dialog"]'), 'the MatchGPT+ sheet');
   await page.screenshot({ path: `${OUT}7-matchgpt-plus.png` });
   await page.getByRole('button', { name: 'Maybe later' }).click();
   await page.waitForTimeout(400);
 
-  await page.locator('main button.md\\:hidden').first().click();
-  await page.getByText('Matches', { exact: true }).first().click();
+  await page.getByText('Matches', { exact: true }).first().click();  // the menu is still open
   await page.getByText(otherName).first().click();
   await page.waitForTimeout(800);
   const message = page.locator('textarea, input[placeholder*="essage"]');

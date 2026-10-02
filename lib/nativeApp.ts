@@ -44,9 +44,12 @@ export function useBackHandler(priority: number, handler: BackHandler): void {
   }, [priority]);
 }
 
+// Open = on screen and taking taps. Not judged by opacity: popups fade in
+// from 0, and back pressed in that moment must still close them. (The
+// closed filters backdrop stays in the page, but ignores taps.)
 const isShowing = (el: HTMLElement) => {
   const s = getComputedStyle(el);
-  return el.getClientRects().length > 0 && s.opacity !== '0' && s.visibility !== 'hidden' && s.pointerEvents !== 'none';
+  return el.getClientRects().length > 0 && s.visibility !== 'hidden' && s.pointerEvents !== 'none';
 };
 
 // The popup on top. Every popup sits on a .popup-backdrop; the full-screen

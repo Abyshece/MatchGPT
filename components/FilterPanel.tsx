@@ -138,6 +138,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
           </div>
           <button
             onClick={onClose}
+            aria-label="Close"
             className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500 dark:text-gray-400"
           >
             <IconX />
