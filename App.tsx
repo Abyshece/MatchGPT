@@ -13,6 +13,7 @@ import TermsView from './components/TermsView';
 import PrivacyView from './components/PrivacyView';
 import CookieBanner from './components/CookieBanner';
 import { BACK, isNativeApp, setNativeTheme, useBackHandler } from './lib/nativeApp';
+import { startStoreSync, stopStoreSync } from './lib/storePurchases';
 
 // ============================================================================
 // App (Phase 6 Batch 3)
@@ -55,6 +56,25 @@ const AppRouter: React.FC<{
   useEffect(() => {
     if (session) setPendingSignupEmail(null);
   }, [session]);
+
+  // In the phone apps: keep the server's copy of store purchases current
+  // (now and then, and when the app comes back to the front)
+  const userId = session?.user.id;
+  useEffect(() => {
+    if (!isNativeApp()) return;
+    if (!userId) {
+      stopStoreSync();
+      return;
+    }
+    const sync = () => {
+      if (document.visibilityState !== 'visible') return;
+      startStoreSync(userId).then((synced) => { if (synced) refreshProfile(); });
+    };
+    sync();
+    document.addEventListener('visibilitychange', sync);
+    return () => document.removeEventListener('visibilitychange', sync);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
   // An expired or already-used email link (reset, confirmation) lands here
   // with an error in the URL; say so instead of failing silently.

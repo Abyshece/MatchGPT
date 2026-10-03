@@ -19,6 +19,7 @@ export interface DeleteAccountResult {
   success: boolean;
   error: string | null;
   photosDeleted?: number;
+  appStoreRenews?: boolean;  // an App Store subscription renews until the person cancels it
 }
 
 /**
@@ -71,6 +72,7 @@ export async function deleteAccount(input: DeleteAccountInput): Promise<DeleteAc
       success: true,
       error: null,
       photosDeleted: data?.details?.photos_deleted ?? 0,
+      appStoreRenews: !!data?.details?.app_store_renews,
     };
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);

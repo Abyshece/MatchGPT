@@ -7,6 +7,8 @@ import { deleteAccount } from '../lib/deleteAccountService';
 import PushNotifSetup from './PushNotifSetup';
 import BlockedPeopleList from './BlockedPeopleList';
 import SubscriptionSettings from './SubscriptionSettings';
+import { getMySubscription, type Subscription } from '../lib/billingService';
+import { manageStoreSubscription, storeManageHint, storePlatform } from '../lib/storePurchases';
 import {
   IconMoon, IconSun, IconUser, IconLogOut, IconChevronRight, IconTrash, IconX,
 } from '../constants';
@@ -43,6 +45,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({
   const [deleteReason, setDeleteReason] = useState('');
   const [deleteConfirmationInput, setDeleteConfirmationInput] = useState('');
   const [deleting, setDeleting] = useState(false);
+  // A subscription that would keep renewing: what deleting does to it
+  const [renewing, setRenewing] = useState<Subscription | null>(null);
 
   if (!settings || !profile) {
     return <div className="p-12 text-center text-gray-400">Loading…</div>;
@@ -75,6 +79,14 @@ const SettingsView: React.FC<SettingsViewProps> = ({
     setDeleteStep('REASON');
     setDeleteReason('');
     setDeleteConfirmationInput('');
+    setRenewing(null);
+    if (session?.user.id) {
+      getMySubscription(session.user.id).then((s) => {
+        const renews = !!s && ['authenticated', 'active', 'pending', 'halted', 'paused'].includes(s.status)
+          && !s.cancel_at_period_end && s.auto_renew !== false;
+        setRenewing(renews ? s : null);
+      }).catch(() => {});
+    }
   };
 
   const handleFinalDelete = async () => {
@@ -91,7 +103,9 @@ const SettingsView: React.FC<SettingsViewProps> = ({
       return;
     }
     setShowDeleteModal(false);
-    showToast('Account deleted. Goodbye 👋', 'success');
+    showToast(result.appStoreRenews
+      ? `Account deleted. Your App Store subscription is still on: cancel it ${storeManageHint('app_store')}.`
+      : 'Account deleted. Goodbye 👋', result.appStoreRenews ? 'info' : 'success');
     // AuthContext picks up the session-cleared state and redirects to Auth
   };
 
@@ -289,6 +303,28 @@ const SettingsView: React.FC<SettingsViewProps> = ({
                     You will need to sign up again from scratch if you want to use MatchGPT in the future.
                   </p>
                 </div>
+                {renewing && (
+                  <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/40 p-4 rounded-lg text-xs leading-relaxed text-amber-900 dark:text-amber-100" data-testid="delete-subscription-note">
+                    {renewing.provider === 'app_store' ? (
+                      <>
+                        <p className="font-bold mb-1">Your MatchGPT+ subscription won't stop by itself.</p>
+                        <p>
+                          It's billed by the App Store, which only you can cancel. Cancel it first {storeManageHint('app_store')},
+                          or the App Store keeps charging you after your account is gone.
+                        </p>
+                        {storePlatform() === 'ios' && (
+                          <button type="button" onClick={() => manageStoreSubscription().catch(() => {})} className="mt-2 font-semibold underline">
+                            Manage subscription
+                          </button>
+                        )}
+                      </>
+                    ) : renewing.provider === 'google_play' ? (
+                      <p>Deleting your account also stops your Google Play subscription from renewing. Google doesn't refund the rest of the period.</p>
+                    ) : (
+                      <p>Deleting your account cancels your MatchGPT+ subscription straight away; nothing more is charged.</p>
+                    )}
+                  </div>
+                )}
                 <div>
                   <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">
                     Type "Delete" to confirm
