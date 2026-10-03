@@ -8,14 +8,17 @@ import {
 } from '../lib/billingService';
 import { CheckoutClosed, openCheckout } from '../lib/razorpayCheckout';
 import { isNativeApp } from '../lib/nativeApp';
+import { storeName, storePlatform } from '../lib/storePurchases';
+import StoreUpgrade from './StoreUpgrade';
 
 // ============================================================================
-// UpgradeModal: MatchGPT+ (Pro) plans and Razorpay checkout
+// UpgradeModal: MatchGPT+ (Pro) plans
 //
-// Monthly or yearly; first-time subscribers start with the free trial. Until
-// the Razorpay keys are set on the server, the plans show as "coming soon".
-// So do they inside the phone apps, which may only sell through Google's and
-// Apple's own billing (not built yet), never Razorpay.
+// On the website: monthly or yearly through Razorpay checkout; first-time
+// subscribers start with the free trial. Until the Razorpay keys are set on
+// the server, the plans show as "coming soon". Inside the phone apps, which
+// may only sell through Google's and Apple's own billing, StoreUpgrade takes
+// over (never Razorpay).
 // Rendered into <body>, so it isn't trapped inside the sidebar.
 // ============================================================================
 
@@ -31,7 +34,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ reason, resetInHours, onClo
   const [planId, setPlanId] = useState<PlanId>('monthly');
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [done, setDone] = useState<{ trialEndsAt: string | null; renewsAt: string | null; duplicate: boolean } | null>(null);
+  const [done, setDone] = useState<{ trialEndsAt: string | null; renewsAt: string | null; duplicate: boolean; store?: boolean } | null>(null);
 
   const inApp = isNativeApp();
   useEffect(() => {
@@ -134,14 +137,36 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ reason, resetInHours, onClo
               <p className="text-sm text-gray-700 dark:text-gray-300 text-center mb-5">
                 {done.duplicate
                   ? <>This second subscription was cancelled straight away, so you won't pay twice. Anything it charged is refunded.</>
-                  : done.trialEndsAt
-                    ? <>Your free trial runs until <strong>{formatDate(done.trialEndsAt)}</strong>. You'll be charged {price} then, unless you cancel in Settings before.</>
-                    : done.renewsAt
-                      ? <>Paid until <strong>{formatDate(done.renewsAt)}</strong>; it renews automatically. Manage it in Settings.</>
-                      : <>You can manage your subscription in Settings.</>}
+                  : done.store
+                    ? done.trialEndsAt
+                      ? <>Your free trial runs until <strong>{formatDate(done.trialEndsAt)}</strong>. {storeName(storePlatform())} charges you after that, unless you cancel there before.</>
+                      : done.renewsAt
+                        ? <>Paid until <strong>{formatDate(done.renewsAt)}</strong>; it renews automatically through {storeName(storePlatform())}. See it in Settings.</>
+                        : <>You can see your subscription in Settings.</>
+                    : done.trialEndsAt
+                      ? <>Your free trial runs until <strong>{formatDate(done.trialEndsAt)}</strong>. You'll be charged {price} then, unless you cancel in Settings before.</>
+                      : done.renewsAt
+                        ? <>Paid until <strong>{formatDate(done.renewsAt)}</strong>; it renews automatically. Manage it in Settings.</>
+                        : <>You can manage your subscription in Settings.</>}
               </p>
               <button onClick={onClose} className="w-full bg-black dark:bg-white text-white dark:text-black font-bold py-3 rounded-lg hover:opacity-90">
                 {done.duplicate ? 'Close' : 'Start exploring'}
+              </button>
+            </>
+          ) : inApp && !alreadyPro ? (
+            <>
+              <StoreUpgrade
+                paying={paying}
+                setPaying={setPaying}
+                onPurchased={(r) => setDone({ ...r, duplicate: false, store: true })}
+                onClose={onClose}
+              />
+              <button
+                onClick={onClose}
+                disabled={paying}
+                className="w-full text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 mt-1 py-2 disabled:opacity-40"
+              >
+                Maybe later
               </button>
             </>
           ) : (
@@ -226,7 +251,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ reason, resetInHours, onClo
                     {loadingConfig
                       ? ' '
                       : !enabled
-                        ? (inApp ? 'MatchGPT+ is coming to the app soon.' : 'MatchGPT+ is coming soon.')
+                        ? 'MatchGPT+ is coming soon.'
                         : trialDays > 0
                           ? <>Free until {trialEnd}, then {price}. Cancel any time in Settings before then and you won't be charged.</>
                           : <>{price}, renews automatically. Cancel any time in Settings.</>}

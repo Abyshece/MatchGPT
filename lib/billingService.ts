@@ -132,6 +132,24 @@ export function formatRupees(paise: number): string {
   return `₹${rupees.toLocaleString('en-IN', { maximumFractionDigits: Number.isInteger(rupees) ? 0 : 2 })}`;
 }
 
+const ZERO_DECIMAL = new Set(['JPY', 'KRW', 'VND', 'CLP', 'ISK', 'HUF', 'TWD', 'UGX', 'PYG', 'XAF', 'XOF']);
+
+// An amount in the currency's smallest unit, in any currency (store charges
+// can be in the buyer's own): INR as formatRupees, others like "US$11.99"
+export function formatMoney(minor: number, currency: string): string {
+  if (currency === 'INR') return formatRupees(minor);
+  const units = ZERO_DECIMAL.has(currency) ? minor : minor / 100;
+  try {
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency }).format(units);
+  } catch {
+    return `${units} ${currency}`;
+  }
+}
+
+// Who billed a subscription or charge
+export const sellerName = (provider: string | null | undefined) =>
+  provider === 'google_play' ? 'Google Play' : provider === 'app_store' ? 'App Store' : 'Razorpay';
+
 export const periodWord = (period: BillingPlan['period']) => (period === 'yearly' ? 'year' : 'month');
 
 export function formatDate(iso: string | null | undefined): string {

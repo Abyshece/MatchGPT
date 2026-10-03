@@ -27,9 +27,12 @@ The apps are the same React code inside native shells made by
 [Capacitor](https://capacitorjs.com) (`capacitor.config.ts`, `android/`,
 `ios/`). `lib/nativeApp.ts` holds what only the apps do: the Android back
 button, the status and gesture bar colours, the iPhone's notch and home bar
-(with `index.css`), the launch screen. Inside the apps, Google sign-in,
-MatchGPT+ payments and notifications say "coming soon" until their phone
-versions exist; sign-in by email works.
+(with `index.css`), the launch screen. Inside the apps MatchGPT+ is sold
+through Google Play and the App Store, never Razorpay (`lib/storePurchases.ts`,
+`components/StoreUpgrade.tsx`; the server checks each purchase with the store),
+once the subscriptions are set up in the stores (ROADMAP.md, Phase 13); until
+then it says "coming soon". Google sign-in and notifications say "coming soon"
+until their phone versions exist; sign-in by email works.
 
 Both apps need the live Supabase URL and anon key in `.env.production.local`
 (same names as in `.env.local`; Supabase → Project Settings → API); the build

@@ -43,7 +43,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
 
       <article className="max-w-3xl mx-auto px-6 py-10">
         <p className="text-xs text-gray-500 dark:text-gray-400 mb-6">
-          Document version: {PRIVACY_VERSION} · Last updated: September 28, 2026
+          Document version: {PRIVACY_VERSION} · Last updated: October 3, 2026
         </p>
 
         <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-8">
@@ -72,7 +72,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
             <li><strong>Background and family details (all optional):</strong> religion, mother tongue, caste or community, sub-caste, sect or denomination, gotra, whether you are open to marrying outside your community, horoscope details (Manglik status, rashi, nakshatra, time and place of birth), education, occupation, annual income, residential status abroad, family details (family type, status and values, your parents' occupations, brothers and sisters, where your family lives) and any disability you choose to mention</li>
             <li><strong>Activity data:</strong> likes you send and receive, matches, messages, search queries, login history</li>
             <li><strong>Technical data:</strong> IP address, browser type, device information, cookies (see Section 8)</li>
-            <li><strong>Payment data:</strong> if you subscribe to MatchGPT+, Razorpay processes the payment; we never see your card, UPI or bank details. We keep the Razorpay subscription and payment IDs, the plan, amounts, dates, the kind of payment method (card, UPI and so on), the payment status and links to Razorpay's invoices.</li>
+            <li><strong>Payment data:</strong> if you subscribe to MatchGPT+ on the website, Razorpay processes the payment; we never see your card, UPI or bank details. We keep the Razorpay subscription and payment IDs, the plan, amounts, dates, the kind of payment method (card, UPI and so on), the payment status and links to Razorpay's invoices. If you subscribe in our Android or iPhone app, Google Play or Apple processes the payment; we receive and keep the purchase details they send us (the purchase or order IDs, the plan, amounts and currency, dates, whether it renews, refunds), linked to your account by your account's ID, which we pass with the purchase. We also record the fees the payment services charge us.</li>
           </ul>
           <p className="mt-2">
             Some categories — religion, caste or community, sexuality, ethnicity, disability and other
@@ -121,7 +121,8 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
             <li><strong>Supabase (database & auth):</strong> our backend hosting provider, EU/US infrastructure</li>
             <li><strong>Vercel (web hosting):</strong> hosts the website and serves it from edge locations worldwide</li>
             <li><strong>Google (Gemini AI):</strong> the text you type into search is sent to Google's Gemini AI to work out what you're looking for, with emails and phone numbers removed. With it we send the list of answers members have chosen for the searchable questions (for example "Tamil, Marathi" for mother tongue), never names, photos, or which answer belongs to whom. Nothing else from your account or profile is sent. We use Google's free tier, under which Google may use this text to improve its services, so please don't type personal details into search</li>
-            <li><strong>Razorpay (payments):</strong> processes Pro subscription payments, based in India</li>
+            <li><strong>Razorpay (payments):</strong> processes Pro subscription payments on the website, based in India</li>
+            <li><strong>Google Play and Apple (app payments):</strong> process Pro subscriptions bought in our Android and iPhone apps under their own privacy policies; we exchange the purchase details with them to check purchases and keep subscriptions current</li>
             <li><strong>Resend (email):</strong> sends transactional emails — when configured with a real domain</li>
             <li><strong>Law enforcement:</strong> only when legally compelled (court order, subpoena)</li>
           </ul>
@@ -216,7 +217,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
 
         <div className="border-t border-gray-200 dark:border-zinc-800 pt-6 mt-10 text-center">
           <p className="text-xs text-gray-400">
-            This document was last updated on September 28, 2026 and is identified internally as {PRIVACY_VERSION}.
+            This document was last updated on October 3, 2026 and is identified internally as {PRIVACY_VERSION}.
           </p>
         </div>
       </article>
