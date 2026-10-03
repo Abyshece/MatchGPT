@@ -91,11 +91,11 @@ async function accessToken(cfg: GooglePlayConfig): Promise<string> {
   return body.access_token;
 }
 
-async function api<T>(cfg: GooglePlayConfig, method: string, path: string): Promise<T> {
+async function api<T>(cfg: GooglePlayConfig, method: string, path: string, body: unknown = {}): Promise<T> {
   const res = await fetch(`${cfg.apiBase}/androidpublisher/v3/applications/${encodeURIComponent(cfg.packageName)}${path}`, {
     method,
     headers: { Authorization: `Bearer ${await accessToken(cfg)}`, 'Content-Type': 'application/json' },
-    ...(method === 'POST' ? { body: '{}' } : {}),
+    ...(method === 'POST' ? { body: JSON.stringify(body) } : {}),
   });
   const text = await res.text();
   if (!res.ok) throw new GooglePlayError(`Google Play ${method} ${path.split('/tokens/')[0]}: ${res.status} ${text.slice(0, 300)}`, res.status);
@@ -135,6 +135,12 @@ export const getSubscription = (cfg: GooglePlayConfig, purchaseToken: string) =>
 export const acknowledgeSubscription = (cfg: GooglePlayConfig, productId: string, purchaseToken: string) =>
   api<unknown>(cfg, 'POST',
     `/purchases/subscriptions/${encodeURIComponent(productId)}/tokens/${encodeURIComponent(purchaseToken)}:acknowledge`);
+
+// Stops the renewals for good (the account is being deleted); the period paid for runs out as usual
+export const cancelSubscription = (cfg: GooglePlayConfig, purchaseToken: string) =>
+  api<unknown>(cfg, 'POST', `/purchases/subscriptionsv2/tokens/${encodeURIComponent(purchaseToken)}:cancel`, {
+    cancellationContext: { cancellationType: 'DEVELOPER_REQUESTED_STOP_PAYMENTS' },
+  });
 
 // ---- Our view of it --------------------------------------------------------------------
 

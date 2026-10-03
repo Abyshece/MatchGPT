@@ -126,6 +126,8 @@ export interface RazorpayPayment {
   method?: string | null;
   invoice_id?: string | null;
   created_at: number;
+  fee?: number | null;              // Razorpay's fee with GST, once captured
+  amount_refunded?: number | null;
 }
 
 export interface BillingPlan {
@@ -153,7 +155,8 @@ export function subscriptionFields(s: RazorpaySubscription): Record<string, stri
   };
 }
 
-// Our payments row fields from Razorpay's payment.
+// Our payments row fields from Razorpay's payment. Razorpay keeps its fee
+// when a payment is refunded.
 export function paymentFields(p: RazorpayPayment): Record<string, string | number | null> {
   return {
     razorpay_payment_id: p.id,
@@ -163,6 +166,8 @@ export function paymentFields(p: RazorpayPayment): Record<string, string | numbe
     status: p.status,
     method: p.method ?? null,
     paid_at: iso(p.created_at) ?? new Date().toISOString(),
+    ...(typeof p.fee === 'number' ? { fee_amount: p.fee } : {}),
+    refunded_amount: p.status === 'refunded' ? p.amount : Math.min(Math.max(p.amount_refunded ?? 0, 0), p.amount),
   };
 }
 

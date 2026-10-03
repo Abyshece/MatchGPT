@@ -1,7 +1,9 @@
 // ============================================================================
 // Keeping our subscriptions and payments in step with Razorpay (used by the
 // billing, razorpay-webhook and delete-account functions). Pro itself is set
-// by the database: sync_pro_status() after every change.
+// by the database: sync_pro_status() after every change. Subscriptions bought
+// in the phone apps are the stores' to run (storeBilling.ts): everything here
+// leaves them alone (provider = 'razorpay').
 // ============================================================================
 
 import {
@@ -68,14 +70,38 @@ export async function applySubscription(
   if (row.user_id) await rpc('sync_pro_status', { p_user_id: row.user_id });
 }
 
+interface SavedPayment {
+  status: string;
+  amount: number;
+  refunded_amount: number;
+  refunded_at: string | null;
+}
+
+const savedPayment = async (paymentId: string) =>
+  (await rest<SavedPayment[]>(
+    `payments?razorpay_payment_id=eq.${encodeURIComponent(paymentId)}&select=status,amount,refunded_amount,refunded_at`,
+  ))[0] ?? null;
+
+// A late webhook carries an older copy of the payment: what we know was
+// refunded stays refunded
+function refundFields(saved: SavedPayment | null, fields: Record<string, unknown>) {
+  const status = saved?.status === 'refunded' ? 'refunded' : String(fields.status);
+  const amount = Number(fields.amount);
+  const refunded = Math.min(amount, Math.max(
+    saved?.refunded_amount ?? 0, Number(fields.refunded_amount ?? 0), status === 'refunded' ? amount : 0,
+  ));
+  return {
+    status,
+    refunded_amount: refunded,
+    refunded_at: refunded > 0 ? (saved?.refunded_at ?? new Date().toISOString()) : null,
+  };
+}
+
 // Saves (or updates) a charge, with a link to Razorpay's invoice when there is one.
 export async function recordPayment(cfg: RazorpayConfig, row: SubscriptionRow, payment: RazorpayPayment): Promise<void> {
-  // A late webhook carries an older copy of the payment: once we've refunded
-  // it, it stays refunded
-  const [saved] = await rest<{ status: string }[]>(
-    `payments?razorpay_payment_id=eq.${encodeURIComponent(payment.id)}&select=status`,
-  );
-  const status = saved?.status === 'refunded' ? 'refunded' : payment.status;
+  const fields = paymentFields(payment);
+  const refunds = refundFields(await savedPayment(payment.id), fields);
+  const status = refunds.status;
   let invoiceUrl: string | null = null;
   if (payment.invoice_id && status === 'captured') {
     try {
@@ -89,13 +115,30 @@ export async function recordPayment(cfg: RazorpayConfig, row: SubscriptionRow, p
     method: 'POST',
     headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
     body: JSON.stringify({
-      ...paymentFields(payment),
-      status,
+      ...fields,
+      ...refunds,
       ...(invoiceUrl ? { invoice_url: invoiceUrl } : {}),
       user_id: row.user_id,
       subscription_id: row.id,
     }),
   });
+}
+
+// A refund made in Razorpay (the Dashboard, or ours): updates the charge it
+// was for, if it's one of ours. `payment`: the payment as it is after the refund.
+export async function recordRefund(payment: RazorpayPayment): Promise<boolean> {
+  const saved = await savedPayment(payment.id);
+  if (!saved) return false;
+  const fields = paymentFields(payment);
+  await rest(`payments?razorpay_payment_id=eq.${encodeURIComponent(payment.id)}`, {
+    method: 'PATCH',
+    headers: { Prefer: 'return=minimal' },
+    body: JSON.stringify({
+      ...('fee_amount' in fields ? { fee_amount: fields.fee_amount } : {}),
+      ...refundFields(saved, fields),
+    }),
+  });
+  return true;
 }
 
 // Refunds whatever a subscription has charged (for one that shouldn't exist).
@@ -113,7 +156,10 @@ async function refundCharges(cfg: RazorpayConfig, row: SubscriptionRow): Promise
     await rest('payments?on_conflict=razorpay_payment_id', {
       method: 'POST',
       headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-      body: JSON.stringify({ ...paymentFields(payment), status: 'refunded', user_id: row.user_id, subscription_id: row.id }),
+      body: JSON.stringify({
+        ...paymentFields(payment), status: 'refunded', refunded_amount: payment.amount, refunded_at: new Date().toISOString(),
+        user_id: row.user_id, subscription_id: row.id,
+      }),
     });
   }
 }
@@ -124,7 +170,7 @@ async function refundCharges(cfg: RazorpayConfig, row: SubscriptionRow): Promise
 // the same one to keep. Returns the Razorpay ids of those stopped.
 export async function cancelDuplicates(cfg: RazorpayConfig, userId: string): Promise<string[]> {
   const rows = await rest<SubscriptionRow[]>(
-    `subscriptions?user_id=eq.${userId}&mode=eq.${cfg.mode}&status=in.(${LIVE_STATUSES.join(',')})` +
+    `subscriptions?user_id=eq.${userId}&provider=eq.razorpay&mode=eq.${cfg.mode}&status=in.(${LIVE_STATUSES.join(',')})` +
       `&order=live_since.asc.nullslast,created_at.asc,id.asc&select=*`,
   );
   const stopped: string[] = [];
@@ -153,12 +199,13 @@ export async function cancelDuplicates(cfg: RazorpayConfig, userId: string): Pro
   return stopped;
 }
 
-// Before an account is deleted: stop every subscription that could still
-// charge. Returns the problems (the account must not be deleted while a
-// subscription might keep charging).
+// Before an account is deleted: stop every Razorpay subscription that could
+// still charge. Returns the problems (the account must not be deleted while a
+// subscription might keep charging). The stores' are stopped by
+// stopStoreRenewals (storeBilling.ts).
 export async function cancelAllSubscriptions(cfg: RazorpayConfig | null, userId: string): Promise<string[]> {
   const rows = await rest<SubscriptionRow[]>(
-    `subscriptions?user_id=eq.${userId}&status=in.(${OPEN_STATUSES.join(',')})&select=*`,
+    `subscriptions?user_id=eq.${userId}&provider=eq.razorpay&status=in.(${OPEN_STATUSES.join(',')})&select=*`,
   );
   const problems: string[] = [];
   for (const row of rows) {

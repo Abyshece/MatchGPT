@@ -162,7 +162,8 @@ export function appleState(tx: AppleTransaction, renewal: AppleRenewalInfo | nul
     productId: tx.productId ?? null,
     basePlanId: null,
     mode: tx.environment === 'Production' ? 'live' : 'test',
-    trialEndsAt: inTrial ? iso(tx.expiresDate) : null,
+    // (a revoked trial gives nothing: Pro reads a cancelled row's trial end)
+    trialEndsAt: inTrial && status !== 'cancelled' ? iso(tx.expiresDate) : null,
     currentStart: inTrial ? null : iso(tx.purchaseDate),
     currentEnd: inTrial ? null : currentEnd,
     autoRenew,

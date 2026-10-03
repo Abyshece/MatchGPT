@@ -71,8 +71,13 @@ Deno.test("Razorpay's subscription and payment become our rows", () => {
   }), false, 'an unknown status is not written');
   assertEquals(paymentFields({ id: 'pay_1', amount: 99900, currency: 'INR', status: 'captured', method: 'upi', invoice_id: 'inv_1', created_at: 1790500000 }), {
     razorpay_payment_id: 'pay_1', razorpay_invoice_id: 'inv_1', amount: 99900, currency: 'INR', status: 'captured',
-    method: 'upi', paid_at: '2026-09-27T09:06:40.000Z',
+    method: 'upi', paid_at: '2026-09-27T09:06:40.000Z', refunded_amount: 0,
   });
+  const captured = { id: 'pay_2', amount: 99900, currency: 'INR', status: 'captured', created_at: 1790500000, fee: 2358 };
+  assertEquals(paymentFields(captured).fee_amount, 2358, "Razorpay's fee");
+  assertEquals(paymentFields({ ...captured, amount_refunded: 50000 }).refunded_amount, 50000, 'a part refunded');
+  assertEquals(paymentFields({ ...captured, status: 'refunded', amount_refunded: 0 }).refunded_amount, 99900, 'refunded in full');
+  assertEquals(paymentFields({ ...captured, amount_refunded: 500000 }).refunded_amount, 99900, 'never more than was paid');
 });
 
 Deno.test("API calls: Basic auth, JSON body; Razorpay's error description on failure", async () => {

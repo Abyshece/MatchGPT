@@ -113,7 +113,10 @@ export type Database = {
       billing_plans: {
         Row: {
           amount: number
+          apple_product_id: string | null
           currency: string
+          google_base_plan_id: string | null
+          google_product_id: string | null
           id: string
           is_active: boolean
           name: string
@@ -125,7 +128,10 @@ export type Database = {
         }
         Insert: {
           amount: number
+          apple_product_id?: string | null
           currency?: string
+          google_base_plan_id?: string | null
+          google_product_id?: string | null
           id: string
           is_active?: boolean
           name: string
@@ -137,7 +143,10 @@ export type Database = {
         }
         Update: {
           amount?: number
+          apple_product_id?: string | null
           currency?: string
+          google_base_plan_id?: string | null
+          google_product_id?: string | null
           id?: string
           is_active?: boolean
           name?: string
@@ -441,27 +450,40 @@ export type Database = {
           amount: number
           created_at: string
           currency: string
+          fee_amount: number | null
+          fee_estimated: boolean
           id: string
           invoice_url: string | null
           method: string | null
           paid_at: string
+          provider: string
           razorpay_invoice_id: string | null
-          razorpay_payment_id: string
+          razorpay_payment_id: string | null
+          refunded_amount: number
+          refunded_at: string | null
           status: string
+          store_order_id: string | null
           subscription_id: string | null
           user_id: string | null
+          payment_net: number | null
         }
         Insert: {
           amount: number
           created_at?: string
           currency?: string
+          fee_amount?: number | null
+          fee_estimated?: boolean
           id?: string
           invoice_url?: string | null
           method?: string | null
           paid_at?: string
+          provider?: string
           razorpay_invoice_id?: string | null
-          razorpay_payment_id: string
+          razorpay_payment_id?: string | null
+          refunded_amount?: number
+          refunded_at?: string | null
           status: string
+          store_order_id?: string | null
           subscription_id?: string | null
           user_id?: string | null
         }
@@ -469,13 +491,19 @@ export type Database = {
           amount?: number
           created_at?: string
           currency?: string
+          fee_amount?: number | null
+          fee_estimated?: boolean
           id?: string
           invoice_url?: string | null
           method?: string | null
           paid_at?: string
+          provider?: string
           razorpay_invoice_id?: string | null
-          razorpay_payment_id?: string
+          razorpay_payment_id?: string | null
+          refunded_amount?: number
+          refunded_at?: string | null
           status?: string
+          store_order_id?: string | null
           subscription_id?: string | null
           user_id?: string | null
         }
@@ -1236,6 +1264,7 @@ export type Database = {
       }
       subscriptions: {
         Row: {
+          auto_renew: boolean | null
           cancel_at_period_end: boolean
           created_at: string
           current_end: string | null
@@ -1245,14 +1274,19 @@ export type Database = {
           live_since: string | null
           mode: string
           plan_id: string
-          razorpay_subscription_id: string
+          provider: string
+          razorpay_subscription_id: string | null
           razorpay_updated_at: string | null
           status: string
+          store_product_id: string | null
+          store_subscription_id: string | null
+          store_updated_at: string | null
           trial_ends_at: string | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
+          auto_renew?: boolean | null
           cancel_at_period_end?: boolean
           created_at?: string
           current_end?: string | null
@@ -1262,14 +1296,19 @@ export type Database = {
           live_since?: string | null
           mode: string
           plan_id: string
-          razorpay_subscription_id: string
+          provider?: string
+          razorpay_subscription_id?: string | null
           razorpay_updated_at?: string | null
           status?: string
+          store_product_id?: string | null
+          store_subscription_id?: string | null
+          store_updated_at?: string | null
           trial_ends_at?: string | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
+          auto_renew?: boolean | null
           cancel_at_period_end?: boolean
           created_at?: string
           current_end?: string | null
@@ -1279,9 +1318,13 @@ export type Database = {
           live_since?: string | null
           mode?: string
           plan_id?: string
-          razorpay_subscription_id?: string
+          provider?: string
+          razorpay_subscription_id?: string | null
           razorpay_updated_at?: string | null
           status?: string
+          store_product_id?: string | null
+          store_subscription_id?: string | null
+          store_updated_at?: string | null
           trial_ends_at?: string | null
           updated_at?: string
           user_id?: string | null
@@ -1394,6 +1437,40 @@ export type Database = {
       admin_ban_user: {
         Args: { reason: string; target_id: string }
         Returns: undefined
+      }
+      admin_finance_summary: {
+        Args: { p_mode?: string; p_months?: number }
+        Returns: Json
+      }
+      admin_list_payments: {
+        Args: {
+          p_from?: string
+          p_limit?: number
+          p_mode?: string
+          p_offset?: number
+          p_provider?: string
+          p_to?: string
+        }
+        Returns: {
+          amount: number
+          currency: string
+          fee_amount: number
+          fee_estimated: boolean
+          id: string
+          method: string
+          mode: string
+          net_amount: number
+          order_id: string
+          paid_at: string
+          plan_id: string
+          provider: string
+          refunded_amount: number
+          refunded_at: string
+          status: string
+          user_email: string
+          user_id: string
+          user_name: string
+        }[]
       }
       admin_list_reports: {
         Args: { p_pending_only?: boolean }
@@ -1521,6 +1598,10 @@ export type Database = {
       increment_push_failure: { Args: { sub_id: string }; Returns: undefined }
       is_admin: { Args: never; Returns: boolean }
       mark_messages_read: { Args: { p_match_id: string }; Returns: number }
+      payment_net: {
+        Args: { p: Database["public"]["Tables"]["payments"]["Row"] }
+        Returns: number
+      }
       save_vapid_keys: {
         Args: { p_private_key: string; p_public_key: string }
         Returns: {

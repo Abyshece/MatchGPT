@@ -89,7 +89,7 @@ async function google(req: Request, url: URL): Promise<Response> {
     const voided = msg.voidedPurchaseNotification;
     if (voided?.orderId) {
       // productType 1 = subscription
-      await refundCharge('google_play', voided.orderId, at.toISOString());
+      await refundCharge('google_play', voided.orderId, at);
       if (voided.purchaseToken && voided.productType === 1) await applyGooglePurchase(cfg, voided.purchaseToken, null, at);
     }
     const token = msg.subscriptionNotification?.purchaseToken;

@@ -82,8 +82,9 @@ grant select (id, user_id, subscription_id, provider, razorpay_payment_id, razor
   on public.payments to authenticated;
 
 -- ---- Admin: the money ----------------------------------------------------------------
--- What a charge brought in after refunds and the seller's fee (a partly
--- refunded charge keeps that share of its fee).
+-- What a charge brought in after refunds and the seller's fee. Razorpay keeps
+-- its fee when a payment is refunded; the stores give back their commission
+-- on what they refund.
 create function public.payment_net(p public.payments)
 returns integer
 language sql
@@ -91,15 +92,18 @@ immutable
 set search_path = ''
 as $$
   select (p.amount - p.refunded_amount)
-       - case when p.amount > 0
+       - case when p.provider = 'razorpay' then coalesce(p.fee_amount, 0)
+              when p.amount > 0
               then round(coalesce(p.fee_amount, 0)::numeric * (p.amount - p.refunded_amount) / p.amount)::integer
               else 0 end;
 $$;
 
 -- The Finance tab: subscribers now, recurring revenue, and money by month and
--- seller. Rupee totals count INR charges only; other currencies (people paying
--- abroad through a store) are totalled separately in other_currencies.
-create function public.admin_finance_summary(p_months integer default 12)
+-- seller, for real money (p_mode 'live') or tests ('test': Razorpay test keys,
+-- Play license testers, App Store sandbox). Rupee totals count INR charges
+-- only; other currencies (people paying abroad through a store) are totalled
+-- separately in other_currencies.
+create function public.admin_finance_summary(p_months integer default 12, p_mode text default 'live')
 returns jsonb
 language plpgsql
 stable
@@ -108,6 +112,7 @@ set search_path = ''
 as $$
 declare
   v_months integer := greatest(1, least(coalesce(p_months, 12), 36));
+  v_mode text := case when p_mode = 'test' then 'test' else 'live' end;
   v_from timestamptz := date_trunc('month', now()) - make_interval(months => v_months - 1);
   v_result jsonb;
 begin
@@ -119,13 +124,16 @@ begin
     -- Subscriptions giving Pro right now
     select s.*, (s.status = 'authenticated') as in_trial
       from public.subscriptions s
-     where s.status in ('authenticated', 'active', 'pending')
+     where s.mode = v_mode
+       and s.status in ('authenticated', 'active', 'pending')
        and coalesce(case when s.status = 'authenticated' then s.trial_ends_at end, s.current_end, s.trial_ends_at) > now()
   ),
   charges as (
     select p.*, public.payment_net(p) as net
       from public.payments p
+      left join public.subscriptions s on s.id = p.subscription_id
      where p.status in ('captured', 'refunded')
+       and coalesce(s.mode, 'live') = v_mode
   ),
   months as (
     select generate_series(v_from, date_trunc('month', now()), interval '1 month') as month
@@ -143,6 +151,7 @@ begin
   )
   select jsonb_build_object(
     'currency', 'INR',
+    'mode', v_mode,
     'generated_at', now(),
     'subscribers', (select jsonb_build_object(
         'total', count(*),
@@ -160,7 +169,7 @@ begin
               from live l join public.billing_plans b on b.id = l.plan_id
              where not l.in_trial),
     'cancelled_last_30_days', (select count(*) from public.subscriptions s
-       where s.ended_at > now() - interval '30 days' and s.status in ('cancelled', 'expired', 'completed')),
+       where s.mode = v_mode and s.ended_at > now() - interval '30 days' and s.status in ('cancelled', 'expired', 'completed')),
     'months', coalesce((select jsonb_agg(jsonb_build_object(
         'month', to_char(m.month, 'YYYY-MM'),
         'gross', coalesce((select sum(gross) from by_month b where b.month = m.month), 0),
@@ -187,11 +196,12 @@ end;
 $$;
 
 -- Every charge, newest first, with who paid: for the Finance tab's list and
--- its CSV export.
+-- its CSV export. p_mode: 'live' or 'test' (null: both).
 create function public.admin_list_payments(
   p_from timestamptz default null,
   p_to timestamptz default null,
   p_provider text default null,
+  p_mode text default null,
   p_limit integer default 100,
   p_offset integer default 0
 )
@@ -217,7 +227,7 @@ begin
            s.plan_id, p.user_id, pr.name, u.email::text,
            p.amount, p.currency, p.status, p.method,
            p.fee_amount, p.fee_estimated, p.refunded_amount, p.refunded_at,
-           public.payment_net(p), s.mode
+           public.payment_net(p), coalesce(s.mode, 'live')
       from public.payments p
       left join public.subscriptions s on s.id = p.subscription_id
       left join public.profiles pr on pr.id = p.user_id
@@ -225,6 +235,7 @@ begin
      where (p_from is null or p.paid_at >= p_from)
        and (p_to is null or p.paid_at < p_to)
        and (p_provider is null or p.provider = p_provider)
+       and (p_mode is null or coalesce(s.mode, 'live') = p_mode)
      order by p.paid_at desc, p.id
      limit greatest(1, least(coalesce(p_limit, 100), 5000))
     offset greatest(0, coalesce(p_offset, 0));
@@ -232,8 +243,8 @@ end;
 $$;
 
 revoke all on function public.payment_net(public.payments) from public, anon, authenticated;
-revoke all on function public.admin_finance_summary(integer) from public, anon;
-revoke all on function public.admin_list_payments(timestamptz, timestamptz, text, integer, integer) from public, anon;
+revoke all on function public.admin_finance_summary(integer, text) from public, anon;
+revoke all on function public.admin_list_payments(timestamptz, timestamptz, text, text, integer, integer) from public, anon;
 grant execute on function public.payment_net(public.payments) to service_role;
-grant execute on function public.admin_finance_summary(integer) to authenticated;
-grant execute on function public.admin_list_payments(timestamptz, timestamptz, text, integer, integer) to authenticated;
+grant execute on function public.admin_finance_summary(integer, text) to authenticated;
+grant execute on function public.admin_list_payments(timestamptz, timestamptz, text, text, integer, integer) to authenticated;
