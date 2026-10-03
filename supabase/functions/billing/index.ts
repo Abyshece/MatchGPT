@@ -55,9 +55,19 @@ const text = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
 
 async function currentSubscription(userId: string, mode: string): Promise<SubscriptionRow | null> {
   const rows = await rest<SubscriptionRow[]>(
-    `subscriptions?user_id=eq.${userId}&mode=eq.${mode}&status=in.(${LIVE_STATUSES.join(',')})&order=created_at.desc&limit=1&select=*`,
+    `subscriptions?user_id=eq.${userId}&provider=eq.razorpay&mode=eq.${mode}&status=in.(${LIVE_STATUSES.join(',')})` +
+      `&order=created_at.desc&limit=1&select=*`,
   );
   return rows[0] ?? null;
+}
+
+// MatchGPT+ bought in one of the phone apps: the store bills it, so it's
+// managed (and cancelled) there
+async function storeSubscription(userId: string): Promise<string | null> {
+  const [row] = await rest<{ provider: string }[]>(
+    `subscriptions?user_id=eq.${userId}&provider=neq.razorpay&status=in.(${LIVE_STATUSES.join(',')})&limit=1&select=provider`,
+  );
+  return row ? (row.provider === 'app_store' ? 'the App Store' : 'Google Play') : null;
 }
 
 // One free trial per person: only if they have never had a subscription go through
@@ -106,6 +116,8 @@ async function subscribe(cfg: RazorpayConfig, me: Me, body: Record<string, unkno
   if (await currentSubscription(me.id, cfg.mode)) {
     return json({ error: 'You already have MatchGPT+.', code: 'ALREADY_SUBSCRIBED' }, 409);
   }
+  const store = await storeSubscription(me.id);
+  if (store) return json({ error: `You already have MatchGPT+ through ${store}.`, code: 'ALREADY_SUBSCRIBED' }, 409);
   const plan = (await activePlans()).find((p) => p.id === planId);
   if (!plan) return json({ error: 'That plan is not available.', code: 'BAD_PLAN' }, 400);
 
@@ -192,7 +204,14 @@ async function verify(cfg: RazorpayConfig, me: Me, body: Record<string, unknown>
 
 async function cancel(cfg: RazorpayConfig, me: Me): Promise<Response> {
   const row = await currentSubscription(me.id, cfg.mode);
-  if (!row) return json({ error: "You don't have a subscription to cancel.", code: 'NO_SUBSCRIPTION' }, 404);
+  if (!row) {
+    const store = await storeSubscription(me.id);
+    if (store) {
+      const where = store === 'Google Play' ? 'the Play Store app (Payments & subscriptions)' : 'your iPhone (Settings → your name → Subscriptions)';
+      return json({ error: `Your MatchGPT+ is billed by ${store}. Cancel it in ${where}.`, code: 'STORE_SUBSCRIPTION' }, 409);
+    }
+    return json({ error: "You don't have a subscription to cancel.", code: 'NO_SUBSCRIPTION' }, 404);
+  }
   // Nothing charged yet (free trial): cancel now and keep the trial. Last
   // charge failed: cancel now, so Razorpay stops retrying it. Otherwise keep
   // Pro to the end of the period paid for.
@@ -209,7 +228,8 @@ async function cancel(cfg: RazorpayConfig, me: Me): Promise<Response> {
 
 async function refresh(cfg: RazorpayConfig, me: Me): Promise<Response> {
   const rows = await rest<SubscriptionRow[]>(
-    `subscriptions?user_id=eq.${me.id}&mode=eq.${cfg.mode}&status=in.(${OPEN_STATUSES.join(',')})&order=created_at.desc&limit=3&select=*`,
+    `subscriptions?user_id=eq.${me.id}&provider=eq.razorpay&mode=eq.${cfg.mode}&status=in.(${OPEN_STATUSES.join(',')})` +
+      `&order=created_at.desc&limit=3&select=*`,
   );
   for (const row of rows) {
     const entity = await razorpay<RazorpaySubscription>(cfg, 'GET', `/subscriptions/${row.razorpay_subscription_id}`);

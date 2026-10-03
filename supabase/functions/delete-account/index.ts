@@ -8,7 +8,9 @@
 //   2. Function verifies JWT and extracts auth user ID
 //   3. Function uses service_role to:
 //      0) Cancel any MatchGPT+ subscription that could still charge (Razorpay);
-//         if that fails, nothing is deleted
+//         if that fails, nothing is deleted. Google Play renewals are stopped
+//         too (best effort); Apple only lets people cancel themselves, which
+//         the app asks them to do first (details.app_store_renews).
 //      a) Delete all photos from Storage (best-effort)
 //      b) Write an audit log entry (kept for legal retention)
 //      c) Delete the auth.users row → cascades to profiles, likes, matches, messages, etc.
@@ -28,6 +30,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { withCors } from '../_shared/cors.ts';
 import { razorpayConfig } from '../_shared/razorpay.ts';
 import { cancelAllSubscriptions } from '../_shared/billing.ts';
+import { stopStoreRenewals } from '../_shared/storeBilling.ts';
 
 interface DeleteRequestBody {
   reason?: string;
@@ -41,6 +44,7 @@ interface DeleteResponse {
     photos_deleted: number;
     storage_errors: number;
     audit_log_id: string;
+    app_store_renews: boolean;  // an App Store subscription will renew until they cancel it
   };
 }
 
@@ -109,6 +113,13 @@ serve(withCors(async (req: Request): Promise<Response> => {
       success: false,
       error: "Your MatchGPT+ subscription couldn't be cancelled, so your account wasn't deleted. Please try again, or write to support@matchgpt.com.",
     }, 502);
+  }
+  let appStoreRenews = false;
+  try {
+    const store = await stopStoreRenewals(userId);
+    appStoreRenews = store.some((s) => s.provider === 'app_store');
+  } catch (e) {
+    console.warn('[delete-account] store renewals not checked:', e instanceof Error ? e.message : String(e));
   }
 
   // ---- Service-role client for admin operations ----
@@ -190,6 +201,7 @@ serve(withCors(async (req: Request): Promise<Response> => {
       photos_deleted: photosDeleted,
       storage_errors: storageErrors,
       audit_log_id: auditLogId,
+      app_store_renews: appStoreRenews,
     },
   });
 }));

@@ -3,7 +3,8 @@
 //
 // Razorpay calls this when a subscription changes: approved (a trial starts),
 // activated, charged (each renewal), pending (a renewal failed and is being
-// retried), halted, cancelled, completed, paused, resumed. It checks the
+// retried), halted, cancelled, completed, paused, resumed; and when a refund
+// goes through (refund.processed), so the finance figures show it. It checks the
 // X-Razorpay-Signature header against RAZORPAY_WEBHOOK_SECRET, skips
 // deliveries it has handled before (X-Razorpay-Event-Id), updates the
 // subscription and its payments, and the database updates the user's Pro.
@@ -15,7 +16,7 @@
 //   URL     https://<project>.supabase.co/functions/v1/razorpay-webhook
 //   Secret  the same value as the RAZORPAY_WEBHOOK_SECRET secret
 //   Events  subscription.* (authenticated, activated, charged, pending, halted,
-//           cancelled, completed, updated, paused, resumed)
+//           cancelled, completed, updated, paused, resumed) and refund.processed
 //
 // Deployed with JWT verification off: Razorpay signs its requests instead.
 // ============================================================================
@@ -25,7 +26,7 @@ import {
   type RazorpayConfig, type RazorpayPayment, type RazorpaySubscription,
 } from '../_shared/razorpay.ts';
 import { errorText, rest, serviceConfigured } from '../_shared/serviceRest.ts';
-import { applySubscription, cancelDuplicates, findSubscription, recordPayment } from '../_shared/billing.ts';
+import { applySubscription, cancelDuplicates, findSubscription, recordPayment, recordRefund } from '../_shared/billing.ts';
 
 interface RazorpayEvent {
   event: string;
@@ -33,6 +34,7 @@ interface RazorpayEvent {
   payload?: {
     subscription?: { entity?: RazorpaySubscription };
     payment?: { entity?: RazorpayPayment };
+    refund?: { entity?: { id: string; payment_id: string; amount: number } };
   };
 }
 
@@ -89,13 +91,17 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   const entity = event.payload?.subscription?.entity;
-  const eventId = req.headers.get('x-razorpay-event-id') || `${event.event}:${entity?.id ?? ''}:${event.created_at}`;
+  const refunded = event.event === 'refund.processed' ? event.payload?.payment?.entity : undefined;
+  const eventId = req.headers.get('x-razorpay-event-id') ||
+    `${event.event}:${entity?.id ?? event.payload?.refund?.entity?.id ?? ''}:${event.created_at}`;
   const seen = await rest<unknown[]>(`billing_events?id=eq.${encodeURIComponent(eventId)}&select=id`);
   if (seen.length > 0) return json({ ok: true, duplicate: true });
 
   try {
     if (typeof event.event === 'string' && event.event.startsWith('subscription.') && entity?.id) {
       await handleSubscriptionEvent(cfg, event, entity);
+    } else if (refunded?.id) {
+      await recordRefund(refunded);
     }
     await rest('billing_events', {
       method: 'POST',
