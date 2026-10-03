@@ -129,7 +129,8 @@ export async function listMyPayments(userId: string): Promise<Payment[]> {
 // 99900 → "₹999", 999900 → "₹9,999"
 export function formatRupees(paise: number): string {
   const rupees = paise / 100;
-  return `₹${rupees.toLocaleString('en-IN', { maximumFractionDigits: Number.isInteger(rupees) ? 0 : 2 })}`;
+  const digits = Number.isInteger(rupees) ? 0 : 2;  // ₹999, or ₹849.15 and ₹1,698.30
+  return `${rupees < 0 ? '-' : ''}₹${Math.abs(rupees).toLocaleString('en-IN', { minimumFractionDigits: digits, maximumFractionDigits: digits })}`;
 }
 
 const ZERO_DECIMAL = new Set(['JPY', 'KRW', 'VND', 'CLP', 'ISK', 'HUF', 'TWD', 'UGX', 'PYG', 'XAF', 'XOF']);

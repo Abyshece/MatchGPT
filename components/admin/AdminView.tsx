@@ -9,21 +9,24 @@ import type { PlatformStats, ReportRow, AdminAuditRow } from '../../lib/adminSer
 import AdminUsersTab from './AdminUsersTab';
 import AdminReportsTab from './AdminReportsTab';
 import AdminVerificationsTab from './AdminVerificationsTab';
+import AdminFinanceTab from './AdminFinanceTab';
 
 // ============================================================================
 // AdminView
 //
-// Three-tab admin panel:
+// Admin panel tabs:
 //   1. Dashboard — platform stats + recent audit log
 //   2. Reports — pending reports queue
-//   3. Users — search any user, take actions
+//   3. Verifications — identity checks waiting for a decision
+//   4. Users — search any user, take actions
+//   5. Finance — subscribers, revenue by month and seller, every charge (CSV)
 //
 // Access is decided by the database (is_admin(): the signed-in email must be
 // in admin_emails). If a non-admin somehow reaches this view they see "Access
 // denied", and the admin RPCs refuse them anyway.
 // ============================================================================
 
-type AdminTab = 'dashboard' | 'reports' | 'verifications' | 'users';
+type AdminTab = 'dashboard' | 'reports' | 'verifications' | 'users' | 'finance';
 
 const AdminView: React.FC = () => {
   const { profile } = useAuth();
@@ -92,12 +95,12 @@ const AdminView: React.FC = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 mb-6 border-b border-gray-200 dark:border-zinc-800">
-          {(['dashboard', 'reports', 'verifications', 'users'] as const).map((t) => (
+        <div className="flex gap-1 mb-6 border-b border-gray-200 dark:border-zinc-800 overflow-x-auto">
+          {(['dashboard', 'reports', 'verifications', 'users', 'finance'] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors capitalize ${
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors capitalize whitespace-nowrap ${
                 tab === t
                   ? 'border-blue-500 text-blue-600 dark:text-blue-400'
                   : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
@@ -121,6 +124,7 @@ const AdminView: React.FC = () => {
         {tab === 'reports' && <AdminReportsTab onAuditUpdate={loadDashboard} />}
         {tab === 'verifications' && <AdminVerificationsTab onAuditUpdate={loadDashboard} />}
         {tab === 'users' && <AdminUsersTab onAuditUpdate={loadDashboard} />}
+        {tab === 'finance' && <AdminFinanceTab />}
       </div>
     </div>
   );

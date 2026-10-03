@@ -21,7 +21,7 @@ Items left unfinished in earlier phases were moved into later ones, so each open
 | 10 | Launch readiness → public launch | To do — next |
 | 11 | Payments (MatchGPT+ via Razorpay) | Built; waiting for your Razorpay account |
 | 12 | Profile details for India (community, family, horoscope) | **Done** |
-| 13 | The phone apps, ready for Google Play and the App Store | Under way (payments on the server done) |
+| 13 | The phone apps, ready for Google Play and the App Store | Under way (payments, in-app buying and the Finance tab done) |
 
 ---
 
@@ -345,8 +345,27 @@ Migration `20261003203818_phase13_store_billing` (applied live); edge functions 
   Leave it out on Google Play for now, or have the plugin patched to pick the trial (a small change to
   its Android code)
 
+### Admin Finance tab (done 2026-10-03)
+Admin → Finance. Migration `20261003214808_phase13_finance_india_months` (applied live).
+
+- [x] Subscribers now (paying and on free trial, by store and plan), monthly recurring revenue, how
+  many won't renew, how many ended in the last 30 days
+- [x] This month's net, paid and store fees (last month's net beside it), and net since launch
+- [x] Net revenue by month, stacked by seller (Google Play, App Store, website), for 6, 12 or 24
+  months: hover, tap or use the arrow keys for a month's figures; the same numbers as a table. The
+  colours are checked for colour blindness in light and dark mode
+- [x] Every charge: date, customer, seller, plan, order id, amount, fee (marked when estimated),
+  refund, net and status; by seller and month (picking a month on the chart lists its charges), with
+  rupee totals; 50 at a time
+- [x] Export CSV of the charges shown (any number): amounts in rupees, dates in India time, ready for
+  the accounts. In the phone apps it opens the share sheet (Save to Files, Drive, email…)
+- [x] Live money and test purchases kept apart. Months now run by India time (a payment at 00:30 on the
+  1st counts in that month, not the one before); a failed charge nets ₹0; charges in other currencies
+  are noted apart from the rupee figures
+- [x] Tests: `tests/e2e/admin-finance.mjs` (56 checks: every figure, the chart by mouse, keyboard and
+  touch, filters, the CSV, phone width, dark mode, the Android share sheet, non-admins refused)
+
 ### Still to do in this phase
-- [ ] Admin Finance tab: the figures above as a dashboard, the list of charges, CSV export
 - [ ] Notifications on Android and iPhone (Firebase Cloud Messaging)
 - [ ] Google sign-in in the apps, and Sign in with Apple on iPhone
 - [ ] Password reset by code in the app; an account-deletion page on the web (Google Play requires one)
