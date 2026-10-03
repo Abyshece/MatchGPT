@@ -42,7 +42,7 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => {
 
       <article className="max-w-3xl mx-auto px-6 py-10">
         <p className="text-xs text-gray-500 dark:text-gray-400 mb-6">
-          Document version: {TERMS_VERSION} · Last updated: May 11, 2026
+          Document version: {TERMS_VERSION} · Last updated: October 3, 2026
         </p>
 
         <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-8">
@@ -103,12 +103,19 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => {
             <li>Annual: ₹9,999 per year (saves ~17%)</li>
             <li>Free trial: 7 days for new Pro users</li>
           </ul>
-          <p>Subscriptions auto-renew until cancelled. You may cancel at any time via Settings.
-          Cancellation takes effect at the end of the current billing period.</p>
+          <p>In our Android and iPhone apps, MatchGPT+ is sold through Google Play and the App Store.
+          The store takes the payment, shows the price in your local currency (which may differ from
+          the prices above and include local taxes), and its own terms apply to the purchase.</p>
+          <p>Subscriptions auto-renew until cancelled. You may cancel at any time: on the website, in
+          Settings; for a subscription bought in an app, in Google Play or in your Apple ID's
+          subscriptions (Settings in the app shows how). Cancellation takes effect at the end of the
+          current billing period.</p>
           <p><strong>Refunds:</strong> We do not generally offer refunds for partially-used subscription
           periods. Exceptions may be made at our discretion for technical issues that prevented
-          you from using the service.</p>
-          <p>Payments are processed by Razorpay. We do not store your card details.</p>
+          you from using the service. Refunds for purchases made in the apps are requested from
+          Google Play or Apple and follow their policies.</p>
+          <p>On the website, payments are processed by Razorpay; in the apps, by Google Play or Apple.
+          We never see or store your card details.</p>
           <p>We reserve the right to change pricing with at least 30 days' notice to active
           subscribers. New pricing applies at your next renewal.</p>
         </Section>
@@ -117,7 +124,8 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => {
           <p>New users may receive a 7-day free trial of Pro features. After the trial, you will
           be auto-charged at the standard rate unless you cancel before the trial ends.</p>
           <p>You can cancel anytime during the trial without being charged. Only one free trial
-          per user.</p>
+          per user. In the apps, whether a trial is offered, how long it lasts and who can have one
+          is set by Google Play or the App Store and shown before you confirm.</p>
         </Section>
 
         <Section title="7. Matching, no guarantees">
@@ -180,7 +188,7 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => {
 
         <div className="border-t border-gray-200 dark:border-zinc-800 pt-6 mt-10 text-center">
           <p className="text-xs text-gray-400">
-            This document was last updated on May 11, 2026 and is identified internally as {TERMS_VERSION}.
+            This document was last updated on October 3, 2026 and is identified internally as {TERMS_VERSION}.
           </p>
         </div>
       </article>

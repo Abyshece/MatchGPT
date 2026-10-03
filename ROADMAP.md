@@ -320,9 +320,32 @@ Migration `20261003203818_phase13_store_billing` (applied live); edge functions 
 - [ ] The stores' payout reports are the final word on fees and tax; the finance figures estimate the
   stores' fees at 15% (set `STORE_FEE_PERCENT_GOOGLE_PLAY` / `STORE_FEE_PERCENT_APP_STORE` if yours differ)
 
+### Buying MatchGPT+ inside the apps (done 2026-10-03)
+- [x] In the apps, MatchGPT+ opens Google's or Apple's own payment sheet at the store's price (in the
+  person's currency), never Razorpay. The purchase carries the account's id, and the server checks it
+  with the store before Pro turns on. MatchGPT+ belongs to the account, so it works on both phones
+- [x] Next to the button, what the stores require: length and price, that it renews until cancelled,
+  where to cancel, Terms of Use and Privacy Policy, Restore purchases. On iPhone the free trial shows
+  when the App Store offers one
+- [x] Closing the payment sheet changes nothing; a payment still going through (some UPI and cash
+  methods, Apple's Ask to Buy) says MatchGPT+ turns on once it does; a plan already bought is restored
+- [x] The app catches up with the store when it opens (at most every 6 hours) and in Settings; on
+  iPhone, renewals and refunds the App Store delivers while it runs are passed on to the server
+- [x] Settings → MatchGPT+: which store bills it, trial / renewal / end dates, payment problems, Manage
+  subscription (opens the store's own page), payments with refunds, Restore purchases
+- [x] Deleting an account warns first that an App Store subscription keeps charging until the person
+  cancels it (with a button to do it); Google Play renewals are stopped; a website one is cancelled
+- [x] Terms (`terms-v2-2026-10-03`) and Privacy Policy (`privacy-v5-2026-10-03`) cover buying in the
+  apps; "Download my data" now includes subscriptions and payments
+  (`20261003211748_phase13_export_billing`, applied live)
+- [x] Tests: `tests/e2e/app-purchases.mjs` (30 checks, both phones), plus the Android, iPhone, popup
+  and website billing tests again
+- [ ] Free trials on Android: the purchase plugin uses the first offer Google lists for a plan, so a
+  free-trial offer in Play Console may or may not be used (Google's sheet always shows the real terms).
+  Leave it out on Google Play for now, or have the plugin patched to pick the trial (a small change to
+  its Android code)
+
 ### Still to do in this phase
-- [ ] Buying MatchGPT+ inside the apps: the store's own payment sheet, restore purchases, manage
-  subscription, Settings and payment history that know which store billed
 - [ ] Admin Finance tab: the figures above as a dashboard, the list of charges, CSV export
 - [ ] Notifications on Android and iPhone (Firebase Cloud Messaging)
 - [ ] Google sign-in in the apps, and Sign in with Apple on iPhone
