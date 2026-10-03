@@ -33,7 +33,7 @@ export interface BillingConfig {
 export type Subscription = Tables<'subscriptions'>;
 // What people may read of their own payments (not the fees we paid)
 const MY_PAYMENT_COLUMNS = 'id,user_id,subscription_id,provider,razorpay_payment_id,razorpay_invoice_id,invoice_url,store_order_id,amount,currency,status,method,paid_at,refunded_amount,refunded_at,created_at';
-export type Payment = Omit<Tables<'payments'>, 'fee_amount' | 'fee_estimated' | 'payment_net'>;
+export type Payment = Omit<Tables<'payments'>, 'fee_amount' | 'fee_estimated'>;
 
 // The prices in the Terms, shown until the server answers
 export const DEFAULT_PLANS: BillingPlan[] = [

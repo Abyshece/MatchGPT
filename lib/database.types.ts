@@ -465,7 +465,6 @@ export type Database = {
           store_order_id: string | null
           subscription_id: string | null
           user_id: string | null
-          payment_net: number | null
         }
         Insert: {
           amount: number

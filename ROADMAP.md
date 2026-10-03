@@ -1,6 +1,7 @@
 # MatchGPT roadmap
 
-12 phases in total. Phases 1–5, 7–9 and 12 are done, Phase 6 is mostly done; **Phase 10 is next**.
+13 phases in total. Phases 1–5, 7–9 and 12 are done, Phase 6 is mostly done; **Phase 13 (the phone apps
+ready for the stores) is under way**, then Phase 10.
 AI search (Gemini) is built and live; it switches on once you add the `GEMINI_API_KEY` secret (Phase 9).
 Payments (MatchGPT+ through Razorpay, Phase 11) are built too and switch on once you add the Razorpay keys.
 Items left unfinished in earlier phases were moved into later ones, so each open item appears once.
@@ -20,6 +21,7 @@ Items left unfinished in earlier phases were moved into later ones, so each open
 | 10 | Launch readiness → public launch | To do — next |
 | 11 | Payments (MatchGPT+ via Razorpay) | Built; waiting for your Razorpay account |
 | 12 | Profile details for India (community, family, horoscope) | **Done** |
+| 13 | The phone apps, ready for Google Play and the App Store | Under way (payments on the server done) |
 
 ---
 
@@ -254,7 +256,8 @@ edge functions `billing` and `razorpay-webhook` (deployed, idle without keys).
   3. Check that Subscriptions is available on the account, and turn on Flash Checkout (Account & Settings)
   4. Account & Settings → Webhooks → add one: URL
      `https://fmrbzzdjtarsaqvfukum.supabase.co/functions/v1/razorpay-webhook`, a secret you make up (a long
-     random string), and every `subscription.*` event
+     random string), every `subscription.*` event and `refund.processed` (refunds made in the Dashboard
+     then show in the finance figures)
   5. Supabase → Edge Functions → Secrets: `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`
      (optional: `PRO_TRIAL_DAYS`, default 7). Then I test it end to end with Razorpay's test cards
 - [ ] **Owner, to take real payments:** finish Razorpay's activation (KYC), generate **live** keys, add the
@@ -263,6 +266,68 @@ edge functions `billing` and `razorpay-webhook` (deployed, idle without keys).
   say in the Terms whether prices include GST
 - [ ] Decide when to start charging; then turn off `PRO_FOR_ALL` (today everyone sees the Likes You list for
   free) and make every Pro check follow one rule (the like button and chat ignore `PRO_FOR_ALL` today)
+
+---
+
+## Phase 13 — The phone apps, ready for Google Play and the App Store
+Started 2026-10-03. The apps sell MatchGPT+ through the stores (their rules for digital subscriptions);
+the website keeps Razorpay. Every subscription and charge, whoever sold it, lands in the same tables, so
+the money is in one place.
+
+### Payments on the server (done 2026-10-03)
+Migration `20261003203818_phase13_store_billing` (applied live); edge functions `store-billing` and
+`store-notifications` (new), `billing`, `razorpay-webhook` and `delete-account` (redeployed).
+
+- [x] Store products: Play Console subscription `matchgpt_plus` with base plans `monthly` and `yearly`;
+  App Store `matchgpt_plus_monthly` and `matchgpt_plus_yearly` (in `billing_plans`)
+- [x] The app reports a purchase; the server checks it with Google (Play Developer API) or by Apple's
+  signature (the chain up to Apple's root certificate), saves it and turns Pro on. A purchase belongs to
+  the account the app tagged it with, so it can't be passed to someone else. "Restore purchases" too
+- [x] The stores' notifications keep it current: renewals (each a charge), renewal turned off and on,
+  grace period (Pro stays), on hold and billing retry (Pro off), recovered, expired, refunds and
+  revocations, changes of plan. Each delivery is handled once; old news never undoes newer news
+- [x] Finance record for every seller: what was paid, the seller's fee (Razorpay's actual fee; the
+  stores' 15% commission estimated, `STORE_FEE_PERCENT_*`), refunds (whole or part, including ones made
+  in Razorpay's Dashboard), net; real money and tests kept apart. People see their own payments but
+  not the fees
+- [x] For the admin Finance tab: `admin_finance_summary()` (subscribers by seller and plan, monthly
+  recurring revenue, cancellations, 12 months of gross / refunds / fees / net by seller) and
+  `admin_list_payments()` (every charge with who paid, for the list and CSV export). Admins only
+- [x] The website can't sell a second subscription to someone who has one from a store, and points them
+  to the store to cancel. Deleting an account stops its Google Play renewal; an App Store one can only be
+  cancelled by the person, which the app will ask them to do first
+- [x] Tests: 13 unit tests (`_shared/stores_test.ts`, including Apple's real root certificate), 106 checks
+  against a Google Play / App Store stand-in (`tests/e2e/store-billing.mjs`, `store-standin.cjs`), and the
+  website's Razorpay flow again (48 checks)
+- [ ] **Owner, Google Play** (once the app is in Play Console):
+  1. Monetize → Subscriptions: create `matchgpt_plus` with base plans `monthly` (₹999, renews monthly) and
+     `yearly` (₹9,999, renews yearly); optionally a 7-day free-trial offer on each for new customers
+  2. Google Cloud console: a service account with a JSON key. Play Console → Users and permissions →
+     invite its email with "View financial data" and "Manage orders and subscriptions"
+  3. Supabase → Edge Functions → Secrets: `GOOGLE_PLAY_SERVICE_ACCOUNT` (the whole JSON key file) and
+     `GOOGLE_RTDN_SECRET` (a long random string you make up)
+  4. Real-time developer notifications: a Pub/Sub topic (give
+     `google-play-developer-notifications@system.gserviceaccount.com` the Publisher role on it) with a push
+     subscription to `https://fmrbzzdjtarsaqvfukum.supabase.co/functions/v1/store-notifications?provider=google&secret=<GOOGLE_RTDN_SECRET>`;
+     then Play Console → Monetization setup → that topic → "Send test notification"
+- [ ] **Owner, App Store** (once the app is in App Store Connect):
+  1. Agreements, Tax and Banking: the Paid Apps agreement, bank and tax details (needed to sell anything);
+     join the App Store Small Business Program (15% commission instead of 30% in the first year)
+  2. Subscriptions: a group "MatchGPT+" with `matchgpt_plus_monthly` (₹999) and `matchgpt_plus_yearly`
+     (₹9,999); optionally a 1-week free trial as the introductory offer
+  3. App Information → App Store Server Notifications → Version 2, for production and sandbox:
+     `https://fmrbzzdjtarsaqvfukum.supabase.co/functions/v1/store-notifications?provider=apple`
+- [ ] The stores' payout reports are the final word on fees and tax; the finance figures estimate the
+  stores' fees at 15% (set `STORE_FEE_PERCENT_GOOGLE_PLAY` / `STORE_FEE_PERCENT_APP_STORE` if yours differ)
+
+### Still to do in this phase
+- [ ] Buying MatchGPT+ inside the apps: the store's own payment sheet, restore purchases, manage
+  subscription, Settings and payment history that know which store billed
+- [ ] Admin Finance tab: the figures above as a dashboard, the list of charges, CSV export
+- [ ] Notifications on Android and iPhone (Firebase Cloud Messaging)
+- [ ] Google sign-in in the apps, and Sign in with Apple on iPhone
+- [ ] Password reset by code in the app; an account-deletion page on the web (Google Play requires one)
+- [ ] Release builds, store listings, privacy answers, screenshots and the launch checklist
 
 ---
 
