@@ -10,6 +10,8 @@
 //   POST /__halt/<sub>             retries used up (halted)
 //   POST /__end/<sub>?days_ago=N   a cancelled subscription reaches its end
 //   POST /__resend                 the last webhook again (same event id)
+//   POST /__refund/<payment>?amount=N  a refund made in the Dashboard (all of it
+//                                  without amount), with its refund.processed webhook
 //   GET  /__subs, GET /__stats
 //
 //   node tests/e2e/razorpay-standin.cjs     # :8788, keys rzp_test_local / local_secret
@@ -61,6 +63,10 @@ function newPayment(sub, { amount, status, withInvoice }) {
   const payment = {
     id: newId('pay'), entity: 'payment', amount, currency: 'INR', status, method: 'card',
     invoice_id: null, description: 'Recurring Payment via Subscription', created_at: now(),
+    amount_refunded: status === 'refunded' ? amount : 0,
+    // Razorpay's fee: 2% plus 18% GST on it
+    fee: status === 'captured' ? Math.round(amount * 0.0236) : null,
+    tax: status === 'captured' ? Math.round(amount * 0.0036) : null,
   };
   if (withInvoice) {
     const invoice = {
@@ -129,6 +135,19 @@ http.createServer(async (req, res) => {
       case '__subs': return send(res, 200, [...subs.values()]);
       case '__resend': return send(res, 200, lastWebhook
         ? await webhook(lastWebhook.event, null, null, lastWebhook.eventId, lastWebhook.body) : { none: true });
+      case '__refund': {
+        const payment = payments.get(parts[1]);
+        if (!payment) return fail(res, 404, 'no such payment');
+        const amount = Number(url.searchParams.get('amount') || payment.amount - payment.amount_refunded);
+        payment.amount_refunded += amount;
+        if (payment.amount_refunded >= payment.amount) payment.status = 'refunded';
+        const refund = { id: newId('rfnd'), entity: 'refund', amount, currency: 'INR', payment_id: payment.id, status: 'processed', created_at: now() };
+        const raw = JSON.stringify({
+          entity: 'event', account_id: 'acc_local', event: 'refund.processed', contains: ['refund', 'payment'],
+          payload: { refund: { entity: refund }, payment: { entity: { ...payment } } }, created_at: now(),
+        });
+        return send(res, 200, await webhook('refund.processed', null, null, newId('evt'), raw));
+      }
     }
     if (!sub) return fail(res, 404, 'no such subscription');
     const sent = [];

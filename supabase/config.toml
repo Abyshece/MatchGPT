@@ -442,3 +442,12 @@ verify_jwt = false
 # Called by Razorpay, which signs its requests instead (razorpay-webhook/index.ts).
 [functions.razorpay-webhook]
 verify_jwt = false
+
+# Checks the signed-in user itself (supabase/functions/store-billing/index.ts).
+[functions.store-billing]
+verify_jwt = false
+
+# Called by Google Play (a secret in the URL) and the App Store (signed
+# payloads) instead (store-notifications/index.ts).
+[functions.store-notifications]
+verify_jwt = false

@@ -86,7 +86,17 @@ async function saveSubscription(
   provider: StoreProvider, storeId: string, existing: StoreSubscriptionRow | null, userId: string | null,
   planId: string, state: StoreState, at: Date,
 ): Promise<StoreSubscriptionRow> {
-  if (existing?.store_updated_at && Date.parse(existing.store_updated_at) > at.getTime()) return existing;
+  if (existing?.store_updated_at && Date.parse(existing.store_updated_at) > at.getTime()) {
+    if (existing.user_id || !userId) return existing;
+    // Newer news is saved already, but the subscription has no account (its
+    // own was deleted): it's this one's now
+    const [row] = await rest<StoreSubscriptionRow[]>(`subscriptions?id=eq.${existing.id}&user_id=is.null&select=${ROW}`, {
+      method: 'PATCH',
+      headers: { Prefer: 'return=representation' },
+      body: JSON.stringify({ user_id: userId, updated_at: new Date().toISOString() }),
+    });
+    return row ?? existing;
+  }
 
   const fields = {
     provider,

@@ -20,7 +20,7 @@ x509.cryptoProvider.set(crypto);
 
 // Apple Root CA - G3 (SHA-256 63:34:3A:BF:…:3E:91:79), valid until 2039.
 // From https://www.apple.com/certificateauthority/
-const APPLE_ROOT_CA_G3 =
+export const APPLE_ROOT_CA_G3 =
   'MIICQzCCAcmgAwIBAgIILcX8iNLFS5UwCgYIKoZIzj0EAwMwZzEbMBkGA1UEAwwSQXBwbGUgUm9vdCBDQSAtIEczMSYwJAYDVQQL' +
   'DB1BcHBsZSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eTETMBEGA1UECgwKQXBwbGUgSW5jLjELMAkGA1UEBhMCVVMwHhcNMTQwNDMw' +
   'MTgxOTA2WhcNMzkwNDMwMTgxOTA2WjBnMRswGQYDVQQDDBJBcHBsZSBSb290IENBIC0gRzMxJjAkBgNVBAsMHUFwcGxlIENlcnRp' +
