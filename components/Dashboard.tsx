@@ -154,6 +154,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
         <div className="flex-none flex items-center p-4 border-b border-gray-100 dark:border-zinc-800 z-20 bg-white dark:bg-[#191919]">
           <button
             onClick={() => setIsMobileMenuOpen(true)}
+            aria-label="Menu"
             className="md:hidden text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors mr-2"
           >
             <IconMenu />
