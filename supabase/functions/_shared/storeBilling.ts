@@ -124,10 +124,18 @@ async function saveSubscription(
   }
   const [row] = await rest<StoreSubscriptionRow[]>(`subscriptions?on_conflict=provider,store_subscription_id&select=${ROW}`, {
     method: 'POST',
-    headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+    headers: { Prefer: 'resolution=ignore-duplicates,return=representation' },
     body: JSON.stringify({ ...fields, user_id: userId }),
   });
-  return row;
+  if (row) return row;
+  // Saved a moment ago by another report of the same purchase: update that
+  // one, if it's this account's
+  const saved = await findRow(provider, storeId);
+  if (!saved) throw new Error(`subscription ${provider}/${storeId} not saved`);
+  if (saved.user_id && userId && saved.user_id !== userId) {
+    throw new StorePurchaseError('This purchase belongs to another MatchGPT account.', 'OTHER_ACCOUNT');
+  }
+  return await saveSubscription(provider, storeId, saved, userId, planId, state, at);
 }
 
 // The charge behind a state, once per store order, with the store's

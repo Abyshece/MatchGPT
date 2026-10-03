@@ -28,7 +28,8 @@ alter table public.billing_plans
 update public.billing_plans
    set google_product_id = 'matchgpt_plus',
        google_base_plan_id = id,
-       apple_product_id = 'matchgpt_plus_' || id;
+       apple_product_id = 'matchgpt_plus_' || id
+ where google_product_id is null;
 
 -- ---- Subscriptions from any seller -------------------------------------------------
 alter table public.subscriptions

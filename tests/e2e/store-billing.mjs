@@ -182,6 +182,28 @@ const trial = await store('/__google/purchase', { userId: me, basePlan: 'monthly
   check(empty.status === 400, 'a missing purchase is refused');
 }
 
+log('2b. Reported twice at once');
+{
+  const verify = (token, purchaseToken) => fn('store-billing', token, { action: 'verify', platform: 'android', purchaseToken });
+  const p = await store('/__google/purchase', { userId: me, basePlan: 'monthly' });
+  const [r1, r2] = await Promise.all([verify(tokenA, p.purchaseToken), verify(tokenA, p.purchaseToken)]);
+  check(r1.status === 200 && r2.status === 200 && sql(`select count(*) from subscriptions where store_subscription_id = '${p.purchaseToken}';`) === '1',
+    'the app and a retry together: both fine, one subscription');
+  check(payments(`store_order_id = '${p.orderId}'`).length === 1, 'one charge');
+  // A purchase with no account on it (bought outside the app), claimed by two at once
+  const q = await store('/__google/purchase', { basePlan: 'monthly' });
+  const [x, y] = await Promise.all([verify(tokenA, q.purchaseToken), verify(tokenB, q.purchaseToken)]);
+  const winner = x.status === 200 ? me : other;
+  check([x.status, y.status].sort().join() === '200,400' && [x, y].some((r) => r.body?.code === 'OTHER_ACCOUNT') &&
+    subRow('google_play', q.purchaseToken)?.userId === winner, 'claimed by two accounts at once: the first keeps it');
+  await store(`/__google/expire/${enc(p.purchaseToken)}`, {});
+  await store(`/__google/expire/${enc(q.purchaseToken)}`, {});
+  check(tier(other) === 'FREE' && tier(me) === 'PRO', '(both expired again; the trial goes on)');
+  const both = `'${p.purchaseToken}', '${q.purchaseToken}'`;
+  sql(`delete from payments where subscription_id in (select id from subscriptions where store_subscription_id in (${both}));
+    delete from subscriptions where store_subscription_id in (${both});`);
+}
+
 log('3. The trial ends and Google charges');
 {
   const r = await store(`/__google/renew/${enc(trial.purchaseToken)}`, {});
