@@ -5,9 +5,13 @@ import { Capacitor } from '@capacitor/core';
 import App from './App';
 import { startNativeApp } from './lib/nativeApp';
 
-// The website's account-deletion page (Google Play asks for one), on its own
-const DeleteAccountPage = lazy(() => import('./components/DeleteAccountPage'));
-const onDeletePage = !Capacitor.isNativePlatform() && /^\/delete-account\/?$/.test(window.location.pathname);
+// Pages of the website that stand on their own: account deletion (Google
+// Play asks for one) and support (the stores' Support URL)
+const PAGES = new Map<string, React.LazyExoticComponent<React.FC>>([
+  ['delete-account', lazy(() => import('./components/DeleteAccountPage'))],
+  ['support', lazy(() => import('./components/SupportPage'))],
+]);
+const Page = Capacitor.isNativePlatform() ? undefined : PAGES.get(window.location.pathname.replace(/^\/|\/$/g, ''));
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -19,9 +23,9 @@ console.log('MatchGPT Application Mounted');
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    {onDeletePage ? (
+    {Page ? (
       <Suspense fallback={null}>
-        <DeleteAccountPage />
+        <Page />
       </Suspense>
     ) : (
       <App />

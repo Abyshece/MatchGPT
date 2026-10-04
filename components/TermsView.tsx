@@ -42,7 +42,7 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => {
 
       <article className="max-w-3xl mx-auto px-6 py-10">
         <p className="text-xs text-gray-500 dark:text-gray-400 mb-6">
-          Document version: {TERMS_VERSION} · Last updated: October 3, 2026
+          Document version: {TERMS_VERSION} · Last updated: October 4, 2026
         </p>
 
         <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-8">
@@ -72,7 +72,7 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => {
           <p>You agree NOT to:</p>
           <ul className="list-disc list-inside space-y-1 ml-2">
             <li>Use the service for any unlawful, fraudulent, or harmful purpose</li>
-            <li>Harass, threaten, stalk, or intimidate other users</li>
+            <li>Harass, threaten, stalk, insult, or intimidate other users, or post hateful, abusive or obscene words</li>
             <li>Send unsolicited commercial messages or spam</li>
             <li>Solicit money, financial information, or favors from other users</li>
             <li>Post nudity, sexually explicit content, or content depicting violence</li>
@@ -84,6 +84,11 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => {
             <li>Upload viruses, malware, or other harmful code</li>
             <li>Bypass security features or access controls</li>
           </ul>
+          <p>There is no tolerance on MatchGPT for objectionable content or abusive users. Messages
+          and profile text with words we don't allow are refused before anyone sees them. You can
+          report a profile or a conversation (⋯ → Report) and block anyone (⋯ → Block user). We
+          review every report within 24 hours, remove content that breaks these Terms, and ban the
+          people who post it.</p>
           <p>We reserve the right to investigate suspected violations and take action including
           warning, temporary suspension, or permanent ban — with or without notice.</p>
         </Section>
@@ -142,8 +147,9 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => {
         </Section>
 
         <Section title="8. Account termination">
-          <p>You may delete your account at any time via Settings → Delete Account. All your
-          personal data will be deleted in accordance with our Privacy Policy.</p>
+          <p>You may delete your account at any time via Settings → Delete Account, or without the
+          app on our website's Delete account page. All your personal data will be deleted in
+          accordance with our Privacy Policy.</p>
           <p>We may suspend or terminate your account at our discretion for violations of these
           Terms, suspected fraud, or behavior that harms other users. We will provide notice
           when reasonably possible.</p>
@@ -188,7 +194,7 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => {
 
         <div className="border-t border-gray-200 dark:border-zinc-800 pt-6 mt-10 text-center">
           <p className="text-xs text-gray-400">
-            This document was last updated on October 3, 2026 and is identified internally as {TERMS_VERSION}.
+            This document was last updated on October 4, 2026 and is identified internally as {TERMS_VERSION}.
           </p>
         </div>
       </article>

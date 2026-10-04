@@ -2,8 +2,10 @@
 // Shared CORS handling for the edge functions.
 //
 // Set the ALLOWED_ORIGINS secret to the site origins that may call these
-// functions from a browser (comma-separated):
-//   npx supabase secrets set ALLOWED_ORIGINS=https://shaadigpt.com,http://localhost:3000
+// functions from a browser (comma-separated), the phone apps' too (the
+// Android app's pages come from https://localhost, the iPhone app's from
+// capacitor://localhost):
+//   npx supabase secrets set ALLOWED_ORIGINS=https://shaadi-gpt.vercel.app,https://localhost,capacitor://localhost
 //
 // If ALLOWED_ORIGINS is unset, every origin is allowed (the previous
 // behaviour), so deploying this before setting the secret breaks nothing.
