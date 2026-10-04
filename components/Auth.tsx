@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { TERMS_VERSION, PRIVACY_VERSION } from '../lib/consentService';
 import { GOOGLE_CLIENT_ID } from '../lib/googleSignIn';
 import GoogleSignInButton from './GoogleSignInButton';
+import NativeSignInButtons from './NativeSignInButtons';
 import { isNativeApp } from '../lib/nativeApp';
 
 interface AuthProps {
@@ -188,9 +189,14 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
 
         {mode === 'MENU' && (
           <div className="flex flex-col gap-2.5">
-            {/* Google doesn't allow its sign-in page inside apps; the apps get
-                the phone's own Google sign-in later, email until then */}
-            {isNativeApp() ? null : GOOGLE_CLIENT_ID ? (
+            {/* Google doesn't allow its sign-in page inside apps: the apps use
+                the phone's own sign-in sheets (Google, and Apple on iPhones) */}
+            {isNativeApp() ? (
+              <NativeSignInButtons
+                onSignedIn={onSignInSuccess}
+                onError={(message) => { setInfo(null); setError(message); }}
+              />
+            ) : GOOGLE_CLIENT_ID ? (
               <GoogleSignInButton
                 clientId={GOOGLE_CLIENT_ID}
                 onSignedIn={onSignInSuccess}

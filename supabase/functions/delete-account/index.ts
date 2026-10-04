@@ -11,6 +11,8 @@
 //         if that fails, nothing is deleted. Google Play renewals are stopped
 //         too (best effort); Apple only lets people cancel themselves, which
 //         the app asks them to do first (details.app_store_renews).
+//         Sign in with Apple is ended for MatchGPT too, as Apple asks (best
+//         effort; _shared/appleSignIn.ts).
 //      a) Delete all photos from Storage (best-effort)
 //      b) Write an audit log entry (kept for legal retention)
 //      c) Delete the auth.users row → cascades to profiles, likes, matches, messages, etc.
@@ -31,6 +33,7 @@ import { withCors } from '../_shared/cors.ts';
 import { razorpayConfig } from '../_shared/razorpay.ts';
 import { cancelAllSubscriptions } from '../_shared/billing.ts';
 import { stopStoreRenewals } from '../_shared/storeBilling.ts';
+import { endSignInWithApple } from '../_shared/appleSignIn.ts';
 
 interface DeleteRequestBody {
   reason?: string;
@@ -45,6 +48,7 @@ interface DeleteResponse {
     storage_errors: number;
     audit_log_id: string;
     app_store_renews: boolean;  // an App Store subscription will renew until they cancel it
+    sign_in_with_apple: string;  // revoked, none, not_configured or failed
   };
 }
 
@@ -121,6 +125,11 @@ serve(withCors(async (req: Request): Promise<Response> => {
   } catch (e) {
     console.warn('[delete-account] store renewals not checked:', e instanceof Error ? e.message : String(e));
   }
+  // Apple asks apps to end Sign in with Apple when the account goes
+  const signInWithApple = await endSignInWithApple(userId).catch((e) => {
+    console.warn('[delete-account] Sign in with Apple not checked:', e instanceof Error ? e.message : String(e));
+    return 'failed';
+  });
 
   // ---- Service-role client for admin operations ----
   const admin = createClient(supabaseUrl, serviceRoleKey, {
@@ -202,6 +211,7 @@ serve(withCors(async (req: Request): Promise<Response> => {
       storage_errors: storageErrors,
       audit_log_id: auditLogId,
       app_store_renews: appStoreRenews,
+      sign_in_with_apple: signInWithApple,
     },
   });
 }));

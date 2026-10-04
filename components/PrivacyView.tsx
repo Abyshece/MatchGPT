@@ -67,7 +67,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
         <Section title="2. What information we collect">
           <p>We collect the following categories of personal data:</p>
           <ul className="list-disc list-inside space-y-1 ml-2">
-            <li><strong>Account data:</strong> email address, password (hashed), date of registration</li>
+            <li><strong>Account data:</strong> email address, password (hashed, if you set one), date of registration. If you sign in with Google or Apple, they tell us your name, email address and an identifier for your Google or Apple account; with Apple you can hide your email address, and we then get an address at Apple's private relay that forwards to you. For Sign in with Apple we also keep a token from Apple, used only to end Sign in with Apple for MatchGPT when you delete your account</li>
             <li><strong>Profile data:</strong> name, date of birth (other members only ever see your age), gender, sexuality, marital status, children, height, where you live (country, state, city), hometown, photos, bio, and roughly 80 other optional profile attributes you choose to share (lifestyle, personality, relationship preferences, etc.)</li>
             <li><strong>Background and family details (all optional):</strong> religion, mother tongue, caste or community, sub-caste, sect or denomination, gotra, whether you are open to marrying outside your community, horoscope details (Manglik status, rashi, nakshatra, time and place of birth), education, occupation, annual income, residential status abroad, family details (family type, status and values, your parents' occupations, brothers and sisters, where your family lives) and any disability you choose to mention</li>
             <li><strong>Activity data:</strong> likes you send and receive, matches, messages, search queries, login history</li>
@@ -122,6 +122,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
             <li><strong>Vercel (web hosting):</strong> hosts the website and serves it from edge locations worldwide</li>
             <li><strong>Google (Gemini AI):</strong> the text you type into search is sent to Google's Gemini AI to work out what you're looking for, with emails and phone numbers removed. With it we send the list of answers members have chosen for the searchable questions (for example "Tamil, Marathi" for mother tongue), never names, photos, or which answer belongs to whom. Nothing else from your account or profile is sent. We use Google's free tier, under which Google may use this text to improve its services, so please don't type personal details into search</li>
             <li><strong>Razorpay (payments):</strong> processes Pro subscription payments on the website, based in India</li>
+            <li><strong>Google and Apple (sign-in):</strong> if you choose "Continue with Google" or "Continue with Apple", they confirm who you are under their own privacy policies and tell us your name and email address. We never see your Google or Apple password</li>
             <li><strong>Google Play and Apple (app payments):</strong> process Pro subscriptions bought in our Android and iPhone apps under their own privacy policies; we exchange the purchase details with them to check purchases and keep subscriptions current</li>
             <li><strong>Google Firebase Cloud Messaging and Apple Push Notification service (notifications):</strong> if you turn on notifications in our app, each notification (for example "It's a match! You and Priya liked each other") goes with your phone's notification token to Google's Firebase Cloud Messaging, which delivers it to Android phones itself and to iPhones through Apple's push service. Message notifications never include what was written</li>
             <li><strong>Resend (email):</strong> sends transactional emails — when configured with a real domain</li>
@@ -168,7 +169,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
           <ul className="list-disc list-inside space-y-1 ml-2">
             <li><strong>Access:</strong> request a copy of all personal data we hold about you</li>
             <li><strong>Rectification:</strong> correct inaccurate data (most fields are editable directly in your profile)</li>
-            <li><strong>Erasure ("right to be forgotten"):</strong> delete your account at any time via Settings → Delete Account</li>
+            <li><strong>Erasure ("right to be forgotten"):</strong> delete your account at any time via Settings → Delete Account. If you signed in with Apple, this also ends Sign in with Apple for MatchGPT</li>
             <li><strong>Restriction:</strong> ask us to temporarily stop processing your data</li>
             <li><strong>Portability:</strong> receive your data in a machine-readable format</li>
             <li><strong>Objection:</strong> object to processing based on legitimate interests</li>

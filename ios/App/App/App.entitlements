@@ -6,5 +6,10 @@
 	     signs App Store builds for production by itself. -->
 	<key>aps-environment</key>
 	<string>development</string>
+	<!-- Sign in with Apple (lib/socialSignIn.ts) -->
+	<key>com.apple.developer.applesignin</key>
+	<array>
+		<string>Default</string>
+	</array>
 </dict>
 </plist>

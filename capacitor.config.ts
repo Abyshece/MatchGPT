@@ -31,6 +31,17 @@ const config: CapacitorConfig = {
     FirebaseMessaging: {
       presentationOptions: [],
     },
+    // Sign in with Google and with Apple (lib/socialSignIn.ts). The plugin
+    // leaves the providers set to false (and their SDKs) out of the apps.
+    SocialLogin: {
+      providers: {
+        google: true,
+        apple: true,
+        facebook: false,
+        twitter: false,
+      },
+      logLevel: 1,
+    },
   },
   // The Firebase plugin's Swift package is named "messaging", like a package
   // inside Firebase's own; linking it under its full name keeps them apart

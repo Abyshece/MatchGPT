@@ -2,7 +2,8 @@
 // stand-in for Capacitor's Android bridge: Capacitor's real bridge script
 // runs, every call the app makes to Android is recorded, plugin calls are
 // answered, and the back button can be pressed. Checks the launch screen,
-// the bar colours, no cookie banner, no Google button, no Razorpay checkout,
+// the bar colours, no cookie banner, email-only sign-in while Supabase has
+// Google and Apple off (app-social-signin.mjs covers them), no Razorpay checkout,
 // the notifications note, no share button, and the back button: popups first
 // (sign-in, MatchGPT+, like, profile, filters, delete account, phone menu),
 // then a chat, Terms, other tabs, and last the app goes to the background.
@@ -104,7 +105,7 @@ try {
     await page.screenshot({ path: `${OUT}1-landing.png` });
     await page.getByRole('button', { name: 'Sign in' }).click();
     await page.getByRole('button', { name: /Continue with Email/ }).waitFor();
-    check(await page.getByText('Continue with Google').count() === 0, 'sign-in offers email only (no Google page inside the app)');
+    check(await page.getByText('Continue with Google').count() === 0, 'sign-in offers email only while Google is off in Supabase (never Google\'s web page)');
     await page.waitForTimeout(400);  // fade-in
     await page.screenshot({ path: `${OUT}2-sign-in.png` });
     check(await back(page), 'the app listens to the back button');
