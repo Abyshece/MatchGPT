@@ -11,11 +11,7 @@
 // GOOGLE_PLAY_API_BASE: only for local testing against a stand-in.
 // ============================================================================
 
-export interface ServiceAccount {
-  client_email: string;
-  private_key: string;
-  token_uri?: string;
-}
+import { forgetGoogleAccessToken, googleAccessToken, serviceAccountFrom, type ServiceAccount } from './googleAuth.ts';
 
 export interface GooglePlayConfig {
   account: ServiceAccount;
@@ -24,16 +20,8 @@ export interface GooglePlayConfig {
 }
 
 export function googlePlayConfig(): GooglePlayConfig | null {
-  const raw = Deno.env.get('GOOGLE_PLAY_SERVICE_ACCOUNT') ?? '';
-  if (!raw.trim()) return null;
-  let account: ServiceAccount;
-  try {
-    account = JSON.parse(raw);
-  } catch {
-    console.error('[google-play] GOOGLE_PLAY_SERVICE_ACCOUNT is not JSON');
-    return null;
-  }
-  if (!account.client_email || !account.private_key) return null;
+  const account = serviceAccountFrom('GOOGLE_PLAY_SERVICE_ACCOUNT');
+  if (!account) return null;
   return {
     account,
     packageName: Deno.env.get('ANDROID_PACKAGE_NAME') || 'com.matchgpt.app',
@@ -47,56 +35,24 @@ export class GooglePlayError extends Error {
   }
 }
 
-// ---- Signing in as the service account (OAuth 2.0 JWT bearer) -------------------
-
-const b64url = (bytes: Uint8Array) =>
-  btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-const b64urlJson = (v: unknown) => b64url(new TextEncoder().encode(JSON.stringify(v)));
-
-async function importPrivateKey(pem: string): Promise<CryptoKey> {
-  const der = Uint8Array.from(atob(pem.replace(/-----[^-]+-----/g, '').replace(/\s+/g, '')), (c) => c.charCodeAt(0));
-  return await crypto.subtle.importKey('pkcs8', der, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign']);
-}
-
-let cachedToken: { value: string; expires: number; email: string } | null = null;
-
-async function accessToken(cfg: GooglePlayConfig): Promise<string> {
-  if (cachedToken && cachedToken.email === cfg.account.client_email && cachedToken.expires > Date.now() + 300_000) {
-    return cachedToken.value;
-  }
-  const tokenUri = cfg.account.token_uri || 'https://oauth2.googleapis.com/token';
-  const now = Math.floor(Date.now() / 1000);
-  const unsigned = `${b64urlJson({ alg: 'RS256', typ: 'JWT' })}.${b64urlJson({
-    iss: cfg.account.client_email,
-    scope: 'https://www.googleapis.com/auth/androidpublisher',
-    aud: tokenUri,
-    iat: now,
-    exp: now + 3600,
-  })}`;
-  const key = await importPrivateKey(cfg.account.private_key);
-  const signature = new Uint8Array(await crypto.subtle.sign('RSASSA-PKCS1-v1_5', key, new TextEncoder().encode(unsigned)));
-  const res = await fetch(tokenUri, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-      assertion: `${unsigned}.${b64url(signature)}`,
-    }),
-  });
-  const body = await res.json().catch(() => ({}));
-  if (!res.ok || typeof body.access_token !== 'string') {
-    throw new GooglePlayError(`Google sign-in failed: ${res.status} ${JSON.stringify(body).slice(0, 200)}`, res.status);
-  }
-  cachedToken = { value: body.access_token, expires: Date.now() + (Number(body.expires_in) || 3600) * 1000, email: cfg.account.client_email };
-  return body.access_token;
-}
+const PLAY_SCOPE = 'https://www.googleapis.com/auth/androidpublisher';
 
 async function api<T>(cfg: GooglePlayConfig, method: string, path: string, body: unknown = {}): Promise<T> {
-  const res = await fetch(`${cfg.apiBase}/androidpublisher/v3/applications/${encodeURIComponent(cfg.packageName)}${path}`, {
+  const call = async () => fetch(`${cfg.apiBase}/androidpublisher/v3/applications/${encodeURIComponent(cfg.packageName)}${path}`, {
     method,
-    headers: { Authorization: `Bearer ${await accessToken(cfg)}`, 'Content-Type': 'application/json' },
+    headers: {
+      Authorization: `Bearer ${await googleAccessToken(cfg.account, PLAY_SCOPE)}`,
+      'Content-Type': 'application/json',
+    },
     ...(method === 'POST' ? { body: JSON.stringify(body) } : {}),
   });
+  let res = await call();
+  if (res.status === 401) {
+    // Google stopped accepting our token: sign in afresh, once
+    await res.body?.cancel();
+    forgetGoogleAccessToken(cfg.account, PLAY_SCOPE);
+    res = await call();
+  }
   const text = await res.text();
   if (!res.ok) throw new GooglePlayError(`Google Play ${method} ${path.split('/tokens/')[0]}: ${res.status} ${text.slice(0, 300)}`, res.status);
   return (text ? JSON.parse(text) : {}) as T;

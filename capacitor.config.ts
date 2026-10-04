@@ -26,6 +26,23 @@ const config: CapacitorConfig = {
       backgroundColor: '#ffffff',
       showSpinner: false,
     },
+    // Notifications (lib/nativePush.ts). On an iPhone with the app open, the
+    // app shows them itself, so the phone doesn't too.
+    FirebaseMessaging: {
+      presentationOptions: [],
+    },
+  },
+  // The Firebase plugin's Swift package is named "messaging", like a package
+  // inside Firebase's own; linking it under its full name keeps them apart
+  // (Capacitor CLI 8.4+).
+  experimental: {
+    ios: {
+      spm: {
+        packageOptions: {
+          '@capacitor-firebase/messaging': { symlink: true },
+        },
+      },
+    },
   },
 };
 

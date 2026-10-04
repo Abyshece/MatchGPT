@@ -1021,6 +1021,47 @@ export type Database = {
         }
         Relationships: []
       }
+      push_devices: {
+        Row: {
+          app_version: string | null
+          created_at: string
+          failure_count: number
+          id: string
+          platform: string
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          app_version?: string | null
+          created_at?: string
+          failure_count?: number
+          id?: string
+          platform: string
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          app_version?: string | null
+          created_at?: string
+          failure_count?: number
+          id?: string
+          platform?: string
+          token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_devices_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       push_queue: {
         Row: {
           body: string
@@ -1411,7 +1452,9 @@ export type Database = {
         Row: {
           auth: string | null
           body: string | null
+          channel: string | null
           data: Json | null
+          device_token: string | null
           endpoint: string | null
           event_type: string | null
           failure_count: number | null
@@ -1421,15 +1464,7 @@ export type Database = {
           title: string | null
           user_id: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "push_queue_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Functions: {
@@ -1601,6 +1636,14 @@ export type Database = {
         Args: { p: Database["public"]["Tables"]["payments"]["Row"] }
         Returns: number
       }
+      record_push_device_failures: {
+        Args: { p_device_ids: string[] }
+        Returns: undefined
+      }
+      register_push_device: {
+        Args: { p_app_version?: string; p_platform: string; p_token: string }
+        Returns: undefined
+      }
       save_vapid_keys: {
         Args: { p_private_key: string; p_public_key: string }
         Returns: {
@@ -1637,6 +1680,7 @@ export type Database = {
       }
       sync_pro_status: { Args: { p_user_id: string }; Returns: undefined }
       unmatch: { Args: { p_match_id: string }; Returns: undefined }
+      unregister_push_device: { Args: { p_token: string }; Returns: undefined }
       vapid_public_key: { Args: never; Returns: string }
     }
     Enums: {

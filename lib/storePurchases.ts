@@ -205,7 +205,7 @@ export const manageStoreSubscription = () => NativePurchases.manageSubscriptions
 
 const SYNC_KEY = 'matchgpt_store_sync';
 const SYNC_EVERY_MS = 6 * 3600_000;
-let listener: Promise<PluginListenerHandle> | null = null;
+let listener: Promise<PluginListenerHandle | null> | null = null;
 
 /**
  * For a signed-in user in the app: now and then, sends the store's current
@@ -219,7 +219,7 @@ export async function startStoreSync(userId: string, opts: { force?: boolean } =
   if (platform === 'ios' && !listener) {
     listener = NativePurchases.addListener('transactionUpdated', (tx) => {
       reportPurchase(tx).catch((e) => console.warn('[store] update not sent:', e));
-    });
+    }).catch(() => null);
   }
   let last = 0;
   try {
@@ -242,5 +242,5 @@ export async function startStoreSync(userId: string, opts: { force?: boolean } =
 export async function stopStoreSync(): Promise<void> {
   const l = listener;
   listener = null;
-  if (l) await (await l).remove().catch(() => {});
+  if (l) await (await l)?.remove().catch(() => {});
 }

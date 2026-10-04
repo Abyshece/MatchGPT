@@ -6,7 +6,9 @@ import { subscribeToNewMatches } from '../lib/chatService';
 import { supabase } from '../lib/supabase';
 import { IconMenu, IconEdit } from '../constants';
 import { displayName } from '../lib/profileMapping';
-import { BACK, useBackHandler } from '../lib/nativeApp';
+import { BACK, isNativeApp, useBackHandler } from '../lib/nativeApp';
+import { onNotificationOpened } from '../lib/nativePush';
+import NotificationOffer from './NotificationOffer';
 import type { MatchCandidate } from '../types';
 
 // ============================================================================
@@ -106,6 +108,21 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
     setIsMobileMenuOpen(false);
   }, []);
 
+  // In the phone apps: a tapped notification opens its chat, or Likes You
+  useEffect(() => onNotificationOpened((data) => {
+    setIsMobileMenuOpen(false);
+    const matchId = typeof data.match_id === 'string' ? data.match_id : null;
+    if (matchId && (data.event_type === 'new_message' || data.event_type === 'new_match')) {
+      // Cleared first, so the same chat opens again even if it was the last one opened
+      setPendingMatchOpenId(null);
+      setActiveTab('matches');
+      setTimeout(() => setPendingMatchOpenId(matchId), 0);
+    } else if (data.event_type === 'super_like' || data.deep_link === '/likes') {
+      setPendingMatchOpenId(null);
+      setActiveTab('likes');
+    }
+  }), []);
+
   // Android back button: from any other tab, back to Find Match
   useBackHandler(BACK.TAB, () => {
     if (activeTab === 'search') return false;
@@ -186,6 +203,8 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
             </button>
           )}
         </div>
+
+        {isNativeApp() && <NotificationOffer />}
 
         <div className="flex-1 relative overflow-hidden">
           <Suspense fallback={<TabLoader />}>

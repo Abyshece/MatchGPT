@@ -18,6 +18,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase, openedFromRecoveryLink } from './supabase';
+import { signOutNativePush } from './nativePush';
 import { rowToProfile, rowToSettings } from './profileMapping';
 import type { ProfileRow, TablesInsert } from './database.types';
 import type { UserProfile, UserSettings } from '../types';
@@ -205,6 +206,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
+    // In the phone apps: this phone stops getting this person's notifications
+    // (needs the session, so first)
+    await signOutNativePush().catch(() => {});
     await supabase.auth.signOut();
   }, []);
 

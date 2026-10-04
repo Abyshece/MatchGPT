@@ -1,5 +1,6 @@
 // Stand-in for Google Play and the App Store, for trying MatchGPT+ bought in
-// the phone apps locally, without store accounts.
+// the phone apps locally, without store accounts; and for Firebase Cloud
+// Messaging, which sends the apps' notifications.
 //
 // Google Play: answers the calls the store functions make (the service
 // account's sign-in, checked like Google does; subscriptionsv2 get and cancel;
@@ -24,6 +25,8 @@
 //   POST /__google/change/<token> {basePlan}  a change of plan: a new purchase
 //                                         replacing this one → {purchaseToken, orderId}
 //   POST /__google/resend                 the last notification again (same message id)
+//   POST /__google/signin {ok}            ok false: the Play service account's sign-in is
+//                                         refused, and the tokens it was given stop working
 //   GET  /__google/purchase/<token>       what Google would answer
 //   POST /__apple/purchase {userId, product, trial, environment}  a purchase in the app
 //                                         → {jws, transactionId, originalTransactionId}
@@ -38,6 +41,14 @@
 //                                         chain that isn't Apple's) → {jws}
 //   GET  /__apple/latest/<orig>           the latest transaction, signed → {jws}
 //   GET  /__calls                         every Google API call so far
+// Firebase Cloud Messaging: messages:send with the Firebase service account's
+// sign-in. Phone tokens starting dead- are unregistered, busy- get "unavailable",
+// notatoken- aren't tokens, other-project- belong to another project.
+//   GET  /__fcm/messages                  the messages accepted so far
+//   POST /__fcm/reset                     forgets them; mode back to ok
+//   POST /__fcm/mode {mode}               ok, denied (the API is off for the project)
+//                                         or signin (the service account's sign-in fails,
+//                                         and the tokens it was given stop working)
 //
 //   npm i --no-save @peculiar/x509
 //   node tests/e2e/store-standin.cjs      # :8790; writes store-standin.env
@@ -46,6 +57,8 @@
 //   #   GOOGLE_PLAY_API_BASE         http://<docker gateway, e.g. 172.18.0.1>:8790
 //   #   GOOGLE_RTDN_SECRET           rtdn_local
 //   #   APPLE_ROOT_CERTIFICATES      the stand-in's root certificate
+//   #   FIREBASE_SERVICE_ACCOUNT     a Firebase service account whose sign-in goes here
+//   #   FCM_API_BASE                 http://<docker gateway>:8790
 //   # Settings: PORT, GATEWAY (the address the functions reach this on),
 //   # NOTIFY_URL (store-notifications), KEYS_FILE (keeps the keys across
 //   # restarts), ENV_OUT.
@@ -139,7 +152,8 @@ async function loadKeys() {
 const google = new Map();   // purchase token → purchase
 const apple = new Map();    // original transaction id → subscription
 const calls = [];
-const tokens = new Set();   // access tokens handed out
+const tokens = new Map();   // access tokens handed out → their scope
+let playSignin = true;      // false: the Play account's sign-in is refused
 let lastPubsub = null;
 let KEYS;
 
@@ -171,13 +185,22 @@ function googleToken(raw) {
   if (!ok) return [400, { error: 'invalid_grant', error_description: 'Invalid JWT signature.' }];
   const claims = JSON.parse(Buffer.from(p, 'base64url').toString());
   const nowSec = Math.floor(Date.now() / 1000);
-  if (claims.iss !== 'play-billing@matchgpt-test.iam.gserviceaccount.com' ||
-      claims.scope !== 'https://www.googleapis.com/auth/androidpublisher' ||
+  const scopes = {
+    'play-billing@matchgpt-test.iam.gserviceaccount.com': 'https://www.googleapis.com/auth/androidpublisher',
+    [FIREBASE_ACCOUNT]: 'https://www.googleapis.com/auth/firebase.messaging',
+  };
+  if (!scopes[claims.iss] || claims.scope !== scopes[claims.iss] ||
       claims.aud !== `http://${GATEWAY}:${PORT}/token` || !(claims.exp > nowSec) || claims.iat > nowSec + 60) {
     return [400, { error: 'invalid_grant', error_description: 'Bad claims' }];
   }
+  if (claims.iss !== FIREBASE_ACCOUNT && !playSignin) {
+    return [400, { error: 'invalid_grant', error_description: 'Invalid JWT Signature.' }];
+  }
+  if (claims.iss === FIREBASE_ACCOUNT && fcm.mode === 'signin') {
+    return [400, { error: 'invalid_grant', error_description: 'Invalid JWT Signature.' }];
+  }
   const token = `ya29.local-${crypto.randomBytes(12).toString('hex')}`;
-  tokens.add(token);
+  tokens.set(token, claims.scope);
   return [200, { access_token: token, expires_in: 3599, token_type: 'Bearer' }];
 }
 
@@ -244,6 +267,13 @@ async function googleHook(action, token, body, res) {
     const { token: t, g } = newGooglePurchase(body);
     return send(res, 200, { purchaseToken: t, orderId: g.orders[0] ?? null });
   }
+  if (action === 'signin') {
+    playSignin = body.ok !== false;
+    if (!playSignin) {
+      for (const [t, scope] of tokens) if (scope === 'https://www.googleapis.com/auth/androidpublisher') tokens.delete(t);
+    }
+    return send(res, 200, { ok: playSignin });
+  }
   if (action === 'resend') {
     if (!lastPubsub) return send(res, 404, { error: 'nothing sent yet' });
     const r = await post(`${NOTIFY_URL}?provider=google&secret=${RTDN_SECRET}`, lastPubsub);
@@ -309,7 +339,7 @@ async function googleHook(action, token, body, res) {
 function googleApi(method, url, auth, res) {
   const m = url.pathname.match(/^\/androidpublisher\/v3\/applications\/([^/]+)\/purchases\/(subscriptionsv2|subscriptions)\/(?:([^/]+)\/)?tokens\/([^/:]+)(?::(\w+))?$/);
   calls.push({ method, path: url.pathname, ok: !!m });
-  if (!auth.startsWith('Bearer ') || !tokens.has(auth.slice(7))) return send(res, 401, { error: { code: 401, message: 'Request had invalid authentication credentials.' } });
+  if (!auth.startsWith('Bearer ') || tokens.get(auth.slice(7)) !== 'https://www.googleapis.com/auth/androidpublisher') return send(res, 401, { error: { code: 401, message: 'Request had invalid authentication credentials.' } });
   if (!m || decodeURIComponent(m[1]) !== PACKAGE) return send(res, 404, { error: { code: 404, message: 'Not found' } });
   const [, , kind, productId, rawToken, verb] = m;
   const token = decodeURIComponent(rawToken);
@@ -474,6 +504,42 @@ async function appleHook(action, orig, url, body, res) {
   return send(res, 200, { notified: r });
 }
 
+// ---- Firebase Cloud Messaging ---------------------------------------------------------------
+
+const FIREBASE_ACCOUNT = 'firebase-adminsdk@matchgpt-test.iam.gserviceaccount.com';
+const fcm = { messages: [], mode: 'ok' };
+
+const fcmError = (code, status, message, errorCode) => ({
+  error: { code, message, status, details: errorCode ? [{ '@type': 'type.googleapis.com/google.firebase.fcm.v1.FcmError', errorCode }] : [] },
+});
+
+// POST /v1/projects/<project>/messages:send, answered the way FCM does
+function fcmSend(project, auth, raw, res) {
+  if (!auth.startsWith('Bearer ') || tokens.get(auth.slice(7)) !== 'https://www.googleapis.com/auth/firebase.messaging') {
+    return send(res, 401, fcmError(401, 'UNAUTHENTICATED', 'Request had invalid authentication credentials.', 'THIRD_PARTY_AUTH_ERROR'));
+  }
+  if (project !== 'matchgpt-test' || fcm.mode === 'denied') {
+    return send(res, 403, fcmError(403, 'PERMISSION_DENIED', `Firebase Cloud Messaging API has not been used in project ${project} before or it is disabled.`));
+  }
+  const message = (JSON.parse(raw || '{}') || {}).message || {};
+  const token = String(message.token || '');
+  // FCM's own checks on the message
+  const badData = Object.entries(message.data || {}).find(([, v]) => typeof v !== 'string');
+  if (badData) return send(res, 400, fcmError(400, 'INVALID_ARGUMENT', `Invalid value at 'message.data[0].value' (${badData[0]})`, 'INVALID_ARGUMENT'));
+  if (!message.notification?.title || !message.android?.notification?.channel_id || !message.apns?.headers) {
+    return send(res, 400, fcmError(400, 'INVALID_ARGUMENT', 'Request contains an invalid argument.', 'INVALID_ARGUMENT'));
+  }
+  if (token.startsWith('dead-')) return send(res, 404, fcmError(404, 'NOT_FOUND', 'Requested entity was not found.', 'UNREGISTERED'));
+  if (token.startsWith('busy-')) return send(res, 503, fcmError(503, 'UNAVAILABLE', 'The service is currently unavailable.', 'UNAVAILABLE'));
+  if (token.startsWith('notatoken-')) {
+    return send(res, 400, fcmError(400, 'INVALID_ARGUMENT', 'The registration token is not a valid FCM registration token', 'INVALID_ARGUMENT'));
+  }
+  if (token.startsWith('other-project-')) return send(res, 403, fcmError(403, 'PERMISSION_DENIED', 'SenderId mismatch', 'SENDER_ID_MISMATCH'));
+  const name = `projects/${project}/messages/0:${Date.now()}%${crypto.randomBytes(8).toString('hex')}`;
+  fcm.messages.push({ name, at: new Date().toISOString(), message });
+  return send(res, 200, { name });
+}
+
 // ---- Server -----------------------------------------------------------------------------
 
 async function main() {
@@ -485,8 +551,11 @@ async function main() {
     private_key: KEYS.google.private_key,
     token_uri: `http://${GATEWAY}:${PORT}/token`,
   };
+  const firebaseAccount = { ...account, client_email: FIREBASE_ACCOUNT };
   const env = [
     `GOOGLE_PLAY_SERVICE_ACCOUNT=${JSON.stringify(account)}`,
+    `FIREBASE_SERVICE_ACCOUNT=${JSON.stringify(firebaseAccount)}`,
+    `FCM_API_BASE=http://${GATEWAY}:${PORT}`,
     `GOOGLE_PLAY_API_BASE=http://${GATEWAY}:${PORT}`,
     `GOOGLE_RTDN_SECRET=${RTDN_SECRET}`,
     `APPLE_ROOT_CERTIFICATES=${KEYS.apple.x5c[2]}`,
@@ -503,6 +572,22 @@ async function main() {
       }
       if (url.pathname.startsWith('/androidpublisher/')) return googleApi(req.method, url, req.headers.authorization || '', res);
       if (url.pathname === '/__calls') return send(res, 200, calls);
+      const sendPath = url.pathname.match(/^\/v1\/projects\/([^/]+)\/messages:send$/);
+      if (sendPath && req.method === 'POST') return fcmSend(sendPath[1], req.headers.authorization || '', raw, res);
+      if (url.pathname === '/__fcm/messages') return send(res, 200, fcm.messages);
+      if (url.pathname === '/__fcm/reset' && req.method === 'POST') {
+        fcm.messages = [];
+        fcm.mode = 'ok';
+        return send(res, 200, {});
+      }
+      if (url.pathname === '/__fcm/mode' && req.method === 'POST') {
+        fcm.mode = JSON.parse(raw || '{}').mode || 'ok';
+        // A broken sign-in: the tokens already handed out stop working too
+        if (fcm.mode === 'signin') {
+          for (const [t, scope] of tokens) if (scope === 'https://www.googleapis.com/auth/firebase.messaging') tokens.delete(t);
+        }
+        return send(res, 200, { mode: fcm.mode });
+      }
       const hook = url.pathname.match(/^\/__(google|apple)\/(\w+)(?:\/(.+))?$/);
       if (hook) {
         const body = raw ? JSON.parse(raw) : {};
