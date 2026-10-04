@@ -1,5 +1,7 @@
-// Forgot password: request a reset → link from the email (Mailpit) → "Set a new
-// password" screen → save → log out → log in with the new password (old one fails).
+// Forgot password on the website, by the email's link: request a reset → link
+// from the email (Mailpit) → "Set a new password" screen → save → log out → log
+// in with the new password (old one fails). The code in the same email is
+// tested by reset-code-flow.mjs.
 import { chromium } from 'playwright';
 import fs from 'node:fs';
 
@@ -58,8 +60,8 @@ try {
   await page.getByRole('button', { name: /Continue with Email/ }).click();
   await page.getByRole('button', { name: /Forgot/i }).first().click();
   await page.locator('input[type=email]').fill(email);
-  await page.getByRole('button', { name: /Send Reset Link/ }).click();
-  await page.getByText(/we've sent reset instructions/).waitFor({ timeout: 10000 });
+  await page.getByRole('button', { name: /Send Code/ }).click();
+  await page.getByText(/we've emailed it a code/).waitFor({ timeout: 10000 });
   const link = await resetLink();
   log('reset link redirects to:', new URL(link).searchParams.get('redirect_to'));
 

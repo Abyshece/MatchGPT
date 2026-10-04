@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from './NotionUI';
 import { IconMail, IconGoogle, IconChevronRight, IconX, IconLock } from '../constants';
 import { supabase } from '../lib/supabase';
@@ -19,7 +19,10 @@ interface AuthProps {
 }
 
 const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose, onShowLegal }) => {
-  const [mode, setMode] = useState<'MENU' | 'SIGNIN' | 'SIGNUP' | 'FORGOT'>('MENU');
+  const [mode, setMode] = useState<'MENU' | 'SIGNIN' | 'SIGNUP' | 'FORGOT' | 'RESET_CODE'>('MENU');
+  // Password reset: the code from the email, and when another can be sent
+  const [resetCode, setResetCode] = useState('');
+  const [resendIn, setResendIn] = useState(0);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -121,8 +124,16 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
     onSignupInitiated(email);
   };
 
-  const handleForgot = async (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const t = setTimeout(() => setResendIn((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendIn]);
+
+  // The reset email has a code to type in here (the apps have no link to come
+  // back to) and, for the website, a link
+  const handleForgot = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     clearMessages();
     if (!email) {
       setError('Email is required.');
@@ -140,7 +151,31 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
       setError(resetError.message);
       return;
     }
-    setInfo(`If an account exists for ${email}, we've sent reset instructions.`);
+    setResetCode('');
+    setResendIn(60);
+    setMode('RESET_CODE');
+    setInfo(`If an account exists for ${email}, we've emailed it a code.`);
+  };
+
+  // The code signs the person in for the reset; the app then asks for the new
+  // password (Supabase reports PASSWORD_RECOVERY, see AuthContext)
+  const handleResetCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    clearMessages();
+    if (!/^\d{6,10}$/.test(resetCode)) {
+      setError('Please enter the code from the email.');
+      return;
+    }
+    setIsLoading(true);
+    const { error: verifyError } = await supabase.auth.verifyOtp({ email, token: resetCode, type: 'recovery' });
+    setIsLoading(false);
+    if (verifyError) {
+      setError(verifyError.status === 429
+        ? 'Too many tries. Please wait a few minutes and try again.'
+        : "That code isn't right or has expired. Check the email, or send a new code.");
+      return;
+    }
+    onSignInSuccess();
   };
 
   // ---- presentation ----------------------------------------------------------
@@ -172,7 +207,7 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
           <div className="text-4xl mb-2">💍</div>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white leading-tight mb-0.5">MatchGPT</h1>
           <p className="text-gray-500 dark:text-gray-400 text-[10px] font-medium uppercase tracking-wide">
-            {mode === 'SIGNUP' ? 'Create your account' : mode === 'FORGOT' ? 'Reset your password' : 'Welcome back'}
+            {mode === 'SIGNUP' ? 'Create your account' : mode === 'FORGOT' || mode === 'RESET_CODE' ? 'Reset your password' : 'Welcome back'}
           </p>
         </div>
 
@@ -415,7 +450,7 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
         {mode === 'FORGOT' && (
           <form onSubmit={handleForgot} className="flex flex-col gap-3 animate-fade-in">
             <div className="text-center mb-1">
-              <p className="text-[10px] text-gray-500 dark:text-gray-400">Enter your email to receive a reset link.</p>
+              <p className="text-[10px] text-gray-500 dark:text-gray-400">Enter your email and we'll send you a code to reset your password.</p>
             </div>
             <div>
               <label className="block text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Email</label>
@@ -435,7 +470,7 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
               className="w-full h-9 justify-center mt-1 text-xs font-bold rounded-md"
               disabled={isLoading}
             >
-              {isLoading ? 'Sending…' : 'Send Reset Link'}
+              {isLoading ? 'Sending…' : 'Send Code'}
             </Button>
 
             <button
@@ -445,6 +480,46 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
             >
               ← Back
             </button>
+          </form>
+        )}
+
+        {mode === 'RESET_CODE' && (
+          <form onSubmit={handleResetCode} className="flex flex-col gap-3 animate-fade-in" data-testid="reset-code">
+            <div>
+              <label className="block text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Code from the email</label>
+              <input
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                value={resetCode}
+                onChange={(e) => setResetCode(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                className="w-full h-12 border border-gray-300 dark:border-zinc-700 rounded-md p-2 text-center text-2xl font-mono tracking-[0.4em] focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white bg-white dark:bg-zinc-900 text-gray-900 dark:text-white"
+                placeholder="123456"
+                autoFocus
+              />
+            </div>
+            <Button
+              onClick={() => {}}
+              className="w-full h-9 justify-center mt-1 text-xs font-bold rounded-md"
+              disabled={isLoading || resetCode.length < 6}
+            >
+              {isLoading ? 'Checking…' : 'Continue'}
+            </Button>
+            <p className="text-[10px] text-gray-400 dark:text-gray-500 text-center leading-relaxed">
+              The email's link works too: it opens the website to choose a new password.
+            </p>
+            <div className="flex justify-between text-[10px]">
+              <button
+                type="button"
+                onClick={() => { clearMessages(); setMode('FORGOT'); }}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                ← Back
+              </button>
+              {resendIn > 0
+                ? <span className="text-gray-400">Send again in {resendIn}s</span>
+                : <button type="button" onClick={() => handleForgot()} className="font-medium text-blue-600 dark:text-blue-400">Send a new code</button>}
+            </div>
           </form>
         )}
 

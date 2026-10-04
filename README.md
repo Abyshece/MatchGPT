@@ -42,7 +42,15 @@ Apple, each shown once its provider is on in Supabase (Authentication → Sign
 In / Providers). Android uses the Google client Supabase already has; iPhones
 need their own, `VITE_GOOGLE_IOS_CLIENT_ID` in `.env.production.local` (the iOS
 build adds its URL scheme to `Info.plist` by itself,
-`scripts/ios-google-sign-in.mjs`). Email sign-in always works.
+`scripts/ios-google-sign-in.mjs`). Email sign-in always works, and "Forgot
+password" emails a code to type into the app.
+
+The website's `/delete-account` page (`components/DeleteAccountPage.tsx`; a
+rewrite in `vercel.json`) lets anyone delete their account without the app,
+with a code sent by email: it is the deletion link Google Play asks for. The
+codes need Supabase's email templates to include them: paste
+`supabase/templates/recovery.html` (Reset Password) and `magic_link.html`
+(Magic Link) into Supabase → Authentication → Emails.
 
 Both apps need the live Supabase URL and anon key in `.env.production.local`
 (same names as in `.env.local`; Supabase → Project Settings → API); the build
