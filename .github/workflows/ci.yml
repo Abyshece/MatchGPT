@@ -1,5 +1,5 @@
-# Every pull request and every push to main: the app's code type-checks and
-# builds, and the server's unit tests pass. The browser tests (tests/e2e)
+# Every pull request and every push to main: the app's code type-checks, passes
+# the linter and builds, and the server's unit tests pass. The browser tests (tests/e2e)
 # need a local Supabase and run by hand (tests/e2e/README.md).
 name: CI
 
@@ -10,7 +10,7 @@ on:
 
 jobs:
   app:
-    name: Type check and build
+    name: Type check, lint and build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,6 +20,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx tsc --noEmit
+      - run: npm run lint
       - run: npm run build
 
   functions:

@@ -28,7 +28,7 @@ interface DateProposalPayload {
 }
 
 const DateProposalCard: React.FC<DateProposalCardProps> = ({
-  content, isMine, timestamp, onAccept, onDecline,
+  content, isMine, onAccept, onDecline,
 }) => {
   let payload: DateProposalPayload | null = null;
   try {

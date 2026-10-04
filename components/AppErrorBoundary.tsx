@@ -12,8 +12,6 @@ interface State {
 }
 
 class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, State> {
-  // Spelled out: without @types/react, TypeScript only sees React's JavaScript
-  declare props: { children: React.ReactNode };
   state: State = { failed: false };
 
   static getDerivedStateFromError(): State {

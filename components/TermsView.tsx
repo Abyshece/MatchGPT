@@ -13,16 +13,16 @@ interface TermsViewProps {
   onBack: () => void;
 }
 
-const TermsView: React.FC<TermsViewProps> = ({ onBack }) => {
-  const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <section className="mb-8">
-      <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">{title}</h2>
-      <div className="space-y-3 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-        {children}
-      </div>
-    </section>
-  );
+const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+  <section className="mb-8">
+    <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">{title}</h2>
+    <div className="space-y-3 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+      {children}
+    </div>
+  </section>
+);
 
+const TermsView: React.FC<TermsViewProps> = ({ onBack }) => {
   return (
     <div className="min-h-screen bg-white dark:bg-[#191919]">
       <header className="sticky top-0 z-10 bg-white/95 dark:bg-zinc-900/95 backdrop-blur border-b border-gray-200 dark:border-zinc-800">

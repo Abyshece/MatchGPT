@@ -24,6 +24,7 @@ function reloadForUpdate(): boolean {
   return true;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- the same bound as React.lazy's own
 export function lazyScreen<T extends ComponentType<any>>(load: () => Promise<{ default: T }>) {
   return lazy(() => load().catch((error) => {
     if (reloadForUpdate()) return new Promise<never>(() => { /* the page is reloading */ });

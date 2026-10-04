@@ -152,7 +152,7 @@ export async function signInWith(provider: SocialProvider): Promise<'signed-in' 
   if (!platform()) throw new SocialSignInError(`${LABEL[provider]} sign-in works in the MatchGPT app.`);
   const { nonce, hashed } = await makeNonce();
 
-  let idToken: string | null = null;
+  let idToken: string | null;
   let appleCode: string | undefined;
   let appleName = '';
   let sheet: SocialLoginPlugin;

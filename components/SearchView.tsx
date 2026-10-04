@@ -11,7 +11,7 @@ import ProfileModal from './ProfileModal';
 import VerificationBanner from './VerificationBanner';
 import UpgradeModal from './UpgradeModal';
 import MatchCelebrationModal from './MatchCelebrationModal';
-import { IconZap, IconX, IconCheck } from '../constants';
+import { IconX, IconCheck } from '../constants';
 import type { MatchCandidate, FilterOptions } from '../types';
 
 // The filter panel carries the long answer lists; it loads the first time it's opened
@@ -85,7 +85,6 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
   const [results, setResults] = useState<MatchCandidate[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [searching, setSearching] = useState(false);
-  const [poolSize, setPoolSize] = useState(0);
   // What the server understood from the prompt, shown above the results
   const [understood, setUnderstood] = useState<{ labels: string[]; byAi: boolean } | null>(null);
   const [selectedCandidate, setSelectedCandidate] = useState<MatchCandidate | null>(null);
@@ -102,6 +101,11 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
   // Track whether we've already consumed the pending prompt this session so we
   // don't re-trigger on every re-render of SearchView.
   const pendingPromptConsumed = useRef(false);
+
+  // Ref-based handle so the useEffect below can call into handleSearch without
+  // creating a stale-closure problem (handleSearch is recreated on every render
+  // due to useCallback deps, but the ref always points to the current one).
+  const autoRunSearchRef = useRef<((p: string) => void) | null>(null);
 
   // On mount: if the user landed here via the landing-page flow OR clicked a
   // saved search in History, they have a prompt (and optionally filters)
@@ -127,21 +131,16 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
         autoRunSearchRef.current?.(pending);
       }, 400);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Ref-based handle so the useEffect above can call into handleSearch without
-  // creating a stale-closure problem (handleSearch is recreated on every render
-  // due to useCallback deps, but the ref always points to the current one).
-  const autoRunSearchRef = useRef<((p: string) => void) | null>(null);
-
-  if (!profile || !session?.user.id) {
-    return <div className="p-12 text-center text-gray-400">Loading…</div>;
-  }
-
-  const allowance = computeSearchAllowance(profile);
-  const verification = computeVerificationStatus(profile);
-  const isLockedOut = verification.isLockedOut;
+  // Every hook runs before the "Loading…" return below, on every render: React
+  // requires the same hooks in the same order (the profile can arrive while
+  // this screen is showing)
+  const userId = session?.user.id;
+  const allowance = profile ? computeSearchAllowance(profile) : null;
+  const verification = profile ? computeVerificationStatus(profile) : null;
+  const isLockedOut = verification?.isLockedOut ?? false;
+  const searchAllowed = allowance?.allowed ?? false;
   const activeFilterCount = countActiveFilters(filters);
 
   // Profile completion percentage — the same figure as My Profile. Drives the
@@ -162,6 +161,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
   const showCompletionBanner = !!profile && completionPercentage < 100 && !bannerDismissed && !showIndiaInvite;
 
   const handleSearch = useCallback(async (overridePrompt?: string) => {
+    if (!userId) return;
     const effectivePrompt = (overridePrompt ?? prompt).trim();
     if (!effectivePrompt && activeFilterCount === 0) {
       showToast('Type a prompt or set some filters', 'info');
@@ -171,7 +171,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
       showToast('Verify your account to search', 'error');
       return;
     }
-    if (!allowance.allowed) {
+    if (!searchAllowed) {
       setShowUpgradeModal(true);
       return;
     }
@@ -187,10 +187,9 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
       const output = await searchProfiles(effectivePrompt, filters, 50);
 
       setResults(output.candidates);
-      setPoolSize(output.poolSize);
       setUnderstood({ labels: output.understood, byAi: output.understoodBy === 'ai' });
 
-      saveSearch(session.user.id, effectivePrompt, filters, output.candidates, output.poolSize)
+      saveSearch(userId, effectivePrompt, filters, output.candidates, output.poolSize)
         .catch((e) => console.warn('[SearchView] saveSearch failed:', e));
 
       // Picks up the new search count
@@ -213,12 +212,16 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
     } finally {
       setSearching(false);
     }
-  }, [prompt, filters, session.user.id, allowance.allowed, isLockedOut, activeFilterCount, hasSearched, refreshProfile, showToast]);
+  }, [prompt, filters, userId, searchAllowed, isLockedOut, activeFilterCount, hasSearched, refreshProfile, showToast]);
 
   // Keep the ref pointed at the latest handleSearch so the mount-effect can call it
   useEffect(() => {
     autoRunSearchRef.current = handleSearch;
   }, [handleSearch]);
+
+  if (!profile || !userId || !allowance || !verification) {
+    return <div className="p-12 text-center text-gray-400">Loading…</div>;
+  }
 
   const handleExampleClick = (ex: string) => setPrompt(ex);
 

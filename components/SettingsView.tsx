@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 import { PageHeader, InfoSection, Button } from './NotionUI';
 import { useAuth } from '../lib/AuthContext';
 import { useToast } from '../lib/useToast';
@@ -31,6 +31,33 @@ const DELETE_REASONS = [
   'Privacy concerns',
   'Other',
 ];
+
+// A setting that's on or off: a button that screen readers and keyboards use as
+// a switch, named by its label and described by the line under it
+const SettingsToggle: React.FC<{ label: string; description?: string; checked: boolean; onChange: (val: boolean) => void }> = ({
+  label, description, checked, onChange,
+}) => {
+  const id = useId();
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-labelledby={`${id}-label`}
+      aria-describedby={description ? `${id}-description` : undefined}
+      onClick={() => onChange(!checked)}
+      className="w-full text-left flex items-center justify-between py-3 border-b border-gray-50 dark:border-zinc-800/50 last:border-0 hover:bg-gray-50 dark:hover:bg-zinc-800/30 px-2 rounded transition-colors cursor-pointer"
+    >
+      <span className="flex-1 pr-4">
+        <span id={`${id}-label`} className="block text-sm font-medium text-gray-900 dark:text-white">{label}</span>
+        {description && <span id={`${id}-description`} className="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">{description}</span>}
+      </span>
+      <span aria-hidden="true" className={`flex-shrink-0 w-10 h-5 rounded-full relative transition-colors duration-200 ${checked ? 'bg-green-500' : 'bg-gray-300 dark:bg-zinc-600'}`}>
+        <span className={`absolute top-1 w-3 h-3 bg-white rounded-full shadow-sm transition-all duration-200 ${checked ? 'left-6' : 'left-1'}`} />
+      </span>
+    </button>
+  );
+};
 
 const SettingsView: React.FC<SettingsViewProps> = ({
   isDarkMode,
@@ -128,23 +155,6 @@ const SettingsView: React.FC<SettingsViewProps> = ({
       : 'Account deleted. Goodbye 👋', result.appStoreRenews ? 'info' : 'success');
     // AuthContext picks up the session-cleared state and redirects to Auth
   };
-
-  const SettingsToggle = ({
-    label, description, checked, onChange,
-  }: { label: string; description?: string; checked: boolean; onChange: (val: boolean) => void }) => (
-    <div
-      className="flex items-center justify-between py-3 border-b border-gray-50 dark:border-zinc-800/50 last:border-0 hover:bg-gray-50 dark:hover:bg-zinc-800/30 px-2 rounded transition-colors cursor-pointer"
-      onClick={() => onChange(!checked)}
-    >
-      <div className="flex-1 pr-4">
-        <h4 className="text-sm font-medium text-gray-900 dark:text-white">{label}</h4>
-        {description && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{description}</p>}
-      </div>
-      <div className={`w-10 h-5 rounded-full relative transition-colors duration-200 ${checked ? 'bg-green-500' : 'bg-gray-300 dark:bg-zinc-600'}`}>
-        <div className={`absolute top-1 w-3 h-3 bg-white rounded-full shadow-sm transition-all duration-200 ${checked ? 'left-6' : 'left-1'}`} />
-      </div>
-    </div>
-  );
 
   return (
     <div className="h-full overflow-y-auto relative">

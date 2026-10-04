@@ -1,5 +1,5 @@
 import React from 'react';
-import { IconCheck, IconStar, IconZap, IconHeart, IconClock } from '../constants';
+import { IconCheck, IconStar, IconZap, IconClock } from '../constants';
 import LikeButton from './LikeButton';
 import { likeReceivedToCandidate } from '../lib/likesService';
 import type { LikeReceived } from '../lib/likesService';

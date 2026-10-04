@@ -11,7 +11,7 @@
 //   - hiding the launch screen once the app has drawn
 // ============================================================================
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useEffectEvent } from 'react';
 import { Capacitor, registerPlugin, SystemBars, SystemBarsStyle } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { SplashScreen } from '@capacitor/splash-screen';
@@ -31,11 +31,10 @@ export const BACK = { PAGE: 20, TAB: 10 } as const;
  * true when it went back; the highest priority one that can go back wins.
  */
 export function useBackHandler(priority: number, handler: BackHandler): void {
-  const ref = useRef(handler);
-  ref.current = handler;
+  const latest = useEffectEvent(handler);
   useEffect(() => {
     if (!isNativeApp()) return;
-    const entry = { priority, handler: () => ref.current() };
+    const entry = { priority, handler: () => latest() };
     backHandlers.push(entry);
     return () => {
       const i = backHandlers.indexOf(entry);

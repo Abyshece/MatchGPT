@@ -23,8 +23,6 @@ interface FilterPanelProps {
   onUpgrade: () => void;
 }
 
-const FREE_FILTERS_KEYS = ['ageRange', 'neighborhood'] as const;
-
 // ---- helper components -----------------------------------------------------
 // Outside FilterPanel, so typing in a field doesn't remount it.
 

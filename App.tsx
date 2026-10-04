@@ -59,7 +59,7 @@ const AppRouter: React.FC<{
   setLegalPage: (p: LegalPage) => void;
 }> = ({ legalPage, setLegalPage }) => {
   const {
-    session, profileRow, profile, loading, profileLoading, profileError, profileMissing,
+    session, profileRow, loading, profileLoading, profileError, profileMissing,
     retryLoadProfile, healMissingProfile, signOut, refreshProfile, passwordRecovery,
   } = useAuth();
   const { showToast } = useToast();

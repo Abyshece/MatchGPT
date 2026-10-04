@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../lib/AuthContext';
+import { useNow } from '../lib/useNow';
 import { useToast } from '../lib/useToast';
 import {
   cancelSubscription, formatDate, formatMoney, formatRupees, getBillingConfig, getMySubscription, listMyPayments,
@@ -38,6 +39,7 @@ const SubscriptionSettings: React.FC = () => {
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [busy, setBusy] = useState(false);
+  const now = useNow();
 
   const load = useCallback(async () => {
     if (!userId) return;
@@ -76,7 +78,6 @@ const SubscriptionSettings: React.FC = () => {
   const plan = sub ? plans.find((p) => p.id === sub.plan_id) : undefined;
   const price = plan ? `${formatRupees(plan.amount)}/${periodWord(plan.period)}` : '';
   const isPro = profile?.subscriptionTier === 'PRO';
-  const now = Date.now();
   const store = sub && sub.provider !== 'razorpay' ? sub.provider : null;
   const storeLabel = storeName(store);
   // The store's own page opens from the app that bought it
