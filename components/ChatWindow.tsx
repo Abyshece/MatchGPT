@@ -9,6 +9,7 @@ import MessageBubble from './MessageBubble';
 import BlockReportModal from './BlockReportModal';
 import { IconChevronLeft, IconCheck, IconX, IconZap } from '../constants';
 import { isNativeApp } from '../lib/nativeApp';
+import { setOpenChat } from '../lib/nativePush';
 import type { Message } from '../lib/chatService';
 import type { MatchSummary } from '../lib/matchesService';
 
@@ -51,6 +52,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
   const userId = session?.user.id;
   const matchId = match.matchId;
+
+  // A notification for this chat isn't shown while it's open (phone apps)
+  useEffect(() => {
+    setOpenChat(matchId);
+    return () => setOpenChat(null);
+  }, [matchId]);
   const otherPhoto = match.otherUser.photos?.[0];
 
   // ---- load messages on mount + when match changes ------------------------

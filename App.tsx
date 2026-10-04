@@ -14,6 +14,7 @@ import PrivacyView from './components/PrivacyView';
 import CookieBanner from './components/CookieBanner';
 import { BACK, isNativeApp, setNativeTheme, useBackHandler } from './lib/nativeApp';
 import { startStoreSync, stopStoreSync } from './lib/storePurchases';
+import { onNotificationWhileOpen, startNativePush, stopNativePush } from './lib/nativePush';
 
 // ============================================================================
 // App (Phase 6 Batch 3)
@@ -73,6 +74,19 @@ const AppRouter: React.FC<{
     sync();
     document.addEventListener('visibilitychange', sync);
     return () => document.removeEventListener('visibilitychange', sync);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
+  // In the phone apps: notifications for whoever is signed in. While the app
+  // is open they show as a toast; a tapped one opens its screen (Dashboard).
+  useEffect(() => {
+    if (!isNativeApp() || !userId) return;
+    const stopToasts = onNotificationWhileOpen(({ title, body }) => showToast(title || body, 'info'));
+    startNativePush(userId);
+    return () => {
+      stopToasts();
+      stopNativePush();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 

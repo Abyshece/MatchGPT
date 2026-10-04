@@ -32,6 +32,8 @@
 // 13. Deleting an account stops its Google Play renewal and reports the App
 //     Store one; later notifications still work; someone restoring the
 //     deleted account's purchase takes it over
+// 14. Google refusing our own sign-in: the purchase isn't called invalid, and
+//     a notification is sent back to be retried, then handled
 //
 //   ANON_KEY=<from `npx supabase status`> node tests/e2e/store-billing.mjs <email> <other email>
 import { execSync } from 'node:child_process';
@@ -501,6 +503,22 @@ log('13. Deleting an account with store subscriptions');
     "whoever restores the deleted account's purchase takes it over");
   sql(`delete from payments where user_id = '${d.id}'; delete from subscriptions where user_id = '${d.id}';`);
   sql(`delete from auth.users where id = '${d.id}';`);
+}
+
+log("14. Google refusing our sign-in is our problem, not the purchase's");
+{
+  const p = await store('/__google/purchase', { userId: me, basePlan: 'monthly' });
+  await store('/__google/signin', { ok: false });
+  const v = await fn('store-billing', tokenA, { action: 'verify', platform: 'android', purchaseToken: p.purchaseToken });
+  check(v.status === 500 && v.body?.code !== 'INVALID_PURCHASE', `the purchase isn't called invalid; "please try again" (${v.status} ${v.body?.code ?? ''})`);
+  const n = await store(`/__google/renew/${enc(p.purchaseToken)}`, {});
+  check(n.notified?.status >= 500, `a notification meanwhile goes back to Pub/Sub to be retried, not dropped (${n.notified?.status})`);
+  await store('/__google/signin', { ok: true });
+  const again = await store('/__google/resend', {});
+  check(again.status === 200 && subRow('google_play', p.purchaseToken)?.userId === me, 'redelivered once the sign-in works: handled');
+  const v2 = await fn('store-billing', tokenA, { action: 'verify', platform: 'android', purchaseToken: p.purchaseToken });
+  check(v2.status === 200 && tier(me) === 'PRO', 'and the purchase goes through');
+  await store(`/__google/expire/${enc(p.purchaseToken)}`, {});
 }
 
 reset(me);

@@ -43,7 +43,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
 
       <article className="max-w-3xl mx-auto px-6 py-10">
         <p className="text-xs text-gray-500 dark:text-gray-400 mb-6">
-          Document version: {PRIVACY_VERSION} · Last updated: October 3, 2026
+          Document version: {PRIVACY_VERSION} · Last updated: October 4, 2026
         </p>
 
         <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-8">
@@ -71,7 +71,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
             <li><strong>Profile data:</strong> name, date of birth (other members only ever see your age), gender, sexuality, marital status, children, height, where you live (country, state, city), hometown, photos, bio, and roughly 80 other optional profile attributes you choose to share (lifestyle, personality, relationship preferences, etc.)</li>
             <li><strong>Background and family details (all optional):</strong> religion, mother tongue, caste or community, sub-caste, sect or denomination, gotra, whether you are open to marrying outside your community, horoscope details (Manglik status, rashi, nakshatra, time and place of birth), education, occupation, annual income, residential status abroad, family details (family type, status and values, your parents' occupations, brothers and sisters, where your family lives) and any disability you choose to mention</li>
             <li><strong>Activity data:</strong> likes you send and receive, matches, messages, search queries, login history</li>
-            <li><strong>Technical data:</strong> IP address, browser type, device information, cookies (see Section 8)</li>
+            <li><strong>Technical data:</strong> IP address, browser type, device information, cookies (see Section 8). If you turn on notifications, a notification token for your browser or phone (on phones, from Google's Firebase Cloud Messaging), whether the phone is an Android phone or an iPhone, and the version of our app</li>
             <li><strong>Payment data:</strong> if you subscribe to MatchGPT+ on the website, Razorpay processes the payment; we never see your card, UPI or bank details. We keep the Razorpay subscription and payment IDs, the plan, amounts, dates, the kind of payment method (card, UPI and so on), the payment status and links to Razorpay's invoices. If you subscribe in our Android or iPhone app, Google Play or Apple processes the payment; we receive and keep the purchase details they send us (the purchase or order IDs, the plan, amounts and currency, dates, whether it renews, refunds), linked to your account by your account's ID, which we pass with the purchase. We also record the fees the payment services charge us.</li>
           </ul>
           <p className="mt-2">
@@ -98,7 +98,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
             <li>Verifying account identity to prevent fraud and abuse</li>
             <li>Processing subscription payments (Pro tier)</li>
             <li>Sending essential service emails (account verification, security alerts)</li>
-            <li>Sending optional notifications (new matches, likes) — only if you opt in</li>
+            <li>Sending optional notifications (new matches, messages, super-likes) — only if you turn them on; you can turn them off any time in Settings or in your phone's settings</li>
             <li>Investigating reports and enforcing community guidelines</li>
             <li>Complying with legal obligations</li>
           </ul>
@@ -123,6 +123,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
             <li><strong>Google (Gemini AI):</strong> the text you type into search is sent to Google's Gemini AI to work out what you're looking for, with emails and phone numbers removed. With it we send the list of answers members have chosen for the searchable questions (for example "Tamil, Marathi" for mother tongue), never names, photos, or which answer belongs to whom. Nothing else from your account or profile is sent. We use Google's free tier, under which Google may use this text to improve its services, so please don't type personal details into search</li>
             <li><strong>Razorpay (payments):</strong> processes Pro subscription payments on the website, based in India</li>
             <li><strong>Google Play and Apple (app payments):</strong> process Pro subscriptions bought in our Android and iPhone apps under their own privacy policies; we exchange the purchase details with them to check purchases and keep subscriptions current</li>
+            <li><strong>Google Firebase Cloud Messaging and Apple Push Notification service (notifications):</strong> if you turn on notifications in our app, each notification (for example "It's a match! You and Priya liked each other") goes with your phone's notification token to Google's Firebase Cloud Messaging, which delivers it to Android phones itself and to iPhones through Apple's push service. Message notifications never include what was written</li>
             <li><strong>Resend (email):</strong> sends transactional emails — when configured with a real domain</li>
             <li><strong>Law enforcement:</strong> only when legally compelled (court order, subpoena)</li>
           </ul>
@@ -134,7 +135,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
 
         <Section title="6. International data transfers">
           <p>
-            Some of our service providers (Vercel, Supabase, Google) operate globally and may transfer your
+            Some of our service providers (Vercel, Supabase, Google, Apple) operate globally and may transfer your
             data outside the European Economic Area. When this happens, we rely on Standard
             Contractual Clauses approved by the European Commission, or the recipient country's
             adequacy decision, to ensure your data is protected.
@@ -217,7 +218,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
 
         <div className="border-t border-gray-200 dark:border-zinc-800 pt-6 mt-10 text-center">
           <p className="text-xs text-gray-400">
-            This document was last updated on October 3, 2026 and is identified internally as {PRIVACY_VERSION}.
+            This document was last updated on October 4, 2026 and is identified internally as {PRIVACY_VERSION}.
           </p>
         </div>
       </article>

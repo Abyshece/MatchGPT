@@ -31,8 +31,13 @@ button, the status and gesture bar colours, the iPhone's notch and home bar
 through Google Play and the App Store, never Razorpay (`lib/storePurchases.ts`,
 `components/StoreUpgrade.tsx`; the server checks each purchase with the store),
 once the subscriptions are set up in the stores (ROADMAP.md, Phase 13); until
-then it says "coming soon". Google sign-in and notifications say "coming soon"
-until their phone versions exist; sign-in by email works.
+then it says "coming soon". Notifications come through Firebase Cloud Messaging
+(`lib/nativePush.ts`; the server sends them from `send-push`) once the app has
+its Firebase files: `android/app/google-services.json` and, added to the App
+target in Xcode, `ios/App/App/GoogleService-Info.plist` (Firebase console →
+Project settings → Your apps). Without them the app builds and runs, and says
+notifications are coming soon. Google sign-in says "coming soon" until its phone
+version exists; sign-in by email works.
 
 Both apps need the live Supabase URL and anon key in `.env.production.local`
 (same names as in `.env.local`; Supabase → Project Settings → API); the build

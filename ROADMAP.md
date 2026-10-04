@@ -21,7 +21,7 @@ Items left unfinished in earlier phases were moved into later ones, so each open
 | 10 | Launch readiness → public launch | To do — next |
 | 11 | Payments (MatchGPT+ via Razorpay) | Built; waiting for your Razorpay account |
 | 12 | Profile details for India (community, family, horoscope) | **Done** |
-| 13 | The phone apps, ready for Google Play and the App Store | Under way (payments, in-app buying and the Finance tab done) |
+| 13 | The phone apps, ready for Google Play and the App Store | Under way (payments, in-app buying, Finance tab and notifications done) |
 
 ---
 
@@ -365,8 +365,52 @@ Admin → Finance. Migration `20261003214808_phase13_finance_india_months` (appl
 - [x] Tests: `tests/e2e/admin-finance.mjs` (56 checks: every figure, the chart by mouse, keyboard and
   touch, filters, the CSV, phone width, dark mode, the Android share sheet, non-admins refused)
 
+### Notifications on Android and iPhone (done 2026-10-04)
+Migrations `20261004094057_phase13_phone_notifications` (applied live) and `20261004094100_phase13_phone_notifications_signout` (see below); `send-push` redeployed (and
+`store-billing`, `store-notifications`, `delete-account`: the Google sign-in they share).
+
+- [x] The apps get notifications through Firebase Cloud Messaging (FCM): on Android directly, on
+  iPhones through Apple's push service. New matches, messages (never what was written) and
+  super-likes, as on the website; one notification per chat, replaced as new messages come
+- [x] The app offers to turn them on (once; "Not now" waits two weeks) before the phone's own
+  question; Settings → "Notifications on this phone" turns them on and off; if they're blocked in
+  the phone's settings it says where to allow them. No token is made before someone says yes
+- [x] Android channels people can switch off separately: Messages, Matches, Likes; the ring as the
+  status-bar icon, in the brand orange
+- [x] While the app is open a notification shows as a toast (not for the chat on screen); tapping
+  one opens its chat, or Likes You, also when it launched the app
+- [x] A phone belongs to whoever is signed in on it; signing out takes it off. An account keeps its
+  10 most recent phones. Phones that are gone are removed; busy ones are retried, then skipped
+  until the app signs them up again. Notifications over a day old aren't sent; the queue keeps a week
+- [x] Privacy Policy `privacy-v6-2026-10-04` names Firebase Cloud Messaging and Apple's push
+  service; "Download my data" lists the phones and browsers notifications go to
+- [x] Also fixed: if Google refused our own sign-in (a wrong or revoked key), a Google Play
+  purchase was reported as invalid and its store notification acknowledged and lost; now it's
+  "try again" and the notification is retried. A token Google stops accepting is replaced
+- [x] Tests: `tests/e2e/phone-push.mjs` (43 checks, server, with an FCM stand-in in
+  `store-standin.cjs`), `tests/e2e/app-notifications.mjs` (29 checks, both phones), 3 unit tests
+  (`_shared/fcm_test.ts`), and the store, purchase, Android, iPhone and popup tests again
+- [ ] **Owner, one approval**: the second migration (`…_phone_notifications_signout`: signing a phone
+  out, the 10-phone limit, clearing the queue weekly) deletes rows, so Supabase's connection asks
+  you to approve it, and it timed out while you were away. Say "apply the notifications sign-out
+  migration" and approve the prompt, or paste the file into Supabase → SQL Editor → Run (it is safe
+  to run twice). Until then, signing out still drops the phone's token, and the server removes
+  dead tokens when it next sends
+- [ ] **Owner, Firebase** (one project for both apps; free):
+  1. [console.firebase.google.com](https://console.firebase.google.com) → Add project (no Analytics
+     needed). Add an Android app with package `com.matchgpt.app` → download `google-services.json`
+     into `android/app/`. Add an iOS app with bundle ID `com.matchgpt.app` → download
+     `GoogleService-Info.plist`, and in Xcode drag it into the App folder (tick "App" under targets)
+  2. Apple Developer → Certificates, Identifiers & Profiles → Keys → + → "Apple Push Notifications
+     service (APNs)" → download the .p8 key (note its Key ID and your Team ID). Firebase → Project
+     settings → Cloud Messaging → Apple app configuration → upload it
+  3. Firebase → Project settings → Service accounts → Generate new private key. Supabase → Edge
+     Functions → Secrets → `FIREBASE_SERVICE_ACCOUNT` = the whole JSON file
+  4. Build both apps again (`npm run build:android`, `npm run build:ios`). In Xcode, Signing &
+     Capabilities shows Push Notifications and Background Modes → Remote notifications (already
+     set up in the project)
+
 ### Still to do in this phase
-- [ ] Notifications on Android and iPhone (Firebase Cloud Messaging)
 - [ ] Google sign-in in the apps, and Sign in with Apple on iPhone
 - [ ] Password reset by code in the app; an account-deletion page on the web (Google Play requires one)
 - [ ] Release builds, store listings, privacy answers, screenshots and the launch checklist
