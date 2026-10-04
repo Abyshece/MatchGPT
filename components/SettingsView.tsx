@@ -9,6 +9,8 @@ import BlockedPeopleList from './BlockedPeopleList';
 import SubscriptionSettings from './SubscriptionSettings';
 import { getMySubscription, type Subscription } from '../lib/billingService';
 import { manageStoreSubscription, storeManageHint, storePlatform } from '../lib/storePurchases';
+import { downloadMyData } from '../lib/myDataService';
+import { SUPPORT_EMAIL } from './helpTopics';
 import {
   IconMoon, IconSun, IconUser, IconLogOut, IconChevronRight, IconTrash, IconX,
 } from '../constants';
@@ -47,6 +49,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
   const [deleting, setDeleting] = useState(false);
   // A subscription that would keep renewing: what deleting does to it
   const [renewing, setRenewing] = useState<Subscription | null>(null);
+  const [downloading, setDownloading] = useState(false);
 
   if (!settings || !profile) {
     return <div className="p-12 text-center text-gray-400">Loading…</div>;
@@ -72,6 +75,23 @@ const SettingsView: React.FC<SettingsViewProps> = ({
     }
     showToast(paused ? 'Profile paused. You are hidden from search.' : 'Profile visible again.', 'success');
     await refreshProfile();
+  };
+
+  const handleDownloadData = async () => {
+    setDownloading(true);
+    try {
+      if (await downloadMyData()) showToast('Your data is saved.', 'success');
+    } catch (e) {
+      showToast(`Couldn't download your data: ${e instanceof Error ? e.message : String(e)}`, 'error');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  // Terms and Privacy open as pages of their own (App.tsx follows the address)
+  const openLegal = (page: 'terms' | 'privacy') => {
+    window.location.hash = '';
+    window.location.hash = page;
   };
 
   const handleDeleteClick = () => {
@@ -145,12 +165,6 @@ const SettingsView: React.FC<SettingsViewProps> = ({
               </div>
               <Button variant="secondary" className="text-xs h-8" onClick={() => onNavigate?.('profile')}>Edit Profile</Button>
             </div>
-            <div className="space-y-1">
-              <div className="flex justify-between py-3 border-b border-gray-50 dark:border-zinc-800/50 px-2">
-                <span className="text-sm text-gray-600 dark:text-gray-300">Phone</span>
-                <span className="text-sm font-mono text-gray-800 dark:text-gray-200">{profile.phoneNumber || '—'}</span>
-              </div>
-            </div>
           </InfoSection>
 
           <InfoSection title="MatchGPT+">
@@ -167,6 +181,17 @@ const SettingsView: React.FC<SettingsViewProps> = ({
             <SettingsToggle label="Incognito Mode" description="Only show my profile to people I've liked." checked={settings.incognito} onChange={(v) => updateOne('incognito', v)} />
             <SettingsToggle label="Active Status" description="Show when you are online." checked={settings.showOnline} onChange={(v) => updateOne('showOnline', v)} />
             <SettingsToggle label="Read Receipts" description="Let matches know when you've read messages." checked={settings.readReceipts} onChange={(v) => updateOne('readReceipts', v)} />
+            <button
+              onClick={handleDownloadData}
+              disabled={downloading}
+              className="w-full flex items-center justify-between py-3 px-2 rounded text-left hover:bg-gray-50 dark:hover:bg-zinc-800/30 transition-colors disabled:opacity-60"
+            >
+              <span className="flex-1 pr-4">
+                <span className="block text-sm font-medium text-gray-900 dark:text-white">{downloading ? 'Preparing your data…' : 'Download my data'}</span>
+                <span className="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">A copy of everything MatchGPT holds about you, as a file.</span>
+              </span>
+              <IconChevronRight />
+            </button>
           </InfoSection>
 
           <InfoSection title="Blocked people">
@@ -225,6 +250,27 @@ const SettingsView: React.FC<SettingsViewProps> = ({
               <span>Help Center</span>
               <IconChevronRight />
             </button>
+            <a
+              href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('MatchGPT help')}`}
+              className="w-full flex items-center justify-between py-3 px-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800/30 rounded text-left"
+            >
+              <span>Contact support <span className="text-gray-400 dark:text-gray-500">· {SUPPORT_EMAIL}</span></span>
+              <IconChevronRight />
+            </a>
+            <button
+              onClick={() => openLegal('terms')}
+              className="w-full flex items-center justify-between py-3 px-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800/30 rounded text-left"
+            >
+              <span>Terms of Service</span>
+              <IconChevronRight />
+            </button>
+            <button
+              onClick={() => openLegal('privacy')}
+              className="w-full flex items-center justify-between py-3 px-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800/30 rounded text-left"
+            >
+              <span>Privacy Policy</span>
+              <IconChevronRight />
+            </button>
           </InfoSection>
 
           <div className="pt-8 border-t border-gray-100 dark:border-zinc-800 mt-8">
@@ -240,7 +286,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
             >
               Delete Account
             </button>
-            <p className="text-center text-[10px] text-gray-400 mt-2">MatchGPT • v0.3</p>
+            <p className="text-center text-[10px] text-gray-400 mt-2">MatchGPT • v{__APP_VERSION__}</p>
           </div>
         </div>
       </div>

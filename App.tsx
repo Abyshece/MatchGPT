@@ -32,6 +32,14 @@ import { onNotificationWhileOpen, startNativePush, stopNativePush } from './lib/
 type LegalPage = 'terms' | 'privacy' | null;
 type ThemeMode = 'system' | 'light' | 'dark';
 
+// Terms and Privacy have addresses of their own on the website, /terms and
+// /privacy (the stores link to them); #terms and #privacy work everywhere
+const LEGAL_PATH = /^\/(terms|privacy)\/?$/;
+function legalPageInUrl(): LegalPage {
+  const page = window.location.hash.replace('#', '') || LEGAL_PATH.exec(window.location.pathname)?.[1];
+  return page === 'terms' || page === 'privacy' ? page : null;
+}
+
 // Compute the actual boolean "is dark mode active right now" from a theme mode.
 function resolveIsDark(mode: ThemeMode): boolean {
   if (mode === 'dark') return true;
@@ -239,19 +247,24 @@ const AppRouter: React.FC<{
 };
 
 const App: React.FC = () => {
-  const [legalPage, setLegalPage] = useState<LegalPage>(null);
+  const [legalPage, setLegalPage] = useState<LegalPage>(legalPageInUrl);
 
-  // Hash-based routing fallback (e.g. for email links to #terms or #privacy)
+  // #terms or #privacy later on (links in emails and in the app)
   useEffect(() => {
     const handleHash = () => {
-      const hash = window.location.hash.replace('#', '');
-      if (hash === 'terms') setLegalPage('terms');
-      else if (hash === 'privacy') setLegalPage('privacy');
+      const page = legalPageInUrl();
+      if (page) setLegalPage(page);
     };
-    handleHash();
     window.addEventListener('hashchange', handleHash);
     return () => window.removeEventListener('hashchange', handleHash);
   }, []);
+
+  // Closing one opened at /terms or /privacy: the address goes back to the home page
+  useEffect(() => {
+    if (!legalPage && LEGAL_PATH.test(window.location.pathname)) {
+      window.history.replaceState(null, '', `/${window.location.search}`);
+    }
+  }, [legalPage]);
 
   // Android back button on Terms or Privacy: back to where they came from
   useBackHandler(BACK.PAGE, () => {

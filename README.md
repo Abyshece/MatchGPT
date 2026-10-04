@@ -47,7 +47,8 @@ password" emails a code to type into the app.
 
 The website's `/delete-account` page (`components/DeleteAccountPage.tsx`; a
 rewrite in `vercel.json`) lets anyone delete their account without the app,
-with a code sent by email: it is the deletion link Google Play asks for. The
+with a code sent by email: it is the deletion link Google Play asks for. `/support` (help and how to
+reach us), `/privacy` and `/terms` are the other pages the stores link to. The
 codes need Supabase's email templates to include them: paste
 `supabase/templates/recovery.html` (Reset Password) and `magic_link.html`
 (Magic Link) into Supabase → Authentication → Emails.
@@ -74,6 +75,13 @@ project uses Swift Package Manager, so there is no CocoaPods step.
    Developer Mode on the phone (Settings → Privacy & Security).
 
 After any code change, run the build command again before Run.
+
+**For the stores**: `npm run build:android:release` builds the bundle Google Play takes
+(`android/app/build/outputs/bundle/release/app-release.aab`), signed with your upload key once
+`android/keystore.properties` points at it; on the Mac, Xcode → Product → Archive uploads the iPhone
+app. Both stores see package.json's version: raise it before each upload
+(`npm version patch --no-git-tag-version`). The rest (the launch checklist, store listings, privacy
+answers, notes for the reviewers, screenshots) is in [docs/store/README.md](docs/store/README.md).
 
 `com.matchgpt.app` (in `capacitor.config.ts`, `android/app/build.gradle` and
 the Xcode project) is the app's ID on Google Play and the App Store; it can't

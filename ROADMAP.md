@@ -1,7 +1,8 @@
 # MatchGPT roadmap
 
 13 phases in total. Phases 1–5, 7–9 and 12 are done, Phase 6 is mostly done; **Phase 13 (the phone apps
-ready for the stores) is under way**, then Phase 10.
+ready for the stores) is built: what's left is yours, the launch checklist in
+[docs/store/README.md](docs/store/README.md)**, then Phase 10.
 AI search (Gemini) is built and live; it switches on once you add the `GEMINI_API_KEY` secret (Phase 9).
 Payments (MatchGPT+ through Razorpay, Phase 11) are built too and switch on once you add the Razorpay keys.
 Items left unfinished in earlier phases were moved into later ones, so each open item appears once.
@@ -21,7 +22,7 @@ Items left unfinished in earlier phases were moved into later ones, so each open
 | 10 | Launch readiness → public launch | To do — next |
 | 11 | Payments (MatchGPT+ via Razorpay) | Built; waiting for your Razorpay account |
 | 12 | Profile details for India (community, family, horoscope) | **Done** |
-| 13 | The phone apps, ready for Google Play and the App Store | Under way (payments, in-app buying, Finance tab, notifications, Google/Apple sign-in, reset by code and the deletion page done) |
+| 13 | The phone apps, ready for Google Play and the App Store | **Built**; your launch checklist: [docs/store/README.md](docs/store/README.md) |
 
 ---
 
@@ -59,6 +60,8 @@ Migrations `20260926133139_close_public_data_exposure` and `20260926141513_fix_l
 ### Owner follow-ups
 - [ ] Once the live site address is known: set the `ALLOWED_ORIGINS` secret and redeploy the edge functions
   (`npx supabase functions deploy delete-account`, `send-push` and `search`). No behaviour changes until then.
+  Include the phone apps' origins, `https://localhost` (Android) and `capacitor://localhost` (iPhone), or
+  the apps can't reach the functions (`docs/store/README.md`, step 3)
 - [ ] Turn on leaked-password protection in the Supabase dashboard's Authentication settings
   ([docs](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection))
 - [ ] Remove the now-unused `VITE_ADMIN_EMAILS` variable from the hosting settings
@@ -430,7 +433,7 @@ Migration `20261004105040_phase13_sign_in_with_apple` (applied live); new functi
 - [x] Privacy Policy `privacy-v7-2026-10-04`: what Google and Apple tell us at sign-in, Apple's private
   relay addresses, the Apple token; "Download my data" says since when one is kept (not the token)
 - [x] Tests: `tests/e2e/app-social-signin.mjs` (30 checks, both phones), `tests/e2e/apple-sign-in.mjs`
-  (28 checks, server, with an Apple stand-in in `store-standin.cjs`), 3 unit tests
+  (27 checks, server, with an Apple stand-in in `store-standin.cjs`), 3 unit tests
   (`_shared/appleSignIn_test.ts`), and the Android, iPhone and store tests again
 - [ ] **Owner, Google** (Google Cloud, the project of the web client Supabase already uses,
   `1095396009529-7cqo7gfh8s160u4qrk6i6an6726r7lde`; Google Auth Platform):
@@ -484,8 +487,43 @@ No database or function changes; the website serves the new page.
 - [ ] **Owner, Google Play**: Play Console → App content → Data safety → "Delete account URL":
   `https://shaadi-gpt.vercel.app/delete-account` (or the same path on your own domain)
 
-### Still to do in this phase
-- [ ] Release builds, store listings, privacy answers, screenshots and the launch checklist
+### Store releases and the launch kit (done 2026-10-04)
+Migrations `20261004170828_phase13_rls_performance` and `20261004174515_phase13_content_filter`
+(applied live); the website serves the new pages.
+
+- [x] Android release builds: `npm run build:android:release` makes the bundle Google Play takes, signed
+  with your upload key (`android/keystore.properties`, never in git), 16 KB-aligned as Android 15 phones
+  need
+- [x] One version for both stores, package.json's (1.0.0): Android's versionCode and the iPhone's build
+  number follow it (10000), so each upload only needs `npm version patch --no-git-tag-version`
+- [x] iPhone: the privacy manifest Apple requires (`PrivacyInfo.xcprivacy`: no tracking, the 15 kinds of
+  data the app keeps, the reasons for the system features its plugins use); iPhone-only for now, so no
+  iPad screenshots are needed
+- [x] Words MatchGPT doesn't allow (Apple's App Review rule 1.2 and Google Play's rules for apps where
+  people post): sexual, abusive and hateful words in English and Hindi (Latin letters and Devanagari)
+  are refused in chats and in profile text, with a plain message saying why; names and everyday words
+  that look like them pass (Randeep, Ranchod, "chota", "chhod do", magna cum laude; all 6,648 strings in
+  the app's own lists pass too). Reports aren't filtered, so they can quote. Terms `terms-v3-2026-10-04`:
+  no tolerance for objectionable content or abusive users; reports reviewed within 24 hours
+- [x] Pages the stores link to: `/support` (help and how to reach us: the App Store's Support URL),
+  `/privacy` and `/terms` as addresses of their own (`#privacy` still works)
+- [x] In the apps: the Help Center rewritten, because it described things the app doesn't do (voice
+  profiles, SMS checks) and its Contact Support button did nothing. Each app's answers name only its
+  own store and never the website's payments, as Apple and Google require. Settings → Support: Contact
+  support, Terms, Privacy Policy; **Download my data** (everything kept about the person, as a file:
+  a download on the website, the share sheet in the apps); the real version number; the empty
+  "Phone" row is gone (nothing collects phone numbers)
+- [x] The database's security rules look up the signed-in user once per query instead of once per row
+  (32 rules), and 6 foreign keys got indexes (Supabase's performance advisor)
+- [x] The launch kit, [docs/store/README.md](docs/store/README.md): the checklist in order, both store
+  listings (within each field's limit), the Data safety and App Privacy answers, content rating, notes
+  for the reviewers, screenshot sizes and screens; Google Play's icon and feature graphic
+  (`docs/store/graphics/`, remade by `scripts/store-graphics.mjs`)
+- [x] Tests: `tests/e2e/support-pages.mjs` (35 checks), `tests/e2e/content-filter.mjs` (27 checks), and
+  the Android, iPhone, sign-up, consent, Settings, popups, purchases, notifications, India profile,
+  account deletion, reset and sign-in tests again
+- [ ] **Owner: the launch checklist** in [docs/store/README.md](docs/store/README.md), from step 1. It
+  gathers every owner step of this phase in order (the ones above in this section included)
 
 ---
 
