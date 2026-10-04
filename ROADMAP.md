@@ -21,7 +21,7 @@ Items left unfinished in earlier phases were moved into later ones, so each open
 | 10 | Launch readiness → public launch | To do — next |
 | 11 | Payments (MatchGPT+ via Razorpay) | Built; waiting for your Razorpay account |
 | 12 | Profile details for India (community, family, horoscope) | **Done** |
-| 13 | The phone apps, ready for Google Play and the App Store | Under way (payments, in-app buying, Finance tab and notifications done) |
+| 13 | The phone apps, ready for Google Play and the App Store | Under way (payments, in-app buying, Finance tab, notifications and Google/Apple sign-in done) |
 
 ---
 
@@ -410,8 +410,55 @@ Migrations `20261004094057_phase13_phone_notifications` (applied live) and `2026
      Capabilities shows Push Notifications and Background Modes → Remote notifications (already
      set up in the project)
 
+### Sign in with Google and Apple in the apps (done 2026-10-04)
+Migration `20261004105040_phase13_sign_in_with_apple` (applied live); new function `apple-sign-in`;
+`delete-account` redeployed.
+
+- [x] The apps sign in with the phone's own sheets (`lib/socialSignIn.ts`): Google's account chooser on
+  Android (Credential Manager) and on iPhones, and Sign in with Apple on iPhones, its button first and in
+  black as Apple asks. iPhones offer Google only next to Apple (Apple's rule). Never Google's web page
+  inside the app, and Google's sheet names the app, not the Supabase address
+- [x] A new account goes on to accept the Terms, then the profile form starts from the name Google or
+  Apple gave (Apple gives it only the first time; it's kept on the account)
+- [x] Each sign-in carries a fresh nonce that Supabase checks ("Skip nonce check" stays off)
+- [x] A button shows only when its provider is on in Supabase; closing a sheet does nothing; plain
+  messages when Google isn't set up for the app yet or a provider is off; email sign-in always there
+- [x] Deleting an account also ends its Sign in with Apple (Apple's "revoke tokens" call, as Apple asks
+  of apps with account deletion), with the token Apple's server gives at sign-in (`apple-sign-in`; only
+  the server can read it). Best effort: the account is deleted either way
+- [x] No Facebook SDK or advertising ID in either app (the plugin leaves the unused providers out)
+- [x] Privacy Policy `privacy-v7-2026-10-04`: what Google and Apple tell us at sign-in, Apple's private
+  relay addresses, the Apple token; "Download my data" says since when one is kept (not the token)
+- [x] Tests: `tests/e2e/app-social-signin.mjs` (30 checks, both phones), `tests/e2e/apple-sign-in.mjs`
+  (28 checks, server, with an Apple stand-in in `store-standin.cjs`), 3 unit tests
+  (`_shared/appleSignIn_test.ts`), and the Android, iPhone and store tests again
+- [ ] **Owner, Google** (Google Cloud, the project of the web client Supabase already uses,
+  `1095396009529-7cqo7gfh8s160u4qrk6i6an6726r7lde`; Google Auth Platform):
+  1. Branding: app name **MatchGPT**, logo, support email. Audience: External, and "Publish app" so
+     every Google account can sign in (in Testing only listed test users can). This is what makes
+     Google's sheet say MatchGPT
+  2. Clients → Create client → **Android**: package `com.matchgpt.app` and the SHA-1 of each key that
+     signs the app: the Play App Signing key (Play Console → Test and release → App integrity), the
+     upload key, and for test builds the debug key (`cd android && ./gradlew signingReport`); one
+     Android client per SHA-1. Nothing changes in Supabase for Android
+  3. Clients → Create client → **iOS**: bundle ID `com.matchgpt.app` (and your Team ID). Put its client
+     ID in `.env.production.local` as `VITE_GOOGLE_IOS_CLIENT_ID=…`, and in Supabase → Authentication →
+     Sign In / Providers → Google → Client IDs add it after the web client:
+     `1095396009529-7cqo7gfh8s160u4qrk6i6an6726r7lde.apps.googleusercontent.com,<iOS client ID>`.
+     `npm run build:ios` then adds its URL scheme to the app by itself
+- [ ] **Owner, Apple**:
+  1. Apple Developer → Identifiers → `com.matchgpt.app` → tick **Sign in with Apple** (Xcode's
+     automatic signing does this too: the project already has the entitlement)
+  2. Supabase → Authentication → Sign In / Providers → **Apple** → on, Client IDs `com.matchgpt.app`
+     (no secret key needed for the app). The iPhone app shows "Continue with Apple" (and Google) from then
+  3. Keys → + → tick **Sign in with Apple** (configure it for `com.matchgpt.app`); if you haven't made
+     the push key yet (Notifications above), make one key with both "Apple Push Notifications service"
+     and "Sign in with Apple". Download the .p8. Supabase → Edge Functions → Secrets: `APPLE_TEAM_ID`,
+     `APPLE_SIGNIN_KEY_ID` (the key's ID) and `APPLE_SIGNIN_PRIVATE_KEY` (the .p8 file's text)
+  4. Services → Sign in with Apple for Email Communication: register the address MatchGPT's emails
+     come from, so mail reaches people who hid their email (…@privaterelay.appleid.com)
+
 ### Still to do in this phase
-- [ ] Google sign-in in the apps, and Sign in with Apple on iPhone
 - [ ] Password reset by code in the app; an account-deletion page on the web (Google Play requires one)
 - [ ] Release builds, store listings, privacy answers, screenshots and the launch checklist
 

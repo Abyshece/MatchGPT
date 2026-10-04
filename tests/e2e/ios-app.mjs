@@ -4,8 +4,9 @@
 // no notch, so the test sets --safe-top / --safe-bottom to an iPhone's 59 and
 // 34 points and checks nothing sits under them: the headers, the sign-in
 // popup, the menu, the filters, a toast, the MatchGPT+ sheet, a chat's message
-// box. Also: viewport-fit=cover, the status bar text follows the theme, no
-// Google button, MatchGPT+ "coming to the app soon".
+// box. Also: viewport-fit=cover, the status bar text follows the theme,
+// email-only sign-in while Supabase has Apple and Google off
+// (app-social-signin.mjs covers them), MatchGPT+ "coming to the app soon".
 // Usage: node ios-app.mjs <email>   (an onboarded account, password TestPass!2026)
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
@@ -103,7 +104,7 @@ try {
     await page.getByRole('button', { name: 'Sign in' }).click();
     await page.getByRole('button', { name: /Continue with Email/ }).waitFor();
     await page.waitForTimeout(400);
-    check(await page.getByText('Continue with Google').count() === 0, 'email-only sign-in');
+    check(await page.getByText('Continue with Google').count() === 0, 'email-only sign-in while Apple and Google are off in Supabase');
     clear(await rect(page, '.popup-backdrop > div'), 'the sign-in popup');
     await page.screenshot({ path: `${OUT}2-sign-in.png` });
     await page.context().close();

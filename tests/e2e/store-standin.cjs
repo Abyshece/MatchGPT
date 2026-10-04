@@ -41,6 +41,12 @@
 //                                         chain that isn't Apple's) → {jws}
 //   GET  /__apple/latest/<orig>           the latest transaction, signed → {jws}
 //   GET  /__calls                         every Google API call so far
+// Sign in with Apple (appleid.apple.com): /appleid/auth/token exchanges an app's
+// one-time code, /appleid/auth/revoke ends it; both check the client secret
+// (a JWT signed with the stand-in's Sign in with Apple key).
+//   POST /__appleid/code {sub, email}     a sign-in in the app → {code}
+//   GET  /__appleid/state                 codes, refresh tokens (revoked or not), calls
+//   POST /__appleid/mode {mode}           ok, or down (Apple answers 503)
 // Firebase Cloud Messaging: messages:send with the Firebase service account's
 // sign-in. Phone tokens starting dead- are unregistered, busy- get "unavailable",
 // notatoken- aren't tokens, other-project- belong to another project.
@@ -59,6 +65,8 @@
 //   #   APPLE_ROOT_CERTIFICATES      the stand-in's root certificate
 //   #   FIREBASE_SERVICE_ACCOUNT     a Firebase service account whose sign-in goes here
 //   #   FCM_API_BASE                 http://<docker gateway>:8790
+//   #   APPLE_TEAM_ID, APPLE_SIGNIN_KEY_ID, APPLE_SIGNIN_PRIVATE_KEY  a Sign in with Apple key
+//   #   APPLE_ID_API_BASE            http://<docker gateway>:8790/appleid
 //   # Settings: PORT, GATEWAY (the address the functions reach this on),
 //   # NOTIFY_URL (store-notifications), KEYS_FILE (keeps the keys across
 //   # restarts), ENV_OUT.
@@ -128,9 +136,23 @@ async function makeChain(label, withAppleMarks) {
   };
 }
 
+// The developer's Sign in with Apple key (a .p8: EC P-256)
+function appleSigninKey() {
+  const { privateKey, publicKey } = crypto.generateKeyPairSync('ec', { namedCurve: 'P-256' });
+  return {
+    private_key: privateKey.export({ type: 'pkcs8', format: 'pem' }),
+    public_key: publicKey.export({ type: 'spki', format: 'pem' }),
+  };
+}
+
 async function loadKeys() {
   try {
-    return JSON.parse(fs.readFileSync(KEYS_FILE, 'utf8'));
+    const keys = JSON.parse(fs.readFileSync(KEYS_FILE, 'utf8'));
+    if (!keys.appleSignin) {
+      keys.appleSignin = appleSigninKey();
+      fs.writeFileSync(KEYS_FILE, JSON.stringify(keys), { mode: 0o600 });
+    }
+    return keys;
   } catch {
     const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
     const keys = {
@@ -141,6 +163,7 @@ async function loadKeys() {
       apple: await makeChain('Test Apple', true),
       // Looks like Apple's (same marks) but isn't from the trusted root
       other: await makeChain('Look-alike', true),
+      appleSignin: appleSigninKey(),
     };
     fs.writeFileSync(KEYS_FILE, JSON.stringify(keys), { mode: 0o600 });
     return keys;
@@ -540,6 +563,62 @@ function fcmSend(project, auth, raw, res) {
   return send(res, 200, { name });
 }
 
+// ---- Sign in with Apple (appleid.apple.com) -------------------------------------------------
+
+const APPLE_TEAM = 'TEAM123456';
+const APPLE_SIGNIN_KEY_ID = 'KEY1234567';
+const appleid = { codes: new Map(), refresh: new Map(), calls: [], mode: 'ok' };
+
+// The client secret: an ES256 JWT from the team's key, for this app
+function appleClientOk(params) {
+  const secret = params.get('client_secret') || '';
+  const [h, p, sig] = secret.split('.');
+  if (!h || !p || !sig || params.get('client_id') !== BUNDLE) return false;
+  try {
+    const header = JSON.parse(Buffer.from(h, 'base64url').toString());
+    const claims = JSON.parse(Buffer.from(p, 'base64url').toString());
+    const nowSec = Math.floor(Date.now() / 1000);
+    return header.alg === 'ES256' && header.kid === APPLE_SIGNIN_KEY_ID &&
+      claims.iss === APPLE_TEAM && claims.sub === BUNDLE && claims.aud === 'https://appleid.apple.com' &&
+      claims.exp > nowSec && claims.iat <= nowSec + 60 && claims.exp - claims.iat <= 15_777_000 &&
+      crypto.verify('sha256', Buffer.from(`${h}.${p}`), { key: KEYS.appleSignin.public_key, dsaEncoding: 'ieee-p1363' },
+        Buffer.from(sig, 'base64url'));
+  } catch {
+    return false;
+  }
+}
+
+function appleidApi(path, raw, res) {
+  const params = new URLSearchParams(raw);
+  appleid.calls.push({ path, grant_type: params.get('grant_type'), token_type_hint: params.get('token_type_hint') });
+  if (appleid.mode === 'down') return send(res, 503, {});
+  if (!appleClientOk(params)) return send(res, 400, { error: 'invalid_client' });
+  if (path === '/auth/token') {
+    const code = appleid.codes.get(params.get('code') || '');
+    if (params.get('grant_type') !== 'authorization_code' || !code || code.used || code.expires < Date.now()) {
+      return send(res, 400, { error: 'invalid_grant', error_description: 'The code has expired or has been revoked.' });
+    }
+    code.used = true;
+    const refresh = `r${crypto.randomBytes(16).toString('hex')}.0.mrxv.${crypto.randomBytes(8).toString('hex')}`;
+    appleid.refresh.set(refresh, { sub: code.sub, revoked: false });
+    const nowSec = Math.floor(Date.now() / 1000);
+    const idToken = `${json64url({ kid: 'stand-in', alg: 'ES256' })}.${json64url({
+      iss: 'https://appleid.apple.com', aud: BUNDLE, exp: nowSec + 600, iat: nowSec, sub: code.sub,
+      email: code.email, email_verified: true, is_private_email: /privaterelay/.test(code.email || ''),
+    })}.${b64url(crypto.randomBytes(64))}`;
+    return send(res, 200, {
+      access_token: `a${crypto.randomBytes(16).toString('hex')}.0.mrxv.${crypto.randomBytes(8).toString('hex')}`,
+      token_type: 'Bearer', expires_in: 3600, refresh_token: refresh, id_token: idToken,
+    });
+  }
+  if (path === '/auth/revoke') {
+    const t = appleid.refresh.get(params.get('token') || '');
+    if (t) t.revoked = true;
+    return send(res, 200);  // Apple answers 200 for tokens it doesn't know too
+  }
+  return send(res, 404, { error: 'not found' });
+}
+
 // ---- Server -----------------------------------------------------------------------------
 
 async function main() {
@@ -559,6 +638,11 @@ async function main() {
     `GOOGLE_PLAY_API_BASE=http://${GATEWAY}:${PORT}`,
     `GOOGLE_RTDN_SECRET=${RTDN_SECRET}`,
     `APPLE_ROOT_CERTIFICATES=${KEYS.apple.x5c[2]}`,
+    `APPLE_TEAM_ID=${APPLE_TEAM}`,
+    `APPLE_SIGNIN_KEY_ID=${APPLE_SIGNIN_KEY_ID}`,
+    // The .p8's text on one line, its line breaks written as \n
+    `APPLE_SIGNIN_PRIVATE_KEY=${KEYS.appleSignin.private_key.trim().replace(/\n/g, '\\n')}`,
+    `APPLE_ID_API_BASE=http://${GATEWAY}:${PORT}/appleid`,
   ].join('\n');
   fs.writeFileSync(ENV_OUT, `${env}\n`, { mode: 0o600 });
 
@@ -574,6 +658,25 @@ async function main() {
       if (url.pathname === '/__calls') return send(res, 200, calls);
       const sendPath = url.pathname.match(/^\/v1\/projects\/([^/]+)\/messages:send$/);
       if (sendPath && req.method === 'POST') return fcmSend(sendPath[1], req.headers.authorization || '', raw, res);
+      const appleidPath = url.pathname.match(/^\/appleid(\/auth\/(?:token|revoke))$/);
+      if (appleidPath && req.method === 'POST') return appleidApi(appleidPath[1], raw, res);
+      if (url.pathname === '/__appleid/code' && req.method === 'POST') {
+        const { sub, email } = JSON.parse(raw || '{}');
+        const code = `c${crypto.randomBytes(16).toString('hex')}.0.mrxv.${crypto.randomBytes(12).toString('base64url')}`;
+        appleid.codes.set(code, { sub, email, used: false, expires: Date.now() + 5 * 60_000 });
+        return send(res, 200, { code });
+      }
+      if (url.pathname === '/__appleid/state') {
+        return send(res, 200, {
+          codes: [...appleid.codes].map(([code, c]) => ({ code, ...c })),
+          refreshTokens: [...appleid.refresh].map(([token, t]) => ({ token, ...t })),
+          calls: appleid.calls,
+        });
+      }
+      if (url.pathname === '/__appleid/mode' && req.method === 'POST') {
+        appleid.mode = JSON.parse(raw || '{}').mode || 'ok';
+        return send(res, 200, { mode: appleid.mode });
+      }
       if (url.pathname === '/__fcm/messages') return send(res, 200, fcm.messages);
       if (url.pathname === '/__fcm/reset' && req.method === 'POST') {
         fcm.messages = [];

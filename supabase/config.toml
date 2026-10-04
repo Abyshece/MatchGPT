@@ -451,3 +451,7 @@ verify_jwt = false
 # payloads) instead (store-notifications/index.ts).
 [functions.store-notifications]
 verify_jwt = false
+
+# Checks the signed-in user itself (supabase/functions/apple-sign-in/index.ts).
+[functions.apple-sign-in]
+verify_jwt = false

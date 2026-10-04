@@ -36,8 +36,13 @@ then it says "coming soon". Notifications come through Firebase Cloud Messaging
 its Firebase files: `android/app/google-services.json` and, added to the App
 target in Xcode, `ios/App/App/GoogleService-Info.plist` (Firebase console →
 Project settings → Your apps). Without them the app builds and runs, and says
-notifications are coming soon. Google sign-in says "coming soon" until its phone
-version exists; sign-in by email works.
+notifications are coming soon. Sign-in uses the phone's own sheets
+(`lib/socialSignIn.ts`): Google's on both phones and, on iPhones, Sign in with
+Apple, each shown once its provider is on in Supabase (Authentication → Sign
+In / Providers). Android uses the Google client Supabase already has; iPhones
+need their own, `VITE_GOOGLE_IOS_CLIENT_ID` in `.env.production.local` (the iOS
+build adds its URL scheme to `Info.plist` by itself,
+`scripts/ios-google-sign-in.mjs`). Email sign-in always works.
 
 Both apps need the live Supabase URL and anon key in `.env.production.local`
 (same names as in `.env.local`; Supabase → Project Settings → API); the build

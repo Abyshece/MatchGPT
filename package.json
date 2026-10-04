@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "build:android": "vite build && cap sync android",
-    "build:ios": "vite build && cap sync ios"
+    "build:ios": "vite build && cap sync ios",
+    "capacitor:sync:before": "node scripts/ios-google-sign-in.mjs"
   },
   "dependencies": {
     "@capacitor-firebase/messaging": "^8.5.2",
@@ -19,6 +20,7 @@
     "@capacitor/ios": "^8.5.2",
     "@capacitor/share": "^8.0.3",
     "@capacitor/splash-screen": "^8.0.2",
+    "@capgo/capacitor-social-login": "^8.5.12",
     "@capgo/native-purchases": "^8.8.1",
     "@google/genai": "^1.30.0",
     "@supabase/supabase-js": "^2.105.3",
@@ -32,6 +34,7 @@
     "@vitejs/plugin-react": "^5.0.0",
     "autoprefixer": "^10.5.0",
     "dotenv": "^17.4.2",
+    "plist": "^3.1.1",
     "postcss": "^8.5.14",
     "supabase": "^2.98.2",
     "tailwindcss": "^3.4.19",
