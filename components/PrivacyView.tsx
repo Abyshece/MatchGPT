@@ -169,7 +169,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
           <ul className="list-disc list-inside space-y-1 ml-2">
             <li><strong>Access:</strong> request a copy of all personal data we hold about you</li>
             <li><strong>Rectification:</strong> correct inaccurate data (most fields are editable directly in your profile)</li>
-            <li><strong>Erasure ("right to be forgotten"):</strong> delete your account at any time via Settings → Delete Account. If you signed in with Apple, this also ends Sign in with Apple for MatchGPT</li>
+            <li><strong>Erasure ("right to be forgotten"):</strong> delete your account at any time via Settings → Delete Account, or without the app on our website's Delete account page (/delete-account), with a code we email you. If you signed in with Apple, this also ends Sign in with Apple for MatchGPT</li>
             <li><strong>Restriction:</strong> ask us to temporarily stop processing your data</li>
             <li><strong>Portability:</strong> receive your data in a machine-readable format</li>
             <li><strong>Objection:</strong> object to processing based on legitimate interests</li>

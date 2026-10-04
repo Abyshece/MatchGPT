@@ -21,7 +21,7 @@ Items left unfinished in earlier phases were moved into later ones, so each open
 | 10 | Launch readiness → public launch | To do — next |
 | 11 | Payments (MatchGPT+ via Razorpay) | Built; waiting for your Razorpay account |
 | 12 | Profile details for India (community, family, horoscope) | **Done** |
-| 13 | The phone apps, ready for Google Play and the App Store | Under way (payments, in-app buying, Finance tab, notifications and Google/Apple sign-in done) |
+| 13 | The phone apps, ready for Google Play and the App Store | Under way (payments, in-app buying, Finance tab, notifications, Google/Apple sign-in, reset by code and the deletion page done) |
 
 ---
 
@@ -458,8 +458,33 @@ Migration `20261004105040_phase13_sign_in_with_apple` (applied live); new functi
   4. Services → Sign in with Apple for Email Communication: register the address MatchGPT's emails
      come from, so mail reaches people who hid their email (…@privaterelay.appleid.com)
 
+### Password reset by code, and the account-deletion page (done 2026-10-04)
+No database or function changes; the website serves the new page.
+
+- [x] "Forgot password" emails a 6-digit code to type into the app (the apps have no web address for a
+  link to come back to), then asks for the new password. The same email's link still works on the
+  website. An address without an account gets the same answer, so nobody learns who has one
+- [x] The website's **Delete account** page, `/delete-account` (Google Play asks for one): what's
+  deleted and what's kept, how to do it in the app, and the deletion itself with a code sent by email,
+  which works for accounts made with email, Google or Apple (Apple's hidden addresses too). It uses
+  the same `delete-account` function as the apps (subscriptions stopped first, Sign in with Apple
+  ended) and keeps nothing in the browser
+- [x] Email templates with the codes: `supabase/templates/recovery.html` and `magic_link.html`
+- [x] Privacy Policy `privacy-v8-2026-10-04` mentions the page
+- [x] Tests: `tests/e2e/reset-code-flow.mjs` (20 checks, the Android app and the website),
+  `tests/e2e/delete-account-page.mjs` (18 checks), and the website's reset link (`reset-flow.mjs`)
+- [ ] **Owner, Supabase emails** (Authentication → Emails):
+  1. Templates → **Reset Password**: subject `Your MatchGPT password reset code`, body = the text of
+     `supabase/templates/recovery.html`. **Magic Link**: subject `Your MatchGPT code`, body =
+     `supabase/templates/magic_link.html`. Until then the emails have only links (the app says the
+     link works too, on the website)
+  2. **SMTP Settings → your own email service** (Resend, for example, from your domain). Supabase's
+     built-in email is for trying things out: a few emails an hour, and only to your team's
+     addresses, so real members would get no codes
+- [ ] **Owner, Google Play**: Play Console → App content → Data safety → "Delete account URL":
+  `https://shaadi-gpt.vercel.app/delete-account` (or the same path on your own domain)
+
 ### Still to do in this phase
-- [ ] Password reset by code in the app; an account-deletion page on the web (Google Play requires one)
 - [ ] Release builds, store listings, privacy answers, screenshots and the launch checklist
 
 ---
