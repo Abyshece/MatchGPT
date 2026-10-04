@@ -1,8 +1,12 @@
 // ============================================================================
-// The graphics Google Play's store listing asks for, made from the app's icon
-// design (the pink-to-orange square with the white ring):
+// The graphics made from the app's icon design (the pink-to-orange square
+// with the white ring), for Google Play's store listing and the website:
 //   docs/store/graphics/play-icon-512.png          512 × 512, 32-bit PNG
 //   docs/store/graphics/play-feature-graphic.jpg   1024 × 500, JPEG
+//   public/og-image.png                            1200 × 630, the picture in
+//                                                  link previews (index.html)
+//   public/apple-touch-icon.png, favicon-32.png    the website's icons (with
+//                                                  public/favicon.svg)
 // The App Store takes its icon from the iPhone app itself (AppIcon, 1024 ×
 // 1024). Change the words below and run again to remake them.
 //
@@ -19,10 +23,12 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = process.env.REPO_ROOT || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'docs/store/graphics');
+const PUBLIC = path.join(ROOT, 'public');
 const ICON = path.join(ROOT, 'ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png');
 
 const TITLE = 'MatchGPT';
 const TAGLINE = 'Describe your life partner.<br>Meet the people you fit.';
+const PREVIEW_LINE = 'Matrimony for India';
 
 // The icon's ring, drawn (1024-unit square)
 const RING = `<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -42,6 +48,14 @@ const FEATURE = `<!doctype html><html><head><meta charset="utf-8"><style>
   h1 { margin: 0; font-size: 86px; font-weight: 700; letter-spacing: -2px; }
   p { margin: 18px 0 0; font-size: 34px; line-height: 1.3; }
 </style></head><body>${RING}<div><h1>${TITLE}</h1><p>${TAGLINE}</p></div></body></html>`;
+
+// The link preview: the same, larger, with a line saying what MatchGPT is
+const PREVIEW = FEATURE
+  .replace('width: 1024px; height: 500px;', 'width: 1200px; height: 630px;')
+  .replace('svg { width: 230px; height: 230px;', 'svg { width: 280px; height: 280px;')
+  .replace('h1 { margin: 0; font-size: 86px;', 'h1 { margin: 0; font-size: 100px;')
+  .replace('p { margin: 18px 0 0; font-size: 34px;', 'p { margin: 18px 0 0; font-size: 40px;')
+  .replace(`<h1>${TITLE}</h1>`, `<div style="font-size:30px;font-weight:700;letter-spacing:3px;text-transform:uppercase;opacity:.85;margin-bottom:10px">${PREVIEW_LINE}</div><h1>${TITLE}</h1>`);
 
 // A PNG with an alpha channel (colour type 6) from RGBA pixels: browsers save
 // opaque screenshots without one, and Google Play asks for a 32-bit PNG
@@ -72,22 +86,30 @@ const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PAT
 try {
   const page = await browser.newPage({ viewport: { width: 1024, height: 500 } });
   const icon = `data:image/png;base64,${fs.readFileSync(ICON).toString('base64')}`;
-  const pixels = await page.evaluate(async (src) => {
+  // The app icon at another size, as RGBA pixels
+  const iconAt = async (size) => Buffer.from(await page.evaluate(async ({ src, size }) => {
     const img = new Image();
     img.src = src;
     await img.decode();
-    const canvas = Object.assign(document.createElement('canvas'), { width: 512, height: 512 });
+    const canvas = Object.assign(document.createElement('canvas'), { width: size, height: size });
     const ctx = canvas.getContext('2d');
     ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(img, 0, 0, 512, 512);
-    return Array.from(ctx.getImageData(0, 0, 512, 512).data);
-  }, icon);
-  fs.writeFileSync(path.join(OUT, 'play-icon-512.png'), pngWithAlpha(512, 512, Buffer.from(pixels)));
+    ctx.drawImage(img, 0, 0, size, size);
+    return Array.from(ctx.getImageData(0, 0, size, size).data);
+  }, { src: icon, size }));
+  fs.writeFileSync(path.join(OUT, 'play-icon-512.png'), pngWithAlpha(512, 512, await iconAt(512)));
+  fs.writeFileSync(path.join(PUBLIC, 'apple-touch-icon.png'), pngWithAlpha(180, 180, await iconAt(180)));
+  fs.writeFileSync(path.join(PUBLIC, 'favicon-32.png'), pngWithAlpha(32, 32, await iconAt(32)));
 
   await page.setContent(FEATURE);
   // JPEG: the feature graphic may not have an alpha channel
   await page.screenshot({ path: path.join(OUT, 'play-feature-graphic.jpg'), type: 'jpeg', quality: 92 });
-  console.log(`Saved in ${path.relative(ROOT, OUT)}: play-icon-512.png, play-feature-graphic.jpg`);
+
+  await page.setViewportSize({ width: 1200, height: 630 });
+  await page.setContent(PREVIEW);
+  await page.screenshot({ path: path.join(PUBLIC, 'og-image.png') });
+  console.log(`Saved: ${path.relative(ROOT, OUT)}/play-icon-512.png and play-feature-graphic.jpg; `
+    + 'public/og-image.png, apple-touch-icon.png and favicon-32.png');
 } finally {
   await browser.close();
 }

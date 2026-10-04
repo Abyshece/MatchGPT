@@ -70,7 +70,9 @@ try {
 
   log('2. Standouts keeps saved picks outside the live top 8');
   // Save 5 random compatible people as today's picks; most of them fall outside
-  // the live top 8 that the old code re-ran on every visit.
+  // the live top 8 that the old code re-ran on every visit. This account looks
+  // for women here (other tests may have changed it), so the picks fit it.
+  sql(`update profiles set gender = 'Male', interested_in = 'Women' where id = '${me}';`);
   const picks = sql(`select id || '|' || name from profiles where onboarding_complete and name <> '' and not is_banned and not is_paused
                      and gender = 'Female' and interested_in in ('Men','Everyone')
                      order by md5(id::text) limit 5;`).split('\n').map((l) => l.split('|'));

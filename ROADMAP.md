@@ -1,8 +1,9 @@
 # MatchGPT roadmap
 
-13 phases in total. Phases 1–5, 7–9 and 12 are done, Phase 6 is mostly done; **Phase 13 (the phone apps
-ready for the stores) is built: what's left is yours, the launch checklist in
-[docs/store/README.md](docs/store/README.md)**, then Phase 10.
+13 phases in total. Phases 1–5, 7–9 and 12 are done, and Phase 6 is mostly done. **Phase 13 (the
+phone apps ready for the stores) is built. What's left of it is yours: the launch checklist in
+[docs/store/README.md](docs/store/README.md).** Phase 10 (launch readiness) is under way: part 1 is
+done (checks on every push, a faster first load, admin alerts, the README).
 AI search (Gemini) is built and live; it switches on once you add the `GEMINI_API_KEY` secret (Phase 9).
 Payments (MatchGPT+ through Razorpay, Phase 11) are built too and switch on once you add the Razorpay keys.
 Items left unfinished in earlier phases were moved into later ones, so each open item appears once.
@@ -19,7 +20,7 @@ Items left unfinished in earlier phases were moved into later ones, so each open
 | 7 | Make the backend safe and rebuildable | **Done** (3 small owner follow-ups) |
 | 8 | Finish half-built features | **Done** (owner checks listed) |
 | 9 | Smarter search that scales | **Done** (add the Gemini key to switch AI on) |
-| 10 | Launch readiness → public launch | To do — next |
+| 10 | Launch readiness → public launch | **In progress** (part 1 done 2026-10-04) |
 | 11 | Payments (MatchGPT+ via Razorpay) | Built; waiting for your Razorpay account |
 | 12 | Profile details for India (community, family, horoscope) | **Done** |
 | 13 | The phone apps, ready for Google Play and the App Store | **Built**; your launch checklist: [docs/store/README.md](docs/store/README.md) |
@@ -208,22 +209,66 @@ Search and Standouts run in a new `search` edge function instead of the browser.
   submit for brand verification (Google says a few business days)
 
 ### Launch readiness
-- [ ] Delete the 18 unused prototype files (~4,000 lines)
-- [ ] Add automatic code-quality checks (a linter) and fix what they find
-- [ ] End-to-end tests for sign-up → match → chat (the matching logic has unit tests since Phase 9)
-- [ ] Run type checks, code checks, tests and a build on every push (CI)
-- [ ] Separate test and live Supabase projects, with database backups
-- [ ] A proper email service: sign-up codes and password resets (the built-in sender only reaches your
-  Supabase team), then the weekly email digest and its Settings switch
-- [ ] Error tracking, and analytics that respect the cookie banner
-- [ ] Shrink the main JavaScript file (537 kB)
-- [ ] Clear the remaining Supabase advisor warnings (access rules re-checking the user on every row, unindexed
-  foreign keys, `pg_net` in the public schema). The "signed-in users can run SECURITY DEFINER functions"
-  warnings are expected: each of those functions checks who is asking
-- [ ] Fix the broken favicon, add a page description and link previews
-- [ ] Rewrite the README and setup guide
-- [ ] Plan how admins keep up with verification requests (new users are locked out of search after 72 hours)
-- [ ] Legal review of Terms and Privacy; mobile and accessibility check
+Part 1 done 2026-10-04. Migration `20261004221100_phase10_admin_alerts` is applied live, and
+`send-push` was redeployed.
+
+**Done**
+
+- [x] **Checks on every push and pull request** (`.github/workflows/ci.yml`):
+  - the type check, which now passes with no errors;
+  - the website's build;
+  - the server's 64 unit tests.
+
+  The 18 unused prototype files are left out of the type check until they're deleted.
+- [x] **A smaller main JavaScript file: 585 kB → 63 kB.**
+  - Each screen loads the first time it's shown. Signed-in people get the app's main screen loaded in
+    the background straight away.
+  - React, Supabase and Capacitor are files of their own (about 120 kB compressed). Browsers keep them
+    cached from one release to the next, so after a release returning visitors only download what
+    changed.
+  - When a release goes live while someone has the page open, a screen whose old file is gone reloads
+    the page once, instead of going blank.
+- [x] **A "Something went wrong" screen**, with a Reload button and the support address, instead of a
+  blank page when a screen fails.
+- [x] **Favicon** (it was broken), the page's title and description, and **link previews**: a picture
+  and description when the site's link is shared on WhatsApp, X, LinkedIn or Facebook.
+  `public/og-image.png` is made by `scripts/store-graphics.mjs`, along with the store graphics.
+- [x] **Admins keep up with reports and verification requests.**
+  - Each new report or request sends admins a notification, in the phone apps and the browser. On
+    Android these come in a channel of their own, "Admin alerts".
+  - A report of someone under 18 says so in its title.
+  - Tapping the notification opens Admin → Reports or Admin → Verifications.
+  - Admins who turned notifications off in Settings get none, and nobody is alerted about their own
+    report.
+- [x] **README rewritten**: what MatchGPT is, how it's built, running it locally, the checks,
+  deploying, the apps.
+- [x] **Tests.** New: `tests/e2e/admin-alerts.mjs` (21 checks). The other 16 browser and server tests
+  ran again; the website ones ran on the production build.
+
+**Still to do**
+
+- [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.
+- [ ] Add a linter to the checks and fix what it finds. Add React's type definitions, so the type
+  check also covers what each screen is given.
+- [ ] An end-to-end test for sign-up → match → chat (the matching logic has had unit tests since
+  Phase 9).
+- [ ] Error tracking (on once its key is added), and analytics that respect the cookie banner.
+- [ ] Separate test and live Supabase projects, with database backups.
+- [ ] A proper email service. Sign-up codes and password resets come first (the built-in sender only
+  reaches your Supabase team); then the weekly email digest and its Settings switch.
+- [ ] Supabase's advisor:
+  - Merge the two pairs of overlapping access rules, on reports and on verification requests, into
+    one rule each.
+  - `pg_net` sits in the public schema.
+  - **Owner:** turn on leaked-password protection: Authentication → Sign In / Providers → Email
+    ("Prevent use of leaked passwords"; Pro plan and above).
+
+  Already fixed in Phase 13: access rules re-checking the user on every row, and unindexed foreign
+  keys. Expected, so no change needed:
+  - "signed-in users can run SECURITY DEFINER functions": each of those functions checks who is
+    asking;
+  - "RLS enabled, no policy" on 5 tables that only the server uses.
+- [ ] Legal review of Terms and Privacy; a mobile and accessibility check.
 
 ## Phase 11 — Payments (MatchGPT+ via Razorpay)
 Built 2026-09-27; waiting for a Razorpay account. Until its keys are set, the upgrade screens say

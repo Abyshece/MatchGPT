@@ -1,20 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
+import { lazyScreen } from './lib/lazyScreen';
 import { AuthProvider, useAuth } from './lib/AuthContext';
 import { ToastProvider, useToast } from './lib/useToast';
-import { emailLinkError } from './lib/supabase';
-import Auth from './components/Auth';
-import EmailVerification from './components/EmailVerification';
+import { emailLinkError, supabase } from './lib/supabase';
 import LandingView from './components/LandingView';
-import OnboardingShell from './components/onboarding/OnboardingShell';
-import StepConsent from './components/onboarding/StepConsent';
-import SetNewPassword from './components/SetNewPassword';
-import Dashboard from './components/Dashboard';
-import TermsView from './components/TermsView';
-import PrivacyView from './components/PrivacyView';
 import CookieBanner from './components/CookieBanner';
 import { BACK, isNativeApp, setNativeTheme, useBackHandler } from './lib/nativeApp';
 import { startStoreSync, stopStoreSync } from './lib/storePurchases';
 import { onNotificationWhileOpen, startNativePush, stopNativePush } from './lib/nativePush';
+
+// Screens a first visit doesn't need load when they're shown, so the first
+// download is small; the signed-in app starts loading as soon as there's a
+// session (AppRouter)
+const loadDashboard = () => import('./components/Dashboard');
+const Dashboard = lazyScreen(loadDashboard);
+const OnboardingShell = lazyScreen(() => import('./components/onboarding/OnboardingShell'));
+const StepConsent = lazyScreen(() => import('./components/onboarding/StepConsent'));
+const EmailVerification = lazyScreen(() => import('./components/EmailVerification'));
+const SetNewPassword = lazyScreen(() => import('./components/SetNewPassword'));
+const TermsView = lazyScreen(() => import('./components/TermsView'));
+const PrivacyView = lazyScreen(() => import('./components/PrivacyView'));
 
 // ============================================================================
 // App (Phase 6 Batch 3)
@@ -64,6 +69,11 @@ const AppRouter: React.FC<{
   // later shows the home page, not the "check your inbox" screen.
   useEffect(() => {
     if (session) setPendingSignupEmail(null);
+  }, [session]);
+
+  // Fetch the signed-in app while the profile loads, not after
+  useEffect(() => {
+    if (session) loadDashboard().catch(() => { /* lazyScreen() tries again when it's shown */ });
   }, [session]);
 
   // In the phone apps: keep the server's copy of store purchases current
@@ -151,8 +161,6 @@ const AppRouter: React.FC<{
     setThemeMode(newMode);
     localStorage.setItem('shaadigpt_theme_mode', newMode);
     if (session?.user.id) {
-      // Lazy import to avoid circular dependency at app boot
-      const { supabase } = await import('./lib/supabase');
       await supabase
         .from('profiles')
         .update({ settings_theme: newMode })
@@ -277,10 +285,12 @@ const App: React.FC = () => {
     <ToastProvider>
       <AuthProvider>
         <div className="min-h-screen bg-white dark:bg-[#191919] text-gray-900 dark:text-gray-100 selection:bg-blue-100 dark:selection:bg-blue-900 transition-colors duration-200">
-          <AppRouter
-            legalPage={legalPage}
-            setLegalPage={setLegalPage}
-          />
+          <Suspense fallback={<FullScreenLoader label="Loading…" />}>
+            <AppRouter
+              legalPage={legalPage}
+              setLegalPage={setLegalPage}
+            />
+          </Suspense>
           {/* The apps use no cookies or trackers, so they don't ask about them */}
           {!isNativeApp() && <CookieBanner onNavigateToPrivacy={() => setLegalPage('privacy')} />}
         </div>

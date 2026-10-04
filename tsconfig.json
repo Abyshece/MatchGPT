@@ -26,9 +26,30 @@
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
+  // The app never imports the 18 prototype files listed after supabase/functions
+  // (ROADMAP.md, Phase 10). They're kept until they're deleted, but they are
+  // not type-checked: their errors aren't the app's.
   "exclude": [
     "node_modules",
     "dist",
-    "supabase/functions"
+    "supabase/functions",
+    "components/AdminDashboard.tsx",
+    "components/AdminLogin.tsx",
+    "components/ChatSystem.tsx",
+    "components/DateProposalModal.tsx",
+    "components/DeleteConfirmationModal.tsx",
+    "components/FilterModal.tsx",
+    "components/MatchGrid.tsx",
+    "components/MatchLimitModal.tsx",
+    "components/MatchProfileModal.tsx",
+    "components/PaymentModal.tsx",
+    "components/PhotoUpload.tsx",
+    "components/PlaceholderTab.tsx",
+    "components/SearchArea.tsx",
+    "components/ShareModal.tsx",
+    "components/SocialVerificationModal.tsx",
+    "components/SubscriptionModal.tsx",
+    "components/VerificationLockoutModal.tsx",
+    "services/matchingService.ts"
   ]
 }
