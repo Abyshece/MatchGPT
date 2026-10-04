@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
+import { lazyScreen } from '../lib/lazyScreen';
 import { useAuth } from '../lib/AuthContext';
 import Sidebar from './Sidebar';
 import MatchCelebrationModal from './MatchCelebrationModal';
@@ -7,9 +8,11 @@ import { supabase } from '../lib/supabase';
 import { IconMenu, IconEdit } from '../constants';
 import { displayName } from '../lib/profileMapping';
 import { BACK, isNativeApp, useBackHandler } from '../lib/nativeApp';
-import { onNotificationOpened } from '../lib/nativePush';
+import { ensureAdminChannel, onNotificationOpened, type PushData } from '../lib/nativePush';
+import { useIsAdmin } from '../lib/useIsAdmin';
 import NotificationOffer from './NotificationOffer';
 import type { MatchCandidate } from '../types';
+import type { AdminTab } from './admin/AdminView';
 
 // ============================================================================
 // Dashboard (Phase 6 Batch 3 — code-splitting)
@@ -26,15 +29,15 @@ import type { MatchCandidate } from '../types';
 // ============================================================================
 
 // Lazy-load every sub-view. Vite produces a separate JS chunk per import().
-const SearchView = lazy(() => import('./SearchView'));
-const HistoryView = lazy(() => import('./HistoryView'));
-const LikesView = lazy(() => import('./LikesView'));
-const MatchesView = lazy(() => import('./MatchesView'));
-const StandoutsView = lazy(() => import('./StandoutsView'));
-const ProfileView = lazy(() => import('./ProfileView'));
-const SettingsView = lazy(() => import('./SettingsView'));
-const HelpCenter = lazy(() => import('./HelpCenter'));
-const AdminView = lazy(() => import('./admin/AdminView'));
+const SearchView = lazyScreen(() => import('./SearchView'));
+const HistoryView = lazyScreen(() => import('./HistoryView'));
+const LikesView = lazyScreen(() => import('./LikesView'));
+const MatchesView = lazyScreen(() => import('./MatchesView'));
+const StandoutsView = lazyScreen(() => import('./StandoutsView'));
+const ProfileView = lazyScreen(() => import('./ProfileView'));
+const SettingsView = lazyScreen(() => import('./SettingsView'));
+const HelpCenter = lazyScreen(() => import('./HelpCenter'));
+const AdminView = lazyScreen(() => import('./admin/AdminView'));
 
 type Tab = 'search' | 'history' | 'likes' | 'matches' | 'standouts' | 'profile' | 'settings' | 'help' | 'admin';
 
@@ -62,6 +65,9 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const [pendingMatchOpenId, setPendingMatchOpenId] = useState<string | null>(null);
+  // An admin alert opens Admin on its tab (a new key each time, so it opens again)
+  const [adminOpen, setAdminOpen] = useState<{ tab?: AdminTab; key: number }>({ key: 0 });
+  const isAdmin = useIsAdmin() === true;
   const [matchCelebration, setMatchCelebration] = useState<{ matchId: string; candidate: MatchCandidate } | null>(null);
   // Bumping this forces SearchView to remount, clearing prompt + results.
   // Used by the pencil "new chat" icon in the topbar.
@@ -108,8 +114,8 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
     setIsMobileMenuOpen(false);
   }, []);
 
-  // In the phone apps: a tapped notification opens its chat, or Likes You
-  useEffect(() => onNotificationOpened((data) => {
+  // A tapped notification opens its chat, Likes You, or (admins) the report or request to review
+  const openFromNotification = useCallback((data: PushData) => {
     setIsMobileMenuOpen(false);
     const matchId = typeof data.match_id === 'string' ? data.match_id : null;
     if (matchId && (data.event_type === 'new_message' || data.event_type === 'new_match')) {
@@ -120,8 +126,39 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
     } else if (data.event_type === 'super_like' || data.deep_link === '/likes') {
       setPendingMatchOpenId(null);
       setActiveTab('likes');
+    } else if (data.event_type === 'admin_report' || data.event_type === 'admin_verification') {
+      setPendingMatchOpenId(null);
+      setAdminOpen((o) => ({ tab: data.admin_tab === 'verifications' ? 'verifications' : 'reports', key: o.key + 1 }));
+      setActiveTab('admin');
     }
-  }), []);
+  }, []);
+
+  // In the phone apps
+  useEffect(() => onNotificationOpened(openFromNotification), [openFromNotification]);
+
+  // On the website: the service worker passes on a clicked notification
+  // (public/sw.js); one that opened the site brings its data in the address
+  useEffect(() => {
+    if (isNativeApp() || !('serviceWorker' in navigator)) return;
+    const onMessage = (e: MessageEvent) => {
+      if (e.data?.type === 'push_click') openFromNotification((e.data.data ?? {}) as PushData);
+    };
+    navigator.serviceWorker.addEventListener('message', onMessage);
+    const params = new URLSearchParams(window.location.search);
+    const opened = params.get('push');
+    if (opened) {
+      params.delete('push');
+      const rest = params.toString();
+      window.history.replaceState(null, '', `${window.location.pathname}${rest ? `?${rest}` : ''}${window.location.hash}`);
+      try { openFromNotification(JSON.parse(opened) as PushData); } catch { /* not a notification's */ }
+    }
+    return () => navigator.serviceWorker.removeEventListener('message', onMessage);
+  }, [openFromNotification]);
+
+  // Admins' Android phones get a notification channel for admin alerts
+  useEffect(() => {
+    if (isAdmin) void ensureAdminChannel();
+  }, [isAdmin]);
 
   // Android back button: from any other tab, back to Find Match
   useBackHandler(BACK.TAB, () => {
@@ -236,7 +273,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
               />
             )}
             {activeTab === 'help' && <HelpCenter />}
-            {activeTab === 'admin' && <AdminView />}
+            {activeTab === 'admin' && <AdminView key={adminOpen.key} initialTab={adminOpen.tab} />}
           </Suspense>
         </div>
       </main>

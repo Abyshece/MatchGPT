@@ -1,4 +1,5 @@
-import React, { useState, useCallback, useEffect, useRef, useMemo, Suspense, lazy } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo, Suspense } from 'react';
+import { lazyScreen } from '../lib/lazyScreen';
 import { useAuth } from '../lib/AuthContext';
 import { useToast } from '../lib/useToast';
 import { searchProfiles, SearchError } from '../lib/searchService';
@@ -14,7 +15,7 @@ import { IconZap, IconX, IconCheck } from '../constants';
 import type { MatchCandidate, FilterOptions } from '../types';
 
 // The filter panel carries the long answer lists; it loads the first time it's opened
-const FilterPanel = lazy(() => import('./FilterPanel'));
+const FilterPanel = lazyScreen(() => import('./FilterPanel'));
 
 // ============================================================================
 // SearchView (Phase 5 update)

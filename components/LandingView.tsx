@@ -1,5 +1,10 @@
-import React, { useState } from 'react';
-import Auth from './Auth';
+import React, { Suspense, useEffect, useState } from 'react';
+import { lazyScreen } from '../lib/lazyScreen';
+
+// The sign-in popup loads when it opens, and quietly before that, once the
+// page has drawn, so it's there when someone taps Sign in
+const loadAuth = () => import('./Auth');
+const Auth = lazyScreen(loadAuth);
 
 // ============================================================================
 // LandingView
@@ -31,6 +36,11 @@ interface LandingViewProps {
 const LandingView: React.FC<LandingViewProps> = ({ onSignupInitiated, onShowLegal }) => {
   const [prompt, setPrompt] = useState('');
   const [showAuth, setShowAuth] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => { loadAuth().catch(() => { /* loaded again when opened */ }); }, 800);
+    return () => clearTimeout(t);
+  }, []);
 
   const handleSearchAttempt = () => {
     // Save the prompt so SearchView can pick it up post-auth
@@ -152,19 +162,21 @@ const LandingView: React.FC<LandingViewProps> = ({ onSignupInitiated, onShowLega
           When signup is initiated, the email flows up to App which unmounts
           LandingView and renders EmailVerification. We don't handle that here. */}
       {showAuth && (
-        <Auth
-          onClose={() => setShowAuth(false)}
-          onSignupInitiated={(email) => {
-            setShowAuth(false);          // Close our modal; App will show EmailVerification
-            onSignupInitiated(email);
-          }}
-          onSignInSuccess={() => {
-            // Auth context picks up the session, App.tsx unmounts LandingView,
-            // and SearchView reads the pending prompt from sessionStorage on mount
-            setShowAuth(false);
-          }}
-          onShowLegal={onShowLegal}
-        />
+        <Suspense fallback={null}>
+          <Auth
+            onClose={() => setShowAuth(false)}
+            onSignupInitiated={(email) => {
+              setShowAuth(false);          // Close our modal; App will show EmailVerification
+              onSignupInitiated(email);
+            }}
+            onSignInSuccess={() => {
+              // Auth context picks up the session, App.tsx unmounts LandingView,
+              // and SearchView reads the pending prompt from sessionStorage on mount
+              setShowAuth(false);
+            }}
+            onShowLegal={onShowLegal}
+          />
+        </Suspense>
       )}
     </div>
   );

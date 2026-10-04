@@ -26,14 +26,15 @@ import AdminFinanceTab from './AdminFinanceTab';
 // denied", and the admin RPCs refuse them anyway.
 // ============================================================================
 
-type AdminTab = 'dashboard' | 'reports' | 'verifications' | 'users' | 'finance';
+export type AdminTab = 'dashboard' | 'reports' | 'verifications' | 'users' | 'finance';
 
-const AdminView: React.FC = () => {
+// initialTab: the tab an admin alert opens (Dashboard)
+const AdminView: React.FC<{ initialTab?: AdminTab }> = ({ initialTab }) => {
   const { profile } = useAuth();
   const { showToast } = useToast();
   const isAdmin = useIsAdmin();
 
-  const [tab, setTab] = useState<AdminTab>('dashboard');
+  const [tab, setTab] = useState<AdminTab>(initialTab ?? 'dashboard');
   const [stats, setStats] = useState<PlatformStats | null>(null);
   const [recentReports, setRecentReports] = useState<ReportRow[]>([]);
   const [recentAudit, setRecentAudit] = useState<AdminAuditRow[]>([]);

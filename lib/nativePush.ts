@@ -96,6 +96,15 @@ async function ensureChannels(): Promise<void> {
   await Promise.all(channels.map((c) => FirebaseMessaging.createChannel({ ...c, lights: true, vibration: true }).catch(() => {})));
 }
 
+/** On admins' Android phones: a channel of its own for new reports and verification requests. */
+export async function ensureAdminChannel(): Promise<void> {
+  if (platform() !== 'android') return;
+  await FirebaseMessaging.createChannel({
+    id: 'admin', name: 'Admin alerts', description: 'New reports and verification requests to review',
+    importance: Importance.High, lights: true, vibration: true,
+  }).catch(() => {});
+}
+
 async function appVersion(): Promise<string | null> {
   try {
     const info = await App.getInfo();

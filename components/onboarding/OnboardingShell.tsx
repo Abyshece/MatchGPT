@@ -1,11 +1,12 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense } from 'react';
+import { lazyScreen } from '../../lib/lazyScreen';
 import { useAuth } from '../../lib/AuthContext';
 import StepPhotos from './StepPhotos';
 
 // Steps 1 and 3 carry the long answer lists (lib/matrimonyOptions.ts), so they
 // load only when someone is setting up their profile.
-const StepBasicInfo = lazy(() => import('./StepBasicInfo'));
-const StepProfileDetails = lazy(() => import('./StepProfileDetails'));
+const StepBasicInfo = lazyScreen(() => import('./StepBasicInfo'));
+const StepProfileDetails = lazyScreen(() => import('./StepProfileDetails'));
 
 // ============================================================================
 // OnboardingShell

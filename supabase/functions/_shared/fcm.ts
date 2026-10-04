@@ -34,15 +34,19 @@ export function fcmConfig(): FcmConfig | null {
 
 export interface PhonePush {
   token: string;
-  eventType: string;  // new_message, new_match, super_like
+  eventType: string;  // new_message, new_match, super_like; admin_report, admin_verification
   title: string;
   body: string;
   data: Record<string, unknown> | null;
 }
 
 // The app's notification channels on Android (lib/nativePush.ts makes them):
-// people can turn each kind off in the phone's settings
-const CHANNEL: Record<string, string> = { new_message: 'messages', new_match: 'matches', super_like: 'likes' };
+// people can turn each kind off in the phone's settings. Admins' phones have
+// one more, for reports and verification requests to review
+const CHANNEL: Record<string, string> = {
+  new_message: 'messages', new_match: 'matches', super_like: 'likes',
+  admin_report: 'admin', admin_verification: 'admin',
+};
 const BRAND_ORANGE = '#F97316';
 
 /** The FCM message for one phone. */

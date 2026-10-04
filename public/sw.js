@@ -65,8 +65,9 @@ self.addEventListener('notificationclick', (event) => {
         }
       }
 
-      // No tab open — open a new one
-      return self.clients.openWindow(appUrl + deepLink);
+      // No tab open: open the site, which reads where to go from ?push= (Dashboard).
+      // (Paths like /matches don't exist on the site.)
+      return self.clients.openWindow(`${appUrl}/?push=${encodeURIComponent(JSON.stringify(data))}`);
     })()
   );
 });

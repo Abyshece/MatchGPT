@@ -120,6 +120,7 @@ try {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await ctx.newPage();
   await page.goto(BASE);
+  await page.getByRole('button', { name: 'Reject non-essential' }).click({ timeout: 8000 }).catch(() => {});
   await page.getByRole('button', { name: 'Sign in' }).first().click();
   await page.getByRole('button', { name: 'Forgot Password?' }).click();
   await page.locator('input[type=email]').fill(nobody);
