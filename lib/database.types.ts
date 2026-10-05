@@ -89,6 +89,24 @@ export type Database = {
           },
         ]
       }
+      app_settings: {
+        Row: {
+          id: boolean
+          pro_for_all: boolean
+          updated_at: string
+        }
+        Insert: {
+          id?: boolean
+          pro_for_all?: boolean
+          updated_at?: string
+        }
+        Update: {
+          id?: boolean
+          pro_for_all?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       apple_sign_in_tokens: {
         Row: {
           created_at: string
@@ -1592,6 +1610,7 @@ export type Database = {
           subscription_tier: string
         }[]
       }
+      admin_set_pro_for_all: { Args: { p_on: boolean }; Returns: undefined }
       admin_unban_user: { Args: { target_id: string }; Returns: undefined }
       admin_update_report: {
         Args: { new_status: string; notes: string; report_id: string }
@@ -1659,6 +1678,7 @@ export type Database = {
       height_label: { Args: { p_cm: number }; Returns: string }
       height_to_cm: { Args: { p_height: string }; Returns: number }
       increment_push_failure: { Args: { sub_id: string }; Returns: undefined }
+      has_pro: { Args: { p_user: string }; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
       mark_messages_read: { Args: { p_match_id: string }; Returns: number }
       payment_net: {
@@ -1669,6 +1689,7 @@ export type Database = {
         Args: { p_device_ids: string[] }
         Returns: undefined
       }
+      pro_for_all: { Args: never; Returns: boolean }
       register_push_device: {
         Args: { p_app_version?: string; p_platform: string; p_token: string }
         Returns: undefined

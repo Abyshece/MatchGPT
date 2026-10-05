@@ -134,8 +134,8 @@ try {
   await box.waitFor({ timeout: 15000 });
 
   await page.getByText('Get MatchGPT+', { exact: true }).click();
-  await page.waitForTimeout(500);
-  check(await page.getByText('MatchGPT+ is coming to the app soon.').isVisible(), 'MatchGPT+: "coming to the app soon", no Razorpay');
+  check(await page.getByText('MatchGPT+ is coming to the app soon.').waitFor({ timeout: 8000 }).then(() => true, () => false),
+    'MatchGPT+: "coming to the app soon", no Razorpay');
   check(billing.length === 0, 'the app never asks the Razorpay billing function');
   await page.screenshot({ path: `${OUT}3-matchgpt-plus.png` });
   await back(page);

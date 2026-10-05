@@ -33,7 +33,7 @@ interface LikeButtonProps {
 const LikeButton: React.FC<LikeButtonProps> = ({
   candidate, size = 'md', variant = 'icon', showSuperLike = true, onMatched, onLiked, onLimitReached,
 }) => {
-  const { profile, session, refreshProfile } = useAuth();
+  const { profile, session, refreshProfile, hasPro } = useAuth();
   const { showToast } = useToast();
 
   const [liked, setLiked] = useState<boolean | null>(null); // null = unknown yet
@@ -52,14 +52,17 @@ const LikeButton: React.FC<LikeButtonProps> = ({
 
   if (!profile || !session?.user.id) return null;
 
-  const isPro = profile.subscriptionTier === 'PRO';
+  // The daily limit follows the subscription; Super Likes follow MatchGPT+'s
+  // one rule (hasPro: also everyone's while MatchGPT+ for everyone is on)
+  const unlimited = profile.subscriptionTier === 'PRO';
+  const superLikes = hasPro;
 
-  // Daily limit check (Free only — Pro is unlimited)
+  // Daily limit check (free accounts; subscribers are unlimited)
   const today = new Date().toISOString().slice(0, 10);
   const lastDate = profile.lastLikeDate?.slice(0, 10);
   const usedToday = lastDate === today ? (profile.dailyLikeCount ?? 0) : 0;
-  const remaining = isPro ? Infinity : Math.max(0, DAILY_LIMITS.FREE.likes - usedToday);
-  const atLimit = !isPro && remaining === 0;
+  const remaining = unlimited ? Infinity : Math.max(0, DAILY_LIMITS.FREE.likes - usedToday);
+  const atLimit = !unlimited && remaining === 0;
 
   // ---- handlers -----------------------------------------------------------
 
@@ -70,7 +73,7 @@ const LikeButton: React.FC<LikeButtonProps> = ({
       onLimitReached?.();
       return;
     }
-    if (isSuperLike && !isPro) {
+    if (isSuperLike && !superLikes) {
       showToast('Super Likes are a Pro feature', 'info');
       onLimitReached?.();
       return;
@@ -109,7 +112,8 @@ const LikeButton: React.FC<LikeButtonProps> = ({
   const handleHeartClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (liked || busy) return;
-    if (isPro) {
+    // Free likes are counted, so each one is confirmed first
+    if (unlimited) {
       performLike(false);
     } else {
       setShowConfirm('like');
@@ -119,7 +123,7 @@ const LikeButton: React.FC<LikeButtonProps> = ({
   const handleSuperLikeClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (liked || busy) return;
-    if (!isPro) {
+    if (!superLikes) {
       showToast('Super Likes are a Pro feature', 'info');
       onLimitReached?.();
       return;
@@ -231,11 +235,11 @@ const LikeButton: React.FC<LikeButtonProps> = ({
           <button
             onClick={liked ? undefined : handleSuperLikeClick}
             disabled={busy || liked === true}
-            title={isPro ? 'Super Like' : 'Super Like (Pro)'}
+            title={superLikes ? 'Super Like' : 'Super Like (Pro)'}
             className={`${sizes.btn} flex items-center justify-center rounded-full shadow-sm transition-all ${
               liked
                 ? 'bg-gray-100 dark:bg-zinc-800 text-gray-300 dark:text-zinc-600 cursor-not-allowed'
-                : isPro
+                : superLikes
                   ? 'bg-white dark:bg-zinc-800 text-blue-500 hover:scale-110 hover:bg-blue-50 dark:hover:bg-blue-900/30 border border-gray-200 dark:border-zinc-700'
                   : 'bg-white dark:bg-zinc-800 text-gray-400 hover:text-gray-600 hover:bg-gray-50 dark:hover:bg-zinc-700 border border-gray-200 dark:border-zinc-700'
             }`}

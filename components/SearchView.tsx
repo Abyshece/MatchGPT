@@ -13,6 +13,7 @@ import UpgradeModal from './UpgradeModal';
 import MatchCelebrationModal from './MatchCelebrationModal';
 import { IconX, IconCheck } from '../constants';
 import type { MatchCandidate, FilterOptions } from '../types';
+import { firstCelebration } from '../lib/matchCelebration';
 
 // The filter panel carries the long answer lists; it loads the first time it's opened
 const FilterPanel = lazyScreen(() => import('./FilterPanel'));
@@ -77,7 +78,7 @@ function countActiveFilters(f: FilterOptions): number {
 }
 
 const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigateToProfile }) => {
-  const { profile, profileRow, session, refreshProfile } = useAuth();
+  const { profile, profileRow, session, refreshProfile, hasPro } = useAuth();
   const { showToast } = useToast();
 
   const [prompt, setPrompt] = useState('');
@@ -182,8 +183,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
 
     try {
       // The server runs the search, leaves out people already liked and
-      // counts it toward today's limit. Everyone gets the Pro-size list of 50
-      // while PRO_FOR_ALL is on (see profileService.ts).
+      // counts it toward today's limit. Everyone gets the list of 50.
       const output = await searchProfiles(effectivePrompt, filters, 50);
 
       setResults(output.candidates);
@@ -228,7 +228,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
   const handleMatched = (matchId: string, candidate: MatchCandidate) => {
     // Close any open profile modal first, then celebrate
     setSelectedCandidate(null);
-    setMatchCelebration({ matchId, candidate });
+    if (firstCelebration(matchId)) setMatchCelebration({ matchId, candidate });
   };
 
   return (
@@ -542,7 +542,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
       {selectedCandidate && (
         <ProfileModal
           candidate={selectedCandidate}
-          isPro={profile.subscriptionTier === 'PRO'}
+          isPro={hasPro}
           onClose={() => setSelectedCandidate(null)}
           onUpgrade={() => { setSelectedCandidate(null); setShowUpgradeModal(true); }}
           onMatched={handleMatched}
@@ -564,7 +564,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
           <FilterPanel
             isOpen={showFilterPanel}
             initialFilters={filters}
-            isPro={profile.subscriptionTier === 'PRO'}
+            isPro={hasPro}
             onApply={(f) => setFilters(f)}
             onClose={() => setShowFilterPanel(false)}
             onUpgrade={() => { setShowFilterPanel(false); setShowUpgradeModal(true); }}

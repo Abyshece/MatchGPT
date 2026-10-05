@@ -2,8 +2,9 @@
 
 13 phases in total. Phases 1–5, 7–9 and 12 are done, and Phase 6 is mostly done. **Phase 13 (the
 phone apps ready for the stores) is built. What's left of it is yours: the launch checklist in
-[docs/store/README.md](docs/store/README.md).** Phase 10 (launch readiness) is under way: part 1 is
-done (checks on every push, a faster first load, admin alerts, the README).
+[docs/store/README.md](docs/store/README.md).** Phase 10 (launch readiness) is under way: parts 1 and
+2 are done (checks and a linter on every push, a faster first load, admin alerts, one switch for
+MatchGPT+, tidier access rules, the whole journey tested, the README).
 AI search (Gemini) is built and live; it switches on once you add the `GEMINI_API_KEY` secret (Phase 9).
 Payments (MatchGPT+ through Razorpay, Phase 11) are built too and switch on once you add the Razorpay keys.
 Items left unfinished in earlier phases were moved into later ones, so each open item appears once.
@@ -20,7 +21,7 @@ Items left unfinished in earlier phases were moved into later ones, so each open
 | 7 | Make the backend safe and rebuildable | **Done** (3 small owner follow-ups) |
 | 8 | Finish half-built features | **Done** (owner checks listed) |
 | 9 | Smarter search that scales | **Done** (add the Gemini key to switch AI on) |
-| 10 | Launch readiness → public launch | **In progress** (part 1 done 2026-10-04) |
+| 10 | Launch readiness → public launch | **In progress** (parts 1–2 done 2026-10-04) |
 | 11 | Payments (MatchGPT+ via Razorpay) | Built; waiting for your Razorpay account |
 | 12 | Profile details for India (community, family, horoscope) | **Done** |
 | 13 | The phone apps, ready for Google Play and the App Store | **Built**; your launch checklist: [docs/store/README.md](docs/store/README.md) |
@@ -245,29 +246,73 @@ Part 1 done 2026-10-04. Migration `20261004221100_phase10_admin_alerts` is appli
 - [x] **Tests.** New: `tests/e2e/admin-alerts.mjs` (21 checks). The other 16 browser and server tests
   ran again; the website ones ran on the production build.
 
+Part 2 done 2026-10-04. Migrations `20261005214651_phase10_pro_access` and
+`20261005214739_phase10_access_rules` are applied live, and `search` was redeployed.
+
+- [x] **React's type definitions**: the type check now also checks what every screen is given (it
+  found 3 mismatches, in the Finance tab's toggles).
+- [x] **A linter in the checks** (`npm run lint`: ESLint with TypeScript's rules and React's rules
+  of hooks), and what it found, fixed:
+  - Find Match called three of its hooks only after the profile had loaded, which crashes the screen
+    if the profile arrives while it's showing.
+  - Pieces of screens were rebuilt on every redraw (Settings' switches, the sidebar's items, the
+    sections of Terms, Privacy and profiles).
+  - Times like "5m ago" and the trial's end date now stay current, and the hearts on the match
+    celebration no longer jump around.
+- [x] **Keyboards and screen readers** (part of the accessibility check): Settings' switches and the
+  sidebar's items were clickable areas that a keyboard couldn't reach and a screen reader didn't
+  announce. They're buttons now: switches say whether they're on, the sidebar says which page is
+  open, and the locked filters say what they're for.
+- [x] **One rule for MatchGPT+.** One switch, "MatchGPT+ for everyone", in Admin → Dashboard (in the
+  audit log). It is on, as before.
+  - While it's on, every member gets MatchGPT+'s features: Likes You, Super Likes, refreshing
+    Standouts, every filter, compatibility reports and date proposals. Free accounts keep the daily
+    limits (3 AI searches, 15 likes).
+  - Before, the switch was a setting in the app's code that only Likes You followed. The like
+    button, chat, filters, Standouts and compatibility reports showed "(Pro)" paywalls whose upgrade
+    screens say "coming soon".
+  - The server enforces the same rule (`has_pro()`). When the switch is off, a member without a
+    subscription gets Likes You without who it was (the server doesn't send it), and the server
+    leaves out the MatchGPT+ filters, the reports, Super Likes, date proposals and refreshing
+    Standouts.
+  - Turning it off when MatchGPT+ goes on sale needs no new app release.
+- [x] **Tidier access rules** (Supabase's advisor):
+  - Reports and verification requests have one rule each for reading.
+  - The admin tables' rules apply to signed-in members only. Signed-out visitors can't reach those
+    four tables at all, or `is_admin()`.
+- [x] **The whole journey, tested**: a brand-new member signs up, sets up a profile, finds someone
+  with a filter, likes her; she likes back; both get "It's a Match!"; they chat live and see "Read".
+  It caught two bugs, now fixed:
+  - Liking someone back showed "It's a Match!" twice, one on top of the other.
+  - "Send a Message" from a match made in Likes You only said to open Matches; it now opens the chat.
+- [x] **The upgrade screens** list only what buying adds while "MatchGPT+ for everyone" is on (the
+  unlimited searches and likes), and say the rest is free for everyone right now.
+- [x] **Security updates** for the libraries the website and the build use (`npm audit fix`). The
+  one left is in Firebase's web library, in parts the app doesn't load.
+- [x] **Tests:**
+  - `tests/e2e/journey.mjs` (22 checks) and `tests/e2e/pro-access.mjs` (42 checks).
+  - 10 new database checks: 45 attacks blocked, 53 normal actions working.
+  - A unit test for the free filters.
+  - All the browser and server tests ran again.
+
 **Still to do**
 
 - [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.
-- [ ] Add a linter to the checks and fix what it finds. Add React's type definitions, so the type
-  check also covers what each screen is given.
-- [ ] An end-to-end test for sign-up → match → chat (the matching logic has had unit tests since
-  Phase 9).
 - [ ] Error tracking (on once its key is added), and analytics that respect the cookie banner.
 - [ ] Separate test and live Supabase projects, with database backups.
 - [ ] A proper email service. Sign-up codes and password resets come first (the built-in sender only
   reaches your Supabase team); then the weekly email digest and its Settings switch.
 - [ ] Supabase's advisor:
-  - Merge the two pairs of overlapping access rules, on reports and on verification requests, into
-    one rule each.
-  - `pg_net` sits in the public schema.
+  - `pg_net` sits in the public schema. Moving it means reinstalling it, which the send-push cron
+    job uses.
   - **Owner:** turn on leaked-password protection: Authentication → Sign In / Providers → Email
     ("Prevent use of leaked passwords"; Pro plan and above).
 
-  Already fixed in Phase 13: access rules re-checking the user on every row, and unindexed foreign
-  keys. Expected, so no change needed:
+  Fixed in Phase 13 and above: access rules re-checking the user on every row, unindexed foreign
+  keys, overlapping rules, `is_admin()` callable signed out. Expected, so no change needed:
   - "signed-in users can run SECURITY DEFINER functions": each of those functions checks who is
     asking;
-  - "RLS enabled, no policy" on 5 tables that only the server uses.
+  - "RLS enabled, no policy" on the tables only the server uses.
 - [ ] Legal review of Terms and Privacy; a mobile and accessibility check.
 
 ## Phase 11 — Payments (MatchGPT+ via Razorpay)
@@ -312,8 +357,9 @@ edge functions `billing` and `razorpay-webhook` (deployed, idle without keys).
   same webhook in live mode, and replace the three secrets with the live ones
 - [ ] GST: if MatchGPT is GST-registered, add the GST details in Razorpay (its invoices then show GST), and
   say in the Terms whether prices include GST
-- [ ] Decide when to start charging; then turn off `PRO_FOR_ALL` (today everyone sees the Likes You list for
-  free) and make every Pro check follow one rule (the like button and chat ignore `PRO_FOR_ALL` today)
+- [x] Every MatchGPT+ check follows one rule, on the server and in the apps (Phase 10, part 2)
+- [ ] **Owner:** decide when to start charging, then turn off "MatchGPT+ for everyone" in Admin →
+  Dashboard. It needs no app release
 
 ---
 

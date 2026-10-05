@@ -2,7 +2,6 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { useToast } from '../lib/useToast';
 import { listLikesReceived } from '../lib/likesService';
-import { isProEffective } from '../lib/profileService';
 import LikedYouCard from './LikedYouCard';
 import ProfileModal from './ProfileModal';
 import UpgradeModal from './UpgradeModal';
@@ -10,6 +9,7 @@ import MatchCelebrationModal from './MatchCelebrationModal';
 import { IconZap } from '../constants';
 import type { LikeReceived } from '../lib/likesService';
 import type { MatchCandidate } from '../types';
+import { firstCelebration } from '../lib/matchCelebration';
 
 // ============================================================================
 // LikesView — restyled to match the legacy MatchGPT design (see Item 1):
@@ -23,8 +23,9 @@ import type { MatchCandidate } from '../types';
 
 type SortOption = 'Recent' | 'Last Active' | 'Nearby';
 
-const LikesView: React.FC = () => {
-  const { profile, session } = useAuth();
+// onNavigateToMatches: opens the chat of a match made here (Dashboard)
+const LikesView: React.FC<{ onNavigateToMatches?: (matchId: string) => void }> = ({ onNavigateToMatches }) => {
+  const { profile, session, hasPro } = useAuth();
   const { showToast } = useToast();
 
   const [likes, setLikes] = useState<LikeReceived[]>([]);
@@ -52,11 +53,11 @@ const LikesView: React.FC = () => {
     return <div className="p-12 text-center text-gray-400">Loading…</div>;
   }
 
-  const isPro = isProEffective(profile);
+  const isPro = hasPro;
 
   const handleMatched = (matchId: string, candidate: MatchCandidate) => {
     setSelectedCandidate(null);
-    setMatchCelebration({ matchId, candidate });
+    if (firstCelebration(matchId)) setMatchCelebration({ matchId, candidate });
     setTimeout(fetchLikes, 500);
   };
 
@@ -156,9 +157,10 @@ const LikesView: React.FC = () => {
           matchedWith={matchCelebration.candidate}
           matchId={matchCelebration.matchId}
           onClose={() => setMatchCelebration(null)}
-          onChat={() => {
+          onChat={(matchId) => {
             setMatchCelebration(null);
-            showToast('Open Matches tab to chat', 'info');
+            if (onNavigateToMatches) onNavigateToMatches(matchId);
+            else showToast('Open Matches tab to chat', 'info');
           }}
         />
       )}

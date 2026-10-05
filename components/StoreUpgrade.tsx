@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { IconCheck, IconZap } from '../constants';
 import { useAuth } from '../lib/AuthContext';
-import { PRO_FEATURES, type PlanId } from '../lib/billingService';
+import { FEATURES_FREE_NOW, proBenefits, type PlanId } from '../lib/billingService';
 import {
   buyOffer, loadStoreOffers, restoreStorePurchases, storeName, storePlatform, type StoreOffer,
 } from '../lib/storePurchases';
@@ -43,7 +43,7 @@ function openLegal(page: 'terms' | 'privacy', close: () => void) {
 }
 
 const StoreUpgrade: React.FC<StoreUpgradeProps> = ({ paying, setPaying, onPurchased, onClose }) => {
-  const { session, refreshProfile } = useAuth();
+  const { session, refreshProfile, proForAll } = useAuth();
   const platform = storePlatform();
   const [offers, setOffers] = useState<StoreOffer[] | null>(null);
   const [planId, setPlanId] = useState<PlanId>('monthly');
@@ -150,13 +150,14 @@ const StoreUpgrade: React.FC<StoreUpgradeProps> = ({ paying, setPaying, onPurcha
       )}
 
       <ul className="space-y-2 mb-6">
-        {PRO_FEATURES.map((f) => (
+        {proBenefits(proForAll).map((f) => (
           <li key={f} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
             <span className="text-green-500 flex-shrink-0 mt-0.5"><IconCheck className="w-4 h-4" /></span>
             <span>{f}</span>
           </li>
         ))}
       </ul>
+      {proForAll && <p className="-mt-4 mb-6 text-xs text-gray-500 dark:text-gray-400">{FEATURES_FREE_NOW}</p>}
 
       {note && (
         <p

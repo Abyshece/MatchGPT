@@ -13,6 +13,7 @@ import { useIsAdmin } from '../lib/useIsAdmin';
 import NotificationOffer from './NotificationOffer';
 import type { MatchCandidate } from '../types';
 import type { AdminTab } from './admin/AdminView';
+import { firstCelebration } from '../lib/matchCelebration';
 
 // ============================================================================
 // Dashboard (Phase 6 Batch 3 — code-splitting)
@@ -102,7 +103,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
         isVerified: row.is_verified ?? false,
       };
 
-      setMatchCelebration({ matchId: event.matchId, candidate });
+      if (firstCelebration(event.matchId)) setMatchCelebration({ matchId: event.matchId, candidate });
     });
 
     return cleanup;
@@ -259,7 +260,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
                 }}
               />
             )}
-            {activeTab === 'likes' && <LikesView />}
+            {activeTab === 'likes' && <LikesView onNavigateToMatches={handleNavigateToMatches} />}
             {activeTab === 'matches' && <MatchesView initialMatchId={pendingMatchOpenId} />}
             {activeTab === 'standouts' && <StandoutsView onNavigateToMatches={handleNavigateToMatches} />}
             {activeTab === 'profile' && <ProfileView />}

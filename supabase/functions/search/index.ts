@@ -16,7 +16,11 @@
 //   POST { mode: 'standouts', refresh? }
 //     → { candidates, computed }
 //     Today's 5 picks (UTC day), chosen on the first visit and kept for the
-//     day; refresh (Pro only) picks again.
+//     day; refresh (MatchGPT+) picks again.
+//
+// MatchGPT+ follows the database's one rule, has_pro(): a subscriber, or
+// everyone while "MatchGPT+ for everyone" is on. Without it, the MatchGPT+
+// filters are left out and results come without the compatibility report.
 //
 // Deployed with JWT verification off; the function checks the user itself.
 // ============================================================================
@@ -24,8 +28,8 @@
 import { withCors } from '../_shared/cors.ts';
 import { understandPrompt } from './ai.ts';
 import {
-  buildCatalog, describeParsed, parsePrompt, planToParsed, rankCandidates, sanitizeFilters,
-  type ParsedPrompt, type Row, type SearchPlan,
+  buildCatalog, describeParsed, parsePrompt, planToParsed, rankCandidates, sanitizeFilters, withoutProFilters,
+  type MatchCandidate, type ParsedPrompt, type Row, type SearchPlan,
 } from './matching.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
@@ -34,7 +38,7 @@ const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') ?? '';
 const GEMINI_MODEL = Deno.env.get('GEMINI_MODEL') ?? '';
 const GEMINI_API_BASE = Deno.env.get('GEMINI_API_BASE') || undefined;  // only for local testing
 
-const MAX_RESULTS = 50;          // everyone gets the Pro-size result list for now (PRO_FOR_ALL)
+const MAX_RESULTS = 50;
 const STANDOUTS_PER_DAY = 5;
 const LOCKOUT_HOURS = 72;        // unverified accounts can search for 3 days
 const PLAN_VERSION = 2;          // bump when ai.ts's instructions change, so old plans aren't reused
@@ -66,6 +70,12 @@ async function rest(path: string, init: RequestInit = {}): Promise<unknown> {
 
 const rpc = (fn: string, args: Record<string, unknown>) =>
   rest(`rpc/${fn}`, { method: 'POST', body: JSON.stringify(args) });
+
+// The one rule for MatchGPT+ (has_pro in the database)
+const hasPro = async (userId: string) => (await rpc('has_pro', { p_user: userId })) === true;
+
+// Without MatchGPT+, people come without the compatibility report
+const withoutReport = (candidates: MatchCandidate[]) => candidates.map((c) => ({ ...c, compatibilityReport: [] }));
 
 // The signed-in user behind the request's access token, or null.
 async function getUserId(req: Request): Promise<string | null> {
@@ -134,8 +144,9 @@ async function search(me: Row, body: Record<string, unknown>): Promise<Response>
     return json({ error: "You've used today's searches. They reset at midnight UTC.", code: 'LIMIT_REACHED', remaining: 0 }, 429);
   }
 
+  const pro = await hasPro(me.id);
   const prompt = typeof body.prompt === 'string' ? body.prompt : '';
-  const filters = sanitizeFilters(body.filters);
+  const filters = pro ? sanitizeFilters(body.filters) : withoutProFilters(sanitizeFilters(body.filters));
   const limit = Math.min(Math.max(Math.floor(Number(body.limit) || MAX_RESULTS), 1), MAX_RESULTS);
 
   // Nobody the user already liked: search is for finding new people
@@ -143,7 +154,7 @@ async function search(me: Row, body: Record<string, unknown>): Promise<Response>
   const { parsed, by } = await understand(prompt, pool);
   const { candidates, poolSize } = rankCandidates(me, pool, prompt, filters, limit, Date.now(), parsed);
   return json({
-    candidates, poolSize, totalEligible: pool.length, remaining: allowance.remaining,
+    candidates: pro ? candidates : withoutReport(candidates), poolSize, totalEligible: pool.length, remaining: allowance.remaining,
     understood: describeParsed(parsed), understoodBy: by,
   });
 }
@@ -152,9 +163,10 @@ async function standouts(me: Row, body: Record<string, unknown>): Promise<Respon
   const today = new Date().toISOString().slice(0, 10);
   const mine = `user_id=eq.${me.id}&for_date=eq.${today}`;
 
+  const pro = await hasPro(me.id);
   if (body.refresh === true) {
-    // Picking again is a Pro feature (the Standouts page offers it to Pro only)
-    if (me.subscription_tier !== 'PRO') {
+    // Picking again is a MatchGPT+ feature
+    if (!pro) {
       return json({ error: 'Refreshing Standouts is a Pro feature.', code: 'PRO_ONLY' }, 403);
     }
     await rest(`standouts?${mine}`, { method: 'DELETE' });
@@ -168,7 +180,7 @@ async function standouts(me: Row, body: Record<string, unknown>): Promise<Respon
     const pool = await rpc('search_candidates', { p_user_id: me.id, p_ids: ids }) as Row[];
     const { candidates } = rankCandidates(me, pool, '', {}, ids.length);
     candidates.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
-    return json({ candidates, computed: false });
+    return json({ candidates: pro ? candidates : withoutReport(candidates), computed: false });
   }
 
   // First visit today: the most compatible people the user hasn't liked yet
@@ -183,7 +195,7 @@ async function standouts(me: Row, body: Record<string, unknown>): Promise<Respon
       }))),
     });
   }
-  return json({ candidates, computed: true });
+  return json({ candidates: pro ? candidates : withoutReport(candidates), computed: true });
 }
 
 Deno.serve(withCors(async (req: Request): Promise<Response> => {

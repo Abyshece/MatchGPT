@@ -41,15 +41,30 @@ export const DEFAULT_PLANS: BillingPlan[] = [
   { id: 'yearly', name: 'MatchGPT+ yearly', amount: 999900, currency: 'INR', period: 'yearly' },
 ];
 
-// What MatchGPT+ adds (each is enforced by the server, except the Likes You
-// view while PRO_FOR_ALL is on)
-export const PRO_FEATURES = [
+// What MatchGPT+ adds (each is enforced by the server): the daily limits
+// lifted, which takes a subscription...
+const UNLIMITED = [
   'Unlimited AI searches (free: 3 a day)',
   'Unlimited likes (free: 15 a day)',
-  'Super Likes, to stand out',
-  'Refresh your Standouts any time',
-  'See everyone who liked you',
 ];
+// ...and the features, which are also everyone's while "MatchGPT+ for
+// everyone" is on (useAuth().proForAll; app_settings)
+const FEATURES = [
+  'See everyone who liked you',
+  'Super Likes, to stand out',
+  'Every search filter: religion, community, height and more',
+  'Compatibility reports: why you match',
+  'Propose dates in chat',
+  'Refresh your Standouts any time',
+];
+
+/** What buying MatchGPT+ adds right now. */
+export function proBenefits(proForAll: boolean): string[] {
+  return proForAll ? UNLIMITED : [...UNLIMITED, ...FEATURES];
+}
+
+/** Said under the benefits while MatchGPT+'s features are everyone's. */
+export const FEATURES_FREE_NOW = 'Likes You, Super Likes, every filter, compatibility reports and date proposals are free for everyone right now.';
 
 export class BillingError extends Error {
   code: string;

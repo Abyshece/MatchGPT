@@ -1,7 +1,7 @@
 // Tests for matching.ts. Run from the repo root:
 //   deno test --no-config supabase/functions/search/matching_test.ts
 import {
-  buildCatalog, describeParsed, parsePrompt, planToParsed, rankCandidates, sanitizeFilters,
+  buildCatalog, describeParsed, parsePrompt, planToParsed, rankCandidates, sanitizeFilters, withoutProFilters,
   type Row, type SearchPlan,
 } from './matching.ts';
 
@@ -335,4 +335,18 @@ Deno.test('answers as the sign-up form stores them count too ("Dog", "Yes")', ()
   const pool = [person('dog', { pets: 'Dog' }), person('none', { pets: 'None' }), person('cook', { can_cook: 'Yes' })];
   assertEquals(ids(pool, 'dog lover')[0], 'dog');
   assertEquals(ids(pool, 'someone who can cook')[0], 'cook');
+});
+
+Deno.test('without MatchGPT+: age, place and the switches stay, MatchGPT+\'s filters go', () => {
+  const all = sanitizeFilters({
+    ageRange: [25, 32], country: 'India', state: 'Maharashtra', neighborhood: 'Pune', isVerified: true, hasInstagram: true,
+    religion: 'Hindu', motherTongue: 'Marathi', caste: 'Maratha', maritalStatus: 'Never married', heightRange: [160, 175],
+    manglik: 'No', dietaryPreferences: 'Vegetarian', educationLevel: "Master's", datingIntention: 'Marriage',
+    children: 'No', familyPlans: 'Yes', drinking: 'No', smoking: 'No',
+  });
+  assertEquals(withoutProFilters(all), {
+    isVerified: true, hasInstagram: true, neighborhood: 'Pune', country: 'India', state: 'Maharashtra', ageRange: [25, 32],
+  });
+  // The filters given are left as they were
+  assertEquals(all.religion, 'Hindu');
 });

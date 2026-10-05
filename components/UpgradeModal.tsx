@@ -4,7 +4,7 @@ import { IconX, IconZap, IconCheck } from '../constants';
 import { useAuth } from '../lib/AuthContext';
 import { useNow } from '../lib/useNow';
 import {
-  DEFAULT_PLANS, PRO_FEATURES, BillingError, confirmSubscription, formatDate, formatRupees, getBillingConfig,
+  DEFAULT_PLANS, FEATURES_FREE_NOW, proBenefits, BillingError, confirmSubscription, formatDate, formatRupees, getBillingConfig,
   periodWord, startSubscription, type BillingConfig, type PlanId,
 } from '../lib/billingService';
 import { CheckoutClosed, openCheckout } from '../lib/razorpayCheckout';
@@ -30,7 +30,7 @@ interface UpgradeModalProps {
 }
 
 const UpgradeModal: React.FC<UpgradeModalProps> = ({ reason, resetInHours, onClose }) => {
-  const { profile, refreshProfile } = useAuth();
+  const { profile, refreshProfile, proForAll } = useAuth();
   const [config, setConfig] = useState<BillingConfig | null>(null);
   const [planId, setPlanId] = useState<PlanId>('monthly');
   const [paying, setPaying] = useState(false);
@@ -214,13 +214,14 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ reason, resetInHours, onClo
               )}
 
               <ul className="space-y-2 mb-6">
-                {PRO_FEATURES.map((f) => (
+                {proBenefits(proForAll).map((f) => (
                   <li key={f} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
                     <span className="text-green-500 flex-shrink-0 mt-0.5"><IconCheck className="w-4 h-4" /></span>
                     <span>{f}</span>
                   </li>
                 ))}
               </ul>
+              {proForAll && <p className="-mt-4 mb-6 text-xs text-gray-500 dark:text-gray-400">{FEATURES_FREE_NOW}</p>}
 
               {error && (
                 <p className="mb-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/40 px-3 py-2 text-sm text-red-700 dark:text-red-300">

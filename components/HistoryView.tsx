@@ -30,7 +30,7 @@ interface HistoryViewProps {
 }
 
 const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
-  const { profile, session } = useAuth();
+  const { profile, session, hasPro } = useAuth();
   const { showToast } = useToast();
 
   const [tab, setTab] = useState<HistoryTab>('searches');
@@ -309,7 +309,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
       {selectedCandidate && (
         <ProfileModal
           candidate={selectedCandidate}
-          isPro={profile.subscriptionTier === 'PRO'}
+          isPro={hasPro}
           onClose={() => setSelectedCandidate(null)}
           onUpgrade={() => { setSelectedCandidate(null); setShowUpgradeModal(true); }}
         />

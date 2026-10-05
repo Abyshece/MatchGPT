@@ -37,6 +37,11 @@ sells MatchGPT+ through Razorpay. The apps sell it through Google Play and the A
   | `delete-account` | Deletes an account and everything kept about it, cancelling its Razorpay and Google Play subscriptions first |
   | `apple-sign-in` | Keeps the Sign in with Apple token, so deleting the account also ends it at Apple |
 
+- **MatchGPT+.** The website sells it through Razorpay, the apps through Google Play and the App Store.
+  One switch, "MatchGPT+ for everyone" in Admin → Dashboard, gives every member its features while
+  it's on; only the daily limits (3 AI searches, 15 likes) stay for free accounts. The server
+  (`has_pro()` in the database) and the apps (`useAuth().hasPro`) follow it at once, with no new app
+  release.
 - **Hosting.** The website is on Vercel (`vercel.json`) and the backend on Supabase.
 
 ## Run it locally
@@ -69,6 +74,7 @@ GitHub runs these on every pull request and every push to `main` (`.github/workf
 them yourself before pushing:
 
 - `npx tsc --noEmit`: the type check
+- `npm run lint`: the linter (ESLint: TypeScript's recommended rules and React's rules of hooks)
 - `npm run build`: the website's build
 - `deno test --no-config --node-modules-dir=none --allow-env --allow-read supabase/functions/`: the
   server's unit tests (search scores, Razorpay, the stores, notifications, Sign in with Apple). This
