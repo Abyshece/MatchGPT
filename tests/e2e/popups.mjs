@@ -3,8 +3,8 @@
 // line behind it, which an empty second popup box used to draw; scrolls on a
 // short screen), then, signed in as one user (an onboarded account, password
 // TestPass!2026): the like confirmation on a match card (it used to be
-// squeezed into the card), the profile, filters, MatchGPT+, verify and
-// delete-account popups, and the phone menu.
+// squeezed into the card), the profile, filters, MatchGPT+ (bought in the
+// apps), verify and delete-account popups, and the phone menu.
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -140,6 +140,10 @@ try {
   log('6. MatchGPT+ and verify popups from the sidebar');
   await page.getByText('Get MatchGPT+', { exact: true }).click();
   await checkBackdrop(page, 'upgrade');
+  const upgrade = page.getByRole('dialog');
+  check(await upgrade.getByText('MatchGPT+ is bought in the MatchGPT app, on Android or iPhone.').isVisible()
+    && await upgrade.getByText('Google Play', { exact: true }).isVisible() && await upgrade.getByText('App Store', { exact: true }).isVisible(),
+    'MatchGPT+ on the website: bought in the apps, with Google Play and App Store badges');
   await page.mouse.click(20, 20);
   await page.waitForTimeout(400);
   await page.getByText('Get verified today', { exact: true }).click();

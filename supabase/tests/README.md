@@ -27,7 +27,7 @@ VITE_SUPABASE_URL=http://127.0.0.1:54321 VITE_SUPABASE_ANON_KEY=<anon key from `
 
 Search runs in the `search` edge function; `npx supabase functions serve` serves
 it (and the others) locally. Its matching logic, the Gemini client and the
-Razorpay helpers have unit tests: `deno test --no-config --node-modules-dir=none --allow-env --allow-read supabase/functions/`. Prompts are understood
+store, notification and Sign in with Apple helpers have unit tests: `deno test --no-config --node-modules-dir=none --allow-env --allow-read supabase/functions/`. Prompts are understood
 by Google Gemini when the function has a `GEMINI_API_KEY` secret, otherwise by
 rules; `tests/e2e/gemini-standin.cjs` stands in for Gemini locally.
 

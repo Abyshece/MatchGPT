@@ -12,15 +12,14 @@ import { supabase } from './supabase';
 import type { Database } from './database.types';
 
 export type FinanceMode = 'live' | 'test';
-export type Seller = 'google_play' | 'app_store' | 'razorpay';
+export type Seller = 'google_play' | 'app_store';
 
 /** Every seller, in a fixed order: the chart gives each its colour by this order. */
-export const SELLERS: Seller[] = ['google_play', 'app_store', 'razorpay'];
+export const SELLERS: Seller[] = ['google_play', 'app_store'];
 
 export const SELLER_LABEL: Record<Seller, string> = {
   google_play: 'Google Play',
   app_store: 'App Store',
-  razorpay: 'Website',
 };
 
 export const isSeller = (s: string | null | undefined): s is Seller => SELLERS.includes(s as Seller);
@@ -28,7 +27,7 @@ export const isSeller = (s: string | null | undefined): s is Seller => SELLERS.i
 export interface MoneyTotals {
   gross: number;    // what customers paid
   refunds: number;  // given back
-  fees: number;     // kept by the seller (Razorpay's actual fee; the stores' commission, estimated)
+  fees: number;     // kept by the store (its commission, estimated until its payout reports)
   net: number;      // what's left for us
   charges: number;
 }
@@ -212,7 +211,7 @@ function cell(value: string | number | boolean | null): string {
 const CSV_COLUMNS: [string, (c: Charge) => string | number | boolean | null][] = [
   ['Date (India time)', (c) => indiaStamp(c.paid_at)],
   ['Order ID', (c) => c.order_id],
-  ['Seller', (c) => (isSeller(c.provider) ? (c.provider === 'razorpay' ? 'Website (Razorpay)' : SELLER_LABEL[c.provider]) : c.provider)],
+  ['Seller', (c) => (isSeller(c.provider) ? SELLER_LABEL[c.provider] : c.provider)],
   ['Plan', (c) => c.plan_id],
   ['Status', (c) => chargeStatus(c)],
   ['Currency', (c) => c.currency],

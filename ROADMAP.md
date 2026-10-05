@@ -2,11 +2,13 @@
 
 13 phases in total. Phases 1–5, 7–9 and 12 are done, and Phase 6 is mostly done. **Phase 13 (the
 phone apps ready for the stores) is built. What's left of it is yours: the launch checklist in
-[docs/store/README.md](docs/store/README.md).** Phase 10 (launch readiness) is under way: parts 1 and
-2 are done (checks and a linter on every push, a faster first load, admin alerts, one switch for
-MatchGPT+, tidier access rules, the whole journey tested, the README).
+[docs/store/README.md](docs/store/README.md).** Phase 10 (launch readiness) is under way: parts 1 to
+3 are done (checks and a linter on every push, a faster first load, admin alerts, one switch for
+MatchGPT+, tidier access rules, the whole journey tested, the README, MatchGPT+ sold only in the
+apps).
 AI search (Gemini) is built and live; it switches on once you add the `GEMINI_API_KEY` secret (Phase 9).
-Payments (MatchGPT+ through Razorpay, Phase 11) are built too and switch on once you add the Razorpay keys.
+MatchGPT+ is sold only in the apps, through Google Play and the App Store (Phase 13); Razorpay was
+dropped on 2026-10-05 (Phase 11).
 Items left unfinished in earlier phases were moved into later ones, so each open item appears once.
 (`PHASE_1_README.md`–`PHASE_3_README.md` are historical setup notes.)
 
@@ -21,8 +23,8 @@ Items left unfinished in earlier phases were moved into later ones, so each open
 | 7 | Make the backend safe and rebuildable | **Done** (3 small owner follow-ups) |
 | 8 | Finish half-built features | **Done** (owner checks listed) |
 | 9 | Smarter search that scales | **Done** (add the Gemini key to switch AI on) |
-| 10 | Launch readiness → public launch | **In progress** (parts 1–2 done 2026-10-04) |
-| 11 | Payments (MatchGPT+ via Razorpay) | Built; waiting for your Razorpay account |
+| 10 | Launch readiness → public launch | **In progress** (parts 1–3 done 2026-10-05) |
+| 11 | Payments (MatchGPT+ via Razorpay) | Dropped 2026-10-05: MatchGPT+ is sold only in the apps (Phase 13) |
 | 12 | Profile details for India (community, family, horoscope) | **Done** |
 | 13 | The phone apps, ready for Google Play and the App Store | **Built**; your launch checklist: [docs/store/README.md](docs/store/README.md) |
 
@@ -295,6 +297,35 @@ Part 2 done 2026-10-04. Migrations `20261005214651_phase10_pro_access` and
   - A unit test for the free filters.
   - All the browser and server tests ran again.
 
+Part 3 done 2026-10-05: **MatchGPT+ is sold only in the apps.** You decided to sell it only through
+Google Play and the App Store, so Razorpay is gone. The app and the server no longer use it; the
+database change that removes its fields is ready and waits for your approval (below).
+
+- [x] **The website** no longer sells MatchGPT+. Its MatchGPT+ screen says it's bought in the MatchGPT
+  app, with Google Play and App Store badges ("Coming soon" until the apps' store addresses are set:
+  `VITE_PLAY_STORE_URL` and `VITE_APP_STORE_URL` in Vercel). Settings shows a subscription bought in
+  either store, where to manage it, and its payments. The help answers and the Delete account page no
+  longer mention paying on the website.
+- [x] **The server**: the `billing` and `razorpay-webhook` functions and their code are deleted, and
+  deleting an account no longer has a Razorpay step.
+- [x] **The database change** (`supabase/migrations/20261005222759_phase10_no_razorpay.sql`) removes
+  the Razorpay fields: every subscription and payment is then sold by Google Play or the App Store,
+  with that store's id, and "Download my data" lists payments without invoices. The live database
+  has no Razorpay subscriptions or payments, and the change refuses to run if it finds any, so
+  nothing is lost. Tested on a local copy.
+- [x] **Terms and Privacy Policy** no longer mention Razorpay (new versions, so members accept them
+  again). The Finance tab lists Google Play and the App Store.
+- [x] **Tests**: the Razorpay tests and stand-in are gone; the finance, store and popup tests and the
+  database checks were updated (still 45 attacks blocked, 53 normal actions working).
+- [ ] **Owner: approve the database change.** It removes columns, so the Supabase connector asks you
+  to confirm before it runs, and the request timed out twice. Approve it the next time I apply it, or
+  run `npx supabase db push`. Until then the live database keeps the old, unused Razorpay fields, which
+  changes nothing for members.
+- [ ] **Owner:** Supabase → Edge Functions: delete `billing` and `razorpay-webhook`, which are no longer
+  used, and remove any `RAZORPAY_*` secrets. The live `delete-account` still has its old Razorpay
+  step until it's next deployed (`npx supabase functions deploy delete-account --project-ref
+  fmrbzzdjtarsaqvfukum`); that step finds nothing to cancel, so it changes nothing.
+
 **Still to do**
 
 - [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.
@@ -315,48 +346,18 @@ Part 2 done 2026-10-04. Migrations `20261005214651_phase10_pro_access` and
   - "RLS enabled, no policy" on the tables only the server uses.
 - [ ] Legal review of Terms and Privacy; a mobile and accessibility check.
 
-## Phase 11 — Payments (MatchGPT+ via Razorpay)
-Built 2026-09-27; waiting for a Razorpay account. Until its keys are set, the upgrade screens say
-"coming soon" and nothing can be charged. Migrations `20260927231921_phase11_billing`,
-`20260927232811_phase11_trial_rule` and `20260928000736_phase11_one_live_subscription` (applied live);
-edge functions `billing` and `razorpay-webhook` (deployed, idle without keys).
+## Phase 11 — Payments (MatchGPT+ via Razorpay) — dropped 2026-10-05
+Built 2026-09-27 for the website, but never switched on. On 2026-10-05 you decided MatchGPT+ is sold
+only in the apps, through Google Play and the App Store (Phase 13), so Razorpay was removed (Phase 10,
+part 3). What it set up stays, for the store subscriptions:
 
-- [x] Prices as in the Terms: ₹999 a month or ₹9,999 a year (17% less), a 7-day free trial for
-  first-time subscribers, renewing automatically. Cancel any time in Settings: Pro stays to the end
-  of the period paid for, a trial cancelled in time is never charged, and cancelling after a failed
-  payment stops Razorpay's retries at once. Prices live in the `billing_plans` table; a new price
-  makes a new Razorpay plan for new subscribers
+- [x] Prices as in the Terms: ₹999 a month or ₹9,999 a year (17% less), renewing automatically; a
+  free trial when the store offers one
 - [x] What MatchGPT+ adds, as enforced by the server: unlimited AI searches (free: 3 a day), unlimited
   likes (free: 15 a day), Super Likes, refreshing Standouts; plus the Likes You list
-- [x] "Get MatchGPT+" is back in the sidebar ("MatchGPT+ active" on Pro accounts); the old plan list
-  said ₹2,999 and listed features that don't exist
-- [x] Upgrade screen: monthly or yearly, then Razorpay Checkout (cards, UPI AutoPay, bank mandates)
-- [x] The server confirms payments: Checkout's signature is checked, then Razorpay's webhooks keep the
-  subscription current (renewals, failed payments while Razorpay retries, cancellation, the end).
-  Pro follows the subscription with a 3-day grace, and an hourly job ends lapsed Pro. Pro given by
-  hand (all 12 Pro accounts today) is never touched
-- [x] Settings → MatchGPT+: plan, trial / renewal / end date, cancel, payments with Razorpay's invoices
-- [x] One subscription per person: if two checkouts are finished at once (say, in two tabs), the one
-  that went through first stays; the other is cancelled straight away and anything it charged is
-  refunded, and its popup says so
-- [x] Deleting an account cancels its subscription first, and refuses if Razorpay can't be reached
-- [x] Privacy Policy lists the payment details kept (`privacy-v3-2026-09-27`)
-- [x] Tests: 14 database checks, 7 unit tests (`_shared/razorpay_test.ts`), and a browser test against a
-  local Razorpay stand-in (`tests/e2e/billing-flow.mjs`, `tests/e2e/razorpay-standin.cjs`)
-- [ ] **Owner, to try it (test mode, no real money; no business documents needed yet):**
-  1. Create an account at razorpay.com
-  2. Dashboard → Account & Settings → API Keys → generate a **test** key (`rzp_test_…` and its secret)
-  3. Check that Subscriptions is available on the account, and turn on Flash Checkout (Account & Settings)
-  4. Account & Settings → Webhooks → add one: URL
-     `https://fmrbzzdjtarsaqvfukum.supabase.co/functions/v1/razorpay-webhook`, a secret you make up (a long
-     random string), every `subscription.*` event and `refund.processed` (refunds made in the Dashboard
-     then show in the finance figures)
-  5. Supabase → Edge Functions → Secrets: `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`
-     (optional: `PRO_TRIAL_DAYS`, default 7). Then I test it end to end with Razorpay's test cards
-- [ ] **Owner, to take real payments:** finish Razorpay's activation (KYC), generate **live** keys, add the
-  same webhook in live mode, and replace the three secrets with the live ones
-- [ ] GST: if MatchGPT is GST-registered, add the GST details in Razorpay (its invoices then show GST), and
-  say in the Terms whether prices include GST
+- [x] "Get MatchGPT+" in the sidebar ("MatchGPT+ active" on Pro accounts)
+- [x] Pro follows the subscription with a 3-day grace, and an hourly job ends lapsed Pro. Pro given by
+  hand is never touched
 - [x] Every MatchGPT+ check follows one rule, on the server and in the apps (Phase 10, part 2)
 - [ ] **Owner:** decide when to start charging, then turn off "MatchGPT+ for everyone" in Admin →
   Dashboard. It needs no app release
@@ -364,8 +365,8 @@ edge functions `billing` and `razorpay-webhook` (deployed, idle without keys).
 ---
 
 ## Phase 13 — The phone apps, ready for Google Play and the App Store
-Started 2026-10-03. The apps sell MatchGPT+ through the stores (their rules for digital subscriptions);
-the website keeps Razorpay. Every subscription and charge, whoever sold it, lands in the same tables, so
+Started 2026-10-03. The apps sell MatchGPT+ through the stores (their rules for digital subscriptions),
+and since 2026-10-05 only the apps sell it. Every subscription and charge lands in the same tables, so
 the money is in one place.
 
 ### Payments on the server (done 2026-10-03)
@@ -380,19 +381,16 @@ Migration `20261003203818_phase13_store_billing` (applied live); edge functions 
 - [x] The stores' notifications keep it current: renewals (each a charge), renewal turned off and on,
   grace period (Pro stays), on hold and billing retry (Pro off), recovered, expired, refunds and
   revocations, changes of plan. Each delivery is handled once; old news never undoes newer news
-- [x] Finance record for every seller: what was paid, the seller's fee (Razorpay's actual fee; the
-  stores' 15% commission estimated, `STORE_FEE_PERCENT_*`), refunds (whole or part, including ones made
-  in Razorpay's Dashboard), net; real money and tests kept apart. People see their own payments but
-  not the fees
+- [x] Finance record for every seller: what was paid, the store's fee (its 15% commission, estimated;
+  `STORE_FEE_PERCENT_*`), refunds (whole or part), net; real money and tests kept apart. People see
+  their own payments but not the fees
 - [x] For the admin Finance tab: `admin_finance_summary()` (subscribers by seller and plan, monthly
   recurring revenue, cancellations, 12 months of gross / refunds / fees / net by seller) and
   `admin_list_payments()` (every charge with who paid, for the list and CSV export). Admins only
-- [x] The website can't sell a second subscription to someone who has one from a store, and points them
-  to the store to cancel. Deleting an account stops its Google Play renewal; an App Store one can only be
-  cancelled by the person, which the app will ask them to do first
-- [x] Tests: 13 unit tests (`_shared/stores_test.ts`, including Apple's real root certificate), 106 checks
-  against a Google Play / App Store stand-in (`tests/e2e/store-billing.mjs`, `store-standin.cjs`), and the
-  website's Razorpay flow again (48 checks)
+- [x] Deleting an account stops its Google Play renewal; an App Store one can only be cancelled by the
+  person, which the app asks them to do first
+- [x] Tests: 13 unit tests (`_shared/stores_test.ts`, including Apple's real root certificate), and checks
+  against a Google Play / App Store stand-in (`tests/e2e/store-billing.mjs`, `store-standin.cjs`)
 - [ ] **Owner, Google Play** (once the app is in Play Console):
   1. Monetize → Subscriptions: create `matchgpt_plus` with base plans `monthly` (₹999, renews monthly) and
      `yearly` (₹9,999, renews yearly); optionally a 7-day free-trial offer on each for new customers
@@ -416,7 +414,7 @@ Migration `20261003203818_phase13_store_billing` (applied live); edge functions 
 
 ### Buying MatchGPT+ inside the apps (done 2026-10-03)
 - [x] In the apps, MatchGPT+ opens Google's or Apple's own payment sheet at the store's price (in the
-  person's currency), never Razorpay. The purchase carries the account's id, and the server checks it
+  person's currency). The purchase carries the account's id, and the server checks it
   with the store before Pro turns on. MatchGPT+ belongs to the account, so it works on both phones
 - [x] Next to the button, what the stores require: length and price, that it renews until cancelled,
   where to cancel, Terms of Use and Privacy Policy, Restore purchases. On iPhone the free trial shows
@@ -683,5 +681,5 @@ The sign-up questions of Shaadi.com, BharatMatrimony and Jeevansathi, compared w
 - [x] Admin panel: stats, reports, verifications, users, ban/unban, audit log
 - [x] Full account deletion; push notifications (browser side and the sending function)
 - [x] Incognito mode; liked profiles hidden from search
-- [x] Razorpay payments → built in Phase 11
+- [x] Payments → built in Phase 11 (Razorpay, later dropped); sold in the apps since Phase 13
 - [ ] Delete unused prototype files → Phase 10

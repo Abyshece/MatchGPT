@@ -130,8 +130,8 @@ const DeleteAccountPage: React.FC = () => {
           <p><strong className="text-gray-900 dark:text-white">What's kept:</strong> a record that the account was deleted (its email
             and when), and the records of payments that the law requires us to keep (up to 7 years). Everything else is
             gone within 30 days, backups included.</p>
-          <p><strong className="text-gray-900 dark:text-white">MatchGPT+:</strong> a subscription from the website is cancelled and a
-            Google Play one stops renewing. An App Store subscription only you can cancel: on your iPhone,
+          <p><strong className="text-gray-900 dark:text-white">MatchGPT+:</strong> a Google Play subscription stops renewing. An App
+            Store subscription only you can cancel: on your iPhone,
             Settings → your name → Subscriptions, or <a className="underline" href="https://apps.apple.com/account/subscriptions" target="_blank" rel="noreferrer">apps.apple.com/account/subscriptions</a>.</p>
         </section>
 

@@ -1,9 +1,9 @@
 // ============================================================================
 // storePurchases: MatchGPT+ bought inside the phone apps
 //
-// The apps sell through the stores' own billing (Google Play Billing and the
-// App Store), as the stores require for digital subscriptions; the website
-// keeps Razorpay (billingService.ts). The store takes the payment; the
+// MatchGPT+ is sold only here, through the stores' own billing (Google Play
+// Billing and the App Store), as the stores require for digital
+// subscriptions. The store takes the payment; the
 // store-billing edge function checks every purchase with the store before
 // turning Pro on, and the stores' notifications keep it current afterwards
 // (store-notifications). Each purchase carries the user's id, so it can't be

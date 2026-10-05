@@ -15,8 +15,8 @@ import RevenueChart, { FINANCE_VIZ_CSS, SELLER_COLOR } from './RevenueChart';
 // Subscribers and recurring revenue now; what came in this month and since
 // launch; net revenue by month and seller (chart, or the same as a table);
 // and every charge, filtered by seller and month, exportable as CSV for the
-// accounts. Live money and test purchases (Razorpay test keys, Play licence
-// testers, the App Store sandbox) are kept apart. Rupee figures count INR
+// accounts. Live money and test purchases (Play licence testers, the App
+// Store sandbox) are kept apart. Rupee figures count INR
 // charges; months follow the calendar in India. The stores' commission is
 // an estimate until their payout reports.
 // ============================================================================
@@ -182,7 +182,7 @@ const AdminFinanceTab: React.FC = () => {
 
       {mode === 'test' && (
         <div className="rounded-lg border border-amber-200 dark:border-amber-900/40 bg-amber-50 dark:bg-amber-900/20 px-4 py-2.5 text-xs text-amber-900 dark:text-amber-200">
-          Test purchases only: Razorpay test payments, Google Play licence testers and App Store sandbox. No real money.
+          Test purchases only: Google Play licence testers and the App Store sandbox. No real money.
         </div>
       )}
 

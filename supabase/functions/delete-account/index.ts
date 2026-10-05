@@ -7,10 +7,9 @@
 //   1. Browser calls this function with the user's JWT in the Authorization header
 //   2. Function verifies JWT and extracts auth user ID
 //   3. Function uses service_role to:
-//      0) Cancel any MatchGPT+ subscription that could still charge (Razorpay);
-//         if that fails, nothing is deleted. Google Play renewals are stopped
-//         too (best effort); Apple only lets people cancel themselves, which
-//         the app asks them to do first (details.app_store_renews).
+//      0) Stop MatchGPT+ renewals: Google Play's are stopped (best effort);
+//         Apple only lets people cancel themselves, which the app asks them
+//         to do first (details.app_store_renews).
 //         Sign in with Apple is ended for MatchGPT too, as Apple asks (best
 //         effort; _shared/appleSignIn.ts).
 //      a) Delete all photos from Storage (best-effort)
@@ -30,8 +29,6 @@ import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 // CORS: allowed browser origins come from the ALLOWED_ORIGINS secret.
 import { withCors } from '../_shared/cors.ts';
-import { razorpayConfig } from '../_shared/razorpay.ts';
-import { cancelAllSubscriptions } from '../_shared/billing.ts';
 import { stopStoreRenewals } from '../_shared/storeBilling.ts';
 import { endSignInWithApple } from '../_shared/appleSignIn.ts';
 
@@ -104,20 +101,7 @@ serve(withCors(async (req: Request): Promise<Response> => {
     }, 400);
   }
 
-  // ---- 0. Stop MatchGPT+ subscriptions, so nothing is charged after the account is gone ----
-  let cancelProblems: string[];
-  try {
-    cancelProblems = await cancelAllSubscriptions(razorpayConfig(), userId);
-  } catch (e) {
-    cancelProblems = [e instanceof Error ? e.message : String(e)];
-  }
-  if (cancelProblems.length > 0) {
-    console.error('[delete-account] subscriptions not cancelled:', cancelProblems.join('; '));
-    return jsonResponse({
-      success: false,
-      error: "Your MatchGPT+ subscription couldn't be cancelled, so your account wasn't deleted. Please try again, or write to support@matchgpt.com.",
-    }, 502);
-  }
+  // ---- 0. Stop MatchGPT+ renewals, so nothing is charged after the account is gone ----
   let appStoreRenews = false;
   try {
     const store = await stopStoreRenewals(userId);

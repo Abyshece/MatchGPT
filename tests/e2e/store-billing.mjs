@@ -1,9 +1,8 @@
 // MatchGPT+ bought in the phone apps, on the server: the store-billing and
-// store-notifications functions against the local stack, the Google Play and
-// App Store stand-in (tests/e2e/store-standin.cjs) and the Razorpay stand-in
-// (razorpay-standin.cjs); see their headers for the functions' env. Calls the
-// functions the way the apps do (no browser), as two onboarded accounts
-// (password TestPass!2026) and two new ones it makes.
+// store-notifications functions against the local stack and the Google Play
+// and App Store stand-in (tests/e2e/store-standin.cjs; see its header for the
+// functions' env). Calls the functions the way the apps do (no browser), as
+// two onboarded accounts (password TestPass!2026) and two new ones it makes.
 //  1. The plans' store products; sign-in needed
 //  2. Google Play, monthly with the free trial: checked with Google and
 //     acknowledged, Pro in the trial, nothing charged; another account can't
@@ -19,20 +18,16 @@
 //  8. App Store, yearly: checked by Apple's signature; a look-alike chain, a
 //     changed payload, another app's purchase, another account's and a
 //     non-subscription are refused
-//  9. The website's billing won't sell a second subscription or cancel a
-//     store one
-// 10. App Store notifications: renewal, renewal off and on (an older report
+//  9. App Store notifications: renewal, renewal off and on (an older report
 //     from the app doesn't undo it), billing retry in the grace period,
 //     recovery, a refund of an earlier period and of the current one, a
 //     production purchase running out; repeated, forged, TEST and other apps'
-// 11. Razorpay: its own fee on a charge; refunds made in its Dashboard (part,
-//     then the rest)
-// 12. Finance: the summary and the list of charges add up (live and test),
+// 10. Finance: the summary and the list of charges add up (live and test),
 //     admins only; people read their own payments but not the fees
-// 13. Deleting an account stops its Google Play renewal and reports the App
+// 11. Deleting an account stops its Google Play renewal and reports the App
 //     Store one; later notifications still work; someone restoring the
 //     deleted account's purchase takes it over
-// 14. Google refusing our own sign-in: the purchase isn't called invalid, and
+// 12. Google refusing our own sign-in: the purchase isn't called invalid, and
 //     a notification is sent back to be retried, then handled
 //
 //   ANON_KEY=<from `npx supabase status`> node tests/e2e/store-billing.mjs <email> <other email>
@@ -41,7 +36,6 @@ import { execSync } from 'node:child_process';
 const DB = process.env.DB_CONTAINER || 'supabase_db_MatchGPT';
 const SUPABASE = process.env.SUPABASE_URL || 'http://127.0.0.1:54321';
 const STORE = process.env.STORE_STANDIN || 'http://127.0.0.1:8790';
-const RAZORPAY = process.env.RAZORPAY_STANDIN || 'http://127.0.0.1:8788';
 const RTDN_SECRET = process.env.GOOGLE_RTDN_SECRET || 'rtdn_local';
 const ANON = process.env.ANON_KEY;
 const [EMAIL, OTHER] = process.argv.slice(2);
@@ -109,7 +103,6 @@ const store = (path, body) => fetch(`${STORE}${path}`, {
   method: body === undefined ? 'GET' : 'POST', headers: { 'Content-Type': 'application/json' },
   ...(body === undefined ? {} : { body: JSON.stringify(body) }),
 }).then((r) => r.json());
-const razorpay = (path) => fetch(`${RAZORPAY}${path}`, { method: 'POST' }).then((r) => r.json());
 
 // ---- Reading our tables -----------------------------------------------------------------
 
@@ -129,7 +122,7 @@ function subRow(provider, storeId) {
   return { status, plan, mode, userId, trialEnds, currentEnd, cancelAtEnd: cancelAtEnd === 't', autoRenew, product };
 }
 function payments(where) {
-  const r = sql(`select provider, coalesce(store_order_id, razorpay_payment_id), amount, currency, status,
+  const r = sql(`select provider, store_order_id, amount, currency, status,
       coalesce(fee_amount, -1), fee_estimated, refunded_amount, coalesce(refunded_at::text, ''), paid_at, coalesce(user_id::text, '')
     from payments where ${where} order by paid_at, created_at;`);
   return r ? r.split('\n').map((line) => {
@@ -323,18 +316,7 @@ const firstTx = payload(yearlyApple.jws);
     'none of them saved');
 }
 
-log("9. The website's billing and a store subscription");
-{
-  const r = await fn('billing', tokenA, { action: 'subscribe', plan: 'monthly' });
-  check(r.status === 409 && /App Store/.test(r.body?.error ?? ''), `no second subscription: "${r.body?.error}"`);
-  const c = await fn('billing', tokenA, { action: 'cancel' });
-  check(c.status === 409 && c.body?.code === 'STORE_SUBSCRIPTION' && /Settings/.test(c.body?.error ?? ''), `cancel points to the store: "${c.body?.error}"`);
-  const refresh = await fn('billing', tokenA, { action: 'refresh' });
-  check(refresh.status === 200, 'refresh leaves it alone');
-  check(subRow('app_store', yearlyApple.originalTransactionId)?.status === 'active', 'still active');
-}
-
-log('10. App Store notifications');
+log('9. App Store notifications');
 const orig = yearlyApple.originalTransactionId;
 {
   const renewed = await store(`/__apple/renew/${orig}`, {});
@@ -390,29 +372,7 @@ const orig = yearlyApple.originalTransactionId;
   check(elsewhere.status === 200 && /another app/.test(elsewhere.text), "another app's notification ignored");
 }
 
-log('11. Razorpay: its fee, and refunds made in its Dashboard');
-let rzpPayment;
-{
-  const sub = await fn('billing', tokenA, { action: 'subscribe', plan: 'monthly' });
-  check(sub.status === 200 && !sub.body.trialEndsAt, `website subscription, no second trial (${sub.status})`);
-  const approved = await razorpay(`/__authorize/${sub.body.subscriptionId}`);
-  const v = await fn('billing', tokenA, { action: 'verify', ...approved });
-  check(v.status === 200 && v.body.pro, 'charged at once: Pro');
-  await new Promise((r) => setTimeout(r, 2500));  // the webhooks that follow
-  rzpPayment = approved.razorpay_payment_id;
-  let p = payments(`razorpay_payment_id = '${rzpPayment}'`)[0];
-  check(p?.provider === 'razorpay' && p.amount === 99900 && p.fee === 2358 && !p.feeEstimated, "Razorpay's own fee recorded (₹23.58)");
-  await razorpay(`/__refund/${rzpPayment}?amount=50000`);
-  p = payments(`razorpay_payment_id = '${rzpPayment}'`)[0];
-  check(p?.refunded === 50000 && p.status === 'captured' && !!p.refundedAt, 'part refunded in the Dashboard: ₹500 back');
-  await razorpay(`/__refund/${rzpPayment}`);
-  p = payments(`razorpay_payment_id = '${rzpPayment}'`)[0];
-  check(p?.refunded === 99900 && p.status === 'refunded', 'then the rest: refunded');
-  const c = await fn('billing', tokenA, { action: 'cancel' });
-  check(c.status === 200, 'the website subscription cancelled');
-}
-
-log('12. Finance');
+log('10. Finance');
 {
   const denied = await rpc(tokenB, 'admin_finance_summary', { p_months: 3 });
   check(denied.status >= 400 && /Admins only/.test(JSON.stringify(denied.body)), 'not an admin: refused');
@@ -430,7 +390,8 @@ log('12. Finance');
         const [provider, amount, refunded, fee, mode, currency, month, id] = l.split('|');
         return { provider, amount: +amount, refunded: +refunded, fee: +fee, mode, currency, month, id };
       });
-    const net = (r) => (r.amount - r.refunded) - (r.provider === 'razorpay' ? r.fee : r.amount > 0 ? Math.round(r.fee * (r.amount - r.refunded) / r.amount) : 0);
+    // The stores give back their commission on what they refund
+    const net = (r) => (r.amount - r.refunded) - (r.amount > 0 ? Math.round(r.fee * (r.amount - r.refunded) / r.amount) : 0);
     for (const mode of ['test', 'live']) {
       const mine = rows.filter((r) => r.mode === mode && r.currency === 'INR');
       const want = { gross: 0, refunds: 0, net: 0, charges: mine.length };
@@ -453,11 +414,9 @@ log('12. Finance');
     }
     const list = await rpc(tokenA, 'admin_list_payments', { p_mode: 'test', p_limit: 5000 });
     const byId = new Map((list.body ?? []).map((r) => [r.order_id, r]));
-    const rzp = byId.get(rzpPayment);
-    check(rzp?.net_amount === -2358 && rzp.user_email === EMAIL && rzp.provider === 'razorpay',
-      'the refunded Razorpay charge: net -₹23.58 (Razorpay keeps its fee)');
     const firstApple = byId.get(yearlyApple.transactionId);
-    check(firstApple?.net_amount === 0 && firstApple.refunded_amount === 999900, 'a refunded store charge: net 0 (the store returns its fee)');
+    check(firstApple?.net_amount === 0 && firstApple.refunded_amount === 999900 && firstApple.user_email === EMAIL
+      && firstApple.provider === 'app_store', 'a refunded store charge: net 0 (the store returns its fee), with who bought it');
     const live = await rpc(tokenA, 'admin_list_payments', { p_mode: 'live' });
     check(live.status === 200 && live.body.every((r) => r.mode === 'live') && live.body.some((r) => r.provider === 'app_store'),
       'live only: the production purchase');
@@ -477,7 +436,7 @@ log('12. Finance');
   check(theirs.status === 200 && theirs.body.length === 0, "nor anyone else's");
 }
 
-log('13. Deleting an account with store subscriptions');
+log('11. Deleting an account with store subscriptions');
 {
   const c = await newAccount('del');
   const g = await store('/__google/purchase', { userId: c.id, basePlan: 'monthly' });
@@ -505,7 +464,7 @@ log('13. Deleting an account with store subscriptions');
   sql(`delete from auth.users where id = '${d.id}';`);
 }
 
-log("14. Google refusing our sign-in is our problem, not the purchase's");
+log("12. Google refusing our sign-in is our problem, not the purchase's");
 {
   const p = await store('/__google/purchase', { userId: me, basePlan: 'monthly' });
   await store('/__google/signin', { ok: false });

@@ -42,7 +42,7 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => {
 
       <article className="max-w-3xl mx-auto px-6 py-10">
         <p className="text-xs text-gray-500 dark:text-gray-400 mb-6">
-          Document version: {TERMS_VERSION} · Last updated: October 4, 2026
+          Document version: {TERMS_VERSION} · Last updated: October 5, 2026
         </p>
 
         <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-8">
@@ -108,19 +108,17 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => {
             <li>Annual: ₹9,999 per year (saves ~17%)</li>
             <li>Free trial: 7 days for new Pro users</li>
           </ul>
-          <p>In our Android and iPhone apps, MatchGPT+ is sold through Google Play and the App Store.
-          The store takes the payment, shows the price in your local currency (which may differ from
-          the prices above and include local taxes), and its own terms apply to the purchase.</p>
-          <p>Subscriptions auto-renew until cancelled. You may cancel at any time: on the website, in
-          Settings; for a subscription bought in an app, in Google Play or in your Apple ID's
-          subscriptions (Settings in the app shows how). Cancellation takes effect at the end of the
-          current billing period.</p>
+          <p>MatchGPT+ is sold only in our Android and iPhone apps, through Google Play and the App
+          Store. The store takes the payment, shows the price in your local currency (which may differ
+          from the prices above and include local taxes), and its own terms apply to the purchase.</p>
+          <p>Subscriptions auto-renew until cancelled. You may cancel at any time in Google Play or in
+          your Apple ID's subscriptions (Settings in the app shows how). Cancellation takes effect at
+          the end of the current billing period.</p>
           <p><strong>Refunds:</strong> We do not generally offer refunds for partially-used subscription
           periods. Exceptions may be made at our discretion for technical issues that prevented
           you from using the service. Refunds for purchases made in the apps are requested from
           Google Play or Apple and follow their policies.</p>
-          <p>On the website, payments are processed by Razorpay; in the apps, by Google Play or Apple.
-          We never see or store your card details.</p>
+          <p>Payments are processed by Google Play or Apple. We never see or store your card details.</p>
           <p>We reserve the right to change pricing with at least 30 days' notice to active
           subscribers. New pricing applies at your next renewal.</p>
         </Section>

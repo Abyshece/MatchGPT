@@ -43,7 +43,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
 
       <article className="max-w-3xl mx-auto px-6 py-10">
         <p className="text-xs text-gray-500 dark:text-gray-400 mb-6">
-          Document version: {PRIVACY_VERSION} · Last updated: October 4, 2026
+          Document version: {PRIVACY_VERSION} · Last updated: October 5, 2026
         </p>
 
         <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-8">
@@ -72,7 +72,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
             <li><strong>Background and family details (all optional):</strong> religion, mother tongue, caste or community, sub-caste, sect or denomination, gotra, whether you are open to marrying outside your community, horoscope details (Manglik status, rashi, nakshatra, time and place of birth), education, occupation, annual income, residential status abroad, family details (family type, status and values, your parents' occupations, brothers and sisters, where your family lives) and any disability you choose to mention</li>
             <li><strong>Activity data:</strong> likes you send and receive, matches, messages, search queries, login history</li>
             <li><strong>Technical data:</strong> IP address, browser type, device information, cookies (see Section 8). If you turn on notifications, a notification token for your browser or phone (on phones, from Google's Firebase Cloud Messaging), whether the phone is an Android phone or an iPhone, and the version of our app</li>
-            <li><strong>Payment data:</strong> if you subscribe to MatchGPT+ on the website, Razorpay processes the payment; we never see your card, UPI or bank details. We keep the Razorpay subscription and payment IDs, the plan, amounts, dates, the kind of payment method (card, UPI and so on), the payment status and links to Razorpay's invoices. If you subscribe in our Android or iPhone app, Google Play or Apple processes the payment; we receive and keep the purchase details they send us (the purchase or order IDs, the plan, amounts and currency, dates, whether it renews, refunds), linked to your account by your account's ID, which we pass with the purchase. We also record the fees the payment services charge us.</li>
+            <li><strong>Payment data:</strong> MatchGPT+ is bought in our Android and iPhone apps, and Google Play or Apple processes the payment; we never see your card, UPI or bank details. We receive and keep the purchase details they send us (the purchase or order IDs, the plan, amounts and currency, dates, whether it renews, refunds), linked to your account by your account's ID, which we pass with the purchase. We also record the fees the stores charge us.</li>
           </ul>
           <p className="mt-2">
             Some categories — religion, caste or community, sexuality, ethnicity, disability and other
@@ -121,7 +121,6 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
             <li><strong>Supabase (database & auth):</strong> our backend hosting provider, EU/US infrastructure</li>
             <li><strong>Vercel (web hosting):</strong> hosts the website and serves it from edge locations worldwide</li>
             <li><strong>Google (Gemini AI):</strong> the text you type into search is sent to Google's Gemini AI to work out what you're looking for, with emails and phone numbers removed. With it we send the list of answers members have chosen for the searchable questions (for example "Tamil, Marathi" for mother tongue), never names, photos, or which answer belongs to whom. Nothing else from your account or profile is sent. We use Google's free tier, under which Google may use this text to improve its services, so please don't type personal details into search</li>
-            <li><strong>Razorpay (payments):</strong> processes Pro subscription payments on the website, based in India</li>
             <li><strong>Google and Apple (sign-in):</strong> if you choose "Continue with Google" or "Continue with Apple", they confirm who you are under their own privacy policies and tell us your name and email address. We never see your Google or Apple password</li>
             <li><strong>Google Play and Apple (app payments):</strong> process Pro subscriptions bought in our Android and iPhone apps under their own privacy policies; we exchange the purchase details with them to check purchases and keep subscriptions current</li>
             <li><strong>Google Firebase Cloud Messaging and Apple Push Notification service (notifications):</strong> if you turn on notifications in our app, each notification (for example "It's a match! You and Priya liked each other") goes with your phone's notification token to Google's Firebase Cloud Messaging, which delivers it to Android phones itself and to iPhones through Apple's push service. Message notifications never include what was written</li>
