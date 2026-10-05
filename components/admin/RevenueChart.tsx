@@ -18,7 +18,6 @@ import {
 export const SELLER_COLOR: Record<Seller, string> = {
   google_play: 'var(--viz-s1)',
   app_store: 'var(--viz-s2)',
-  razorpay: 'var(--viz-s3)',
 };
 
 // The chart's colours, one set per theme (the app's dark mode is the "dark" class)
