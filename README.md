@@ -6,9 +6,10 @@ Profiles carry what Indian families ask about (community, mother tongue, family,
 answer can be hidden. Likes that go both ways become matches, and matches can chat. Profiles are
 verified through their social links, and MatchGPT+ adds unlimited searches and likes.
 
-MatchGPT comes as **Android and iPhone apps**, plus the website, **https://shaadi-gpt.vercel.app**.
-The website also serves the pages the stores link to (support, privacy, terms, account deletion).
-MatchGPT+ is sold only in the apps, through Google Play and the App Store.
+Members use MatchGPT in the **Android and iPhone apps**. The website, **https://shaadi-gpt.vercel.app**,
+says what MatchGPT is and where to get the apps, serves the pages the stores link to (support, privacy,
+terms, account deletion), and has the admin panel for MatchGPT's team at `/admin`. MatchGPT+ is sold only
+in the apps, through Google Play and the App Store.
 
 - What's done and what's left: [ROADMAP.md](ROADMAP.md)
 - The launch checklist for the stores: [docs/store/README.md](docs/store/README.md)
@@ -18,7 +19,8 @@ MatchGPT+ is sold only in the apps, through Google Play and the App Store.
 
 - **The app.** React and TypeScript, built by Vite and styled with Tailwind. The website and both phone
   apps run the same code (`App.tsx`, `components/`, `lib/`), and each screen loads the first time
-  it's shown (`lib/lazyScreen.ts`).
+  it's shown (`lib/lazyScreen.ts`). On the website (`lib/website.ts`, `components/website/`) members
+  get the home page with the store links instead of the app, and admins sign in at `/admin`.
 - **The phone apps.** [Capacitor](https://capacitorjs.com) wraps that code (`capacitor.config.ts`,
   `android/`, `ios/`).
 - **The backend.** [Supabase](https://supabase.com) (project `fmrbzzdjtarsaqvfukum`) provides:
@@ -32,7 +34,7 @@ MatchGPT+ is sold only in the apps, through Google Play and the App Store.
   |---|---|
   | `search` | Search and matching: typed searches (understood by Google Gemini, or by rules without its key), filters, scores, the daily limit |
   | `store-billing`, `store-notifications` | MatchGPT+ in the apps: purchases checked with Google Play and the App Store, and the stores' notifications |
-  | `send-push` | Notifications: phones through Firebase Cloud Messaging, browsers through Web Push. A cron job runs it every minute |
+  | `send-push` | Notifications: phones through Firebase Cloud Messaging, and admin alerts in browsers through Web Push. A cron job runs it every minute |
   | `delete-account` | Deletes an account and everything kept about it, stopping its Google Play renewal first |
   | `apple-sign-in` | Keeps the Sign in with Apple token, so deleting the account also ends it at Apple |
 
@@ -49,7 +51,8 @@ You need Node.js 22.
 
 1. `npm ci`
 2. `cp .env.local.example .env.local`, then fill in the Supabase address and anon key (Supabase →
-   Project Settings → API).
+   Project Settings → API). Its `VITE_MEMBERS_ON_WEB=true` puts the members' app in the browser;
+   without it you get the website as it is live.
 3. `npm run dev`, then open http://localhost:3000
 
 The app uses the Supabase project that `.env.local` names. To run a backend on your own computer
@@ -91,8 +94,10 @@ With a local backend you can also run:
 ## Deploying
 
 - **Website.** Vercel builds and publishes `main` after every merge. Vercel's project settings hold
-  `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`. `vercel.json` sends `/support`, `/privacy`, `/terms`
-  and `/delete-account` to the app, which shows those pages.
+  `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`, and, once the apps are in the stores,
+  `VITE_PLAY_STORE_URL` and `VITE_APP_STORE_URL` (the home page's store badges say "Coming soon" until
+  then). `vercel.json` sends `/admin`, `/support`, `/privacy`, `/terms` and `/delete-account` to the
+  app, which shows those pages.
 - **Database.** Each change is a new file in `supabase/migrations/`. `npx supabase link --project-ref
   fmrbzzdjtarsaqvfukum` once, then `npx supabase db push` applies the ones the live database doesn't
   have yet. You can also paste a file into Supabase → SQL Editor.

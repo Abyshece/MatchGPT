@@ -2,7 +2,8 @@ import React from 'react';
 
 // ============================================================================
 // Answers to common questions, shared by the Help Center and the website's
-// /support page (the stores' "Support URL"). Keep them true to the app: the
+// /support page (the stores' "Support URL"; members use the apps, so the
+// website's answers point to the app). Keep them true to the app: the
 // limits are the server's (consume_search, enforce_daily_like_limit). Each
 // app names only its own store (Apple and Google don't allow pointing to
 // other platforms or ways to pay).
@@ -115,14 +116,14 @@ export function helpTopics(platform: HelpPlatform): HelpTopic[] {
     },
     {
       q: 'Notifications',
-      a: <>Settings → Notifications turns them on or off on this {onWebsite ? 'device' : 'phone'}. If the{' '}
-        {onWebsite ? 'browser' : 'phone'} blocks them, allow them for MatchGPT in its own settings. A message
-        notification never shows what was written.</>,
+      a: <>{onWebsite ? 'In the app, Settings' : 'Settings'} → Notifications turns them on or off on {onWebsite ? 'that' : 'this'}{' '}
+        phone. If the phone blocks them, allow them for MatchGPT in its own settings. A message notification never
+        shows what was written.</>,
     },
     {
       q: 'My data, and deleting my account',
-      a: <>Settings → <strong>Download my data</strong> saves a copy of what we hold about you. Settings →
-        <strong> Delete Account</strong> deletes your account and its data
+      a: <>{onWebsite ? 'In the app, Settings' : 'Settings'} → <strong>Download my data</strong> saves a copy of what we
+        hold about you. Settings → <strong> Delete Account</strong> deletes your account and its data
         {onWebsite
           ? <>, and so does our <a className={link} href="/delete-account">Delete account page</a>, without the app</>
           : null}. Read how we use your data in the{' '}

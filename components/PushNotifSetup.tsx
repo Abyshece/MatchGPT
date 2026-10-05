@@ -26,9 +26,11 @@ const IconBell: React.FC = () => (
 // phone's own notifications (PhonePushSetup, lib/nativePush.ts).
 // ============================================================================
 
-const PushNotifSetup: React.FC = () => (isNativeApp() ? <PhonePushSetup /> : <WebPushSetup />);
+// forAdmins: the website's admin panel, where they bring admin alerts
+const PushNotifSetup: React.FC<{ forAdmins?: boolean }> = ({ forAdmins = false }) =>
+  (isNativeApp() ? <PhonePushSetup /> : <WebPushSetup forAdmins={forAdmins} />);
 
-const WebPushSetup: React.FC = () => {
+const WebPushSetup: React.FC<{ forAdmins: boolean }> = ({ forAdmins }) => {
   const { session } = useAuth();
   const { showToast } = useToast();
 
@@ -108,12 +110,14 @@ const WebPushSetup: React.FC = () => {
     >
       <div className="flex-1 pr-4">
         <h4 className="text-sm font-medium text-gray-900 dark:text-white flex items-center gap-1.5">
-          <IconBell /> Push notifications on this device
+          <IconBell /> {forAdmins ? 'Alerts in this browser' : 'Push notifications on this device'}
         </h4>
         <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
-          {subscribed
-            ? 'You\'ll get pushes for new matches, super-likes, and messages.'
-            : 'Get notified about new matches, super-likes, and messages.'}
+          {forAdmins
+            ? 'A notification for each new report and verification request.'
+            : subscribed
+              ? 'You\'ll get pushes for new matches, super-likes, and messages.'
+              : 'Get notified about new matches, super-likes, and messages.'}
         </p>
       </div>
       <button

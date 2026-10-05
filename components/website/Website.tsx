@@ -1,0 +1,112 @@
+import React, { Suspense, useEffect } from 'react';
+import { lazyScreen } from '../../lib/lazyScreen';
+import { AuthProvider, useAuth } from '../../lib/AuthContext';
+import { ToastProvider, useToast } from '../../lib/useToast';
+import { emailLinkError } from '../../lib/supabase';
+import SiteHome from './SiteHome';
+
+const AdminSite = lazyScreen(() => import('./AdminSite'));
+const SetNewPassword = lazyScreen(() => import('../SetNewPassword'));
+const TermsView = lazyScreen(() => import('../TermsView'));
+const PrivacyView = lazyScreen(() => import('../PrivacyView'));
+
+// ============================================================================
+// Website: the website, for everyone who isn't in the apps (lib/website.ts)
+//
+//   /                 the home page: what MatchGPT is, where to get the apps
+//   /admin            the admin panel, for admins only
+//   /terms, /privacy  Terms of Service and the Privacy Policy (#terms and
+//                     #privacy too, as older links have them)
+// /support and /delete-account stand on their own (index.tsx). A link from
+// an email (a password reset) asks for the new password wherever it lands.
+// ============================================================================
+
+type Route = 'home' | 'admin' | 'terms' | 'privacy';
+
+// An admin alert clicked while no tab was open comes to /?push=… (public/sw.js)
+function isAdminAlert(raw: string | null): boolean {
+  try {
+    return String(JSON.parse(raw ?? '{}')?.event_type ?? '').startsWith('admin_');
+  } catch {
+    return false;
+  }
+}
+
+function currentRoute(): Route {
+  const path = window.location.pathname.replace(/^\/|\/$/g, '');
+  if (path === 'admin') return 'admin';
+  if (path === 'terms' || window.location.hash === '#terms') return 'terms';
+  if (path === 'privacy' || window.location.hash === '#privacy') return 'privacy';
+  if (isAdminAlert(new URLSearchParams(window.location.search).get('push'))) {
+    window.history.replaceState(null, '', `/admin${window.location.search}`);
+    return 'admin';
+  }
+  return 'home';
+}
+
+const goHome = () => window.location.assign('/');
+
+const Loader: React.FC = () => (
+  <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#191919]">
+    <div className="w-8 h-8 border-3 border-gray-200 dark:border-zinc-700 border-t-black dark:border-t-white rounded-full animate-spin" />
+  </div>
+);
+
+const Routes: React.FC<{ route: Route }> = ({ route }) => {
+  const { session, passwordRecovery } = useAuth();
+  const { showToast } = useToast();
+
+  // An expired or already-used email link lands here with an error
+  useEffect(() => {
+    if (emailLinkError) showToast(`${emailLinkError}. Please request a new link.`, 'error');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (session && passwordRecovery) return <SetNewPassword />;
+  if (route === 'admin') return <AdminSite />;
+  if (route === 'terms') return <TermsView onBack={goHome} />;
+  if (route === 'privacy') return <PrivacyView onBack={goHome} />;
+  return <SiteHome />;
+};
+
+// Read once, when the page loads (each page of the website is a page load)
+const route = currentRoute();
+
+const Website: React.FC = () => {
+
+  // The website follows the device's light or dark setting
+  useEffect(() => {
+    const dark = window.matchMedia?.('(prefers-color-scheme: dark)');
+    const apply = () => document.documentElement.classList.toggle('dark', dark?.matches ?? false);
+    apply();
+    dark?.addEventListener('change', apply);
+    return () => dark?.removeEventListener('change', apply);
+  }, []);
+
+  // An admin alert clicked while a tab of the website is open: the service
+  // worker tells that tab, which goes to the admin panel (there, AdminSite)
+  useEffect(() => {
+    if (route === 'admin' || !('serviceWorker' in navigator)) return;
+    const onMessage = (e: MessageEvent) => {
+      if (e.data?.type !== 'push_click') return;
+      const data = JSON.stringify(e.data.data ?? {});
+      if (isAdminAlert(data)) window.location.assign(`/admin?push=${encodeURIComponent(data)}`);
+    };
+    navigator.serviceWorker.addEventListener('message', onMessage);
+    return () => navigator.serviceWorker.removeEventListener('message', onMessage);
+  }, []);
+
+  return (
+    <ToastProvider>
+      <AuthProvider>
+        <div className="min-h-screen bg-white dark:bg-[#191919] text-gray-900 dark:text-gray-100">
+          <Suspense fallback={<Loader />}>
+            <Routes route={route} />
+          </Suspense>
+        </div>
+      </AuthProvider>
+    </ToastProvider>
+  );
+};
+
+export default Website;

@@ -10,7 +10,8 @@ In this folder:
   Play's icon and feature graphic, made from the app's icon. Change the words in
   `scripts/store-graphics.mjs` and run it to remake them. The App Store takes its icon from the app.
 
-The website pages the stores link to:
+The website pages the stores link to (the home page, https://shaadi-gpt.vercel.app, says what MatchGPT
+is and links to the stores; members use the apps):
 
 | Page | Address |
 |---|---|
@@ -53,7 +54,9 @@ With a domain of your own (step 1), use it in place of `shaadi-gpt.vercel.app` e
 - [ ] Authentication → Emails → SMTP Settings: your own email service (Resend, for example, from your
   domain). Supabase's built-in email sends a few emails an hour, and only to your team: members would
   get no codes.
-- [ ] Authentication → URL Configuration → Site URL: the website's address.
+- [ ] Authentication → URL Configuration → Site URL: the website's address. Redirect URLs: add the
+  address with `/**` after it (`https://shaadi-gpt.vercel.app/**`), so an admin who signs in with Google
+  comes back to the admin panel (without it they come back to the home page, which links to it).
 - [ ] Authentication → Sign In / Providers: **Google** (Client IDs: the web client, then the iOS client
   from step 4) and **Apple** (Client IDs: `com.matchgpt.app`).
 - [ ] Edge Functions → Secrets:
@@ -185,9 +188,15 @@ On an Android phone (internal testing) and an iPhone (TestFlight):
 - [ ] Delete an account in the app, and another on the website's Delete account page
 
 ### 9. After launch
+- [ ] **The website's store badges.** Once each app is live, Vercel → your project → Settings →
+  Environment Variables: `VITE_PLAY_STORE_URL` (the app's Google Play address,
+  `https://play.google.com/store/apps/details?id=com.matchgpt.app`) and `VITE_APP_STORE_URL` (the address
+  App Store Connect shows, `https://apps.apple.com/app/id…`), then redeploy. The home page and the help
+  page link to the stores instead of saying "Coming soon".
 - [ ] **Reports within 24 hours.** The Terms promise it and both stores expect it: look at Admin →
   Reports every day, remove what breaks the rules and ban the people who post it.
-- [ ] Verification requests (Admin → Verifications), so new members don't wait long.
+- [ ] Verification requests (Admin → Verifications), so new members don't wait long. The admin panel is in
+  the app, and on the website at https://shaadi-gpt.vercel.app/admin.
 - [ ] Reply to reviews in Play Console and App Store Connect.
 - [ ] The stores' payout reports are the final word on fees and tax; Admin → Finance estimates the
   stores' share at 15% (`STORE_FEE_PERCENT_GOOGLE_PLAY`, `STORE_FEE_PERCENT_APP_STORE` if yours differ).
