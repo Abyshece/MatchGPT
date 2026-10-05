@@ -7,8 +7,8 @@ answer can be hidden. Likes that go both ways become matches, and matches can ch
 verified through their social links, and MatchGPT+ adds unlimited searches and likes.
 
 MatchGPT comes as **Android and iPhone apps**, plus the website, **https://shaadi-gpt.vercel.app**.
-The website also serves the pages the stores link to (support, privacy, terms, account deletion) and
-sells MatchGPT+ through Razorpay. The apps sell it through Google Play and the App Store.
+The website also serves the pages the stores link to (support, privacy, terms, account deletion).
+MatchGPT+ is sold only in the apps, through Google Play and the App Store.
 
 - What's done and what's left: [ROADMAP.md](ROADMAP.md)
 - The launch checklist for the stores: [docs/store/README.md](docs/store/README.md)
@@ -31,17 +31,16 @@ sells MatchGPT+ through Razorpay. The apps sell it through Google Play and the A
   | Function | What it does |
   |---|---|
   | `search` | Search and matching: typed searches (understood by Google Gemini, or by rules without its key), filters, scores, the daily limit |
-  | `billing`, `razorpay-webhook` | MatchGPT+ on the website: Razorpay subscriptions, Checkout and Razorpay's webhooks |
   | `store-billing`, `store-notifications` | MatchGPT+ in the apps: purchases checked with Google Play and the App Store, and the stores' notifications |
   | `send-push` | Notifications: phones through Firebase Cloud Messaging, browsers through Web Push. A cron job runs it every minute |
-  | `delete-account` | Deletes an account and everything kept about it, cancelling its Razorpay and Google Play subscriptions first |
+  | `delete-account` | Deletes an account and everything kept about it, stopping its Google Play renewal first |
   | `apple-sign-in` | Keeps the Sign in with Apple token, so deleting the account also ends it at Apple |
 
-- **MatchGPT+.** The website sells it through Razorpay, the apps through Google Play and the App Store.
-  One switch, "MatchGPT+ for everyone" in Admin → Dashboard, gives every member its features while
-  it's on; only the daily limits (3 AI searches, 15 likes) stay for free accounts. The server
-  (`has_pro()` in the database) and the apps (`useAuth().hasPro`) follow it at once, with no new app
-  release.
+- **MatchGPT+.** Sold only in the apps, through Google Play and the App Store; the website says where
+  to get the apps. One switch, "MatchGPT+ for everyone" in Admin → Dashboard, gives every member its
+  features while it's on; only the daily limits (3 AI searches, 15 likes) stay for free accounts. The
+  server (`has_pro()` in the database) and the apps (`useAuth().hasPro`) follow it at once, with no
+  new app release.
 - **Hosting.** The website is on Vercel (`vercel.json`) and the backend on Supabase.
 
 ## Run it locally
@@ -77,7 +76,7 @@ them yourself before pushing:
 - `npm run lint`: the linter (ESLint: TypeScript's recommended rules and React's rules of hooks)
 - `npm run build`: the website's build
 - `deno test --no-config --node-modules-dir=none --allow-env --allow-read supabase/functions/`: the
-  server's unit tests (search scores, Razorpay, the stores, notifications, Sign in with Apple). This
+  server's unit tests (search scores, the stores, notifications, Sign in with Apple). This
   needs [Deno](https://deno.com) 2.
 
 With a local backend you can also run:
@@ -86,7 +85,7 @@ With a local backend you can also run:
   attacks are blocked and that normal actions still work. See
   [supabase/tests/README.md](supabase/tests/README.md).
 - `tests/e2e/`: a browser or server test for each feature, in Chromium with Playwright. Stand-ins play
-  Razorpay, the stores, Firebase, Gemini and the phones' native side. See
+  the stores, Firebase, Gemini and the phones' native side. See
   [tests/e2e/README.md](tests/e2e/README.md).
 
 ## Deploying
@@ -98,7 +97,7 @@ With a local backend you can also run:
   fmrbzzdjtarsaqvfukum` once, then `npx supabase db push` applies the ones the live database doesn't
   have yet. You can also paste a file into Supabase → SQL Editor.
 - **Edge functions.** Deploy with `npx supabase functions deploy <name> --project-ref fmrbzzdjtarsaqvfukum`.
-  Their secrets (Razorpay, Google Play, Firebase, Gemini, Apple) go in Supabase → Edge Functions →
+  Their secrets (Google Play, Firebase, Gemini, Apple) go in Supabase → Edge Functions →
   Secrets. `.env.local.example` says what each one switches on.
 - **Phone apps.** See the next section, and the launch kit in [docs/store/README.md](docs/store/README.md).
 
@@ -111,9 +110,8 @@ With a local backend you can also run:
 - room for the iPhone's notch and home bar;
 - the launch screen.
 
-**MatchGPT+** is sold in the apps through Google Play and the App Store, never Razorpay
-(`lib/storePurchases.ts`, `components/StoreUpgrade.tsx`). The server checks each purchase with the
-store. This starts once the subscriptions are set up in the stores (ROADMAP.md, Phase 13); until then
+**MatchGPT+** is sold in the apps through Google Play and the App Store (`lib/storePurchases.ts`,
+`components/StoreUpgrade.tsx`). The server checks each purchase with the store. This starts once the subscriptions are set up in the stores (ROADMAP.md, Phase 13); until then
 the apps say "coming soon".
 
 **Notifications** come through Firebase Cloud Messaging: `lib/nativePush.ts` in the app, `send-push`

@@ -117,7 +117,7 @@ try {
   check(refused.status === 429 && refused.json.code === 'LIMIT_REACHED', `4th search refused by the server (${refused.status})`);
   check(await page.getByText("You've used today's free searches").isVisible(), 'the page shows the upgrade prompt');
   check(sql(`select daily_search_count from profiles where id = '${me}';`) === '3', 'count stays at 3');
-  await page.getByText('Maybe later').click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).last().click();
 
   log('5. liked list, Standouts, blocked list');
   const [visible, toBlock] = smoke.json.candidates.filter((c) => c.id !== top.id);

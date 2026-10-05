@@ -374,10 +374,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({
                           </button>
                         )}
                       </>
-                    ) : renewing.provider === 'google_play' ? (
-                      <p>Deleting your account also stops your Google Play subscription from renewing. Google doesn't refund the rest of the period.</p>
                     ) : (
-                      <p>Deleting your account cancels your MatchGPT+ subscription straight away; nothing more is charged.</p>
+                      <p>Deleting your account also stops your Google Play subscription from renewing. Google doesn't refund the rest of the period.</p>
                     )}
                   </div>
                 )}

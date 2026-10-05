@@ -67,54 +67,54 @@ function seed() {
     delete from payments; delete from subscriptions;
     -- m0: midnight on the 1st of this month in India, as India's wall clock
     create temp table t as select date_trunc('month', now() at time zone 'Asia/Kolkata') as m0;
-    insert into subscriptions (id, user_id, provider, store_subscription_id, razorpay_subscription_id, plan_id, mode, status,
+    insert into subscriptions (id, user_id, provider, store_subscription_id, plan_id, mode, status,
                                trial_ends_at, current_start, current_end, cancel_at_period_end, ended_at)
     select v.* from t, lateral (values
-      ('00000000-0000-4000-8000-000000000001'::uuid, '${U1}'::uuid, 'google_play', 'fin-gp-1', null, 'monthly', 'live', 'active',
+      ('00000000-0000-4000-8000-000000000001'::uuid, '${U1}'::uuid, 'google_play', 'fin-gp-1', 'monthly', 'live', 'active',
         null::timestamptz, now() - interval '10 days', now() + interval '20 days', false, null::timestamptz),
-      ('00000000-0000-4000-8000-000000000002', '${U2}', 'app_store', 'fin-as-2', null, 'yearly', 'live', 'active',
+      ('00000000-0000-4000-8000-000000000002', '${U2}', 'app_store', 'fin-as-2', 'yearly', 'live', 'active',
         null, now() - interval '40 days', now() + interval '325 days', true, null),
-      ('00000000-0000-4000-8000-000000000003', '${U3}', 'google_play', 'fin-gp-3', null, 'monthly', 'live', 'authenticated',
+      ('00000000-0000-4000-8000-000000000003', '${U3}', 'google_play', 'fin-gp-3', 'monthly', 'live', 'authenticated',
         now() + interval '5 days', null, null, false, null),
-      ('00000000-0000-4000-8000-000000000004', '${U4}', 'google_play', 'fin-gp-4', null, 'monthly', 'live', 'expired',
+      ('00000000-0000-4000-8000-000000000004', '${U4}', 'google_play', 'fin-gp-4', 'monthly', 'live', 'expired',
         null, now() - interval '33 days', now() - interval '3 days', false, now() - interval '3 days'),
-      ('00000000-0000-4000-8000-000000000005', '${U4}', 'razorpay', null, 'sub_FIN5', 'monthly', 'live', 'cancelled',
+      ('00000000-0000-4000-8000-000000000005', '${U4}', 'google_play', 'fin-gp-5', 'monthly', 'live', 'cancelled',
         null, now() - interval '150 days', now() - interval '120 days', false, now() - interval '60 days'),
-      ('00000000-0000-4000-8000-000000000006', '${U5}', 'app_store', 'fin-as-6', null, 'monthly', 'live', 'active',
+      ('00000000-0000-4000-8000-000000000006', '${U5}', 'app_store', 'fin-as-6', 'monthly', 'live', 'active',
         null, now() - interval '2 days', now() + interval '28 days', false, null),
-      ('00000000-0000-4000-8000-000000000007', '${U5}', 'google_play', 'fin-gp-7', null, 'monthly', 'test', 'active',
+      ('00000000-0000-4000-8000-000000000007', '${U5}', 'google_play', 'fin-gp-7', 'monthly', 'test', 'active',
         null, now() - interval '1 day', now() + interval '29 days', false, null)
     ) v;
-    insert into payments (user_id, subscription_id, provider, store_order_id, razorpay_payment_id, amount, currency, status, method,
+    insert into payments (user_id, subscription_id, provider, store_order_id, amount, currency, status, method,
                           fee_amount, fee_estimated, refunded_amount, refunded_at, paid_at)
     select v.* from t, lateral (values
       -- this month
-      ('${U1}'::uuid, '00000000-0000-4000-8000-000000000001'::uuid, 'google_play', 'GPA.FIN-1', null, 99900, 'INR', 'captured', null,
+      ('${U1}'::uuid, '00000000-0000-4000-8000-000000000001'::uuid, 'google_play', 'GPA.FIN-1', 99900, 'INR', 'captured', null,
         14985, true, 0, null::timestamptz, now() - interval '2 minutes'),
-      ('${U1}', '00000000-0000-4000-8000-000000000001', 'google_play', 'GPA.FIN-B1', null, 99900, 'INR', 'captured', null,
+      ('${U1}', '00000000-0000-4000-8000-000000000001', 'google_play', 'GPA.FIN-B1', 99900, 'INR', 'captured', null,
         14985, true, 0, null, (t.m0 + interval '30 minutes') at time zone 'Asia/Kolkata'),
-      ('${U4}', '00000000-0000-4000-8000-000000000005', 'razorpay', null, 'pay_FINFAILED', 99900, 'INR', 'failed', 'upi',
+      ('${U4}', '00000000-0000-4000-8000-000000000005', 'google_play', 'GPA.FIN-FAILED', 99900, 'INR', 'failed', null,
         null, false, 0, null, now() - interval '3 minutes'),
-      ('${U5}', '00000000-0000-4000-8000-000000000006', 'app_store', '2000000999000006', null, 999, 'USD', 'captured', null,
+      ('${U5}', '00000000-0000-4000-8000-000000000006', 'app_store', '2000000999000006', 999, 'USD', 'captured', null,
         150, true, 0, null, now() - interval '4 minutes'),
       -- last month (one at 23:30 on its last night)
-      ('${U1}', '00000000-0000-4000-8000-000000000001', 'google_play', 'GPA.FIN-2', null, 99900, 'INR', 'captured', null,
+      ('${U1}', '00000000-0000-4000-8000-000000000001', 'google_play', 'GPA.FIN-2', 99900, 'INR', 'captured', null,
         14985, true, 0, null, (t.m0 - interval '10 days') at time zone 'Asia/Kolkata'),
-      ('${U1}', '00000000-0000-4000-8000-000000000001', 'google_play', 'GPA.FIN-B0', null, 99900, 'INR', 'captured', null,
+      ('${U1}', '00000000-0000-4000-8000-000000000001', 'google_play', 'GPA.FIN-B0', 99900, 'INR', 'captured', null,
         14985, true, 0, null, (t.m0 - interval '30 minutes') at time zone 'Asia/Kolkata'),
-      ('${U2}', '00000000-0000-4000-8000-000000000002', 'app_store', '2000000999000002', null, 999900, 'INR', 'captured', null,
+      ('${U2}', '00000000-0000-4000-8000-000000000002', 'app_store', '2000000999000002', 999900, 'INR', 'captured', null,
         149985, true, 0, null, (t.m0 - interval '12 days') at time zone 'Asia/Kolkata'),
       -- two months ago: one kept, one refunded in full
-      ('${U1}', '00000000-0000-4000-8000-000000000001', 'google_play', 'GPA.FIN-3', null, 99900, 'INR', 'captured', null,
+      ('${U1}', '00000000-0000-4000-8000-000000000001', 'google_play', 'GPA.FIN-3', 99900, 'INR', 'captured', null,
         14985, true, 0, null, (t.m0 - interval '1 month' - interval '10 days') at time zone 'Asia/Kolkata'),
-      ('${U4}', '00000000-0000-4000-8000-000000000004', 'google_play', 'GPA.FIN-4', null, 99900, 'INR', 'refunded', null,
+      ('${U4}', '00000000-0000-4000-8000-000000000004', 'google_play', 'GPA.FIN-4', 99900, 'INR', 'refunded', null,
         14985, true, 99900, (t.m0 - interval '1 month' - interval '5 days') at time zone 'Asia/Kolkata',
         (t.m0 - interval '1 month' - interval '9 days') at time zone 'Asia/Kolkata'),
-      -- seven months ago, on the website
-      ('${U4}', '00000000-0000-4000-8000-000000000005', 'razorpay', null, 'pay_FIN7', 99900, 'INR', 'captured', 'card',
-        2358, false, 0, null, (t.m0 - interval '7 months' + interval '10 days') at time zone 'Asia/Kolkata'),
+      -- seven months ago
+      ('${U4}', '00000000-0000-4000-8000-000000000005', 'google_play', 'GPA.FIN-7', 99900, 'INR', 'captured', null,
+        14985, true, 0, null, (t.m0 - interval '7 months' + interval '10 days') at time zone 'Asia/Kolkata'),
       -- a test purchase
-      ('${U5}', '00000000-0000-4000-8000-000000000007', 'google_play', 'GPA.FIN-T1', null, 99900, 'INR', 'captured', null,
+      ('${U5}', '00000000-0000-4000-8000-000000000007', 'google_play', 'GPA.FIN-T1', 99900, 'INR', 'captured', null,
         14985, true, 0, null, now() - interval '5 minutes')
     ) v;`);
 }
@@ -195,19 +195,19 @@ try {
   check(paid.includes('₹1,998') && paid.includes('2 charges'), 'paid this month: ₹1,998 from 2 charges (failed and dollar charges left out)');
   check((await text(page, 'tile-fees-month')).includes('₹300'), 'store fees this month ₹300 (15% estimated)');
   const all = await text(page, 'tile-net-all');
-  check(all.includes('₹13,720') && all.includes('8 charges · ₹16,992 paid'), `net all time ₹13,720 from 8 charges (${all.replace(/\n/g, ' | ')})`);
+  check(all.includes('₹13,594') && all.includes('8 charges · ₹16,992 paid'), `net all time ₹13,594 from 8 charges (${all.replace(/\n/g, ' | ')})`);
   check((await text(page, 'other-currencies')).includes('net from 1 charge in USD'), 'the dollar charge is noted apart');
 
   // ======================================================================================
   log('2. The chart');
   const legend = await page.getByTestId('finance-legend').innerText();
-  check(['Google Play', 'App Store', 'Website'].every((s) => legend.includes(s)), `legend: ${legend.replace(/\n/g, ', ')}`);
+  check(['Google Play', 'App Store'].every((s) => legend.includes(s)) && !/Website|Razorpay/.test(legend), `legend: ${legend.replace(/\n/g, ', ')}`);
   const paths = await page.locator('[data-testid=finance-chart-card] svg path').evaluateAll((ps) => ps.map((p) => p.style.fill));
   const axis = await page.locator('[data-testid=finance-chart-card] svg text').allTextContents();
   check(axis.includes('₹15K') && axis.includes('₹10.2K') && !axis.some((t) => /T$/.test(t)), `axis and totals in K (${axis.filter((t) => t.startsWith('₹')).join(' ')})`);
   check(paths.length === 5, `5 coloured segments: this month 1, last month 2, two months ago 1, seven months ago 1 (${paths.length})`);
-  check(paths.filter((f) => f.includes('--viz-s2')).length === 1 && paths.filter((f) => f.includes('--viz-s3')).length === 1,
-    'App Store and the website each keep their own colour');
+  check(paths.filter((f) => f.includes('--viz-s1')).length === 4 && paths.filter((f) => f.includes('--viz-s2')).length === 1,
+    'each store keeps its own colour');
 
   let at = await columnCenter(page, 11, 12);
   await page.mouse.move(at.x, at.y);
@@ -240,11 +240,11 @@ try {
   await monthPicker(page).selectOption('');
   check(await waitRows(page, 10) === 10, 'all 12 months: 10 charges (test purchase left out)');
   const totals = await text(page, 'charges-totals');
-  check(totals.includes('8 charges · ₹16,992 paid · ₹2,272.68 store fees · ₹999 refunded · ₹13,720.32 net'), `totals: ${totals}`);
+  check(totals.includes('8 charges · ₹16,992 paid · ₹2,398.95 store fees · ₹999 refunded · ₹13,594.05 net'), `totals: ${totals}`);
   const tableText = await page.getByTestId('charges-table').innerText();
   check(tableText.includes(FORMULA), "a customer's formula-like name shows as plain text");
   check(tableText.includes('Failed') && tableText.includes('Refunded') && /\$9\.99/.test(tableText), 'failed, refunded and dollar charges listed');
-  const failedRow = rows(page).filter({ hasText: 'pay_FINFAILED' });
+  const failedRow = rows(page).filter({ hasText: 'GPA.FIN-FAILED' });
   check((await failedRow.innerText()).includes('₹0'), 'a failed charge nets ₹0');
   check((await rows(page).filter({ hasText: 'GPA.FIN-1' }).first().innerText()).includes('est.'), "store fees are marked estimated");
 
@@ -267,7 +267,7 @@ try {
   log('4. The table view and CSV');
   await page.getByRole('button', { name: 'Table', exact: true }).click();
   const monthTable = await page.getByTestId('finance-month-table').innerText();
-  check(monthTable.includes('Total') && monthTable.includes('₹13,720.32') && monthTable.includes(label(M7, 'long')), 'table view: every month and a total');
+  check(monthTable.includes('Total') && monthTable.includes('₹13,594.05') && monthTable.includes(label(M7, 'long')), 'table view: every month and a total');
   await page.screenshot({ path: `${OUT}4-table.png`, fullPage: true });
   await page.getByRole('button', { name: 'Chart', exact: true }).click();
 
@@ -283,7 +283,7 @@ try {
   const line = (id) => lines.find((l) => l.includes(id)) ?? '';
   check(line('2000000999000002').includes(',INR,9999.00,1499.85,yes,0.00,,8499.15,'), `App Store yearly in rupees: ${line('2000000999000002')}`);
   check(line('GPA.FIN-4').includes(',Refunded,INR,999.00,149.85,yes,999.00,') && line('GPA.FIN-4').includes(',0.00,'), 'the refunded charge');
-  check(line('pay_FINFAILED').includes(',Failed,INR,999.00,,,0.00,,0.00,'), `the failed charge nets 0: ${line('pay_FINFAILED')}`);
+  check(line('GPA.FIN-FAILED').includes(',Failed,INR,999.00,,,0.00,,0.00,'), `the failed charge nets 0: ${line('GPA.FIN-FAILED')}`);
   check(line('2000000999000006').includes(',USD,9.99,1.50,yes,'), 'the dollar charge in dollars');
   check(line('GPA.FIN-B1').startsWith(`${M0}-01 00:30,`), `dates in India time (${line('GPA.FIN-B1').slice(0, 16)})`);
   check(line('GPA.FIN-1').includes(`,"'=HYPERLINK(""https://example.com"",""click"")",`), 'the formula-like name is kept as text');
@@ -301,7 +301,7 @@ try {
   await page.getByRole('button', { name: '6 months' }).click();
   check(await waitRows(page, 9) === 9, 'six months: 9 charges (the seven-month-old one left out)');
   check(await monthPicker(page).locator('option').count() === 7, 'six months to pick from, and all six');
-  check((await text(page, 'tile-net-all')).includes('₹13,720'), 'all time still counts it');
+  check((await text(page, 'tile-net-all')).includes('₹13,594'), 'all time still counts it');
   await page.getByRole('button', { name: '12 months' }).click();
 
   // Dark mode
@@ -311,7 +311,7 @@ try {
   await page.mouse.move(at.x, at.y);
   await page.screenshot({ path: `${OUT}5-dark.png`, fullPage: true });
   const fill = await page.locator('[data-testid=finance-chart-card] svg path').first().evaluate((p) => getComputedStyle(p).fill);
-  check(['rgb(57, 135, 229)', 'rgb(217, 89, 38)', 'rgb(25, 158, 112)'].includes(fill), `dark mode uses the dark steps (${fill})`);
+  check(['rgb(57, 135, 229)', 'rgb(217, 89, 38)'].includes(fill), `dark mode uses the dark steps (${fill})`);
   await ctx.close();
 
   // ======================================================================================

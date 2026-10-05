@@ -4,8 +4,8 @@ import React from 'react';
 // Answers to common questions, shared by the Help Center and the website's
 // /support page (the stores' "Support URL"). Keep them true to the app: the
 // limits are the server's (consume_search, enforce_daily_like_limit). Each
-// app names only its own store and never the website's payments (Apple and
-// Google don't allow pointing to other platforms or ways to pay).
+// app names only its own store (Apple and Google don't allow pointing to
+// other platforms or ways to pay).
 // ============================================================================
 
 export const SUPPORT_EMAIL = 'support@matchgpt.com';
@@ -91,10 +91,10 @@ export function helpTopics(platform: HelpPlatform): HelpTopic[] {
           ? <>Settings → MatchGPT+ → <strong>Manage subscription</strong> (or: iPhone Settings → your name →
             Subscriptions). MatchGPT+ stays on until the end of the time you've paid for. Deleting your account
             doesn't cancel it, so cancel it first.</>
-          : <>Where you bought it; it stays on until the end of the time you've paid for. On the website: Settings →
-            MatchGPT+ → Cancel subscription. In the Android app: Play Store → your picture → Payments &amp;
-            subscriptions → Subscriptions. In the iPhone app: iPhone Settings → your name → Subscriptions. Deleting
-            your account doesn't cancel an App Store subscription.</>,
+          : <>In the store you bought it from; it stays on until the end of the time you've paid for. Google Play:
+            in the app, Settings → MatchGPT+ → Manage subscription, or Play Store → your picture → Payments &amp;
+            subscriptions → Subscriptions. App Store: iPhone Settings → your name → Subscriptions. Deleting your
+            account doesn't cancel an App Store subscription, so cancel it first.</>,
     },
     {
       q: 'Can I get a refund?',
@@ -104,9 +104,9 @@ export function helpTopics(platform: HelpPlatform): HelpTopic[] {
         : platform === 'ios'
           ? <>Apple refunds purchases made in the app, under its rules:{' '}
             <a className={link} href="https://reportaproblem.apple.com" target="_blank" rel="noreferrer">reportaproblem.apple.com</a>.</>
-          : <>Purchases in the apps are refunded by Google Play or Apple, under their rules (for Apple:{' '}
-            <a className={link} href="https://reportaproblem.apple.com" target="_blank" rel="noreferrer">reportaproblem.apple.com</a>).
-            For a payment on the website, write to <Mail to={SUPPORT_EMAIL} />.</>,
+          : <>MatchGPT+ is bought in the apps, so Google Play or Apple refunds it, under their rules:{' '}
+            <a className={link} href="https://support.google.com/googleplay" target="_blank" rel="noreferrer">support.google.com/googleplay</a>{' '}
+            or <a className={link} href="https://reportaproblem.apple.com" target="_blank" rel="noreferrer">reportaproblem.apple.com</a>.</>,
     },
     {
       q: 'MatchGPT+ is missing on my new phone',

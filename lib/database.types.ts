@@ -140,19 +140,16 @@ export type Database = {
         Row: {
           event: string
           id: string
-          razorpay_subscription_id: string | null
           received_at: string
         }
         Insert: {
           event: string
           id: string
-          razorpay_subscription_id?: string | null
           received_at?: string
         }
         Update: {
           event?: string
           id?: string
-          razorpay_subscription_id?: string | null
           received_at?: string
         }
         Relationships: []
@@ -168,9 +165,6 @@ export type Database = {
           is_active: boolean
           name: string
           period: string
-          razorpay_plan_id_live: string | null
-          razorpay_plan_id_test: string | null
-          total_count: number
           updated_at: string
         }
         Insert: {
@@ -183,9 +177,6 @@ export type Database = {
           is_active?: boolean
           name: string
           period: string
-          razorpay_plan_id_live?: string | null
-          razorpay_plan_id_test?: string | null
-          total_count: number
           updated_at?: string
         }
         Update: {
@@ -198,9 +189,6 @@ export type Database = {
           is_active?: boolean
           name?: string
           period?: string
-          razorpay_plan_id_live?: string | null
-          razorpay_plan_id_test?: string | null
-          total_count?: number
           updated_at?: string
         }
         Relationships: []
@@ -500,16 +488,13 @@ export type Database = {
           fee_amount: number | null
           fee_estimated: boolean
           id: string
-          invoice_url: string | null
           method: string | null
           paid_at: string
           provider: string
-          razorpay_invoice_id: string | null
-          razorpay_payment_id: string | null
           refunded_amount: number
           refunded_at: string | null
           status: string
-          store_order_id: string | null
+          store_order_id: string
           subscription_id: string | null
           user_id: string | null
         }
@@ -520,16 +505,13 @@ export type Database = {
           fee_amount?: number | null
           fee_estimated?: boolean
           id?: string
-          invoice_url?: string | null
           method?: string | null
           paid_at?: string
-          provider?: string
-          razorpay_invoice_id?: string | null
-          razorpay_payment_id?: string | null
+          provider: string
           refunded_amount?: number
           refunded_at?: string | null
           status: string
-          store_order_id?: string | null
+          store_order_id: string
           subscription_id?: string | null
           user_id?: string | null
         }
@@ -540,16 +522,13 @@ export type Database = {
           fee_amount?: number | null
           fee_estimated?: boolean
           id?: string
-          invoice_url?: string | null
           method?: string | null
           paid_at?: string
           provider?: string
-          razorpay_invoice_id?: string | null
-          razorpay_payment_id?: string | null
           refunded_amount?: number
           refunded_at?: string | null
           status?: string
-          store_order_id?: string | null
+          store_order_id?: string
           subscription_id?: string | null
           user_id?: string | null
         }
@@ -1358,15 +1337,12 @@ export type Database = {
           current_start: string | null
           ended_at: string | null
           id: string
-          live_since: string | null
           mode: string
           plan_id: string
           provider: string
-          razorpay_subscription_id: string | null
-          razorpay_updated_at: string | null
           status: string
           store_product_id: string | null
-          store_subscription_id: string | null
+          store_subscription_id: string
           store_updated_at: string | null
           trial_ends_at: string | null
           updated_at: string
@@ -1380,15 +1356,12 @@ export type Database = {
           current_start?: string | null
           ended_at?: string | null
           id?: string
-          live_since?: string | null
           mode: string
           plan_id: string
-          provider?: string
-          razorpay_subscription_id?: string | null
-          razorpay_updated_at?: string | null
+          provider: string
           status?: string
           store_product_id?: string | null
-          store_subscription_id?: string | null
+          store_subscription_id: string
           store_updated_at?: string | null
           trial_ends_at?: string | null
           updated_at?: string
@@ -1402,15 +1375,12 @@ export type Database = {
           current_start?: string | null
           ended_at?: string | null
           id?: string
-          live_since?: string | null
           mode?: string
           plan_id?: string
           provider?: string
-          razorpay_subscription_id?: string | null
-          razorpay_updated_at?: string | null
           status?: string
           store_product_id?: string | null
-          store_subscription_id?: string | null
+          store_subscription_id?: string
           store_updated_at?: string | null
           trial_ends_at?: string | null
           updated_at?: string

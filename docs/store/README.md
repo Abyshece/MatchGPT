@@ -66,7 +66,6 @@ With a domain of your own (step 1), use it in place of `shaadi-gpt.vercel.app` e
 | `APPLE_TEAM_ID`, `APPLE_SIGNIN_KEY_ID`, `APPLE_SIGNIN_PRIVATE_KEY` | ending Sign in with Apple when an account is deleted | step 4, Apple |
 | `ALLOWED_ORIGINS` | which pages may call the server | `https://shaadi-gpt.vercel.app,https://localhost,capacitor://localhost` (the website, the Android app, the iPhone app; add your own domain). Without the apps' two, the apps can't search, buy or delete accounts: leave the secret out rather than miss them |
 | `GEMINI_API_KEY` (optional) | AI search | Google AI Studio; read the note on search in "Data safety" |
-| `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET` | the website's payments (never the apps') | Razorpay (ROADMAP.md, Phase 11) |
 
 - [ ] Optional: Authentication → Attack Protection → leaked-password protection (paid plans).
 

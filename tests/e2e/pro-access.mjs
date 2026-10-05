@@ -59,14 +59,16 @@ const B = sql(`select id from auth.users where email = '${EMAIL_B}';`);
 const nameB = sql(`select name from profiles where id = '${B}';`);
 const [lo, hi] = [A, B].sort();
 const wasOn = sql(`select pro_for_all from app_settings;`) === 't';
+const tierA = sql(`select subscription_tier from profiles where id = '${A}';`);
 const tierB = sql(`select subscription_tier from profiles where id = '${B}';`);
 const verifiedA = sql(`select is_verified from profiles where id = '${A}';`) === 't';
 const setSwitch = (on) => sql(`update app_settings set pro_for_all = ${on};`);
 const clearAB = () => sql(`delete from messages where match_id in (select id from matches where user_a_id = '${lo}' and user_b_id = '${hi}');
   delete from matches where user_a_id = '${lo}' and user_b_id = '${hi}';
   delete from likes where (liker_id = '${A}' and liked_id = '${B}') or (liker_id = '${B}' and liked_id = '${A}');`);
-// Fresh daily counters, so the limits don't get in the way
-sql(`update profiles set daily_like_count = 0, daily_search_count = 0 where id in ('${A}', '${B}');
+// Both free (another test may have left one with MatchGPT+), with fresh daily counters so the limits
+// don't get in the way
+sql(`update profiles set subscription_tier = 'FREE', daily_like_count = 0, daily_search_count = 0 where id in ('${A}', '${B}');
      insert into admin_emails (email) values ('${ADMIN}') on conflict do nothing;`);
 clearAB();
 
@@ -230,7 +232,7 @@ try {
   clearAB();
   setSwitch(wasOn);
   sql(`update profiles set subscription_tier = '${tierB}' where id = '${B}';
-       update profiles set is_verified = ${verifiedA} where id = '${A}';
+       update profiles set subscription_tier = '${tierA}', is_verified = ${verifiedA} where id = '${A}';
        update profiles set daily_like_count = 0, daily_search_count = 0 where id in ('${A}', '${B}');`);
   log(failures ? `${failures} check(s) failed` : 'all checks passed');
   process.exit(failures ? 1 : 0);

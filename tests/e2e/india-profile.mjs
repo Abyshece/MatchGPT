@@ -30,6 +30,7 @@ const INDIA_COLUMNS = ['profile_created_for', 'date_of_birth', 'marital_status',
   'family_location', 'living_with_family', 'about_family'];
 const A = sql(`select id from profiles where email = '${EMAIL_A}';`);
 const B = sql(`select id from profiles where email = '${EMAIL_B}';`);
+const tierB = sql(`select subscription_tier from profiles where id = '${B}';`);
 const NAME_A = 'Meera Testcase';
 sql(`update profiles set ${INDIA_COLUMNS.map((c) => `${c} = null`).join(', ')}, name = '${NAME_A}', gender = 'Female',
        interested_in = 'Men', location = 'Mumbai, MH', height = null, religion = null, dietary_preferences = null, languages = null,
@@ -193,6 +194,7 @@ try {
   failures++;
 } finally {
   await browser.close();
+  sql(`update profiles set subscription_tier = '${tierB}' where id = '${B}';`);
 }
 log(failures === 0 ? 'RESULT: all checks passed' : `RESULT: ${failures} check(s) failed`);
 process.exit(failures === 0 ? 0 : 1);

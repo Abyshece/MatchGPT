@@ -8,9 +8,9 @@ import {
 // RevenueChart: net revenue by month, stacked by seller
 //
 // One column per month (India time); its segments are the sellers, always in
-// the same order and colours (slots 1–3 of a palette checked for colour
+// the same order and colours (slots 1–2 of a palette checked for colour
 // blindness against these cards in light and dark: Google Play blue, App
-// Store orange, Website aqua). Hover, tap or arrow-key to a month for its
+// Store orange). Hover, tap or arrow-key to a month for its
 // figures; clicking it (or Enter) lists that month's charges. The table view
 // shows every number in the chart.
 // ============================================================================
@@ -23,12 +23,12 @@ export const SELLER_COLOR: Record<Seller, string> = {
 // The chart's colours, one set per theme (the app's dark mode is the "dark" class)
 export const FINANCE_VIZ_CSS = `
 .fin-viz {
-  --viz-s1: #2a78d6; --viz-s2: #eb6834; --viz-s3: #1baf7a;
+  --viz-s1: #2a78d6; --viz-s2: #eb6834;
   --viz-grid: #e5e7eb; --viz-base: #d1d5db; --viz-axis: #6b7280; --viz-ink: #111827;
   --viz-wash: rgba(17, 24, 39, 0.04); --viz-wash-strong: rgba(17, 24, 39, 0.08); --viz-focus: #3b82f6;
 }
 .dark .fin-viz {
-  --viz-s1: #3987e5; --viz-s2: #d95926; --viz-s3: #199e70;
+  --viz-s1: #3987e5; --viz-s2: #d95926;
   --viz-grid: #3f3f46; --viz-base: #52525b; --viz-axis: #a1a1aa; --viz-ink: #ffffff;
   --viz-wash: rgba(255, 255, 255, 0.05); --viz-wash-strong: rgba(255, 255, 255, 0.1); --viz-focus: #60a5fa;
 }
