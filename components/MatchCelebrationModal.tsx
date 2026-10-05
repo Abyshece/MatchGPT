@@ -18,6 +18,10 @@ interface MatchCelebrationModalProps {
   onChat: (matchId: string) => void;
 }
 
+// Where the 12 hearts sit (% from the top and left): spread over the screen,
+// and the same on every render, so they don't jump when the popup updates
+const HEARTS = Array.from({ length: 12 }, (_, i) => ({ top: (i * 37 + 7) % 100, left: (i * 61 + 13) % 100 }));
+
 const MatchCelebrationModal: React.FC<MatchCelebrationModalProps> = ({
   matchedWith, matchId, onClose, onChat,
 }) => {
@@ -35,13 +39,13 @@ const MatchCelebrationModal: React.FC<MatchCelebrationModalProps> = ({
     >
       {/* Pulsing decorative hearts */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {Array.from({ length: 12 }).map((_, i) => (
+        {HEARTS.map(({ top, left }, i) => (
           <div
             key={i}
             className="absolute text-white/20 text-4xl animate-pulse"
             style={{
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
+              top: `${top}%`,
+              left: `${left}%`,
               animationDelay: `${i * 0.2}s`,
               animationDuration: '2s',
             }}

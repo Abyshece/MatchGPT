@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from './NotionUI';
-import { IconChevronLeft, IconCheck, IconMail } from '../constants';
+import { IconChevronLeft, IconCheck } from '../constants';
 import { supabase } from '../lib/supabase';
 
 interface EmailVerificationProps {

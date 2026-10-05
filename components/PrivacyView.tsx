@@ -13,16 +13,16 @@ interface PrivacyViewProps {
   onBack: () => void;
 }
 
-const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
-  const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <section className="mb-8">
-      <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">{title}</h2>
-      <div className="space-y-3 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-        {children}
-      </div>
-    </section>
-  );
+const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+  <section className="mb-8">
+    <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">{title}</h2>
+    <div className="space-y-3 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+      {children}
+    </div>
+  </section>
+);
 
+const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
   return (
     <div className="min-h-screen bg-white dark:bg-[#191919]">
       {/* Header */}

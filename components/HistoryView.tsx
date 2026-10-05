@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useAuth } from '../lib/AuthContext';
+import { useNow } from '../lib/useNow';
 import { useToast } from '../lib/useToast';
 import { loadHistory, deleteSearch, clearHistory } from '../lib/searchHistoryService';
 import { computeSearchAllowance } from '../lib/profileService';
@@ -29,7 +30,7 @@ interface HistoryViewProps {
 }
 
 const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
-  const { profile, session } = useAuth();
+  const { profile, session, hasPro } = useAuth();
   const { showToast } = useToast();
 
   const [tab, setTab] = useState<HistoryTab>('searches');
@@ -40,6 +41,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
   const [loading, setLoading] = useState(true);
   const [selectedCandidate, setSelectedCandidate] = useState<MatchCandidate | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const now = useNow();
 
   const fetchHistory = useCallback(async () => {
     if (!session?.user.id) return;
@@ -75,12 +77,11 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
   // Apply time filter to liked entries
   const filteredLiked = useMemo(() => {
     if (timeFilter === 'all') return liked;
-    const now = Date.now();
     const cutoff = timeFilter === 'today'
       ? now - 24 * 60 * 60 * 1000
       : now - 7 * 24 * 60 * 60 * 1000;
     return liked.filter((e) => new Date(e.likedAt).getTime() >= cutoff);
-  }, [liked, timeFilter]);
+  }, [liked, timeFilter, now]);
 
   const handleRerun = useCallback((saved: SavedSearch) => {
     if (!profile) return;
@@ -119,7 +120,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
   }
 
   const formatRelativeTime = (iso: string) => {
-    const ms = Date.now() - new Date(iso).getTime();
+    const ms = now - new Date(iso).getTime();
     const minutes = Math.floor(ms / 60000);
     if (minutes < 1) return 'Just now';
     if (minutes < 60) return `${minutes}m ago`;
@@ -308,7 +309,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
       {selectedCandidate && (
         <ProfileModal
           candidate={selectedCandidate}
-          isPro={profile.subscriptionTier === 'PRO'}
+          isPro={hasPro}
           onClose={() => setSelectedCandidate(null)}
           onUpgrade={() => { setSelectedCandidate(null); setShowUpgradeModal(true); }}
         />

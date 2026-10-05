@@ -35,7 +35,9 @@ try {
   await page.getByRole('button', { name: /^users$/i }).click();
   await page.getByPlaceholder(/Search users by name or email/).waitFor({ timeout: 10000 });
   await page.waitForTimeout(2000);
-  const listed = await page.locator('text=/@shaadigpt\\.dev/').count();
+  // Rows starting with any address: other tests add accounts at other domains (example.com)
+  const listed = await page.evaluate(() => [...document.querySelectorAll('main *')]
+    .filter((el) => el.children.length === 0 && /^[\w.+-]+@[\w-]+(\.[\w-]+)+(\s|$)/.test((el.textContent || '').trim())).length);
   await page.screenshot({ path: `${OUT}1-users.png` });
   check(listed >= Math.min(totalUsers, 50) - 1, `Users tab lists everyone (${listed} of ${totalUsers} shown, 50 max)`);
   await page.getByPlaceholder(/Search users by name or email/).fill(target[1]);

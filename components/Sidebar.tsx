@@ -24,6 +24,53 @@ interface SidebarProps {
   onToggleDarkMode: () => void;
 }
 
+// One place in the sidebar: a button, marked as the page that's showing
+const SidebarItem: React.FC<{
+  icon: React.ReactNode;
+  label: string;
+  count?: number;
+  active: boolean;
+  collapsed: boolean;
+  onSelect: () => void;
+}> = ({ icon, label, count, active, collapsed, onSelect }) => (
+  <button
+    type="button"
+    onClick={onSelect}
+    aria-current={active ? 'page' : undefined}
+    aria-label={collapsed ? `${label}${count ? ` (${count})` : ''}` : undefined}
+    className={`w-full text-left relative group flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 mb-1
+      ${active
+        ? 'bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-gray-100'
+        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-gray-200'}
+      ${collapsed ? 'justify-center' : ''}`}
+    title={collapsed ? `${label}${count ? ` (${count})` : ''}` : undefined}
+  >
+    <span className="flex-shrink-0 relative">
+      {icon}
+      {/* Red pulse dot on the icon when collapsed (sidebar narrow mode) */}
+      {collapsed && count !== undefined && count > 0 && (
+        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white dark:ring-[#191919] animate-pulse" />
+      )}
+    </span>
+    {!collapsed && (
+      <>
+        <span className="text-sm font-medium truncate animate-fade-in flex-1">{label}</span>
+        {/* Red badge with count when expanded */}
+        {count !== undefined && count > 0 && (
+          <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400 animate-pulse">
+            {count > 99 ? '99+' : count}
+          </span>
+        )}
+      </>
+    )}
+    {collapsed && (
+      <span aria-hidden="true" className="absolute left-full ml-3 px-2 py-1 bg-gray-900 dark:bg-white text-white dark:text-black text-xs font-bold rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity shadow-lg">
+        {label}{count ? ` (${count})` : ''}
+      </span>
+    )}
+  </button>
+);
+
 const Sidebar: React.FC<SidebarProps> = ({
   isOpen, setIsOpen, isCollapsed, toggleCollapse,
   activeTab, onTabChange,
@@ -67,42 +114,15 @@ const Sidebar: React.FC<SidebarProps> = ({
     }
   }, [activeTab, refreshCounters]);
 
-  const SidebarItem = ({
-    icon, label, id, count,
-  }: { icon: React.ReactNode; label: string; id: Tab; count?: number }) => (
-    <div
-      onClick={() => { onTabChange(id); setIsOpen(false); }}
-      className={`relative group flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 mb-1
-        ${activeTab === id
-          ? 'bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-gray-100'
-          : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-gray-200'}
-        ${isCollapsed ? 'justify-center' : ''}`}
-      title={isCollapsed ? `${label}${count ? ` (${count})` : ''}` : undefined}
-    >
-      <span className="flex-shrink-0 relative">
-        {icon}
-        {/* Red pulse dot on the icon when collapsed (sidebar narrow mode) */}
-        {isCollapsed && count !== undefined && count > 0 && (
-          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white dark:ring-[#191919] animate-pulse" />
-        )}
-      </span>
-      {!isCollapsed && (
-        <>
-          <span className="text-sm font-medium truncate animate-fade-in flex-1">{label}</span>
-          {/* Red badge with count when expanded */}
-          {count !== undefined && count > 0 && (
-            <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400 animate-pulse">
-              {count > 99 ? '99+' : count}
-            </span>
-          )}
-        </>
-      )}
-      {isCollapsed && (
-        <div className="absolute left-full ml-3 px-2 py-1 bg-gray-900 dark:bg-white text-white dark:text-black text-xs font-bold rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity shadow-lg">
-          {label}{count ? ` (${count})` : ''}
-        </div>
-      )}
-    </div>
+  const item = (id: Tab, label: string, icon: React.ReactNode, count?: number) => (
+    <SidebarItem
+      icon={icon}
+      label={label}
+      count={count}
+      active={activeTab === id}
+      collapsed={isCollapsed}
+      onSelect={() => { onTabChange(id); setIsOpen(false); }}
+    />
   );
 
   return (
@@ -130,21 +150,17 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       <nav className="flex-1 space-y-1 px-3 overflow-y-auto overflow-x-hidden">
-        <SidebarItem icon={<IconSearch />} label="Find Match" id="search" />
-        <SidebarItem icon={<IconHistory />} label="Chat History" id="history" />
-        <SidebarItem icon={<IconHeart />} label="Likes You" id="likes" count={likesCount} />
-        <SidebarItem icon={<IconMessageCircle />} label="Matches" id="matches" count={unreadMatches} />
-        <SidebarItem icon={<IconStar />} label="Standouts" id="standouts" />
-        <SidebarItem icon={<IconUser />} label="My Profile" id="profile" />
-        <SidebarItem icon={<IconSettings />} label="Settings" id="settings" />
+        {item('search', 'Find Match', <IconSearch />)}
+        {item('history', 'Chat History', <IconHistory />)}
+        {item('likes', 'Likes You', <IconHeart />, likesCount)}
+        {item('matches', 'Matches', <IconMessageCircle />, unreadMatches)}
+        {item('standouts', 'Standouts', <IconStar />)}
+        {item('profile', 'My Profile', <IconUser />)}
+        {item('settings', 'Settings', <IconSettings />)}
         {isAdmin && (
           <>
-            <div className={`my-3 mx-3 border-t border-gray-200 dark:border-zinc-800 ${isCollapsed ? '' : ''}`} />
-            <SidebarItem
-              icon={<span className="text-base">🛡️</span>}
-              label="Admin"
-              id="admin"
-            />
+            <div className="my-3 mx-3 border-t border-gray-200 dark:border-zinc-800" />
+            {item('admin', 'Admin', <span className="text-base">🛡️</span>)}
           </>
         )}
       </nav>

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../lib/AuthContext';
 import { useToast } from '../../lib/useToast';
 import {
-  fetchPlatformStats, fetchReports, fetchAuditLog,
+  fetchPlatformStats, fetchReports, fetchAuditLog, setProForAll,
 } from '../../lib/adminService';
 import { useIsAdmin } from '../../lib/useIsAdmin';
 import type { PlatformStats, ReportRow, AdminAuditRow } from '../../lib/adminService';
@@ -113,6 +113,7 @@ const AdminView: React.FC<{ initialTab?: AdminTab }> = ({ initialTab }) => {
         </div>
 
         {/* Tab body */}
+        {tab === 'dashboard' && <ProForAllSwitch onChanged={loadDashboard} />}
         {tab === 'dashboard' && (
           <DashboardTab
             stats={stats}
@@ -130,6 +131,64 @@ const AdminView: React.FC<{ initialTab?: AdminTab }> = ({ initialTab }) => {
     </div>
   );
 };
+
+// ============================================================================
+// "MatchGPT+ for everyone": the one switch for MatchGPT+'s features
+// (app_settings; the server and the apps follow it at once)
+// ============================================================================
+
+const ProForAllSwitch: React.FC<{ onChanged: () => void }> = ({ onChanged }) => {
+  const { proForAll, refreshProfile } = useAuth();
+  const { showToast } = useToast();
+  const [saving, setSaving] = useState(false);
+
+  const toggle = async () => {
+    const on = !proForAll;
+    if (!on && !window.confirm('Turn off MatchGPT+ for everyone? Members without a subscription lose Likes You, Super Likes, the extra filters, compatibility reports and date proposals straight away.')) return;
+    setSaving(true);
+    const { error } = await setProForAll(on);
+    if (!error) await refreshProfile();
+    setSaving(false);
+    if (error) {
+      showToast(`Couldn't change it: ${error}`, 'error');
+      return;
+    }
+    showToast(on ? 'MatchGPT+ is on for everyone' : 'MatchGPT+ is for subscribers only now', 'success');
+    onChanged();
+  };
+
+  return (
+    <div className="mb-6 rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-4 flex items-start justify-between gap-4">
+      <div className="min-w-0">
+        <h2 id="pro-for-all-label" className="text-sm font-bold text-gray-900 dark:text-white">MatchGPT+ for everyone</h2>
+        <p id="pro-for-all-description" className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          {proForAll
+            ? 'On: every member gets Likes You, Super Likes, refreshing Standouts, every filter, compatibility reports and date proposals for free. Free accounts keep the daily limits (3 AI searches, 15 likes). Turn it off when MatchGPT+ goes on sale.'
+            : 'Off: only subscribers get MatchGPT+\'s features.'}
+        </p>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={proForAll}
+        aria-labelledby="pro-for-all-label"
+        aria-describedby="pro-for-all-description"
+        disabled={saving}
+        onClick={toggle}
+        className={`flex-shrink-0 w-11 h-6 rounded-full relative transition-colors duration-200 disabled:opacity-60 ${proForAll ? 'bg-green-500' : 'bg-gray-300 dark:bg-zinc-600'}`}
+      >
+        <span aria-hidden="true" className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-200 ${proForAll ? 'left-6' : 'left-1'}`} />
+      </button>
+    </div>
+  );
+};
+
+// What an audit entry says was done
+function auditAction(entry: AdminAuditRow): string {
+  const details = entry.details && typeof entry.details === 'object' && !Array.isArray(entry.details) ? entry.details : null;
+  if (entry.action === 'set_pro_for_all') return `turned MatchGPT+ for everyone ${details?.on ? 'on' : 'off'}`;
+  return entry.action.replace(/_/g, ' ');
+}
 
 // ============================================================================
 // Dashboard tab — stats + recent activity
@@ -251,7 +310,7 @@ const DashboardTab: React.FC<{
                 <div className="flex justify-between items-start gap-3">
                   <div className="flex-1 min-w-0">
                     <span className="font-bold text-gray-900 dark:text-white">{entry.admin_email}</span>
-                    <span className="text-gray-500 dark:text-gray-400"> · {entry.action.replace(/_/g, ' ')}</span>
+                    <span className="text-gray-500 dark:text-gray-400"> · {auditAction(entry)}</span>
                     {entry.details && typeof entry.details === 'object' && 'reason' in entry.details && (
                       <span className="text-gray-500 dark:text-gray-400 italic">
                         {' '}— "{String(entry.details.reason)}"

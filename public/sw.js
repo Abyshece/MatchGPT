@@ -10,7 +10,7 @@
 // the site root, which is what we want.
 // ============================================================================
 
-self.addEventListener('install', (event) => {
+self.addEventListener('install', () => {
   // Activate immediately on first install, don't wait for existing tabs to close
   self.skipWaiting();
 });
@@ -22,10 +22,10 @@ self.addEventListener('activate', (event) => {
 
 // ---- Push event: a push has arrived from the server ----
 self.addEventListener('push', (event) => {
-  let payload = {};
+  let payload;
   try {
     payload = event.data ? event.data.json() : {};
-  } catch (e) {
+  } catch {
     // Fallback to text
     payload = { title: 'MatchGPT', body: event.data ? event.data.text() : 'New activity' };
   }
@@ -70,9 +70,4 @@ self.addEventListener('notificationclick', (event) => {
       return self.clients.openWindow(`${appUrl}/?push=${encodeURIComponent(JSON.stringify(data))}`);
     })()
   );
-});
-
-// ---- Notification close: just for logging/analytics if needed ----
-self.addEventListener('notificationclose', (event) => {
-  // Could send analytics here if we wanted to track dismiss rate
 });

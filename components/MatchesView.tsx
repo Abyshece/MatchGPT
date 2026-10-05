@@ -27,7 +27,7 @@ interface MatchesViewProps {
 }
 
 const MatchesView: React.FC<MatchesViewProps> = ({ initialMatchId }) => {
-  const { profile, settings, session } = useAuth();
+  const { profile, settings, session, hasPro } = useAuth();
   const { showToast } = useToast();
 
   const [matches, setMatches] = useState<MatchSummary[]>([]);
@@ -121,7 +121,7 @@ const MatchesView: React.FC<MatchesViewProps> = ({ initialMatchId }) => {
     return <div className="p-12 text-center text-gray-400">Loading…</div>;
   }
 
-  const isPro = profile.subscriptionTier === 'PRO';
+  const isPro = hasPro;
   const myReadReceipts = settings.readReceipts;
 
   const selectedMatch = matches.find((m) => m.matchId === selectedMatchId) ?? null;

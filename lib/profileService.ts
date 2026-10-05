@@ -89,22 +89,6 @@ export async function toggleHiddenField(
 // ============================================================================
 
 // ----------------------------------------------------------------------------
-// FEATURE FLAG: PRO_FOR_ALL
-//
-// While we're growing our user base, every user gets Pro features for free.
-// This single flag is the source of truth for "is this user effectively Pro?"
-// — turn it off later when we switch to paid Pro.
-// ----------------------------------------------------------------------------
-
-export const PRO_FOR_ALL = true;
-
-/** Single helper everyone should use instead of `profile.subscriptionTier === 'PRO'`. */
-export function isProEffective(profile: UserProfile | null | undefined): boolean {
-  if (PRO_FOR_ALL) return true;
-  return profile?.subscriptionTier === 'PRO';
-}
-
-// ----------------------------------------------------------------------------
 // canSearch — checks daily limit. Returns { allowed, remaining, resetIn }
 // ----------------------------------------------------------------------------
 
@@ -117,9 +101,8 @@ export interface SearchAllowance {
 }
 
 export function computeSearchAllowance(profile: UserProfile): SearchAllowance {
-  // Daily limit applies to all signed-in users. PRO_FOR_ALL only unlocks paid
-  // *features* (full likes, sorting, etc.) — not unlimited searches. When real
-  // Pro launches, only paid users will bypass this limit.
+  // The daily limit follows the subscription alone: "MatchGPT+ for everyone"
+  // (useAuth().hasPro) opens MatchGPT+'s features, not unlimited searches.
   if (profile.subscriptionTier === 'PRO') {
     return { allowed: true, remaining: Infinity, isPro: true, resetInHours: 0 };
   }

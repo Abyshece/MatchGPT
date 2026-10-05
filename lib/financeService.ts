@@ -234,5 +234,5 @@ const CSV_COLUMNS: [string, (c: Charge) => string | number | boolean | null][] =
 export function chargesCsv(charges: Charge[]): string {
   const lines = [CSV_COLUMNS.map(([name]) => cell(name)).join(',')];
   for (const c of charges) lines.push(CSV_COLUMNS.map(([, get]) => cell(get(c))).join(','));
-  return `﻿${lines.join('\r\n')}\r\n`;
+  return `\uFEFF${lines.join('\r\n')}\r\n`;
 }

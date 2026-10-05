@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { loadGoogleIdentity, makeNonce } from '../lib/googleSignIn';
 
@@ -23,8 +23,8 @@ const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ clientId, onSig
   const [status, setStatus] = useState<'loading' | 'ready' | 'failed'>('loading');
   const [signingIn, setSigningIn] = useState(false);
   // The latest callbacks, for Google's callback (set up once per mount)
-  const handlers = useRef({ onSignedIn, onError });
-  handlers.current = { onSignedIn, onError };
+  const signedIn = useEffectEvent(() => onSignedIn());
+  const failed = useEffectEvent((message: string) => onError(message));
 
   useEffect(() => {
     let cancelled = false;
@@ -38,14 +38,14 @@ const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ clientId, onSig
           ux_mode: 'popup',
           callback: async ({ credential }) => {
             if (!credential) {
-              handlers.current.onError('Google sign-in did not finish. Please try again.');
+              failed('Google sign-in did not finish. Please try again.');
               return;
             }
             setSigningIn(true);
             const { error } = await supabase.auth.signInWithIdToken({ provider: 'google', token: credential, nonce });
             setSigningIn(false);
-            if (error) handlers.current.onError(error.message);
-            else handlers.current.onSignedIn();
+            if (error) failed(error.message);
+            else signedIn();
           },
         });
         const dark = document.documentElement.classList.contains('dark');

@@ -23,8 +23,6 @@ interface FilterPanelProps {
   onUpgrade: () => void;
 }
 
-const FREE_FILTERS_KEYS = ['ageRange', 'neighborhood'] as const;
-
 // ---- helper components -----------------------------------------------------
 // Outside FilterPanel, so typing in a field doesn't remount it.
 
@@ -39,6 +37,7 @@ const FilterRow = ({
       {locked && (
         <button
           onClick={onUpgrade}
+          aria-label={`${label}: unlock with MatchGPT+`}
           className="flex items-center gap-1 text-[10px] font-bold text-yellow-700 dark:text-yellow-400 hover:underline"
         >
           <IconLock /> Pro

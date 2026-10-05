@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { PageHeader, PropertyRow, InfoSection, Button } from './NotionUI';
+import { PageHeader, PropertyRow, InfoSection } from './NotionUI';
 import { useAuth } from '../lib/AuthContext';
 import { useToast } from '../lib/useToast';
 import { updateProfile } from '../lib/profileService';
@@ -69,7 +69,6 @@ const ProfileView: React.FC = () => {
   const [editingField, setEditingField] = useState<keyof UserProfile | null>(null);
   const [editValue, setEditValue] = useState<string | number>('');
   const [savingField, setSavingField] = useState<string | null>(null);
-  const [showCompletionWidget, setShowCompletionWidget] = useState(true);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
 
   const [isEditingSummary, setIsEditingSummary] = useState(false);
@@ -80,7 +79,7 @@ const ProfileView: React.FC = () => {
   // ---- completion calc -----------------------------------------------------
   const { completionPercentage, estimatedMinutes } = useMemo(
     () => (profile ? profileCompletion(profile, photos.length) : { completionPercentage: 0, estimatedMinutes: 0 }),
-    [profile, photos],
+    [profile, photos.length],
   );
 
   // ---- helpers -------------------------------------------------------------
@@ -315,7 +314,7 @@ const ProfileView: React.FC = () => {
         />
 
         {/* Completion widget */}
-        <div className={`transition-all duration-1000 ease-in-out overflow-hidden ${showCompletionWidget ? 'mb-10 opacity-100 max-h-[500px]' : 'mb-0 opacity-0 max-h-0'}`}>
+        <div className="mb-10">
           <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-6 shadow-sm relative overflow-hidden">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
               <div className="flex-1">

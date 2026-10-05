@@ -22,6 +22,35 @@ interface ProfileModalProps {
   showLikeButton?: boolean;
 }
 
+// Rows are [field, label, text shown (defaults to the answer)]
+type Row = [keyof MatchCandidate, string, (string | null)?];
+// One section of a profile: the rows that have an answer (and aren't hidden)
+const Section: React.FC<{
+  title: string;
+  rows: Row[];
+  answer: (k: keyof MatchCandidate) => string | null;
+  children?: React.ReactNode;
+}> = ({ title, rows, answer, children }) => {
+  const visible = rows
+    .map(([k, label, text]) => [k, label, answer(k) ? (text ?? answer(k)) : null] as const)
+    .filter(([, , text]) => !!text);
+  if (visible.length === 0 && !children) return null;
+  return (
+    <div className="mb-6">
+      <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">{title}</h4>
+      <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-3">
+        {visible.map(([k, label, text]) => (
+          <div key={k as string} className="flex justify-between gap-3 py-1.5 text-sm border-b border-gray-100 dark:border-zinc-800/50 last:border-0">
+            <span className="text-gray-500 dark:text-gray-400 flex-shrink-0">{label}</span>
+            <span className="text-gray-900 dark:text-gray-200 font-medium text-right break-words min-w-0 max-w-[65%]">{text}</span>
+          </div>
+        ))}
+        {children}
+      </div>
+    </div>
+  );
+};
+
 const ProfileModal: React.FC<ProfileModalProps> = ({
   candidate, isPro, onClose, onUpgrade, onMatched, showLikeButton = true,
 }) => {
@@ -59,28 +88,6 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
     return String(val);
   };
 
-  // Rows are [field, label, text shown (defaults to the answer)]
-  type Row = [keyof MatchCandidate, string, (string | null)?];
-  const Section = ({ title, rows, children }: { title: string; rows: Row[]; children?: React.ReactNode }) => {
-    const visible = rows
-      .map(([k, label, text]) => [k, label, answer(k) ? (text ?? answer(k)) : null] as const)
-      .filter(([, , text]) => !!text);
-    if (visible.length === 0 && !children) return null;
-    return (
-      <div className="mb-6">
-        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">{title}</h4>
-        <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-3">
-          {visible.map(([k, label, text]) => (
-            <div key={k as string} className="flex justify-between gap-3 py-1.5 text-sm border-b border-gray-100 dark:border-zinc-800/50 last:border-0">
-              <span className="text-gray-500 dark:text-gray-400 flex-shrink-0">{label}</span>
-              <span className="text-gray-900 dark:text-gray-200 font-medium text-right break-words min-w-0 max-w-[65%]">{text}</span>
-            </div>
-          ))}
-          {children}
-        </div>
-      </div>
-    );
-  };
   const c = candidate;
 
   return (
@@ -256,7 +263,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                 </div>
               )}
 
-              <Section title="The Basics" rows={[
+              <Section answer={answer} title="The Basics" rows={[
                 ['profileCreatedFor', 'Profile managed by', profileManagedBy(c.profileCreatedFor)],
                 ['maritalStatus', 'Marital status'],
                 ['children', 'Children', formatChildren(c.children, answer('childrenCount'))],
@@ -269,7 +276,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                 ['disability', 'Disability'],
               ]} />
 
-              <Section title="Religion & Community" rows={[
+              <Section answer={answer} title="Religion & Community" rows={[
                 ['religion', 'Religion'],
                 ['motherTongue', 'Mother tongue'],
                 ['sect', SECT_LABEL[c.religion ?? ''] ?? 'Sect'],
@@ -280,7 +287,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                 ['ethnicity', 'Ethnicity'],
               ]} />
 
-              <Section title="Horoscope" rows={[
+              <Section answer={answer} title="Horoscope" rows={[
                 ['manglik', 'Manglik'],
                 ['rashi', 'Rashi'],
                 ['nakshatra', 'Nakshatra'],
@@ -290,7 +297,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                 ['zodiac', 'Zodiac'],
               ]} />
 
-              <Section title="Education & Career" rows={[
+              <Section answer={answer} title="Education & Career" rows={[
                 ['educationLevel', 'Highest qualification'],
                 ['degree', 'Degree'],
                 ['university', 'College / university'],
@@ -300,7 +307,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                 ['workStyle', 'Work style'],
               ]} />
 
-              <Section title="Family" rows={[
+              <Section answer={answer} title="Family" rows={[
                 ['familyType', 'Family type'],
                 ['familyStatus', 'Family status'],
                 ['familyValues', 'Family values'],
@@ -317,14 +324,14 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                 )}
               </Section>
 
-              <Section title="Looking For" rows={[
+              <Section answer={answer} title="Looking For" rows={[
                 ['datingIntention', 'Intent'],
                 ['marriageTimeline', 'Marriage timeline'],
                 ['familyPlans', 'Family plans'],
                 ['loveLanguage', 'Love language'],
               ]} />
 
-              <Section title="Lifestyle" rows={[
+              <Section answer={answer} title="Lifestyle" rows={[
                 ['drinking', 'Drinking'],
                 ['smoking', 'Smoking'],
                 ['gymRoutine', 'Exercise'],
@@ -333,7 +340,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                 ['canCook', 'Cooking'],
               ]} />
 
-              <Section title="Personality" rows={[
+              <Section answer={answer} title="Personality" rows={[
                 ['socialBattery', 'Social battery'],
                 ['attachmentStyle', 'Attachment'],
                 ['conflictResolution', 'Conflict style'],
@@ -341,7 +348,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                 ['politics', 'Politics'],
               ]} />
 
-              <Section title="More Interests" rows={[
+              <Section answer={answer} title="More Interests" rows={[
                 ['hobbies', 'Hobbies'],
                 ['travelStyle', 'Travel'],
                 ['musicGenre', 'Music'],

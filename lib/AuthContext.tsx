@@ -36,6 +36,11 @@ interface AuthContextValue {
   refreshProfile: () => Promise<void>;
   retryLoadProfile: () => Promise<void>;
   healMissingProfile: () => Promise<{ error: string | null }>;
+  // MatchGPT+'s features: a subscriber, or everyone while "MatchGPT+ for
+  // everyone" is on (proForAll; the database's app_settings, the same rule
+  // the server follows). The daily limits follow the subscription alone.
+  hasPro: boolean;
+  proForAll: boolean;
   // Signed in through a password-reset link: the app asks for a new password.
   passwordRecovery: boolean;
   finishPasswordRecovery: () => void;
@@ -50,6 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [profileMissing, setProfileMissing] = useState(false);
+  const [proForAll, setProForAll] = useState(false);
   const [passwordRecovery, setPasswordRecovery] = useState(openedFromRecoveryLink);
 
   const loadProfile = useCallback(async (userId: string | undefined): Promise<void> => {
@@ -76,8 +82,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .select('*')
         .eq('id', userId)
         .maybeSingle();
+      // Read alongside: whether MatchGPT+ is open to everyone right now
+      const switchPromise = supabase.rpc('pro_for_all');
 
-      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as Awaited<typeof queryPromise>;
+      const [{ data, error }, { data: forAll, error: switchError }] = await Promise.race([
+        Promise.all([queryPromise, switchPromise]), timeoutPromise,
+      ]) as [Awaited<typeof queryPromise>, Awaited<typeof switchPromise>];
+      if (switchError) console.warn('[AuthContext] pro_for_all:', switchError.message);
+      else setProForAll(forAll === true);
 
       if (error) {
         console.error('[AuthContext] profile query error:', error);
@@ -214,6 +226,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const profile = profileRow ? rowToProfile(profileRow) : null;
   const settings = profileRow ? rowToSettings(profileRow) : null;
+  const hasPro = profileRow?.subscription_tier === 'PRO' || proForAll;
 
   // Presence heartbeat — updates last_active_at on app open and every 2 min.
   // Incognito users skip the heartbeat so they stay hidden from "Online" filter.
@@ -250,6 +263,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       refreshProfile,
       retryLoadProfile,
       healMissingProfile,
+      hasPro,
+      proForAll,
       passwordRecovery,
       finishPasswordRecovery: () => setPasswordRecovery(false),
     }}>

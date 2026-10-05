@@ -77,6 +77,13 @@ await scenario('B Google-style new user', async (page, shot) => {
 });
 
 await scenario('C Existing account without Terms', async (page, shot) => {
+  // An earlier run accepted them: back to never having answered
+  const reset = await fetch(`${API}/rest/v1/profiles?email=eq.${encodeURIComponent(SEED_EMAIL)}`, {
+    method: 'PATCH',
+    headers: { apikey: SERVICE, Authorization: `Bearer ${SERVICE}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ terms_accepted_at: null, privacy_accepted_at: null }),
+  });
+  if (!reset.ok) throw new Error(`resetting the account's Terms: ${reset.status} ${await reset.text()}`);
   await page.goto(BASE);
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.getByRole('button', { name: /Continue with Email/ }).click();

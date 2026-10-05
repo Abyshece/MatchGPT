@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useEffectEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../lib/AuthContext';
 import { useToast } from '../lib/useToast';
@@ -272,10 +272,9 @@ const VerificationRequestModal: React.FC<VerificationRequestModalProps> = ({
 const Wrapper: React.FC<{ onClose: () => void; labelledBy: string; children: React.ReactNode }> = ({
   onClose, labelledBy, children,
 }) => {
-  const closeRef = useRef(onClose);
-  closeRef.current = onClose;
+  const close = useEffectEvent(() => onClose());
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeRef.current(); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
     document.addEventListener('keydown', onKey);
     const overflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';  // the page behind doesn't scroll

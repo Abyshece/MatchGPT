@@ -85,7 +85,7 @@ const AdminFinanceTab: React.FC = () => {
   }), [mode, seller, month, firstMonth]);
 
   const currentFilter = useRef(filter);
-  currentFilter.current = filter;
+  useEffect(() => { currentFilter.current = filter; }, [filter]);
 
   useEffect(() => {
     let live = true;
@@ -460,11 +460,12 @@ const AdminFinanceTab: React.FC = () => {
 
 // ---- Pieces ------------------------------------------------------------------------------
 
+// T comes from `value` alone, so onChange can be the state's own setter
 function Segmented<T extends string | number>({ label, value, options, onChange, small }: {
   label: string;
   value: T;
-  options: [T, string][];
-  onChange: (value: T) => void;
+  options: [NoInfer<T>, string][];
+  onChange: (value: NoInfer<T>) => void;
   small?: boolean;
 }) {
   return (

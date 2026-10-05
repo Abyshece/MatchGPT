@@ -8,6 +8,7 @@ import UpgradeModal from './UpgradeModal';
 import MatchCelebrationModal from './MatchCelebrationModal';
 import { IconStar, IconZap, IconClock } from '../constants';
 import type { MatchCandidate } from '../types';
+import { firstCelebration } from '../lib/matchCelebration';
 
 // ============================================================================
 // StandoutsView
@@ -24,7 +25,7 @@ interface StandoutsViewProps {
 }
 
 const StandoutsView: React.FC<StandoutsViewProps> = ({ onNavigateToMatches }) => {
-  const { profile, session } = useAuth();
+  const { profile, session, hasPro } = useAuth();
   const { showToast } = useToast();
 
   const [candidates, setCandidates] = useState<MatchCandidate[]>([]);
@@ -53,7 +54,7 @@ const StandoutsView: React.FC<StandoutsViewProps> = ({ onNavigateToMatches }) =>
     return <div className="p-12 text-center text-gray-400">Loading…</div>;
   }
 
-  const isPro = profile.subscriptionTier === 'PRO';
+  const isPro = hasPro;
 
   // Hours until standouts refresh (midnight UTC)
   const now = new Date();
@@ -62,7 +63,7 @@ const StandoutsView: React.FC<StandoutsViewProps> = ({ onNavigateToMatches }) =>
 
   const handleMatched = (matchId: string, candidate: MatchCandidate) => {
     setSelectedCandidate(null);
-    setMatchCelebration({ matchId, candidate });
+    if (firstCelebration(matchId)) setMatchCelebration({ matchId, candidate });
   };
 
   const handleManualRefresh = async () => {

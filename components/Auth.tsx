@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from './NotionUI';
-import { IconMail, IconGoogle, IconChevronRight, IconX, IconLock } from '../constants';
+import { IconMail, IconGoogle, IconChevronRight, IconX } from '../constants';
 import { supabase } from '../lib/supabase';
 import { TERMS_VERSION, PRIVACY_VERSION } from '../lib/consentService';
 import { GOOGLE_CLIENT_ID } from '../lib/googleSignIn';
