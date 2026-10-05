@@ -16,9 +16,12 @@ interface AuthProps {
   onClose?: () => void;
   // Phase 6: navigate to legal pages from the signup form
   onShowLegal?: (page: 'terms' | 'privacy') => void;
+  // The website's admin sign-in (components/website/AdminSite.tsx): no
+  // sign-up, and Google brings the admin back to /admin
+  forAdmins?: boolean;
 }
 
-const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose, onShowLegal }) => {
+const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose, onShowLegal, forAdmins = false }) => {
   const [mode, setMode] = useState<'MENU' | 'SIGNIN' | 'SIGNUP' | 'FORGOT' | 'RESET_CODE'>('MENU');
   // Password reset: the code from the email, and when another can be sent
   const [resetCode, setResetCode] = useState('');
@@ -48,7 +51,7 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}`,
+        redirectTo: `${window.location.origin}${forAdmins ? '/admin' : ''}`,
       },
     });
     if (oauthError) {
@@ -207,8 +210,11 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
           <div className="text-4xl mb-2">💍</div>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white leading-tight mb-0.5">MatchGPT</h1>
           <p className="text-gray-500 dark:text-gray-400 text-[10px] font-medium uppercase tracking-wide">
-            {mode === 'SIGNUP' ? 'Create your account' : mode === 'FORGOT' || mode === 'RESET_CODE' ? 'Reset your password' : 'Welcome back'}
+            {mode === 'SIGNUP' ? 'Create your account' : mode === 'FORGOT' || mode === 'RESET_CODE' ? 'Reset your password' : forAdmins ? 'Admin sign-in' : 'Welcome back'}
           </p>
+          {forAdmins && (
+            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">For MatchGPT's team. Members sign in in the MatchGPT app.</p>
+          )}
         </div>
 
         {error && (
@@ -257,22 +263,26 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
             </button>
 
             <div className="mt-4">
-              <div className="relative mb-4">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200 dark:border-zinc-800" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white dark:bg-zinc-900 text-gray-400 dark:text-gray-500 text-[10px] uppercase tracking-wider font-semibold">New here?</span>
-                </div>
-              </div>
+              {!forAdmins && (
+                <>
+                  <div className="relative mb-4">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-200 dark:border-zinc-800" />
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="px-2 bg-white dark:bg-zinc-900 text-gray-400 dark:text-gray-500 text-[10px] uppercase tracking-wider font-semibold">New here?</span>
+                    </div>
+                  </div>
 
-              <button
-                onClick={() => { clearMessages(); setMode('SIGNUP'); }}
-                className="group w-full flex items-center justify-center gap-2 h-10 bg-black hover:bg-neutral-800 dark:bg-white dark:hover:bg-gray-200 text-white dark:text-black rounded-lg text-xs font-bold transition-all shadow-sm hover:shadow-md"
-              >
-                Create Account
-                <span className="opacity-70 group-hover:translate-x-1 transition-transform"><IconChevronRight /></span>
-              </button>
+                  <button
+                    onClick={() => { clearMessages(); setMode('SIGNUP'); }}
+                    className="group w-full flex items-center justify-center gap-2 h-10 bg-black hover:bg-neutral-800 dark:bg-white dark:hover:bg-gray-200 text-white dark:text-black rounded-lg text-xs font-bold transition-all shadow-sm hover:shadow-md"
+                  >
+                    Create Account
+                    <span className="opacity-70 group-hover:translate-x-1 transition-transform"><IconChevronRight /></span>
+                  </button>
+                </>
+              )}
 
               <div className="text-center mt-3">
                 <button

@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { helpTopics, PRIVACY_EMAIL, SUPPORT_EMAIL } from './helpTopics';
+import StoreBadges from './StoreBadges';
 
 // ============================================================================
 // SupportPage: /support on the website
@@ -26,9 +27,10 @@ const SupportPage: React.FC = () => {
         </a>
         <h1 className="mt-6 text-3xl font-bold tracking-tight">Help &amp; Support</h1>
         <p className="mt-3 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
-          MatchGPT is a matrimony app for India, on Android, iPhone and the web. Here are answers to the questions
-          we're asked most, and how to reach us.
+          MatchGPT is a matrimony app for India, on Android and iPhone. Here are answers to the questions we're asked
+          most, and how to reach us.
         </p>
+        <StoreBadges className="mt-5" />
 
         <section className="mt-6 rounded-lg border border-gray-200 dark:border-zinc-800 p-4 text-sm leading-relaxed text-gray-600 dark:text-gray-300 space-y-2" data-testid="support-contact">
           <p><strong className="text-gray-900 dark:text-white">Write to us:</strong>{' '}

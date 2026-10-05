@@ -6,6 +6,7 @@ import { Capacitor } from '@capacitor/core';
 import App from './App';
 import AppErrorBoundary from './components/AppErrorBoundary';
 import { startNativeApp } from './lib/nativeApp';
+import { isWebsite } from './lib/website';
 
 // Pages of the website that stand on their own: account deletion (Google
 // Play asks for one) and support (the stores' Support URL)
@@ -14,6 +15,9 @@ const PAGES = new Map<string, React.LazyExoticComponent<React.FC>>([
   ['support', lazyScreen(() => import('./components/SupportPage'))],
 ]);
 const Page = Capacitor.isNativePlatform() ? undefined : PAGES.get(window.location.pathname.replace(/^\/|\/$/g, ''));
+// Everywhere else on the website: the home page, legal pages and admin panel
+// (members use the apps; lib/website.ts)
+const Website = lazyScreen(() => import('./components/website/Website'));
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -29,6 +33,10 @@ root.render(
       {Page ? (
         <Suspense fallback={null}>
           <Page />
+        </Suspense>
+      ) : isWebsite() ? (
+        <Suspense fallback={null}>
+          <Website />
         </Suspense>
       ) : (
         <App />

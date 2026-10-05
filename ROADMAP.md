@@ -3,9 +3,9 @@
 13 phases in total. Phases 1–5, 7–9 and 12 are done, and Phase 6 is mostly done. **Phase 13 (the
 phone apps ready for the stores) is built. What's left of it is yours: the launch checklist in
 [docs/store/README.md](docs/store/README.md).** Phase 10 (launch readiness) is under way: parts 1 to
-3 are done (checks and a linter on every push, a faster first load, admin alerts, one switch for
+4 are done (checks and a linter on every push, a faster first load, admin alerts, one switch for
 MatchGPT+, tidier access rules, the whole journey tested, the README, MatchGPT+ sold only in the
-apps).
+apps, the website as a home page with the admin panel).
 AI search (Gemini) is built and live; it switches on once you add the `GEMINI_API_KEY` secret (Phase 9).
 MatchGPT+ is sold only in the apps, through Google Play and the App Store (Phase 13); Razorpay was
 dropped on 2026-10-05 (Phase 11).
@@ -23,7 +23,7 @@ Items left unfinished in earlier phases were moved into later ones, so each open
 | 7 | Make the backend safe and rebuildable | **Done** (3 small owner follow-ups) |
 | 8 | Finish half-built features | **Done** (owner checks listed) |
 | 9 | Smarter search that scales | **Done** (add the Gemini key to switch AI on) |
-| 10 | Launch readiness → public launch | **In progress** (parts 1–3 done 2026-10-05) |
+| 10 | Launch readiness → public launch | **In progress** (parts 1–4 done 2026-10-05) |
 | 11 | Payments (MatchGPT+ via Razorpay) | Dropped 2026-10-05: MatchGPT+ is sold only in the apps (Phase 13) |
 | 12 | Profile details for India (community, family, horoscope) | **Done** |
 | 13 | The phone apps, ready for Google Play and the App Store | **Built**; your launch checklist: [docs/store/README.md](docs/store/README.md) |
@@ -325,6 +325,33 @@ database change that removes its fields is ready and waits for your approval (be
   used, and remove any `RAZORPAY_*` secrets. The live `delete-account` still has its old Razorpay
   step until it's next deployed (`npx supabase functions deploy delete-account --project-ref
   fmrbzzdjtarsaqvfukum`); that step finds nothing to cancel, so it changes nothing.
+
+Part 4 done 2026-10-05: **the website is a home page and the admin panel.** As you chose, members use
+MatchGPT in the apps, and the website (https://shaadi-gpt.vercel.app) no longer has the members' app.
+
+- [x] **The home page**: what MatchGPT is, the Google Play and App Store badges ("Coming soon" until
+  `VITE_PLAY_STORE_URL` and `VITE_APP_STORE_URL` are set in Vercel), and links to Help & Support, the
+  Privacy Policy, Terms of Service, Delete your account and the admin panel. No sign-in for members and
+  no cookie banner (the website keeps nothing but an admin's sign-in). It follows the device's light or
+  dark setting and fits a phone's screen.
+- [x] **`/admin`**: a sign-in for MatchGPT's team (email, Google, or a reset code; no sign-up), then
+  the admin panel, with a switch for alerts in that browser. A member who signs in there is told
+  MatchGPT is used in the app.
+- [x] Admin alerts clicked in the browser open their tab in the admin panel, as before.
+- [x] Email links still work on the website: a password-reset link asks for the new password; a member
+  signed in by an email link sees who they are, and can sign out or delete the account (the Delete
+  account page sends them there when its email has a link instead of a code).
+- [x] `/support` says MatchGPT is on Android and iPhone, with the store badges; the help answers send
+  members to the app's Settings.
+- [x] For development and the browser tests, `VITE_MEMBERS_ON_WEB=true` (in `.env.local.example`) puts
+  the members' app back in the browser. Never set it in Vercel.
+- [x] **Tests**: `tests/e2e/website.mjs` (the website as it is live, 39 checks); the other browser tests
+  ran again.
+- [ ] **Owner:** Supabase → Authentication → URL Configuration → Redirect URLs: add
+  `https://shaadi-gpt.vercel.app/**`, so an admin who signs in with Google comes back to the admin panel
+  (without it they come back to the home page, which links to it).
+- [ ] **Owner, once the apps are live:** set `VITE_PLAY_STORE_URL` and `VITE_APP_STORE_URL` in Vercel and
+  redeploy (docs/store/README.md, step 9).
 
 **Still to do**
 

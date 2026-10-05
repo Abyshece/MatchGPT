@@ -9,9 +9,13 @@ checked and exits non-zero on failure; screenshots go to `tests/e2e/.shots/`.
 ```bash
 npx supabase start && npx supabase db reset       # local backend from the migrations
 VITE_SUPABASE_URL=http://127.0.0.1:54321 SUPABASE_SERVICE_ROLE_KEY=<from `npx supabase status`> npx tsx scripts/seed.ts
-VITE_SUPABASE_URL=http://127.0.0.1:54321 VITE_SUPABASE_ANON_KEY=<from `npx supabase status`> npm run dev
+VITE_SUPABASE_URL=http://127.0.0.1:54321 VITE_SUPABASE_ANON_KEY=<from `npx supabase status`> VITE_MEMBERS_ON_WEB=true npm run dev
+VITE_SUPABASE_URL=http://127.0.0.1:54321 VITE_SUPABASE_ANON_KEY=<from `npx supabase status`> VITE_MEMBERS_ON_WEB=false npx vite --port 3002
 npm i --no-save playwright && npx playwright install chromium
 ```
+
+The tests drive the members' app in the browser on port 3000 (`VITE_MEMBERS_ON_WEB=true`), except
+`website.mjs`, which checks the website as it is live (port 3002).
 
 Defaults match the local stack; override with `BASE_URL`, `SUPABASE_URL`,
 `SERVICE_ROLE_KEY`, `MAILPIT_URL`, `DB_CONTAINER` (the database container in
@@ -27,6 +31,7 @@ Defaults match the local stack; override with `BASE_URL`, `SUPABASE_URL`,
 | `reset-flow.mjs` | Forgot password on the website → the email's link → new password; old one rejected; a used link is refused |
 | `reset-code-flow.mjs` | Forgot password → the code from the email → new password, in the Android app (a stand-in for Capacitor's bridge) and on the website: a wrong code refused, the new password works and the old one doesn't, a used code refused, the resend wait; an address without an account gets the same answer and no email (`SERVICE_ROLE_KEY`; set `REPO_ROOT` when running from outside the repo) |
 | `delete-account-page.mjs` | The website's `/delete-account` page at phone width: what's deleted and kept, no cookie banner, an address without an account gets the same answer and no email, the emailed code (a wrong one refused), "Delete" typed, the account gone through the real `delete-account`, nothing kept in the browser; an account without a password (Google or Apple) deleted the same way, the App Store note, dark mode (`SERVICE_ROLE_KEY`) |
+| `website.mjs <admin email> <member email>` | The website as it is live (port 3002, without `VITE_MEMBERS_ON_WEB`): the home page (what MatchGPT is, the store badges with "Coming soon", the footer's pages; no member sign-in, search box or cookie banner; phone width in dark mode), `/terms`, `/privacy` and `#privacy` (Back goes home), `/support` with the badges; `/admin`: a sign-in without sign-up, a member told MatchGPT is used in the app, an admin's panel with the browser alerts switch; admin alerts that open the site or are clicked while it's open go to their tab; a member signed in on the home page can delete the account there; a password-reset link asks for the new password (makes and deletes two accounts) |
 | `support-pages.mjs <email>` | The pages the stores link to: `/support` at phone width (how to reach us, 14 questions that open, links to Terms, Privacy and account deletion, no cookie banner, dark mode), `/privacy` and `/terms` (Back goes home, the address too; `#privacy` still works); Settings → Support (Contact support, Terms, Privacy) and the version from package.json; the Help Center's answers and Contact Support; Download my data (a JSON file on the website; the share sheet in the Android app, whose Help Center names only Google Play) (an onboarded account, password `TestPass!2026`; set `REPO_ROOT` when running from outside the repo) |
 | `content-filter.mjs <email A> <email B>` | Words MatchGPT doesn't allow: messages refused (English, Hindi in Latin letters and Devanagari, disguised spellings), look-alike names and words sent (Randeep, Ranchod, chutney, magna cum laude, Fukrey), editing a message into one refused, read receipts still work; profile text refused naming the field; older text not blocking other updates; the server's writes and reports not filtered; in the website the chat keeps the refused text and says why, and so does My Profile (two onboarded accounts, password `TestPass!2026`; `ANON_KEY`) |
 | `refresh-check.mjs [email]` | The app survives sign-in token refreshes. Set `jwt_expiry = 120` to see several in two minutes |

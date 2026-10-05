@@ -171,8 +171,8 @@ const DeleteAccountPage: React.FC = () => {
                 {busy ? 'Checking…' : 'Continue'}
               </button>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                The email has a link instead of a code? It signs you in on this website, where Settings → Delete Account
-                works too.
+                The email has a link instead of a code? Open it: it signs you in on this website's home page, where you
+                can delete the account.
               </p>
               <div className="flex justify-between text-xs">
                 <button type="button" onClick={() => { setError(null); setStep('email'); }} className="text-gray-500 hover:text-gray-900 dark:hover:text-white">Use another email</button>
