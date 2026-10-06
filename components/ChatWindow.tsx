@@ -356,9 +356,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             )}
           </button>
         </div>
-        {/* A keyboard hint; phones have no Shift+Enter */}
+        {/* A keyboard hint; phones (and touch screens on the web) have no Shift+Enter */}
         {!isNativeApp() && (
-          <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1.5 text-center">
+          <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1.5 text-center [@media(pointer:coarse)]:hidden">
             Press Enter to send, Shift+Enter for newline
           </p>
         )}

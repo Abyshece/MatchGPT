@@ -196,13 +196,14 @@ const RequiredDetails: React.FC = () => {
           )}
         </div>
 
-        <div className="mt-8 flex flex-col gap-3">
-          <Button onClick={save} disabled={saving} className="w-full h-12 justify-center text-base font-semibold">
-            {saving ? 'Saving…' : 'Save and continue'} <IconChevronRight />
-          </Button>
+        {/* Like the Terms screen: Sign out on the left, the button on the right */}
+        <div className="mt-8 pt-6 border-t border-gray-100 dark:border-zinc-800 flex items-center justify-between gap-4">
           <button onClick={() => signOut()} className="text-sm font-medium text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">
             Sign out
           </button>
+          <Button onClick={save} disabled={saving} className="flex-none h-11 px-6 justify-center text-sm font-bold shadow-md">
+            {saving ? 'Saving…' : 'Save and continue'} <IconChevronRight />
+          </Button>
         </div>
       </div>
     </div>

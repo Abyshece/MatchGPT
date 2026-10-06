@@ -57,28 +57,29 @@ export function useToast(): ToastContextValue {
 }
 
 // ----------------------------------------------------------------------------
-// Viewport (the floating toast container, top-right)
+// Viewport (the floating toasts: across the top on a phone, top-right on
+// wider screens)
 // ----------------------------------------------------------------------------
 
 const ToastViewport: React.FC<{ toasts: Toast[] }> = ({ toasts }) => (
   <div
-    className="fixed right-4 z-[1000] flex flex-col gap-2 pointer-events-none"
+    className="fixed inset-x-4 sm:left-auto sm:right-4 z-[1000] flex flex-col items-center sm:items-end gap-2 pointer-events-none"
     style={{ top: 'calc(1rem + var(--safe-top))' }}  // below an iPhone's notch (index.css)
   >
     {toasts.map((t) => (
       <div
         key={t.id}
-        className={`px-4 py-2.5 rounded-lg shadow-lg text-sm font-medium animate-fade-in pointer-events-auto border ${
+        className={`w-full max-w-sm sm:w-auto flex items-start gap-2 px-4 py-2.5 rounded-lg shadow-lg text-sm font-medium text-left animate-fade-in pointer-events-auto border ${
           t.variant === 'success'
-            ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-200 border-green-200 dark:border-green-800'
+            ? 'bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-200 border-green-200 dark:border-green-800'
             : t.variant === 'error'
-            ? 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-200 border-red-200 dark:border-red-800'
+            ? 'bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-200 border-red-200 dark:border-red-800'
             : 'bg-gray-50 dark:bg-zinc-800 text-gray-800 dark:text-gray-100 border-gray-200 dark:border-zinc-700'
         }`}
       >
-        {t.variant === 'success' && <span className="mr-2">✓</span>}
-        {t.variant === 'error' && <span className="mr-2">✕</span>}
-        {t.message}
+        {t.variant === 'success' && <span aria-hidden="true" className="flex-none">✓</span>}
+        {t.variant === 'error' && <span aria-hidden="true" className="flex-none">✕</span>}
+        <span className="min-w-0">{t.message}</span>
       </div>
     ))}
   </div>

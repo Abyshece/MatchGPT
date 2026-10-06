@@ -96,7 +96,7 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({ email, onVerified
         <div className="max-w-[420px] w-full">
           <div className="mb-10">
             <div className="text-5xl mb-6">📧</div>
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">Check your inbox</h1>
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">Check your inbox</h1>
             <p className="text-lg text-gray-500 dark:text-gray-400 leading-relaxed">
               We sent a 6-digit code to <span className="font-semibold text-gray-900 dark:text-white">{email}</span>.
             </p>

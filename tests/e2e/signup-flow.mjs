@@ -80,7 +80,8 @@ try {
   });
 
   // A label's own select (the form's labels sit right before their input)
-  const selectAfter = (label) => page.locator(`label:text-is("${label}") + select`);
+  // The select after a label, by the label's whole text ("(optional)" is set apart in it)
+  const selectAfter = (label) => page.locator(`xpath=//label[normalize-space(.)="${label}"]/following-sibling::select[1]`);
   const pick = async (name, typed, option) => {
     const box = page.getByRole('combobox', { name });
     await box.click();
@@ -95,7 +96,7 @@ try {
     await page.getByLabel('Month').selectOption({ label: 'Jan' });
     await page.getByLabel('Year').selectOption('1997');
     await selectAfter('Gender').selectOption('Male');
-    await page.locator('label:text-is("Pronouns (optional)") + select').selectOption('He/Him');
+    await selectAfter('Pronouns (optional)').selectOption('He/Him');
     await selectAfter('Interested in').selectOption('Women');
     await selectAfter('Looking for').selectOption('Marriage');
     await selectAfter('Marital status').selectOption('Divorced');

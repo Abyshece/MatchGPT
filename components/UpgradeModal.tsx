@@ -125,10 +125,10 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ reason, resetInHours, onClo
                 ))}
               </ul>
               {proForAll && <p className="-mt-4 mb-6 text-xs text-gray-500 dark:text-gray-400">{FEATURES_FREE_NOW}</p>}
-              <p className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-3">
+              <p className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-3 text-center">
                 Shaadi24+ is bought in the Shaadi24 app, on Android or iPhone.
               </p>
-              <StoreBadges className="mb-6" />
+              <StoreBadges className="mb-6 justify-center" />
               {closeButton('Close')}
             </>
           )}

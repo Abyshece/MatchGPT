@@ -27,14 +27,10 @@ const ProfileRewardsCard: React.FC<{
       data-testid="profile-rewards"
       className="mb-10 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 sm:p-6 shadow-sm"
     >
+      {/* The title and today's number side by side; the explanation under both, full width */}
       <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h3 id="rewards-title" className="text-lg font-bold text-gray-900 dark:text-white">Earn free AI searches</h3>
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
-            Each section you complete adds one free search a day, up to {base + list.length || base + 6} a day.
-          </p>
-        </div>
-        <div className="flex-none text-right">
+        <h3 id="rewards-title" className="min-w-0 pt-0.5 text-base sm:text-lg font-bold text-gray-900 dark:text-white">Earn free AI searches</h3>
+        <div className="flex-none text-right leading-tight">
           {isPro ? (
             <>
               <div className="text-2xl font-bold text-gray-900 dark:text-white">∞</div>
@@ -50,6 +46,9 @@ const ProfileRewardsCard: React.FC<{
           )}
         </div>
       </div>
+      <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+        Each section you complete adds one free search a day, up to {base + list.length || base + 6} a day.
+      </p>
 
       {sections === null ? (
         <div className="mt-4 h-24 rounded-lg bg-gray-50 dark:bg-zinc-800/50 animate-pulse" aria-hidden="true" />
@@ -75,9 +74,9 @@ const ProfileRewardsCard: React.FC<{
                     {s.complete ? <IconCheck /> : '+1'}
                   </span>
                   <span className="flex-1 min-w-0">
-                    <span className="flex items-center justify-between gap-2">
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white group-hover:underline truncate">{s.title}</span>
-                      <span className={`flex-none text-xs font-medium ${s.complete ? 'text-green-700 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                    <span className="flex items-start justify-between gap-2">
+                      <span className="min-w-0 text-sm font-semibold text-gray-900 dark:text-white group-hover:underline">{s.title}</span>
+                      <span className={`flex-none pt-px text-xs font-medium whitespace-nowrap ${s.complete ? 'text-green-700 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
                         {s.complete ? '+1 search a day' : `${left} more ${left === 1 ? 'answer' : 'answers'}`}
                       </span>
                     </span>
@@ -100,7 +99,7 @@ const ProfileRewardsCard: React.FC<{
         </ul>
       )}
 
-      <div className="mt-3 pt-3 border-t border-gray-100 dark:border-zinc-800 flex items-center justify-between gap-3 text-xs text-gray-500 dark:text-gray-400">
+      <div className="mt-3 pt-3 border-t border-gray-100 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
         <span>{done} of {list.length || 6} sections complete</span>
         <span>
           Profile {completionPercentage}% complete

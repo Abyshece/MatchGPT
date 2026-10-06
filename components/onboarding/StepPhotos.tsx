@@ -216,12 +216,12 @@ const StepPhotos: React.FC<StepPhotosProps> = ({ onComplete, onBack }) => {
             })}
           </div>
 
-          <div className="mt-6 flex justify-between items-center flex-none pb-6">
-            <div className="text-sm text-gray-500 dark:text-gray-400">
+          <div className="mt-6 pt-6 border-t border-gray-100 dark:border-zinc-800 flex justify-between items-center gap-4 flex-none pb-6">
+            <div className="min-w-0 text-sm text-gray-500 dark:text-gray-400">
               {uploadedCount}/{PHOTO_SLOTS.length} uploaded
               {!canContinue && <span className="ml-2 text-amber-600 dark:text-amber-400">— need {minRequired - uploadedCount} more</span>}
             </div>
-            <Button onClick={handleContinue} disabled={!canContinue || isSaving} className="h-10 px-6 text-sm shadow-lg">
+            <Button onClick={handleContinue} disabled={!canContinue || isSaving} className="flex-none h-11 px-6 text-sm font-bold shadow-md">
               {isSaving ? 'Saving…' : 'Continue'} <IconChevronRight />
             </Button>
           </div>

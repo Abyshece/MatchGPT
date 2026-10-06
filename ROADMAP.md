@@ -3,11 +3,11 @@
 13 phases in total. Phases 1–5, 7–9 and 12 are done, and Phase 6 is mostly done. **Phase 13 (the
 phone apps ready for the stores) is built. What's left of it is yours: the launch checklist in
 [docs/store/README.md](docs/store/README.md).** Phase 10 (launch readiness) is under way: parts 1 to
-9 are done (checks and a linter on every push, a faster first load, admin alerts, one switch for
+10 are done (checks and a linter on every push, a faster first load, admin alerts, one switch for
 Shaadi24+, tidier access rules, the whole journey tested, the README, Shaadi24+ sold only in the
 apps, the website as a home page with the admin panel, an accessibility check, error reports in
-Admin → Errors, the new name, Shaadi24, the members' app inside the admin panel, and required
-answers with free searches for filling in the profile). The iPhone app goes to TestFlight from GitHub's Macs.
+Admin → Errors, the new name, Shaadi24, the members' app inside the admin panel, required
+answers with free searches for filling in the profile, and an alignment pass over every screen). The iPhone app goes to TestFlight from GitHub's Macs.
 AI search (Gemini) is built and live; it switches on once you add the `GEMINI_API_KEY` secret (Phase 9).
 Shaadi24+ is sold only in the apps, through Google Play and the App Store (Phase 13); Razorpay was
 dropped on 2026-10-05 (Phase 11).
@@ -25,7 +25,7 @@ Items left unfinished in earlier phases were moved into later ones, so each open
 | 7 | Make the backend safe and rebuildable | **Done** (3 small owner follow-ups) |
 | 8 | Finish half-built features | **Done** (owner checks listed) |
 | 9 | Smarter search that scales | **Done** (add the Gemini key to switch AI on) |
-| 10 | Launch readiness → public launch | **In progress** (parts 1–9 done 2026-10-06) |
+| 10 | Launch readiness → public launch | **In progress** (parts 1–10 done 2026-10-06) |
 | 11 | Payments (Shaadi24+ via Razorpay) | Dropped 2026-10-05: Shaadi24+ is sold only in the apps (Phase 13) |
 | 12 | Profile details for India (community, family, horoscope) | **Done** |
 | 13 | The phone apps, ready for Google Play and the App Store | **Built**; your launch checklist: [docs/store/README.md](docs/store/README.md) |
@@ -472,6 +472,29 @@ Part 9 done 2026-10-06: **required answers, and free searches for filling in the
   a new browser test (`tests/e2e/profile-rewards.mjs`, 24 checks), the sign-up, India-profile, reset
   and journey tests updated for the required answers, and the full browser run (27 suites) and the
   accessibility check passed.
+
+Part 10 done 2026-10-06: **an alignment pass** over every screen of the apps, the website and the admin
+panel, at phone and desktop width, in light and dark (over 100 screenshots).
+
+- [x] **My Profile on phones**: values were cut off ("Meera Testc", "Never Marri"). The label now takes
+  2/5 of the width and values wrap; the edit and hide buttons always show on touch screens (they
+  waited for a hover); editing no longer pushes the page sideways; the red "empty" dot stays with the
+  label. A section's badge moves under its title when there's no room.
+- [x] **Find Match**: the profile banner's icon, text and button line up (they were centred, left and
+  centred), with the close button at the top right; after a search the heading is centred like the
+  chips, count and results under it (it was left-aligned).
+- [x] **Notifications** run across the top on phones (top-right on wider screens), keep their icon
+  beside text that wraps, and are solid in dark mode.
+- [x] **Buttons**: the sign-in form's Log In, Create Account, Send Code and Continue match the first
+  screen's buttons. Sign-up's three steps, the Terms screen and the required-details screen share one
+  footer: Skip or Sign out (and how much is filled in) on the left, the button on the right, the same
+  size everywhere; in step 1, fields side by side line up ("(optional)" is set small, so labels fit on
+  one line). The Shaadi24+ and daily-limit popups centre the store badges and their note.
+- [x] **Also**: Likes You's title stays on one line, with "Sort by" under it on phones; the "Earn free AI
+  searches" card no longer cuts section names short; Settings' account card fits a phone (a long email
+  is shortened, Edit Profile stays inside); page titles are a size smaller on phones; Admin → Users
+  reads "Joined … · N searches today · N likes today" (lines started with "·"); the chat's
+  Shift+Enter hint is hidden on touch screens.
 
 **Still to do**
 

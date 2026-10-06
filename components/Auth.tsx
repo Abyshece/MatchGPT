@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Button } from './NotionUI';
 import { IconMail, IconGoogle, IconChevronRight, IconX } from '../constants';
 import { supabase } from '../lib/supabase';
 import { TERMS_VERSION, PRIVACY_VERSION } from '../lib/consentService';
@@ -351,13 +350,9 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
               </div>
             </div>
 
-            <Button
-              onClick={() => {}}
-              className="w-full h-9 justify-center mt-1 text-xs font-bold rounded-md"
-              disabled={isLoading}
-            >
+            <button type="submit" className="w-full flex items-center justify-center gap-2 h-10 mt-1 bg-black hover:bg-neutral-800 dark:bg-white dark:hover:bg-gray-200 text-white dark:text-black rounded-lg text-xs font-bold transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-sm" disabled={isLoading}>
               {isLoading ? 'Signing in…' : 'Log In'}
-            </Button>
+            </button>
 
             <button
               type="button"
@@ -448,13 +443,9 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
               </span>
             </label>
 
-            <Button
-              onClick={() => {}}
-              className="w-full h-9 justify-center mt-1 text-xs font-bold rounded-md"
-              disabled={isLoading || !agreedToTerms}
-            >
+            <button type="submit" className="w-full flex items-center justify-center gap-2 h-10 mt-1 bg-black hover:bg-neutral-800 dark:bg-white dark:hover:bg-gray-200 text-white dark:text-black rounded-lg text-xs font-bold transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-sm" disabled={isLoading || !agreedToTerms}>
               {isLoading ? 'Creating account…' : 'Create Account'}
-            </Button>
+            </button>
 
             <button
               type="button"
@@ -484,13 +475,9 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
               />
             </div>
 
-            <Button
-              onClick={() => {}}
-              className="w-full h-9 justify-center mt-1 text-xs font-bold rounded-md"
-              disabled={isLoading}
-            >
+            <button type="submit" className="w-full flex items-center justify-center gap-2 h-10 mt-1 bg-black hover:bg-neutral-800 dark:bg-white dark:hover:bg-gray-200 text-white dark:text-black rounded-lg text-xs font-bold transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-sm" disabled={isLoading}>
               {isLoading ? 'Sending…' : 'Send Code'}
-            </Button>
+            </button>
 
             <button
               type="button"
@@ -517,13 +504,9 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
                 autoFocus
               />
             </div>
-            <Button
-              onClick={() => {}}
-              className="w-full h-9 justify-center mt-1 text-xs font-bold rounded-md"
-              disabled={isLoading || resetCode.length < 6}
-            >
+            <button type="submit" className="w-full flex items-center justify-center gap-2 h-10 mt-1 bg-black hover:bg-neutral-800 dark:bg-white dark:hover:bg-gray-200 text-white dark:text-black rounded-lg text-xs font-bold transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-sm" disabled={isLoading || resetCode.length < 6}>
               {isLoading ? 'Checking…' : 'Continue'}
-            </Button>
+            </button>
             <p className="text-[10px] text-gray-500 dark:text-gray-400 text-center leading-relaxed">
               The email's link works too: it opens the website to choose a new password.
             </p>
