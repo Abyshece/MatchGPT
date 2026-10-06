@@ -168,6 +168,12 @@ Package Manager, so there's no CocoaPods step.
 
 After any code change, run the build command again before Run.
 
+**Claude Code can use the app too.** `.mcp.json` adds [mobile-mcp](https://github.com/mobile-next/mobile-mcp)
+to Claude Code in this folder (it asks before turning it on). With an Android emulator or iPhone simulator
+running, or a phone connected (Android: USB debugging on), Claude can install the test app, tap through
+it, type and take screenshots, for example to check a screen after a change. It needs `adb` from the
+Android SDK on the PATH for Android; iPhones need a Mac.
+
 **For the stores**:
 
 - **Google Play.** `npm run build:android:release` builds the bundle Google Play takes,

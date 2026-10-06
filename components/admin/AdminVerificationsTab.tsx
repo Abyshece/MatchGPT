@@ -129,7 +129,7 @@ const VerificationCard: React.FC<{
         <div className="flex-1 min-w-0">
           <h4 className="font-bold text-gray-900 dark:text-white text-sm">{req.user_name}</h4>
           <p className="text-xs text-gray-500 dark:text-gray-400">{req.user_email}</p>
-          <p className="text-[11px] text-gray-400 mt-0.5">
+          <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
             Requested {new Date(req.requested_at).toLocaleString()} · {linkCount} link{linkCount === 1 ? '' : 's'}
           </p>
         </div>
@@ -156,8 +156,8 @@ const VerificationCard: React.FC<{
               className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-zinc-900/50 border border-dashed border-gray-200 dark:border-zinc-700 rounded text-xs opacity-50"
             >
               <span>{l.icon}</span>
-              <span className="font-medium text-gray-400 truncate">{l.label}</span>
-              <span className="text-[10px] text-gray-400">—</span>
+              <span className="font-medium text-gray-500 dark:text-gray-400 truncate">{l.label}</span>
+              <span className="text-[10px] text-gray-500 dark:text-gray-400">—</span>
             </div>
           )
         )}

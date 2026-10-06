@@ -47,7 +47,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             onDecline={onDeclineDate ? () => onDeclineDate(message.id) : undefined}
           />
           {isMine && showReceipts && (
-            <div className="text-[10px] text-gray-400 mt-1 text-right pr-1 flex items-center justify-end gap-1">
+            <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-1 text-right pr-1 flex items-center justify-end gap-1">
               {message.readAt ? (
                 <><span className="text-blue-500"><IconCheck className="w-3 h-3" /></span> Read</>
               ) : (
@@ -86,7 +86,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
         {/* Timestamp + read receipt */}
         <div className={`text-[10px] mt-0.5 px-1 flex items-center gap-1 ${
-          isMine ? 'text-gray-400' : 'text-gray-400 dark:text-gray-500'
+          isMine ? 'text-gray-500' : 'text-gray-500 dark:text-gray-400'
         }`}>
           <span>{formatTime(message.createdAt)}</span>
           {isMine && showReceipts && (

@@ -177,7 +177,7 @@ const VerificationRequestModal: React.FC<VerificationRequestModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="-mr-2 -mt-1 p-2 rounded-lg text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+            className="-mr-2 -mt-1 p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
             aria-label="Close"
           >
             <IconX />
@@ -243,7 +243,7 @@ const VerificationRequestModal: React.FC<VerificationRequestModalProps> = ({
             <span className={validCount >= MIN_LINKS ? 'text-green-700 dark:text-green-400 font-semibold' : 'text-gray-500 dark:text-gray-400'}>
               {validCount >= MIN_LINKS ? `${validCount} links added` : `${validCount} of ${MIN_LINKS} links added`}
             </span>
-            <span className="text-gray-400 dark:text-zinc-500">Only our review team sees these.</span>
+            <span className="text-gray-500 dark:text-zinc-500">Only our review team sees these.</span>
           </div>
           <div className="flex flex-col-reverse sm:flex-row gap-2 sm:justify-end">
             <button

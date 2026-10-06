@@ -218,7 +218,7 @@ const LikeButton: React.FC<LikeButtonProps> = ({
                 {busy ? 'Sending…' : 'Yes, Like'}
               </button>
             </div>
-            <p className="text-[11px] text-gray-400 mt-3">
+            <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-3">
               <strong>Pro tip:</strong> Pro users have unlimited likes.
             </p>
           </div>
@@ -241,7 +241,7 @@ const LikeButton: React.FC<LikeButtonProps> = ({
                 ? 'bg-gray-100 dark:bg-zinc-800 text-gray-300 dark:text-zinc-600 cursor-not-allowed'
                 : superLikes
                   ? 'bg-white dark:bg-zinc-800 text-blue-500 hover:scale-110 hover:bg-blue-50 dark:hover:bg-blue-900/30 border border-gray-200 dark:border-zinc-700'
-                  : 'bg-white dark:bg-zinc-800 text-gray-400 hover:text-gray-600 hover:bg-gray-50 dark:hover:bg-zinc-700 border border-gray-200 dark:border-zinc-700'
+                  : 'bg-white dark:bg-zinc-800 text-gray-500 dark:text-gray-400 hover:text-gray-600 hover:bg-gray-50 dark:hover:bg-zinc-700 border border-gray-200 dark:border-zinc-700'
             }`}
           >
             <span className={sizes.icon}><IconStar /></span>

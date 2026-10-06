@@ -195,7 +195,7 @@ const AdminFinanceTab: React.FC = () => {
       )}
 
       {!summary && !loading && (
-        <div className="text-center py-12 text-sm text-gray-400">
+        <div className="text-center py-12 text-sm text-gray-500 dark:text-gray-400">
           Couldn't load the finances{failed ? `: ${failed}` : ''}.{' '}
           <button onClick={loadSummary} className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">Try again</button>
         </div>
@@ -205,7 +205,7 @@ const AdminFinanceTab: React.FC = () => {
         // While new figures load, the old ones stay, dimmed
         <div className={`space-y-6 transition-opacity ${loading ? 'opacity-60' : ''}`} aria-busy={loading}>
           <section>
-            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Subscribers now</h2>
+            <h2 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3">Subscribers now</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <Tile
                 label="Subscribers"
@@ -245,7 +245,7 @@ const AdminFinanceTab: React.FC = () => {
           </section>
 
           <section>
-            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Money</h2>
+            <h2 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3">Money</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <Tile
                 label="Net this month"
@@ -298,7 +298,7 @@ const AdminFinanceTab: React.FC = () => {
             </div>
 
             {!anyMoney ? (
-              <div className="py-12 text-center text-sm text-gray-400" data-testid="finance-empty">
+              <div className="py-12 text-center text-sm text-gray-500 dark:text-gray-400" data-testid="finance-empty">
                 No charges in these months{mode === 'test' ? '' : ' yet'}.
               </div>
             ) : view === 'chart' ? (
@@ -319,7 +319,7 @@ const AdminFinanceTab: React.FC = () => {
                   selected={month}
                   onSelect={(m) => setMonth((cur) => (cur === m ? null : m))}
                 />
-                <p className="mt-1 text-[11px] text-gray-400">Tap or click a month to list its charges below.</p>
+                <p className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">Tap or click a month to list its charges below.</p>
               </>
             ) : (
               <MonthTable months={months} sellers={sellers} />
@@ -338,7 +338,7 @@ const AdminFinanceTab: React.FC = () => {
       {/* Every charge */}
       <section>
         <div className="flex flex-wrap items-end gap-2 mb-3">
-          <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mr-auto">Charges</h2>
+          <h2 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mr-auto">Charges</h2>
           <label className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
             Seller
             <select
@@ -384,13 +384,13 @@ const AdminFinanceTab: React.FC = () => {
 
         <div className={`bg-white dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-zinc-700 overflow-x-auto transition-opacity ${chargesLoading && charges.length ? 'opacity-60' : ''}`}>
           {!charges.length ? (
-            <div className="p-8 text-center text-sm text-gray-400" data-testid="charges-empty">
+            <div className="p-8 text-center text-sm text-gray-500 dark:text-gray-400" data-testid="charges-empty">
               {chargesLoading ? 'Loading…' : 'No charges here.'}
             </div>
           ) : (
             <table className="w-full min-w-[900px] text-xs" data-testid="charges-table">
               <thead>
-                <tr className="text-left text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100 dark:border-zinc-700">
+                <tr className="text-left text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-zinc-700">
                   <th className="px-3 py-2 font-bold">Date (India)</th>
                   <th className="px-3 py-2 font-bold">Customer</th>
                   <th className="px-3 py-2 font-bold">Seller</th>
@@ -414,7 +414,7 @@ const AdminFinanceTab: React.FC = () => {
                           <div className="text-gray-500 dark:text-gray-400 truncate">{c.user_email}</div>
                         </>
                       ) : (
-                        <span className="italic text-gray-400">Deleted account</span>
+                        <span className="italic text-gray-500 dark:text-gray-400">Deleted account</span>
                       )}
                     </td>
                     <td className="px-3 py-2 whitespace-nowrap text-gray-700 dark:text-gray-200">
@@ -431,7 +431,7 @@ const AdminFinanceTab: React.FC = () => {
                     <td className="px-3 py-2 text-right whitespace-nowrap text-gray-900 dark:text-white">{formatMoney(c.amount, c.currency)}</td>
                     <td className="px-3 py-2 text-right whitespace-nowrap text-gray-600 dark:text-gray-300">
                       {c.fee_amount === null ? '—' : formatMoney(c.fee_amount, c.currency)}
-                      {c.fee_amount !== null && c.fee_estimated && <span className="text-gray-400" title="Estimated until the store's payout report"> est.</span>}
+                      {c.fee_amount !== null && c.fee_estimated && <span className="text-gray-500 dark:text-gray-400" title="Estimated until the store's payout report"> est.</span>}
                     </td>
                     <td className="px-3 py-2 text-right whitespace-nowrap text-gray-600 dark:text-gray-300">
                       {c.refunded_amount > 0 ? formatMoney(c.refunded_amount, c.currency) : '—'}
@@ -491,9 +491,9 @@ function Segmented<T extends string | number>({ label, value, options, onChange,
 
 const Tile: React.FC<{ label: string; value: string; exact?: string; sub?: string; testId?: string }> = ({ label, value, exact, sub, testId }) => (
   <div className="rounded-lg p-4 border bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700" data-testid={testId}>
-    <div className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">{label}</div>
+    <div className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1">{label}</div>
     <div className="text-2xl font-bold text-gray-900 dark:text-white" title={exact && exact !== value ? exact : undefined}>{value}</div>
-    {sub && <div className="text-[10px] text-gray-400 mt-0.5">{sub}</div>}
+    {sub && <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">{sub}</div>}
   </div>
 );
 
@@ -521,7 +521,7 @@ function MonthTable({ months, sellers }: { months: FinanceMonth[]; sellers: Sell
     <div className="overflow-x-auto">
       <table className="w-full min-w-[640px] text-xs" data-testid="finance-month-table">
         <thead>
-          <tr className="text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100 dark:border-zinc-700">
+          <tr className="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-zinc-700">
             <th className="px-3 py-2 text-left font-bold">Month</th>
             {sellers.length > 1 && sellers.map((s) => <th key={s} className={`${cells} font-bold`}>{SELLER_LABEL[s]} net</th>)}
             <th className={`${cells} font-bold`}>Net</th>

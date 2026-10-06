@@ -21,7 +21,7 @@ const PushNotifSetup = lazyScreen(() => import('../PushNotifSetup'));
 const Spinner: React.FC<{ label: string }> = ({ label }) => (
   <div className="min-h-screen flex flex-col items-center justify-center gap-3">
     <div className="w-8 h-8 border-3 border-gray-200 dark:border-zinc-700 border-t-black dark:border-t-white rounded-full animate-spin" />
-    <div className="text-gray-400 text-sm">{label}</div>
+    <div className="text-gray-500 dark:text-gray-400 text-sm">{label}</div>
   </div>
 );
 
@@ -108,11 +108,11 @@ const AdminShell: React.FC<{ email: string; onSignOut: () => void }> = ({ email,
           <Suspense fallback={null}><PushNotifSetup forAdmins /></Suspense>
         </div>
       )}
-      <div className="flex-1 relative overflow-hidden">
+      <main className="flex-1 relative overflow-hidden">
         <Suspense fallback={<Spinner label="Loading…" />}>
           <AdminView key={open.key} initialTab={open.tab} />
         </Suspense>
-      </div>
+      </main>
     </div>
   );
 };

@@ -247,7 +247,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
               size="compact"
               ariaLabel="Caste or community"
             />
-            <p className="text-[10px] text-gray-400 mt-1">People who chose "Prefer not to say" or hid it won't show up with this on.</p>
+            <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">People who chose "Prefer not to say" or hid it won't show up with this on.</p>
           </FilterRow>
 
           <FilterRow label="Marital status" locked={!isPro} onUpgrade={onUpgrade}>

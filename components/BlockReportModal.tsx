@@ -60,7 +60,7 @@ const BlockReportModal: React.FC<BlockReportModalProps> = ({
       >
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 z-30 p-1.5 rounded-full text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800"
+          className="absolute top-3 right-3 z-30 p-1.5 rounded-full text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800"
         >
           <IconX />
         </button>

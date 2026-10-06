@@ -118,7 +118,7 @@ const MatchesView: React.FC<MatchesViewProps> = ({ initialMatchId }) => {
   });
 
   if (!profile || !settings || !userId) {
-    return <div className="p-12 text-center text-gray-400">Loading…</div>;
+    return <div className="p-12 text-center text-gray-500 dark:text-gray-400">Loading…</div>;
   }
 
   const isPro = hasPro;

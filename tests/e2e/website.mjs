@@ -125,7 +125,7 @@ try {
   await page.screenshot({ path: `${OUT}3-admin-sign-in.png` });
   await adminSignIn(page, MEMBER);
   check(await appears(page.getByTestId('not-an-admin')), 'a member: "MatchGPT is used in the app"');
-  check(await page.getByTestId('not-an-admin').getByText('Google Play', { exact: true }).isVisible(), 'with the store badges');
+  check(await appears(page.getByTestId('not-an-admin').getByText('Google Play', { exact: true })), 'with the store badges');
   check(await page.getByText('Total Users').count() === 0, 'and no admin panel');
   await page.screenshot({ path: `${OUT}4-member-at-admin.png` });
 

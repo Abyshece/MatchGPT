@@ -40,7 +40,7 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => {
         </div>
       </header>
 
-      <article className="max-w-3xl mx-auto px-6 py-10">
+      <main className="max-w-3xl mx-auto px-6 py-10">
         <p className="text-xs text-gray-500 dark:text-gray-400 mb-6">
           Document version: {TERMS_VERSION} · Last updated: October 5, 2026
         </p>
@@ -191,11 +191,11 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => {
         </Section>
 
         <div className="border-t border-gray-200 dark:border-zinc-800 pt-6 mt-10 text-center">
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             This document was last updated on October 4, 2026 and is identified internally as {TERMS_VERSION}.
           </p>
         </div>
-      </article>
+      </main>
     </div>
   );
 };

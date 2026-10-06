@@ -177,7 +177,7 @@ const DeleteAccountPage: React.FC = () => {
               <div className="flex justify-between text-xs">
                 <button type="button" onClick={() => { setError(null); setStep('email'); }} className="text-gray-500 hover:text-gray-900 dark:hover:text-white">Use another email</button>
                 {cooldown > 0
-                  ? <span className="text-gray-400">Send again in {cooldown}s</span>
+                  ? <span className="text-gray-500 dark:text-gray-400">Send again in {cooldown}s</span>
                   : <button type="button" onClick={() => sendCode()} className="font-medium text-blue-600 dark:text-blue-400">Send a new code</button>}
               </div>
             </form>

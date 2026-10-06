@@ -78,14 +78,14 @@ const MatchCelebrationModal: React.FC<MatchCelebrationModalProps> = ({
             {myPhoto ? (
               <img src={myPhoto} alt="You" className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-3xl text-gray-400">👤</div>
+              <div className="w-full h-full flex items-center justify-center text-3xl text-gray-500 dark:text-gray-400">👤</div>
             )}
           </div>
           <div className="absolute right-0 top-1/2 -translate-y-1/2 w-32 h-40 rounded-2xl overflow-hidden border-4 border-white shadow-2xl rotate-[8deg] bg-gray-200">
             {theirPhoto ? (
               <img src={theirPhoto} alt={matchedWith.name} className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-3xl text-gray-400">👤</div>
+              <div className="w-full h-full flex items-center justify-center text-3xl text-gray-500 dark:text-gray-400">👤</div>
             )}
           </div>
           {/* Heart in the middle */}

@@ -316,7 +316,7 @@ const StepProfileDetails: React.FC<StepProfileDetailsProps> = ({ onComplete, onB
           <IconChevronLeft />
         </button>
         <div className="font-bold text-gray-700 dark:text-gray-100 text-lg">MatchGPT</div>
-        <div className="ml-auto text-xs text-gray-400 font-medium">
+        <div className="ml-auto text-xs text-gray-500 dark:text-gray-400 font-medium">
           Page {pageIndex + 1} of {PAGES.length}
         </div>
       </div>
@@ -331,7 +331,7 @@ const StepProfileDetails: React.FC<StepProfileDetailsProps> = ({ onComplete, onB
 
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-2xl mx-auto py-10 px-6">
-          <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Step 3 of 3</div>
+          <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">Step 3 of 3</div>
           <div className="text-5xl mb-4">{page.emoji}</div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">{page.title}</h1>
           <p className="text-gray-500 dark:text-gray-400 mb-8">{page.subtitle}</p>
@@ -345,7 +345,7 @@ const StepProfileDetails: React.FC<StepProfileDetailsProps> = ({ onComplete, onB
           <div className="space-y-5">
             {shownFields.map(field => (
               <div key={field.key}>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">
+                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5">
                   {labelOf(field, context)}
                 </label>
                 {field.type === 'text' && (
@@ -395,7 +395,7 @@ const StepProfileDetails: React.FC<StepProfileDetailsProps> = ({ onComplete, onB
                     groups={field.groups}
                   />
                 )}
-                {field.hint && <p className="text-[10px] text-gray-400 mt-1">{field.hint}</p>}
+                {field.hint && <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">{field.hint}</p>}
               </div>
             ))}
           </div>
@@ -416,7 +416,7 @@ const StepProfileDetails: React.FC<StepProfileDetailsProps> = ({ onComplete, onB
           </div>
 
           {filledOnPage > 0 && (
-            <p className="mt-4 text-center text-[11px] text-gray-400">
+            <p className="mt-4 text-center text-[11px] text-gray-500 dark:text-gray-400">
               You've filled {filledOnPage} of {shownFields.length} on this page.
             </p>
           )}

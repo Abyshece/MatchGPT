@@ -122,6 +122,9 @@ const WebPushSetup: React.FC<{ forAdmins: boolean }> = ({ forAdmins }) => {
       </div>
       <button
         disabled={busy}
+        role="switch"
+        aria-checked={subscribed}
+        aria-label={forAdmins ? 'Alerts in this browser' : 'Push notifications on this device'}
         className={`w-10 h-5 rounded-full relative transition-colors flex-shrink-0 disabled:opacity-50 ${
           subscribed ? 'bg-blue-500' : 'bg-gray-300 dark:bg-zinc-600'
         }`}

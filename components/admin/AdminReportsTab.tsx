@@ -138,13 +138,13 @@ const AdminReportsTab: React.FC<AdminReportsTabProps> = ({ onAuditUpdate }) => {
                     }`}>
                       {r.status}
                     </span>
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
                       {new Date(r.created_at).toLocaleString()}
                     </span>
                   </div>
                   <div className="text-sm text-gray-900 dark:text-white">
                     <span className="font-bold">{r.reporter_name ?? r.reporter_email ?? 'Anonymous'}</span>
-                    <span className="text-gray-400"> reported </span>
+                    <span className="text-gray-500 dark:text-gray-400"> reported </span>
                     <span className="font-bold">{r.reported_name ?? r.reported_email ?? 'a user'}</span>
                   </div>
                   <div className="text-xs text-gray-600 dark:text-gray-300 mt-1">

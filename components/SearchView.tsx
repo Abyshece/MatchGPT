@@ -220,7 +220,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
   }, [handleSearch]);
 
   if (!profile || !userId || !allowance || !verification) {
-    return <div className="p-12 text-center text-gray-400">Loading…</div>;
+    return <div className="p-12 text-center text-gray-500 dark:text-gray-400">Loading…</div>;
   }
 
   const handleExampleClick = (ex: string) => setPrompt(ex);
@@ -350,7 +350,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
             className={`ml-1 w-9 h-9 flex-none flex items-center justify-center rounded-full transition-all relative ${
               activeFilterCount > 0
                 ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50'
-                : 'text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-700'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-700'
             }`}
             title="Filters"
             aria-label="Open filters"
@@ -441,7 +441,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
             )}
             <button
               onClick={() => setFilters(DEFAULT_FILTERS)}
-              className="text-[10px] text-gray-400 hover:text-red-500 hover:underline ml-1 self-center"
+              className="text-[10px] text-gray-500 dark:text-gray-400 hover:text-red-500 hover:underline ml-1 self-center"
             >
               Clear all
             </button>
@@ -451,7 +451,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
         {/* Trending Near You — landing state only */}
         {!hasSearched && (
           <div className="mt-8 mb-10 animate-fade-in">
-            <p className="text-center text-[11px] uppercase font-bold text-gray-400 tracking-widest mb-4">
+            <p className="text-center text-[11px] uppercase font-bold text-gray-500 dark:text-gray-400 tracking-widest mb-4">
               Trending near you
             </p>
             <div className="flex flex-wrap justify-center gap-3">
@@ -473,7 +473,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
           <div className="mt-8">
             {!searching && understood && understood.labels.length > 0 && (
               <div className="flex flex-wrap items-center justify-center gap-1.5 mb-6 animate-fade-in" data-testid="understood">
-                <span className="text-xs text-gray-400 mr-1">
+                <span className="text-xs text-gray-500 dark:text-gray-400 mr-1">
                   {understood.byAi ? '✨ Understood by AI:' : 'Understood:'}
                 </span>
                 {understood.labels.map((label) => (

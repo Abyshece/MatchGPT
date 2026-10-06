@@ -54,7 +54,7 @@ const TabLoader: React.FC = () => (
   <div className="flex items-center justify-center h-full">
     <div className="flex flex-col items-center gap-3">
       <div className="w-6 h-6 border-2 border-gray-200 dark:border-zinc-700 border-t-black dark:border-t-white rounded-full animate-spin" />
-      <div className="text-xs text-gray-400">Loading…</div>
+      <div className="text-xs text-gray-500 dark:text-gray-400">Loading…</div>
     </div>
   </div>
 );
@@ -172,7 +172,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
   if (!profile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#191919]">
-        <div className="text-gray-400 text-sm">Loading…</div>
+        <div className="text-gray-500 dark:text-gray-400 text-sm">Loading…</div>
       </div>
     );
   }
@@ -233,7 +233,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
           {activeTab === 'search' && (
             <button
               onClick={() => setSearchResetKey((k) => k + 1)}
-              className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-2 rounded hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+              className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-2 rounded hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
               title="New search"
               aria-label="New search"
             >

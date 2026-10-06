@@ -116,7 +116,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
   };
 
   if (!profile) {
-    return <div className="p-12 text-center text-gray-400">Loading…</div>;
+    return <div className="p-12 text-center text-gray-500 dark:text-gray-400">Loading…</div>;
   }
 
   const formatRelativeTime = (iso: string) => {
@@ -280,7 +280,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                      {s.prompt || <span className="italic text-gray-400">(no prompt)</span>}
+                      {s.prompt || <span className="italic text-gray-500 dark:text-gray-400">(no prompt)</span>}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2 mt-0.5">
                       <span className="flex items-center gap-1"><IconClock /> {formatRelativeTime(s.createdAt)}</span>
@@ -292,7 +292,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
                   </div>
                   <button
                     onClick={(e) => { e.stopPropagation(); handleDelete(s.id); }}
-                    className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-opacity"
                     title="Delete this search"
                   >
                     <IconTrash />

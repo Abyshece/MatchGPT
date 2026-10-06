@@ -67,7 +67,7 @@ const DateProposalCard: React.FC<DateProposalCardProps> = ({
         <div className="text-[10px] uppercase font-bold tracking-widest text-pink-600 dark:text-pink-400 mb-2 flex items-center gap-1.5">
           📅 Date Proposal
           {status === 'accepted' && <span className="text-green-600 dark:text-green-400">· Accepted</span>}
-          {status === 'declined' && <span className="text-gray-400">· Declined</span>}
+          {status === 'declined' && <span className="text-gray-500 dark:text-gray-400">· Declined</span>}
         </div>
 
         <h4 className="font-bold text-gray-900 dark:text-white text-base mb-2">{payload.activity}</h4>

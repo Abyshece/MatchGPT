@@ -122,7 +122,7 @@ const ChatList: React.FC<ChatListProps> = ({
                 {m.otherUser.isVerified && (
                   <span className="text-blue-500 flex-shrink-0"><IconCheck className="w-3 h-3" /></span>
                 )}
-                <span className="text-[10px] text-gray-400 ml-auto flex-shrink-0">
+                <span className="text-[10px] text-gray-500 dark:text-gray-400 ml-auto flex-shrink-0">
                   {formatTime(lastMsg?.createdAt ?? m.matchedAt)}
                 </span>
               </div>
@@ -131,7 +131,7 @@ const ChatList: React.FC<ChatListProps> = ({
                   m.unreadCount > 0
                     ? 'font-bold text-gray-900 dark:text-gray-100'
                     : previewItalic
-                      ? 'italic text-gray-400'
+                      ? 'italic text-gray-500 dark:text-gray-400'
                       : 'text-gray-500 dark:text-gray-400'
                 }`}>
                   {preview}

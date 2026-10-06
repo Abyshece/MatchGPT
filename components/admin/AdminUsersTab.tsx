@@ -97,7 +97,7 @@ const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ onAuditUpdate }) => {
           placeholder="Search users by name or email…"
           className="w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-lg p-3 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
         />
-        <p className="text-[11px] text-gray-400 mt-1.5">
+        <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1.5">
           Showing {users.length}{users.length === 50 ? '+' : ''} results
         </p>
       </div>
@@ -111,7 +111,7 @@ const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ onAuditUpdate }) => {
         </div>
       ) : users.length === 0 ? (
         <div className="text-center py-12 bg-white dark:bg-zinc-800 rounded-lg border border-gray-100 dark:border-zinc-700">
-          <p className="text-sm text-gray-400">No users matching "{query}"</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">No users matching "{query}"</p>
         </div>
       ) : (
         <div className="bg-white dark:bg-zinc-800 rounded-lg overflow-hidden border border-gray-200 dark:border-zinc-700">
@@ -135,7 +135,7 @@ const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ onAuditUpdate }) => {
                   <div className="text-xs text-gray-500 dark:text-gray-400">
                     {u.email} {u.location ? `· ${u.location}` : ''}
                   </div>
-                  <div className="text-[11px] text-gray-400 mt-1 flex gap-3 flex-wrap">
+                  <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-1 flex gap-3 flex-wrap">
                     <span>Joined {new Date(u.account_created).toLocaleDateString()}</span>
                     <span>· {u.daily_search_count} searches today</span>
                     <span>· {u.daily_like_count} likes today</span>

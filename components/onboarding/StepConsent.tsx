@@ -55,7 +55,7 @@ const StepConsent: React.FC<StepConsentProps> = ({ onShowLegal }) => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-[#191919] gap-3">
         <div className="w-8 h-8 border-3 border-gray-200 dark:border-zinc-700 border-t-black dark:border-t-white rounded-full animate-spin" />
-        <div className="text-gray-400 text-sm">Setting up your account…</div>
+        <div className="text-gray-500 dark:text-gray-400 text-sm">Setting up your account…</div>
       </div>
     );
   }
