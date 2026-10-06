@@ -26,7 +26,7 @@ const OUT = path.join(ROOT, 'docs/store/graphics');
 const PUBLIC = path.join(ROOT, 'public');
 const ICON = path.join(ROOT, 'ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png');
 
-const TITLE = 'MatchGPT';
+const TITLE = 'Shaadi24';
 const TAGLINE = 'Describe your life partner.<br>Meet the people you fit.';
 const PREVIEW_LINE = 'Matrimony for India';
 
@@ -49,7 +49,7 @@ const FEATURE = `<!doctype html><html><head><meta charset="utf-8"><style>
   p { margin: 18px 0 0; font-size: 34px; line-height: 1.3; }
 </style></head><body>${RING}<div><h1>${TITLE}</h1><p>${TAGLINE}</p></div></body></html>`;
 
-// The link preview: the same, larger, with a line saying what MatchGPT is
+// The link preview: the same, larger, with a line saying what Shaadi24 is
 const PREVIEW = FEATURE
   .replace('width: 1024px; height: 500px;', 'width: 1200px; height: 630px;')
   .replace('svg { width: 230px; height: 230px;', 'svg { width: 280px; height: 280px;')

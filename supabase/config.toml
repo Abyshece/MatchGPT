@@ -2,7 +2,7 @@
 # https://supabase.com/docs/guides/local-development/cli/config
 # A string used to distinguish different Supabase projects on the same host. Defaults to the
 # working directory name when running `supabase init`.
-project_id = "MatchGPT"
+project_id = "Shaadi24"
 
 [api]
 enabled = true
@@ -246,21 +246,21 @@ otp_expiry = 3600
 # it ({{ .Token }}). The live project needs the same template if "Confirm email"
 # is turned on.
 [auth.email.template.confirmation]
-subject = "Your MatchGPT code"
+subject = "Your Shaadi24 code"
 content_path = "./supabase/templates/confirmation.html"
 
 # Password reset: the apps ask for the code ({{ .Token }}); the website can
 # also use the link. The live project needs the same template (Authentication
 # → Emails → Reset Password).
 [auth.email.template.recovery]
-subject = "Your MatchGPT password reset code"
+subject = "Your Shaadi24 password reset code"
 content_path = "./supabase/templates/recovery.html"
 
 # A code to sign in by email, used by the website's Delete account page
 # (/delete-account). The live project needs the same template (Authentication
 # → Emails → Magic Link).
 [auth.email.template.magic_link]
-subject = "Your MatchGPT code"
+subject = "Your Shaadi24 code"
 content_path = "./supabase/templates/magic_link.html"
 
 # Uncomment to customize email template

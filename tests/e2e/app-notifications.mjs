@@ -15,7 +15,7 @@
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
-const DB = process.env.DB_CONTAINER || 'supabase_db_MatchGPT';
+const DB = process.env.DB_CONTAINER || 'supabase_db_Shaadi24';
 const BASE = process.env.BASE_URL || 'http://localhost:3000';
 const REPO = process.env.REPO_ROOT || new URL('../..', import.meta.url).pathname;
 const BRIDGE = {
@@ -77,7 +77,7 @@ function standin(platform) {
       if (call.callbackId === '-1' || call.methodName === 'addListener') return;
       const reply = call.pluginId === 'FirebaseMessaging' ? window.__fcm(call)
         : call.pluginId === 'App' && call.methodName === 'getInfo'
-          ? Promise.resolve({ data: { id: 'com.matchgpt.app', name: 'MatchGPT', version: '1.0', build: '7' } })
+          ? Promise.resolve({ data: { id: 'com.shaadi24.app', name: 'Shaadi24', version: '1.0', build: '7' } })
           : Promise.resolve({ data: {} });
       reply.then((r) => window.Capacitor.fromNative(Object.assign(
         { callbackId: call.callbackId, pluginId: call.pluginId, methodName: call.methodName, success: !r.error },
@@ -119,7 +119,7 @@ function pluginSide(phone) {
         if (phone.noFirebase) {
           return { error: { message: phone.platform === 'ios'
             ? 'Firebase is not configured: GoogleService-Info.plist is missing from the app bundle.'
-            : 'Default FirebaseApp is not initialized in this process com.matchgpt.app. Make sure to call FirebaseApp.initializeApp(Context) first.',
+            : 'Default FirebaseApp is not initialized in this process com.shaadi24.app. Make sure to call FirebaseApp.initializeApp(Context) first.',
             ...(phone.platform === 'ios' ? { code: 'UNAVAILABLE' } : {}) } };
         }
         return { data: { token: phone.token } };
@@ -157,7 +157,7 @@ async function openApp(phone, { pendingTap = null } = {}) {
     if (m) page.rpcs.push({ fn: m[1], body: r.postData() || '' });
   });
   await page.goto(BASE);
-  const home = page.getByPlaceholder(/Describe your ideal match/);
+  const home = page.getByTestId('find-match-box');
   await home.or(page.getByRole('button', { name: 'Sign in' })).first().waitFor({ timeout: 20000 });
   if (!(await home.isVisible())) await signInOn(page);
   return { ctx, page };
@@ -175,7 +175,7 @@ async function signInOn(page) {
   await page.locator('input[type=password]').fill('TestPass!2026');
   await page.locator('form').getByRole('button', { name: /Log In/i }).click();
   // Find Match, or a chat if a tapped notification opened one straight away
-  await page.getByPlaceholder(/Describe your ideal match|^Message /).first().waitFor({ timeout: 20000 });
+  await page.getByTestId('find-match-box').or(page.getByPlaceholder(/^Message /)).first().waitFor({ timeout: 20000 });
 }
 
 const until = async (fn, ms = 6000) => {
@@ -248,7 +248,7 @@ try {
   // ======================================================================================
   log('3. Notifications while the app is open, and taps');
   await page.evaluate((m) => window.__fire('notificationReceived', { notification: {
-    title: '💬 Priya sent you a message', body: 'Open MatchGPT to read it', data: { event_type: 'new_message', match_id: m } } }), matchId);
+    title: '💬 Priya sent you a message', body: 'Open Shaadi24 to read it', data: { event_type: 'new_message', match_id: m } } }), matchId);
   check(await appears(page.getByText('💬 Priya sent you a message'), 4000), 'a notification while the app is open shows as a toast');
   await page.screenshot({ path: `${OUT}4-toast.png` });
   await page.evaluate((m) => window.__fire('notificationActionPerformed', { actionId: 'tap', notification: {
@@ -257,11 +257,11 @@ try {
   await page.screenshot({ path: `${OUT}5-tapped-chat.png` });
   await page.waitForTimeout(3500);  // the earlier toast goes
   await page.evaluate((m) => window.__fire('notificationReceived', { notification: {
-    title: '💬 From the open chat', body: 'Open MatchGPT to read it', data: { event_type: 'new_message', match_id: m } } }), matchId);
+    title: '💬 From the open chat', body: 'Open Shaadi24 to read it', data: { event_type: 'new_message', match_id: m } } }), matchId);
   await page.waitForTimeout(800);
   check(!(await page.getByText('💬 From the open chat').isVisible().catch(() => false)), "no toast for the chat that's on screen");
   await page.evaluate(() => window.__fire('notificationActionPerformed', { actionId: 'tap', notification: {
-    title: '⭐ Someone super-liked you!', body: 'Open MatchGPT to see who.', data: { event_type: 'super_like', deep_link: '/likes' } } }));
+    title: '⭐ Someone super-liked you!', body: 'Open Shaadi24 to see who.', data: { event_type: 'super_like', deep_link: '/likes' } } }));
   check(await appears(page.getByRole('heading', { name: /Likes You/ }), 8000), 'tapping a super-like opens Likes You');
 
   // ======================================================================================
@@ -301,7 +301,7 @@ try {
   await page.waitForTimeout(1500);
   check(!(await offer(page).isVisible().catch(() => false)), 'blocked in the phone settings: no offer');
   await openSettings(page);
-  check(await appears(page.getByTestId('phone-push-denied').getByText(/Settings → Apps → MatchGPT → Notifications/)), 'Settings says where to allow them on Android');
+  check(await appears(page.getByTestId('phone-push-denied').getByText(/Settings → Apps → Shaadi24 → Notifications/)), 'Settings says where to allow them on Android');
   await page.screenshot({ path: `${OUT}6-denied.png` });
   await closeApp(ctx, phone);
 
@@ -329,7 +329,7 @@ try {
   phone = newPhone('ios', { permission: 'denied' });
   ({ ctx, page } = await openApp(phone));
   await openSettings(page);
-  check(await appears(page.getByTestId('phone-push-denied').getByText(/Settings → Notifications → MatchGPT/)), 'blocked: where to allow them on an iPhone');
+  check(await appears(page.getByTestId('phone-push-denied').getByText(/Settings → Notifications → Shaadi24/)), 'blocked: where to allow them on an iPhone');
   await closeApp(ctx, phone);
 } catch (e) {
   failures++;

@@ -12,7 +12,7 @@
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
-const DB = process.env.DB_CONTAINER || 'supabase_db_MatchGPT';  // `docker ps` shows the name
+const DB = process.env.DB_CONTAINER || 'supabase_db_Shaadi24';  // `docker ps` shows the name
 
 const EMAIL = process.argv[2];
 const PASSWORD = 'TestPass!2026';
@@ -44,7 +44,7 @@ page.on('request', (r) => requested.push(r.url()));
 // Runs a search in the UI; returns the search function's response.
 async function search(prompt) {
   await page.getByText('Find Match', { exact: true }).first().click();
-  const box = page.getByPlaceholder(/Describe your ideal match/);
+  const box = page.getByTestId('find-match-box');
   await box.fill(prompt);
   const responded = page.waitForResponse((r) => r.url().includes('/functions/v1/search'), { timeout: 15000 });
   await box.press('Enter');
@@ -61,7 +61,7 @@ try {
   await page.locator('input[type=email]').fill(EMAIL);
   await page.locator('input[type=password]').fill(PASSWORD);
   await page.locator('form').getByRole('button', { name: /Log In/i }).click();
-  await page.getByPlaceholder(/Describe your ideal match/).waitFor({ timeout: 15000 });
+  await page.getByTestId('find-match-box').waitFor({ timeout: 15000 });
 
   log('1-2. search on the server: "near me", then "doesn\'t smoke"');
   const near = await search('someone near me');
@@ -110,7 +110,7 @@ try {
   // The page believes one search is left; the server knows there isn't
   sql(`update profiles set daily_search_count = 2 where id = '${me}';`);
   await page.reload();
-  await page.getByPlaceholder(/Describe your ideal match/).waitFor({ timeout: 15000 });
+  await page.getByTestId('find-match-box').waitFor({ timeout: 15000 });
   sql(`update profiles set daily_search_count = 3 where id = '${me}';`);
   const refused = await search('someone kind');
   await page.screenshot({ path: `${OUT}4-limit.png` });

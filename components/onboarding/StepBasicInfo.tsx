@@ -63,7 +63,7 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ onComplete }) => {
     if (!name.trim()) return 'Name is required.';
     if (!dateOfBirth) return 'Please choose the date of birth.';
     const age = ageFromDateOfBirth(dateOfBirth);
-    if (age === null || age < 18 || age > 99) return 'You must be at least 18 to use MatchGPT.';
+    if (age === null || age < 18 || age > 99) return 'You must be at least 18 to use Shaadi24.';
     if (!gender) return 'Please select the gender.';
     if (!interestedIn) return 'Please select who you\'re interested in.';
     if (!intention) return 'Please select what you\'re looking for.';

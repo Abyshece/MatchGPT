@@ -21,7 +21,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onBack }) => {
 
         // Simulated Auth Delay
         setTimeout(() => {
-            if (email.toLowerCase() === 'admin@matchgpt.app' && password === 'admin') {
+            if (email.toLowerCase() === 'admin@shaadi24.app' && password === 'admin') {
                 onLoginSuccess();
             } else {
                 setError('Invalid credentials');
@@ -57,7 +57,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onBack }) => {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             className="w-full border border-gray-300 dark:border-zinc-700 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white bg-white dark:bg-zinc-800 text-gray-900 dark:text-white transition-all"
-                            placeholder="admin@matchgpt.app"
+                            placeholder="admin@shaadi24.app"
                             autoFocus
                         />
                     </div>

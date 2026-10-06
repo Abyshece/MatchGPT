@@ -27,15 +27,15 @@ self.addEventListener('push', (event) => {
     payload = event.data ? event.data.json() : {};
   } catch {
     // Fallback to text
-    payload = { title: 'MatchGPT', body: event.data ? event.data.text() : 'New activity' };
+    payload = { title: 'Shaadi24', body: event.data ? event.data.text() : 'New activity' };
   }
 
-  const title = payload.title || 'MatchGPT';
+  const title = payload.title || 'Shaadi24';
   const options = {
     body: payload.body || '',
     icon: '/icon-192.png',          // shown in the notification
     badge: '/badge-72.png',          // shown in OS tray on Android
-    tag: payload.tag || 'shaadigpt-notification',  // collapse duplicate notifications
+    tag: payload.tag || 'shaadi24-notification',  // collapse duplicate notifications
     renotify: true,                   // even if collapsed, vibrate again
     data: payload.data || {},
     requireInteraction: false,        // notification dismisses on its own
@@ -53,7 +53,7 @@ self.addEventListener('notificationclick', (event) => {
 
   event.waitUntil(
     (async () => {
-      // If a MatchGPT tab is already open, focus it instead of opening a new one
+      // If a Shaadi24 tab is already open, focus it instead of opening a new one
       const allClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
       const appUrl = self.location.origin;
 

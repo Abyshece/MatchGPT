@@ -7,11 +7,11 @@ Deno.test('a message notification: Android channel and grouping per chat, data a
     token: 'phone-token',
     eventType: 'new_message',
     title: '💬 Priya sent you a message',
-    body: 'Open MatchGPT to read it',
+    body: 'Open Shaadi24 to read it',
     data: { match_id: 'm-1', sender_id: 's-1', deep_link: '/matches', count: 2, nothing: null },
   }) as any;
   assertEquals(m.token, 'phone-token');
-  assertEquals(m.notification, { title: '💬 Priya sent you a message', body: 'Open MatchGPT to read it' });
+  assertEquals(m.notification, { title: '💬 Priya sent you a message', body: 'Open Shaadi24 to read it' });
   assertEquals(m.data, { event_type: 'new_message', match_id: 'm-1', sender_id: 's-1', deep_link: '/matches', count: '2' });
   assertEquals(m.android.priority, 'high');
   assertEquals(m.android.notification.channel_id, 'messages');

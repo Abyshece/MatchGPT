@@ -126,7 +126,7 @@ const AdminFinanceTab: React.FC = () => {
         return;
       }
       const months = month ?? `${firstMonth}-to-${thisMonth}`;
-      const name = `matchgpt-charges-${mode}-${months}${seller ? `-${seller.replace('_', '-')}` : ''}.csv`;
+      const name = `shaadi24-charges-${mode}-${months}${seller ? `-${seller.replace('_', '-')}` : ''}.csv`;
       if (await saveTextFile(name, chargesCsv(rows), 'text/csv;charset=utf-8')) {
         showToast(`Exported ${plural(rows.length, 'charge')}.`, 'success');
       }

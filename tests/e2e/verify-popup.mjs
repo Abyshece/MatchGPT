@@ -6,7 +6,7 @@
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
-const DB = process.env.DB_CONTAINER || 'supabase_db_MatchGPT';  // `docker ps` shows the name
+const DB = process.env.DB_CONTAINER || 'supabase_db_Shaadi24';  // `docker ps` shows the name
 const EMAIL = process.argv[2];
 const PASSWORD = 'TestPass!2026';
 const OUT = new URL('./.shots/shots-verify/', import.meta.url).pathname;
@@ -34,7 +34,7 @@ async function signIn(viewport) {
   await page.locator('input[type=email]').fill(EMAIL);
   await page.locator('input[type=password]').fill(PASSWORD);
   await page.locator('form').getByRole('button', { name: /Log In/i }).click();
-  await page.getByPlaceholder(/Describe your ideal match/).waitFor({ timeout: 15000 });
+  await page.getByTestId('find-match-box').waitFor({ timeout: 15000 });
   return { ctx, page };
 }
 

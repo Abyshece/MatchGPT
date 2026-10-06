@@ -21,7 +21,7 @@ import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 
-const DB = process.env.DB_CONTAINER || 'supabase_db_MatchGPT';
+const DB = process.env.DB_CONTAINER || 'supabase_db_Shaadi24';
 const BASE = process.env.BASE_URL || 'http://localhost:3000';
 const WEBSITE = process.env.WEBSITE_URL || 'http://localhost:3002';
 const REPO = process.env.REPO_ROOT || new URL('../..', import.meta.url).pathname;
@@ -152,7 +152,7 @@ try {
   await page.locator('input[type=email]').fill(MEMBER);
   await page.locator('input[type=password]').fill(PASSWORD);
   await page.locator('form').getByRole('button', { name: /Log In/i }).click();
-  await page.getByPlaceholder(/Describe your ideal match/).waitFor({ timeout: 20000 });
+  await page.getByTestId('find-match-box').waitFor({ timeout: 20000 });
   const menu = async (label) => {
     await page.getByRole('button', { name: 'Menu', exact: true }).first().click();
     await page.getByRole('button', { name: new RegExp(`^${label}`) }).filter({ visible: true }).first().click();

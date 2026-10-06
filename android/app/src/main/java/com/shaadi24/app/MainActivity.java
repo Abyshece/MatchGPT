@@ -1,4 +1,4 @@
-package com.matchgpt.app;
+package com.shaadi24.app;
 
 import android.os.Bundle;
 import com.getcapacitor.BridgeActivity;

@@ -8,7 +8,7 @@ import { isNativeApp } from '../lib/nativeApp';
 import type { MatchCandidate } from '../types';
 
 // ============================================================================
-// ProfileModal — restyled to match the legacy MatchGPT MatchProfileModal.
+// ProfileModal — restyled to match the legacy Shaadi24 MatchProfileModal.
 // Two-column grid: photo+thumbnails on left, scrollable content on right.
 // Sticky footer with social links + a wide pill Like button.
 // ============================================================================
@@ -400,7 +400,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
               {!isNativeApp() && <button
                 onClick={() => {
                   if (navigator.share) {
-                    navigator.share({ title: candidate.name, text: `Check out ${candidate.name} on MatchGPT`, url: window.location.href }).catch(() => {});
+                    navigator.share({ title: candidate.name, text: `Check out ${candidate.name} on Shaadi24`, url: window.location.href }).catch(() => {});
                   } else {
                     navigator.clipboard?.writeText(window.location.href).catch(() => {});
                   }

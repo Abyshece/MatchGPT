@@ -7,10 +7,10 @@
 //   1. Browser calls this function with the user's JWT in the Authorization header
 //   2. Function verifies JWT and extracts auth user ID
 //   3. Function uses service_role to:
-//      0) Stop MatchGPT+ renewals: Google Play's are stopped (best effort);
+//      0) Stop Shaadi24+ renewals: Google Play's are stopped (best effort);
 //         Apple only lets people cancel themselves, which the app asks them
 //         to do first (details.app_store_renews).
-//         Sign in with Apple is ended for MatchGPT too, as Apple asks (best
+//         Sign in with Apple is ended for Shaadi24 too, as Apple asks (best
 //         effort; _shared/appleSignIn.ts).
 //      a) Delete all photos from Storage (best-effort)
 //      b) Write an audit log entry (kept for legal retention)
@@ -101,7 +101,7 @@ serve(withCors(async (req: Request): Promise<Response> => {
     }, 400);
   }
 
-  // ---- 0. Stop MatchGPT+ renewals, so nothing is charged after the account is gone ----
+  // ---- 0. Stop Shaadi24+ renewals, so nothing is charged after the account is gone ----
   let appStoreRenews = false;
   try {
     const store = await stopStoreRenewals(userId);

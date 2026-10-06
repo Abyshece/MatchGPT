@@ -72,7 +72,7 @@ check ALLOWED "A13 user reads someone else's Likes You inbox" authenticated "$US
   "select 'rows=' || count(*) from public.get_likes_received('$OTHER');" "rows=0"
 check ALLOWED "A14 user reads someone else's matches" authenticated "$USER_X" "x@example.com" \
   "select 'rows=' || count(*) from public.get_matches_with_profile('$OTHER');" "rows=0"
-check BLOCKED "A15 free user sends a Super Like (MatchGPT+ for subscribers only)" authenticated "$USER_X" "x@example.com" \
+check BLOCKED "A15 free user sends a Super Like (Shaadi24+ for subscribers only)" authenticated "$USER_X" "x@example.com" \
   "reset role; update public.app_settings set pro_for_all = false; set local role authenticated;
    insert into public.likes (liker_id, liked_id, is_super_like) select '$USER_X', $EXTRA, true from generate_series(1, 1) g;" \
   "Super Likes are a Pro feature"
@@ -95,7 +95,7 @@ check ALLOWED "A22 search isn't given the last-active time of someone with Activ
 
 check BLOCKED "A23 user resets their own daily search counter" authenticated "$USER_X" "x@example.com" \
   "reset role; update public.profiles set daily_search_count = 3, last_search_date = current_date where id = '$USER_X'; set local role authenticated;
-   update public.profiles set daily_search_count = 0 where id = '$USER_X';" "can only be changed by MatchGPT"
+   update public.profiles set daily_search_count = 0 where id = '$USER_X';" "can only be changed by Shaadi24"
 check BLOCKED "A24 signed-in user downloads the search pool (search_candidates)" authenticated "$USER_X" "x@example.com" \
   "select public.search_candidates('$USER_X');" "permission denied"
 check BLOCKED "A25 signed-in user calls the search counter directly (consume_search)" authenticated "$USER_X" "x@example.com" \
@@ -148,25 +148,25 @@ check ALLOWED "A38 the search pool never has a date of birth or the dropped ques
    select 'dob=' || count(*) filter (where e ? 'date_of_birth') || ' dropped=' || count(*) filter (where e ?| array['marijuana', 'drugs', 'relationship_type'])
        || ' mother_tongue=' || count(*) filter (where e ->> 'mother_tongue' = 'Tamil')
      from jsonb_array_elements(public.search_candidates('$USER_X')) e;" "dob=0 dropped=0 mother_tongue=22"
-check BLOCKED "A39 user turns MatchGPT+ for everyone off" authenticated "$USER_X" "x@example.com" \
+check BLOCKED "A39 user turns Shaadi24+ for everyone off" authenticated "$USER_X" "x@example.com" \
   "select public.admin_set_pro_for_all(false);" "only admins"
 check BLOCKED "A40 user changes the app settings directly" authenticated "$USER_X" "x@example.com" \
   "update public.app_settings set pro_for_all = false;" "permission denied"
-check BLOCKED "A41 user asks whether someone has MatchGPT+ (has_pro)" authenticated "$USER_X" "x@example.com" \
+check BLOCKED "A41 user asks whether someone has Shaadi24+ (has_pro)" authenticated "$USER_X" "x@example.com" \
   "select public.has_pro('$OTHER');" "permission denied"
-check ALLOWED "A42 free user sees who liked them (MatchGPT+ for subscribers only)" authenticated "$USER_X" "x@example.com" \
+check ALLOWED "A42 free user sees who liked them (Shaadi24+ for subscribers only)" authenticated "$USER_X" "x@example.com" \
   "reset role; update public.app_settings set pro_for_all = false;
    insert into public.likes (liker_id, liked_id) values ('$OTHER', '$USER_X') on conflict do nothing; set local role authenticated;
    select 'who=' || coalesce(liker_id::text, 'hidden') || ' name=' || coalesce(liker_name, 'hidden') || ' photos=' || coalesce(array_length(liker_photos, 1)::text, 'hidden')
      from public.get_likes_received('$USER_X') limit 1;" "who=hidden name=hidden photos=hidden"
-check BLOCKED "A43 free user proposes a date (MatchGPT+ for subscribers only)" authenticated "$USER_X" "x@example.com" \
+check BLOCKED "A43 free user proposes a date (Shaadi24+ for subscribers only)" authenticated "$USER_X" "x@example.com" \
   "reset role; update public.app_settings set pro_for_all = false;
    insert into public.matches (user_a_id, user_b_id) select least('$USER_X'::uuid, '$OTHER'::uuid), greatest('$USER_X'::uuid, '$OTHER'::uuid)
     where not exists (select 1 from public.matches where user_a_id = least('$USER_X'::uuid, '$OTHER'::uuid) and user_b_id = greatest('$USER_X'::uuid, '$OTHER'::uuid));
    set local role authenticated;
    insert into public.messages (match_id, sender_id, content, message_type)
    select id, '$USER_X', 'Coffee on Saturday?', 'date_proposal' from public.matches
-    where user_a_id = least('$USER_X'::uuid, '$OTHER'::uuid) and user_b_id = greatest('$USER_X'::uuid, '$OTHER'::uuid);" "Date proposals are a MatchGPT+ feature"
+    where user_a_id = least('$USER_X'::uuid, '$OTHER'::uuid) and user_b_id = greatest('$USER_X'::uuid, '$OTHER'::uuid);" "Date proposals are a Shaadi24+ feature"
 check BLOCKED "A44 signed-out visitor calls is_admin()" anon "" "" \
   "select public.is_admin();" "permission denied"
 check BLOCKED "A45 signed-out visitor reads reports, verification requests or the admin tables" anon "" "" \
@@ -401,15 +401,15 @@ check ALLOWED "N49 user saves the India answers on their own profile" authentica
      brothers = '2', brothers_married = '1', about_family = 'We live in Delhi.' where id = '$USER_X';
    select 'saved=' || mother_tongue || '/' || caste || '/' || brothers || '+' || brothers_married from public.profiles where id = '$USER_X';" \
   "saved=Hindi (Delhi)/Brahmin/2+1"
-check ALLOWED "N50 free user sends a Super Like (MatchGPT+ for everyone)" authenticated "$USER_X" "x@example.com" \
+check ALLOWED "N50 free user sends a Super Like (Shaadi24+ for everyone)" authenticated "$USER_X" "x@example.com" \
   "insert into public.likes (liker_id, liked_id, is_super_like) select '$USER_X', $EXTRA, true from generate_series(1, 1) g;
    select 'super=' || count(*) from public.likes where liker_id = '$USER_X' and is_super_like;" "super=1"
-check ALLOWED "N51 member reads whether MatchGPT+ is for everyone" authenticated "$USER_X" "x@example.com" \
+check ALLOWED "N51 member reads whether Shaadi24+ is for everyone" authenticated "$USER_X" "x@example.com" \
   "select 'on=' || public.pro_for_all();" "on=true"
-check ALLOWED "N52 admin turns MatchGPT+ for everyone off, in the audit log" authenticated "$ADMIN" "owner@example.com" \
+check ALLOWED "N52 admin turns Shaadi24+ for everyone off, in the audit log" authenticated "$ADMIN" "owner@example.com" \
   "select public.admin_set_pro_for_all(false);
    select 'on=' || public.pro_for_all() || ' audited=' || count(*) from public.admin_audit where action = 'set_pro_for_all';" "on=false audited=1"
-check ALLOWED "N53 subscriber sees who liked them (MatchGPT+ for subscribers only)" authenticated "$USER_X" "x@example.com" \
+check ALLOWED "N53 subscriber sees who liked them (Shaadi24+ for subscribers only)" authenticated "$USER_X" "x@example.com" \
   "reset role; update public.app_settings set pro_for_all = false; update public.profiles set subscription_tier = 'PRO' where id = '$USER_X';
    insert into public.likes (liker_id, liked_id) values ('$OTHER', '$USER_X') on conflict do nothing; set local role authenticated;
    select 'shown=' || bool_and(liker_id is not null and liker_name is not null) from public.get_likes_received('$USER_X');" "shown=true"

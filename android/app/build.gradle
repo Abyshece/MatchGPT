@@ -7,23 +7,23 @@ def appVersion = new groovy.json.JsonSlurper().parse(rootProject.file('../packag
 def (vMajor, vMinor, vPatch) = appVersion.tokenize('.').collect { it.replaceAll(/\D.*$/, '') as int }
 
 // Release signing with the upload key (never in git): android/keystore.properties
-//   storeFile=/full/path/to/matchgpt-upload.jks
+//   storeFile=/full/path/to/shaadi24-upload.jks
 //   storePassword=…
 //   keyAlias=upload
 //   keyPassword=…
-// or the same in MATCHGPT_UPLOAD_STORE_FILE, …_STORE_PASSWORD, …_KEY_ALIAS,
+// or the same in SHAADI24_UPLOAD_STORE_FILE, …_STORE_PASSWORD, …_KEY_ALIAS,
 // …_KEY_PASSWORD. Without either, release builds come out unsigned.
 def keystoreProps = new Properties()
 def keystorePropsFile = rootProject.file('keystore.properties')
 if (keystorePropsFile.exists()) keystorePropsFile.withInputStream { keystoreProps.load(it) }
 def signing = { String key, String env -> keystoreProps.getProperty(key) ?: System.getenv(env) }
-def uploadStoreFile = signing('storeFile', 'MATCHGPT_UPLOAD_STORE_FILE')
+def uploadStoreFile = signing('storeFile', 'SHAADI24_UPLOAD_STORE_FILE')
 
 android {
-    namespace = "com.matchgpt.app"
+    namespace = "com.shaadi24.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.matchgpt.app"
+        applicationId "com.shaadi24.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode vMajor * 10000 + vMinor * 100 + vPatch
@@ -39,9 +39,9 @@ android {
         release {
             if (uploadStoreFile) {
                 storeFile file(uploadStoreFile)
-                storePassword signing('storePassword', 'MATCHGPT_UPLOAD_STORE_PASSWORD')
-                keyAlias signing('keyAlias', 'MATCHGPT_UPLOAD_KEY_ALIAS')
-                keyPassword signing('keyPassword', 'MATCHGPT_UPLOAD_KEY_PASSWORD')
+                storePassword signing('storePassword', 'SHAADI24_UPLOAD_STORE_PASSWORD')
+                keyAlias signing('keyAlias', 'SHAADI24_UPLOAD_KEY_ALIAS')
+                keyPassword signing('keyPassword', 'SHAADI24_UPLOAD_KEY_PASSWORD')
             }
         }
     }

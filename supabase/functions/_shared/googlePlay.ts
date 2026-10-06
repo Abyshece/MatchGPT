@@ -1,5 +1,5 @@
 // ============================================================================
-// Google Play: MatchGPT+ bought in the Android app
+// Google Play: Shaadi24+ bought in the Android app
 //
 // The GOOGLE_PLAY_SERVICE_ACCOUNT secret holds the JSON key of a Google Cloud
 // service account that Play Console (Users and permissions) lets "View
@@ -7,7 +7,7 @@
 // purchase's state from the Play Developer API and acknowledge new purchases
 // (Google refunds unacknowledged ones after three days).
 //
-// ANDROID_PACKAGE_NAME: the app's package name (default com.matchgpt.app).
+// ANDROID_PACKAGE_NAME: the app's package name (default com.shaadi24.app).
 // GOOGLE_PLAY_API_BASE: only for local testing against a stand-in.
 // ============================================================================
 
@@ -24,7 +24,7 @@ export function googlePlayConfig(): GooglePlayConfig | null {
   if (!account) return null;
   return {
     account,
-    packageName: Deno.env.get('ANDROID_PACKAGE_NAME') || 'com.matchgpt.app',
+    packageName: Deno.env.get('ANDROID_PACKAGE_NAME') || 'com.shaadi24.app',
     apiBase: (Deno.env.get('GOOGLE_PLAY_API_BASE') || 'https://androidpublisher.googleapis.com').replace(/\/+$/, ''),
   };
 }
@@ -118,7 +118,7 @@ export interface StoreState {
   // The latest charge: null while in the free trial
   orderId: string | null;
   price: { amount: number; currency: string } | null;
-  userId: string | null;          // the MatchGPT account the app passed with the purchase
+  userId: string | null;          // the Shaadi24 account the app passed with the purchase
   linkedPurchaseToken: string | null;  // the purchase this one replaced (a plan change)
   needsAcknowledgement: boolean;
 }

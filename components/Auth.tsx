@@ -210,12 +210,12 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
 
         <div className="mb-6 flex flex-col items-center text-center">
           <div className="text-4xl mb-2">💍</div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white leading-tight mb-0.5">MatchGPT</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white leading-tight mb-0.5">Shaadi24</h1>
           <p className="text-gray-500 dark:text-gray-400 text-[10px] font-medium uppercase tracking-wide">
             {mode === 'SIGNUP' ? 'Create your account' : mode === 'FORGOT' || mode === 'RESET_CODE' ? 'Reset your password' : forAdmins ? 'Admin sign-in' : 'Welcome back'}
           </p>
           {forAdmins && (
-            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">For MatchGPT's team. Members sign in in the MatchGPT app.</p>
+            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">For Shaadi24's team. Members sign in in the Shaadi24 app.</p>
           )}
         </div>
 
@@ -437,7 +437,7 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
                 className="mt-0.5 w-3.5 h-3.5 rounded border-gray-300 dark:border-zinc-600 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer flex-shrink-0"
               />
               <span className="text-[11px] text-gray-500 dark:text-gray-400 leading-snug">
-                Send me occasional tips and news about MatchGPT. (Optional, you can unsubscribe anytime.)
+                Send me occasional tips and news about Shaadi24. (Optional, you can unsubscribe anytime.)
               </span>
             </label>
 

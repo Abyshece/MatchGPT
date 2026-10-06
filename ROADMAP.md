@@ -1,14 +1,14 @@
-# MatchGPT roadmap
+# Shaadi24 roadmap
 
 13 phases in total. Phases 1–5, 7–9 and 12 are done, and Phase 6 is mostly done. **Phase 13 (the
 phone apps ready for the stores) is built. What's left of it is yours: the launch checklist in
 [docs/store/README.md](docs/store/README.md).** Phase 10 (launch readiness) is under way: parts 1 to
-6 are done (checks and a linter on every push, a faster first load, admin alerts, one switch for
-MatchGPT+, tidier access rules, the whole journey tested, the README, MatchGPT+ sold only in the
+7 are done (checks and a linter on every push, a faster first load, admin alerts, one switch for
+Shaadi24+, tidier access rules, the whole journey tested, the README, Shaadi24+ sold only in the
 apps, the website as a home page with the admin panel, an accessibility check, error reports in
-Admin → Errors).
+Admin → Errors, and the new name, Shaadi24). The iPhone app goes to TestFlight from GitHub's Macs.
 AI search (Gemini) is built and live; it switches on once you add the `GEMINI_API_KEY` secret (Phase 9).
-MatchGPT+ is sold only in the apps, through Google Play and the App Store (Phase 13); Razorpay was
+Shaadi24+ is sold only in the apps, through Google Play and the App Store (Phase 13); Razorpay was
 dropped on 2026-10-05 (Phase 11).
 Items left unfinished in earlier phases were moved into later ones, so each open item appears once.
 (`PHASE_1_README.md`–`PHASE_3_README.md` are historical setup notes.)
@@ -24,8 +24,8 @@ Items left unfinished in earlier phases were moved into later ones, so each open
 | 7 | Make the backend safe and rebuildable | **Done** (3 small owner follow-ups) |
 | 8 | Finish half-built features | **Done** (owner checks listed) |
 | 9 | Smarter search that scales | **Done** (add the Gemini key to switch AI on) |
-| 10 | Launch readiness → public launch | **In progress** (parts 1–6 done 2026-10-06) |
-| 11 | Payments (MatchGPT+ via Razorpay) | Dropped 2026-10-05: MatchGPT+ is sold only in the apps (Phase 13) |
+| 10 | Launch readiness → public launch | **In progress** (parts 1–7 done 2026-10-06) |
+| 11 | Payments (Shaadi24+ via Razorpay) | Dropped 2026-10-05: Shaadi24+ is sold only in the apps (Phase 13) |
 | 12 | Profile details for India (community, family, horoscope) | **Done** |
 | 13 | The phone apps, ready for Google Play and the App Store | **Built**; your launch checklist: [docs/store/README.md](docs/store/README.md) |
 
@@ -123,13 +123,11 @@ Run in a browser against a local copy of the backend (`npx supabase start` with 
 - [x] Live: migration applied, `send-push` redeployed, the schedule created its keys; the live schema
   matches a rebuild from the repo on all 12 checksums
 
-- [x] Renamed to MatchGPT everywhere users see it: every screen, Terms and Privacy, the browser tab,
-  plan names, notifications, "Export my data" (migration `20260927101209`); contact emails are now
-  support@ and privacy@matchgpt.com. Unchanged on purpose: saved-setting keys in the browser (renaming
-  them would reset everyone's theme and cookie choices) and the site address `shaadi-gpt.vercel.app`
-- [ ] Owner: matchgpt.com currently redirects to a domain-sales page (domains.atom.com), so mail to the
-  new contact addresses won't arrive until you own the domain and set up those mailboxes. To serve the
-  site there later: add the domain in Vercel, then set it as the Site URL in Supabase Authentication
+- [x] Renamed from ShaadiGPT to MatchGPT everywhere users see it: every screen, Terms and Privacy, the
+  browser tab, plan names, notifications, "Export my data" (migration `20260927101209`); contact emails
+  became support@ and privacy@matchgpt.com. Unchanged on purpose: saved-setting keys in the browser
+  (renaming them would reset everyone's theme and cookie choices) and the site address
+  `shaadi-gpt.vercel.app`. (Renamed again, to Shaadi24, on 2026-10-06: Phase 10, part 7.)
 
 ### Owner checks
 - [ ] Test Google sign-in with a real Google account. Everything checkable from outside is in order
@@ -205,7 +203,7 @@ Search and Standouts run in a new `search` edge function instead of the browser.
   `1095396009529-7cqo…`) → Authorized JavaScript origins → add `https://shaadi-gpt.vercel.app` → Save.
   Then I switch Google's button on (`LIVE_CLIENT_ID` in `lib/googleSignIn.ts`); Google's screen then shows
   the site's address instead of Supabase's
-- [ ] **Owner, for "MatchGPT" on Google's screen** (after the button is on): Branding: app name MatchGPT,
+- [ ] **Owner, for "Shaadi24" on Google's screen** (after the button is on): Branding: app name Shaadi24,
   logo, home page `https://shaadi-gpt.vercel.app`, privacy `https://shaadi-gpt.vercel.app/#privacy`, terms
   `https://shaadi-gpt.vercel.app/#terms`, authorized domain `shaadi-gpt.vercel.app`; remove the Supabase
   callback from the client's redirect URIs and `fmrbzzdjtarsaqvfukum.supabase.co` from the authorized domains;
@@ -244,7 +242,7 @@ Part 1 done 2026-10-04. Migration `20261004221100_phase10_admin_alerts` is appli
   - Tapping the notification opens Admin → Reports or Admin → Verifications.
   - Admins who turned notifications off in Settings get none, and nobody is alerted about their own
     report.
-- [x] **README rewritten**: what MatchGPT is, how it's built, running it locally, the checks,
+- [x] **README rewritten**: what Shaadi24 is, how it's built, running it locally, the checks,
   deploying, the apps.
 - [x] **Tests.** New: `tests/e2e/admin-alerts.mjs` (21 checks). The other 16 browser and server tests
   ran again; the website ones ran on the production build.
@@ -266,9 +264,9 @@ Part 2 done 2026-10-04. Migrations `20261005214651_phase10_pro_access` and
   sidebar's items were clickable areas that a keyboard couldn't reach and a screen reader didn't
   announce. They're buttons now: switches say whether they're on, the sidebar says which page is
   open, and the locked filters say what they're for.
-- [x] **One rule for MatchGPT+.** One switch, "MatchGPT+ for everyone", in Admin → Dashboard (in the
+- [x] **One rule for Shaadi24+.** One switch, "Shaadi24+ for everyone", in Admin → Dashboard (in the
   audit log). It is on, as before.
-  - While it's on, every member gets MatchGPT+'s features: Likes You, Super Likes, refreshing
+  - While it's on, every member gets Shaadi24+'s features: Likes You, Super Likes, refreshing
     Standouts, every filter, compatibility reports and date proposals. Free accounts keep the daily
     limits (3 AI searches, 15 likes).
   - Before, the switch was a setting in the app's code that only Likes You followed. The like
@@ -276,9 +274,9 @@ Part 2 done 2026-10-04. Migrations `20261005214651_phase10_pro_access` and
     screens say "coming soon".
   - The server enforces the same rule (`has_pro()`). When the switch is off, a member without a
     subscription gets Likes You without who it was (the server doesn't send it), and the server
-    leaves out the MatchGPT+ filters, the reports, Super Likes, date proposals and refreshing
+    leaves out the Shaadi24+ filters, the reports, Super Likes, date proposals and refreshing
     Standouts.
-  - Turning it off when MatchGPT+ goes on sale needs no new app release.
+  - Turning it off when Shaadi24+ goes on sale needs no new app release.
 - [x] **Tidier access rules** (Supabase's advisor):
   - Reports and verification requests have one rule each for reading.
   - The admin tables' rules apply to signed-in members only. Signed-out visitors can't reach those
@@ -288,7 +286,7 @@ Part 2 done 2026-10-04. Migrations `20261005214651_phase10_pro_access` and
   It caught two bugs, now fixed:
   - Liking someone back showed "It's a Match!" twice, one on top of the other.
   - "Send a Message" from a match made in Likes You only said to open Matches; it now opens the chat.
-- [x] **The upgrade screens** list only what buying adds while "MatchGPT+ for everyone" is on (the
+- [x] **The upgrade screens** list only what buying adds while "Shaadi24+ for everyone" is on (the
   unlimited searches and likes), and say the rest is free for everyone right now.
 - [x] **Security updates** for the libraries the website and the build use (`npm audit fix`). The
   one left is in Firebase's web library, in parts the app doesn't load.
@@ -298,11 +296,11 @@ Part 2 done 2026-10-04. Migrations `20261005214651_phase10_pro_access` and
   - A unit test for the free filters.
   - All the browser and server tests ran again.
 
-Part 3 done 2026-10-05: **MatchGPT+ is sold only in the apps.** You decided to sell it only through
+Part 3 done 2026-10-05: **Shaadi24+ is sold only in the apps.** You decided to sell it only through
 Google Play and the App Store, so Razorpay is gone. The app and the server no longer use it; the
 database change that removes its fields is ready and waits for your approval (below).
 
-- [x] **The website** no longer sells MatchGPT+. Its MatchGPT+ screen says it's bought in the MatchGPT
+- [x] **The website** no longer sells Shaadi24+. Its Shaadi24+ screen says it's bought in the Shaadi24
   app, with Google Play and App Store badges ("Coming soon" until the apps' store addresses are set:
   `VITE_PLAY_STORE_URL` and `VITE_APP_STORE_URL` in Vercel). Settings shows a subscription bought in
   either store, where to manage it, and its payments. The help answers and the Delete account page no
@@ -329,21 +327,21 @@ database change that removes its fields is ready and waits for your approval (be
   fmrbzzdjtarsaqvfukum`); that step finds nothing to cancel, so it changes nothing.
 
 Part 4 done 2026-10-05: **the website is a home page and the admin panel.** As you chose, members use
-MatchGPT in the apps, and the website (https://shaadi-gpt.vercel.app) no longer has the members' app.
+Shaadi24 in the apps, and the website (https://shaadi-gpt.vercel.app) no longer has the members' app.
 
-- [x] **The home page**: what MatchGPT is, the Google Play and App Store badges ("Coming soon" until
+- [x] **The home page**: what Shaadi24 is, the Google Play and App Store badges ("Coming soon" until
   `VITE_PLAY_STORE_URL` and `VITE_APP_STORE_URL` are set in Vercel), and links to Help & Support, the
   Privacy Policy, Terms of Service, Delete your account and the admin panel. No sign-in for members and
   no cookie banner (the website keeps nothing but an admin's sign-in). It follows the device's light or
   dark setting and fits a phone's screen.
-- [x] **`/admin`**: a sign-in for MatchGPT's team (email, Google, or a reset code; no sign-up), then
+- [x] **`/admin`**: a sign-in for Shaadi24's team (email, Google, or a reset code; no sign-up), then
   the admin panel, with a switch for alerts in that browser. A member who signs in there is told
-  MatchGPT is used in the app.
+  Shaadi24 is used in the app.
 - [x] Admin alerts clicked in the browser open their tab in the admin panel, as before.
 - [x] Email links still work on the website: a password-reset link asks for the new password; a member
   signed in by an email link sees who they are, and can sign out or delete the account (the Delete
   account page sends them there when its email has a link instead of a code).
-- [x] `/support` says MatchGPT is on Android and iPhone, with the store badges; the help answers send
+- [x] `/support` says Shaadi24 is on Android and iPhone, with the store badges; the help answers send
   members to the app's Settings.
 - [x] For development and the browser tests, `VITE_MEMBERS_ON_WEB=true` (in `.env.local.example`) puts
   the members' app back in the browser. Never set it in Vercel.
@@ -371,7 +369,7 @@ all fixed:
   an emulator or a connected phone (README, "Phone apps"). It needs a computer that can run an
   emulator, or a phone: the cloud container these changes are made in can't run Android fast enough.
 
-Part 6 done 2026-10-06: **error reports, in MatchGPT's own database.** When the apps or the website hit
+Part 6 done 2026-10-06: **error reports, in Shaadi24's own database.** When the apps or the website hit
 an error, it's reported, so it can be fixed before members write in about it. No outside service and
 no key to add.
 
@@ -380,7 +378,7 @@ no key to add.
   phone numbers, ids and sign-in tokens are blanked out on the device, the report goes with the app's
   public key rather than the member's sign-in, and the database keeps no account or address with it.
 - [x] **What's reported**: errors nobody caught, promises that failed with nobody waiting for them, and
-  screens that fail to draw (the "Something went wrong" screen). Not the noise that isn't MatchGPT's to
+  screens that fail to draw (the "Something went wrong" screen). Not the noise that isn't Shaadi24's to
   fix (the network dropping, a cancelled request, a browser quirk, browser extensions). The same error
   is sent once per page or app session, and at most 10 errors are.
 - [x] **Kept small** (`supabase/migrations/…_phase10_error_reports.sql`): the same error on the same
@@ -396,6 +394,39 @@ no key to add.
 - [x] **Tests**: `tests/e2e/error-reports.mjs` (26 checks: the app, the Android app, the website and
   Admin → Errors); 10 new database checks (51 attacks blocked, 57 normal actions working); the
   accessibility check covers the Errors tab (36 screens); the other browser tests ran again.
+
+Part 7 done 2026-10-06: **the name is now Shaadi24** (it was MatchGPT), everywhere it can be.
+
+- [x] **What people see**: every screen of the apps and the website, the browser tab and link preview
+  (`public/og-image.png` remade), the phone apps' names, the notifications, the emails' wording
+  (`supabase/templates/`), "Download my data", the Terms and the Privacy Policy (new versions, so
+  members accept them again), the help answers, the store texts and Google Play's graphics. MatchGPT+ is
+  now **Shaadi24+**. Contact addresses: support@ and privacy@shaadi24.com.
+- [x] **The apps' ID** is now `com.shaadi24.app` (Android package and iPhone bundle ID), and the
+  Shaadi24+ store products are `shaadi24_plus` (Google Play, base plans monthly and yearly),
+  `shaadi24_plus_monthly` and `shaadi24_plus_yearly` (App Store). Nothing was in the stores yet, so
+  nothing is lost; an Android test app installed before is a different app now.
+- [x] **The live database** (`supabase/migrations/20261006122347_phase10_rename_shaadi24.sql`, applied
+  live): the plans' names and store products, and the seven functions whose messages named MatchGPT
+  (notifications, the messages when something isn't allowed, "Download my data"). The waiting Razorpay
+  clean-up migration says Shaadi24 too. The server functions that check purchases and Sign in with
+  Apple use the new ID; apple-sign-in, delete-account, store-billing, store-notifications and send-push
+  are deployed with the new name.
+- [x] Checked: 108 database checks, 58 function tests and the 25 browser tests. The welcome screen
+  shows the same search hint as Find Match now, so the tests know Find Match's box by its own test ID
+  (`find-match-box`) rather than its hint.
+- [x] Unchanged on purpose: saved-setting keys on people's devices (renaming them would reset their
+  choices), the website's address `shaadi-gpt.vercel.app`, and the GitHub repository's name.
+- [ ] **Owner:** Apple: register the App ID `com.shaadi24.app` (with Push Notifications and Sign In with
+  Apple) and name the app Shaadi24 in App Store Connect; an App ID `com.matchgpt.app` made before can be
+  deleted. Google Cloud → OAuth consent screen: app name Shaadi24. Supabase → Authentication → Emails:
+  paste the templates again (their subjects: "Your Shaadi24 code", "Your Shaadi24 password reset code")
+  and set the sender name to Shaadi24. Optional: rename the Vercel project (a new `*.vercel.app` address,
+  or your own domain), the GitHub repository and the Supabase project.
+- [ ] **Owner:** shaadi24.com was already registered by someone in October 2026 (it answered with a
+  hosted website), so mail to support@ and privacy@shaadi24.com won't reach you unless you get the domain;
+  otherwise tell Claude which addresses to use. Shaadi.com is a big matrimony brand: have a lawyer check
+  the name with the legal review.
 
 **Still to do**
 
@@ -419,26 +450,26 @@ no key to add.
   - "RLS enabled, no policy" on the tables only the server uses.
 - [ ] Legal review of Terms and Privacy. (The mobile and accessibility check is done: Phase 10, part 5.)
 
-## Phase 11 — Payments (MatchGPT+ via Razorpay) — dropped 2026-10-05
-Built 2026-09-27 for the website, but never switched on. On 2026-10-05 you decided MatchGPT+ is sold
+## Phase 11 — Payments (Shaadi24+ via Razorpay) — dropped 2026-10-05
+Built 2026-09-27 for the website, but never switched on. On 2026-10-05 you decided Shaadi24+ is sold
 only in the apps, through Google Play and the App Store (Phase 13), so Razorpay was removed (Phase 10,
 part 3). What it set up stays, for the store subscriptions:
 
 - [x] Prices as in the Terms: ₹999 a month or ₹9,999 a year (17% less), renewing automatically; a
   free trial when the store offers one
-- [x] What MatchGPT+ adds, as enforced by the server: unlimited AI searches (free: 3 a day), unlimited
+- [x] What Shaadi24+ adds, as enforced by the server: unlimited AI searches (free: 3 a day), unlimited
   likes (free: 15 a day), Super Likes, refreshing Standouts; plus the Likes You list
-- [x] "Get MatchGPT+" in the sidebar ("MatchGPT+ active" on Pro accounts)
+- [x] "Get Shaadi24+" in the sidebar ("Shaadi24+ active" on Pro accounts)
 - [x] Pro follows the subscription with a 3-day grace, and an hourly job ends lapsed Pro. Pro given by
   hand is never touched
-- [x] Every MatchGPT+ check follows one rule, on the server and in the apps (Phase 10, part 2)
-- [ ] **Owner:** decide when to start charging, then turn off "MatchGPT+ for everyone" in Admin →
+- [x] Every Shaadi24+ check follows one rule, on the server and in the apps (Phase 10, part 2)
+- [ ] **Owner:** decide when to start charging, then turn off "Shaadi24+ for everyone" in Admin →
   Dashboard. It needs no app release
 
 ---
 
 ## Phase 13 — The phone apps, ready for Google Play and the App Store
-Started 2026-10-03. The apps sell MatchGPT+ through the stores (their rules for digital subscriptions),
+Started 2026-10-03. The apps sell Shaadi24+ through the stores (their rules for digital subscriptions),
 and since 2026-10-05 only the apps sell it. Every subscription and charge lands in the same tables, so
 the money is in one place.
 
@@ -446,8 +477,8 @@ the money is in one place.
 Migration `20261003203818_phase13_store_billing` (applied live); edge functions `store-billing` and
 `store-notifications` (new), `billing`, `razorpay-webhook` and `delete-account` (redeployed).
 
-- [x] Store products: Play Console subscription `matchgpt_plus` with base plans `monthly` and `yearly`;
-  App Store `matchgpt_plus_monthly` and `matchgpt_plus_yearly` (in `billing_plans`)
+- [x] Store products: Play Console subscription `shaadi24_plus` with base plans `monthly` and `yearly`;
+  App Store `shaadi24_plus_monthly` and `shaadi24_plus_yearly` (in `billing_plans`)
 - [x] The app reports a purchase; the server checks it with Google (Play Developer API) or by Apple's
   signature (the chain up to Apple's root certificate), saves it and turns Pro on. A purchase belongs to
   the account the app tagged it with, so it can't be passed to someone else. "Restore purchases" too
@@ -465,7 +496,7 @@ Migration `20261003203818_phase13_store_billing` (applied live); edge functions 
 - [x] Tests: 13 unit tests (`_shared/stores_test.ts`, including Apple's real root certificate), and checks
   against a Google Play / App Store stand-in (`tests/e2e/store-billing.mjs`, `store-standin.cjs`)
 - [ ] **Owner, Google Play** (once the app is in Play Console):
-  1. Monetize → Subscriptions: create `matchgpt_plus` with base plans `monthly` (₹999, renews monthly) and
+  1. Monetize → Subscriptions: create `shaadi24_plus` with base plans `monthly` (₹999, renews monthly) and
      `yearly` (₹9,999, renews yearly); optionally a 7-day free-trial offer on each for new customers
   2. Google Cloud console: a service account with a JSON key. Play Console → Users and permissions →
      invite its email with "View financial data" and "Manage orders and subscriptions"
@@ -478,25 +509,25 @@ Migration `20261003203818_phase13_store_billing` (applied live); edge functions 
 - [ ] **Owner, App Store** (once the app is in App Store Connect):
   1. Agreements, Tax and Banking: the Paid Apps agreement, bank and tax details (needed to sell anything);
      join the App Store Small Business Program (15% commission instead of 30% in the first year)
-  2. Subscriptions: a group "MatchGPT+" with `matchgpt_plus_monthly` (₹999) and `matchgpt_plus_yearly`
+  2. Subscriptions: a group "Shaadi24+" with `shaadi24_plus_monthly` (₹999) and `shaadi24_plus_yearly`
      (₹9,999); optionally a 1-week free trial as the introductory offer
   3. App Information → App Store Server Notifications → Version 2, for production and sandbox:
      `https://fmrbzzdjtarsaqvfukum.supabase.co/functions/v1/store-notifications?provider=apple`
 - [ ] The stores' payout reports are the final word on fees and tax; the finance figures estimate the
   stores' fees at 15% (set `STORE_FEE_PERCENT_GOOGLE_PLAY` / `STORE_FEE_PERCENT_APP_STORE` if yours differ)
 
-### Buying MatchGPT+ inside the apps (done 2026-10-03)
-- [x] In the apps, MatchGPT+ opens Google's or Apple's own payment sheet at the store's price (in the
+### Buying Shaadi24+ inside the apps (done 2026-10-03)
+- [x] In the apps, Shaadi24+ opens Google's or Apple's own payment sheet at the store's price (in the
   person's currency). The purchase carries the account's id, and the server checks it
-  with the store before Pro turns on. MatchGPT+ belongs to the account, so it works on both phones
+  with the store before Pro turns on. Shaadi24+ belongs to the account, so it works on both phones
 - [x] Next to the button, what the stores require: length and price, that it renews until cancelled,
   where to cancel, Terms of Use and Privacy Policy, Restore purchases. On iPhone the free trial shows
   when the App Store offers one
 - [x] Closing the payment sheet changes nothing; a payment still going through (some UPI and cash
-  methods, Apple's Ask to Buy) says MatchGPT+ turns on once it does; a plan already bought is restored
+  methods, Apple's Ask to Buy) says Shaadi24+ turns on once it does; a plan already bought is restored
 - [x] The app catches up with the store when it opens (at most every 6 hours) and in Settings; on
   iPhone, renewals and refunds the App Store delivers while it runs are passed on to the server
-- [x] Settings → MatchGPT+: which store bills it, trial / renewal / end dates, payment problems, Manage
+- [x] Settings → Shaadi24+: which store bills it, trial / renewal / end dates, payment problems, Manage
   subscription (opens the store's own page), payments with refunds, Restore purchases
 - [x] Deleting an account warns first that an App Store subscription keeps charging until the person
   cancels it (with a button to do it); Google Play renewals are stopped; a website one is cancelled
@@ -563,8 +594,8 @@ Migrations `20261004094057_phase13_phone_notifications` (applied live) and `2026
   dead tokens when it next sends
 - [ ] **Owner, Firebase** (one project for both apps; free):
   1. [console.firebase.google.com](https://console.firebase.google.com) → Add project (no Analytics
-     needed). Add an Android app with package `com.matchgpt.app` → download `google-services.json`
-     into `android/app/`. Add an iOS app with bundle ID `com.matchgpt.app` → download
+     needed). Add an Android app with package `com.shaadi24.app` → download `google-services.json`
+     into `android/app/`. Add an iOS app with bundle ID `com.shaadi24.app` → download
      `GoogleService-Info.plist`, and in Xcode drag it into the App folder (tick "App" under targets)
   2. Apple Developer → Certificates, Identifiers & Profiles → Keys → + → "Apple Push Notifications
      service (APNs)" → download the .p8 key (note its Key ID and your Team ID). Firebase → Project
@@ -599,28 +630,28 @@ Migration `20261004105040_phase13_sign_in_with_apple` (applied live); new functi
   (`_shared/appleSignIn_test.ts`), and the Android, iPhone and store tests again
 - [ ] **Owner, Google** (Google Cloud, the project of the web client Supabase already uses,
   `1095396009529-7cqo7gfh8s160u4qrk6i6an6726r7lde`; Google Auth Platform):
-  1. Branding: app name **MatchGPT**, logo, support email. Audience: External, and "Publish app" so
+  1. Branding: app name **Shaadi24**, logo, support email. Audience: External, and "Publish app" so
      every Google account can sign in (in Testing only listed test users can). This is what makes
-     Google's sheet say MatchGPT
-  2. Clients → Create client → **Android**: package `com.matchgpt.app` and the SHA-1 of each key that
+     Google's sheet say Shaadi24
+  2. Clients → Create client → **Android**: package `com.shaadi24.app` and the SHA-1 of each key that
      signs the app: the Play App Signing key (Play Console → Test and release → App integrity), the
      upload key, and for test builds the debug key (`cd android && ./gradlew signingReport`); one
      Android client per SHA-1. Nothing changes in Supabase for Android
-  3. Clients → Create client → **iOS**: bundle ID `com.matchgpt.app` (and your Team ID). Put its client
+  3. Clients → Create client → **iOS**: bundle ID `com.shaadi24.app` (and your Team ID). Put its client
      ID in `.env.production.local` as `VITE_GOOGLE_IOS_CLIENT_ID=…`, and in Supabase → Authentication →
      Sign In / Providers → Google → Client IDs add it after the web client:
      `1095396009529-7cqo7gfh8s160u4qrk6i6an6726r7lde.apps.googleusercontent.com,<iOS client ID>`.
      `npm run build:ios` then adds its URL scheme to the app by itself
 - [ ] **Owner, Apple**:
-  1. Apple Developer → Identifiers → `com.matchgpt.app` → tick **Sign in with Apple** (Xcode's
+  1. Apple Developer → Identifiers → `com.shaadi24.app` → tick **Sign in with Apple** (Xcode's
      automatic signing does this too: the project already has the entitlement)
-  2. Supabase → Authentication → Sign In / Providers → **Apple** → on, Client IDs `com.matchgpt.app`
+  2. Supabase → Authentication → Sign In / Providers → **Apple** → on, Client IDs `com.shaadi24.app`
      (no secret key needed for the app). The iPhone app shows "Continue with Apple" (and Google) from then
-  3. Keys → + → tick **Sign in with Apple** (configure it for `com.matchgpt.app`); if you haven't made
+  3. Keys → + → tick **Sign in with Apple** (configure it for `com.shaadi24.app`); if you haven't made
      the push key yet (Notifications above), make one key with both "Apple Push Notifications service"
      and "Sign in with Apple". Download the .p8. Supabase → Edge Functions → Secrets: `APPLE_TEAM_ID`,
      `APPLE_SIGNIN_KEY_ID` (the key's ID) and `APPLE_SIGNIN_PRIVATE_KEY` (the .p8 file's text)
-  4. Services → Sign in with Apple for Email Communication: register the address MatchGPT's emails
+  4. Services → Sign in with Apple for Email Communication: register the address Shaadi24's emails
      come from, so mail reaches people who hid their email (…@privaterelay.appleid.com)
 
 ### Password reset by code, and the account-deletion page (done 2026-10-04)
@@ -639,8 +670,8 @@ No database or function changes; the website serves the new page.
 - [x] Tests: `tests/e2e/reset-code-flow.mjs` (20 checks, the Android app and the website),
   `tests/e2e/delete-account-page.mjs` (18 checks), and the website's reset link (`reset-flow.mjs`)
 - [ ] **Owner, Supabase emails** (Authentication → Emails):
-  1. Templates → **Reset Password**: subject `Your MatchGPT password reset code`, body = the text of
-     `supabase/templates/recovery.html`. **Magic Link**: subject `Your MatchGPT code`, body =
+  1. Templates → **Reset Password**: subject `Your Shaadi24 password reset code`, body = the text of
+     `supabase/templates/recovery.html`. **Magic Link**: subject `Your Shaadi24 code`, body =
      `supabase/templates/magic_link.html`. Until then the emails have only links (the app says the
      link works too, on the website)
   2. **SMTP Settings → your own email service** (Resend, for example, from your domain). Supabase's
@@ -661,7 +692,7 @@ Migrations `20261004170828_phase13_rls_performance` and `20261004174515_phase13_
 - [x] iPhone: the privacy manifest Apple requires (`PrivacyInfo.xcprivacy`: no tracking, the 15 kinds of
   data the app keeps, the reasons for the system features its plugins use); iPhone-only for now, so no
   iPad screenshots are needed
-- [x] Words MatchGPT doesn't allow (Apple's App Review rule 1.2 and Google Play's rules for apps where
+- [x] Words Shaadi24 doesn't allow (Apple's App Review rule 1.2 and Google Play's rules for apps where
   people post): sexual, abusive and hateful words in English and Hindi (Latin letters and Devanagari)
   are refused in chats and in profile text, with a plain message saying why; names and everyday words
   that look like them pass (Randeep, Ranchod, "chota", "chhod do", magna cum laude; all 6,648 strings in
@@ -690,7 +721,7 @@ Migrations `20261004170828_phase13_rls_performance` and `20261004174515_phase13_
 ---
 
 ## Phase 12 — Profile details for India (done 2026-09-28)
-The sign-up questions of Shaadi.com, BharatMatrimony and Jeevansathi, compared with MatchGPT's in
+The sign-up questions of Shaadi.com, BharatMatrimony and Jeevansathi, compared with Shaadi24's in
 [the research page](https://claude.ai/artifact/YDnK5UxggV5mLcVoyP5hHG); everything marked "Add" or
 "Improve" there is in. Migrations `20260928210206_phase12_india_profile_fields` and
 `20260928210509_phase12_location_text` (applied live); `search` function redeployed.

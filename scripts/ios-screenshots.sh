@@ -13,7 +13,7 @@
 set -euo pipefail
 APP=$1
 OUT=$(mkdir -p "$2" && cd "$2" && pwd)
-BUNDLE=com.matchgpt.app
+BUNDLE=com.shaadi24.app
 FLOW="$(cd "$(dirname "$0")/.." && pwd)/tests/ios/screenshots.yaml"
 
 say() { echo "[$(date +%H:%M:%S)] $*"; }

@@ -1,14 +1,14 @@
-# MatchGPT
+# Shaadi24
 
 A matrimony app for India. People describe the person they hope to marry in their own words, and
-MatchGPT finds the people they fit best: by values, family, lifestyle and plans, not just photos.
+Shaadi24 finds the people they fit best: by values, family, lifestyle and plans, not just photos.
 Profiles carry what Indian families ask about (community, mother tongue, family, horoscope), and any
 answer can be hidden. Likes that go both ways become matches, and matches can chat. Profiles are
-verified through their social links, and MatchGPT+ adds unlimited searches and likes.
+verified through their social links, and Shaadi24+ adds unlimited searches and likes.
 
-Members use MatchGPT in the **Android and iPhone apps**. The website, **https://shaadi-gpt.vercel.app**,
-says what MatchGPT is and where to get the apps, serves the pages the stores link to (support, privacy,
-terms, account deletion), and has the admin panel for MatchGPT's team at `/admin`. MatchGPT+ is sold only
+Members use Shaadi24 in the **Android and iPhone apps**. The website, **https://shaadi-gpt.vercel.app**,
+says what Shaadi24 is and where to get the apps, serves the pages the stores link to (support, privacy,
+terms, account deletion), and has the admin panel for Shaadi24's team at `/admin`. Shaadi24+ is sold only
 in the apps, through Google Play and the App Store.
 
 - What's done and what's left: [ROADMAP.md](ROADMAP.md)
@@ -33,13 +33,13 @@ in the apps, through Google Play and the App Store.
   | Function | What it does |
   |---|---|
   | `search` | Search and matching: typed searches (understood by Google Gemini, or by rules without its key), filters, scores, the daily limit |
-  | `store-billing`, `store-notifications` | MatchGPT+ in the apps: purchases checked with Google Play and the App Store, and the stores' notifications |
+  | `store-billing`, `store-notifications` | Shaadi24+ in the apps: purchases checked with Google Play and the App Store, and the stores' notifications |
   | `send-push` | Notifications: phones through Firebase Cloud Messaging, and admin alerts in browsers through Web Push. A cron job runs it every minute |
   | `delete-account` | Deletes an account and everything kept about it, stopping its Google Play renewal first |
   | `apple-sign-in` | Keeps the Sign in with Apple token, so deleting the account also ends it at Apple |
 
-- **MatchGPT+.** Sold only in the apps, through Google Play and the App Store; the website says where
-  to get the apps. One switch, "MatchGPT+ for everyone" in Admin → Dashboard, gives every member its
+- **Shaadi24+.** Sold only in the apps, through Google Play and the App Store; the website says where
+  to get the apps. One switch, "Shaadi24+ for everyone" in Admin → Dashboard, gives every member its
   features while it's on; only the daily limits (3 AI searches, 15 likes) stay for free accounts. The
   server (`has_pro()` in the database) and the apps (`useAuth().hasPro`) follow it at once, with no
   new app release.
@@ -121,7 +121,7 @@ With a local backend you can also run:
 - room for the iPhone's notch and home bar;
 - the launch screen.
 
-**MatchGPT+** is sold in the apps through Google Play and the App Store (`lib/storePurchases.ts`,
+**Shaadi24+** is sold in the apps through Google Play and the App Store (`lib/storePurchases.ts`,
 `components/StoreUpgrade.tsx`). The server checks each purchase with the store. This starts once the subscriptions are set up in the stores (ROADMAP.md, Phase 13); until then
 the apps say "coming soon".
 
@@ -180,7 +180,7 @@ Run workflow. When it's done, the run's page has:
 
 - **iPhone-screenshots**: the app on an iPhone Pro Max simulator, in light and dark mode
   (`scripts/ios-screenshots.sh`, which taps through `tests/ios/screenshots.yaml` with Maestro).
-- **MatchGPT-iPhone-simulator.zip**: upload it at https://appetize.io/upload (a free account has 30
+- **Shaadi24-iPhone-simulator.zip**: upload it at https://appetize.io/upload (a free account has 30
   minutes a month) to use the iPhone app in your browser, on any computer.
 
 For a build that can sign in, first add two repository secrets (GitHub → Settings → Secrets and
@@ -212,6 +212,6 @@ Android SDK on the PATH for Android; iPhones need a Mac.
 The rest is in [docs/store/README.md](docs/store/README.md): the launch checklist, store listings,
 privacy answers, notes for the reviewers and screenshots.
 
-`com.matchgpt.app` is the app's ID on Google Play and the App Store. It's set in
+`com.shaadi24.app` is the app's ID on Google Play and the App Store. It's set in
 `capacitor.config.ts`, `android/app/build.gradle` and the Xcode project, and can't change after the
 first upload.

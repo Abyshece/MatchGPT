@@ -149,7 +149,7 @@ const MatchGrid: React.FC<MatchGridProps> = React.memo(({
                     </div>
                 )}
 
-                {/* MatchGPT+ Upsell to Pro */}
+                {/* Shaadi24+ Upsell to Pro */}
                 {userTier === 'PLUS' && (
                     <div className="mt-4 mb-12 relative overflow-hidden rounded-2xl bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 dark:from-yellow-950/30 dark:via-amber-900/20 dark:to-orange-900/20 border border-yellow-200 dark:border-yellow-700/50 p-6 md:p-8 text-center md:text-left flex flex-col md:flex-row items-center gap-6 shadow-lg shadow-orange-500/5">
                         
@@ -166,7 +166,7 @@ const MatchGrid: React.FC<MatchGridProps> = React.memo(({
                                 Ready for the big leagues?
                             </h3>
                             <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
-                                Upgrade to <span className="font-bold text-yellow-600 dark:text-yellow-500">MatchGPT Pro</span> to unlock Incognito Mode, Read Receipts, see everyone who likes you, and filter by Online status.
+                                Upgrade to <span className="font-bold text-yellow-600 dark:text-yellow-500">Shaadi24 Pro</span> to unlock Incognito Mode, Read Receipts, see everyone who likes you, and filter by Online status.
                             </p>
                             <div className="flex flex-wrap justify-center md:justify-start gap-2">
                                 {['Incognito Mode', 'Read Receipts', 'See All Likes', 'Advanced Filters'].map(feat => (
@@ -247,13 +247,13 @@ const MatchGrid: React.FC<MatchGridProps> = React.memo(({
                                     onClick={onShowSubscription}
                                     className="w-full flex-1 py-3.5 px-6 rounded-xl font-bold text-sm text-white bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2"
                                 >
-                                    <IconStar /> Get MatchGPT+
+                                    <IconStar /> Get Shaadi24+
                                 </button>
                                 <button 
                                     onClick={onShowSubscription}
                                     className="w-full flex-1 py-3.5 px-6 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 active:scale-95 transition-all shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2"
                                 >
-                                    <IconZapFilled /> Get MatchGPT Pro
+                                    <IconZapFilled /> Get Shaadi24 Pro
                                 </button>
                             </div>
                             
@@ -286,7 +286,7 @@ const MatchGrid: React.FC<MatchGridProps> = React.memo(({
                                 onClick={onShowSubscription}
                                 className="bg-blue-600 hover:bg-blue-700 text-white w-full justify-center shadow-lg transform transition-transform hover:scale-[1.02]"
                             >
-                                Upgrade to MatchGPT+
+                                Upgrade to Shaadi24+
                             </Button>
                         </div>
                     </div>

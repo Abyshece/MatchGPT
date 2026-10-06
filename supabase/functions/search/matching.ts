@@ -224,14 +224,14 @@ const TEXT_FILTERS = [
   'country', 'state',
 ] as const;
 
-// The filters MatchGPT+ adds (the ones FilterPanel locks without it). Age,
+// The filters Shaadi24+ adds (the ones FilterPanel locks without it). Age,
 // place and the verified / Instagram / LinkedIn switches are everyone's.
 export const PRO_FILTERS = [
   'religion', 'motherTongue', 'caste', 'maritalStatus', 'heightRange', 'manglik', 'dietaryPreferences',
   'educationLevel', 'datingIntention', 'children', 'familyPlans', 'drinking', 'smoking',
 ] as const;
 
-/** The filters without MatchGPT+'s, for members who don't have it. */
+/** The filters without Shaadi24+'s, for members who don't have it. */
 export function withoutProFilters(filters: FilterOptions): FilterOptions {
   const kept: FilterOptions = { ...filters };
   for (const key of PRO_FILTERS) delete kept[key];

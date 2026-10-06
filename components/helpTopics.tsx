@@ -9,8 +9,8 @@ import React from 'react';
 // other platforms or ways to pay).
 // ============================================================================
 
-export const SUPPORT_EMAIL = 'support@matchgpt.com';
-export const PRIVACY_EMAIL = 'privacy@matchgpt.com';
+export const SUPPORT_EMAIL = 'support@shaadi24.com';
+export const PRIVACY_EMAIL = 'privacy@shaadi24.com';
 
 export interface HelpTopic {
   q: string;
@@ -27,16 +27,16 @@ export function helpTopics(platform: HelpPlatform): HelpTopic[] {
   const onWebsite = platform === 'web';
   return [
     {
-      q: 'Is MatchGPT free?',
+      q: 'Is Shaadi24 free?',
       a: <>Yes. A free account can make a profile, search 3 times a day, send 15 likes a day, see 5 Standouts a
-        day, match and chat. MatchGPT+ adds unlimited searches and likes, Super Likes, everyone who has liked you,
+        day, match and chat. Shaadi24+ adds unlimited searches and likes, Super Likes, everyone who has liked you,
         more search filters (religion, mother tongue, community, Manglik, height, diet, education and more), the
         full compatibility report and date proposals in chat.</>,
     },
     {
       q: 'How do I search?',
       a: <>Describe the person you hope to meet in your own words, for example "a vegetarian doctor in Pune who
-        wants children" or "Tamil, settled abroad, open to moving back". MatchGPT turns it into filters and puts
+        wants children" or "Tamil, settled abroad, open to moving back". Shaadi24 turns it into filters and puts
         the people you fit best first. The filters work on their own too.</>,
     },
     {
@@ -80,20 +80,20 @@ export function helpTopics(platform: HelpPlatform): HelpTopic[] {
       q: 'I forgot my password',
       a: <>On the sign-in screen tap <strong>Forgot Password?</strong>, enter your email, type the code we email
         you and choose a new password. If you joined with Google or Apple, continue with them instead: those
-        accounts have no MatchGPT password.</>,
+        accounts have no Shaadi24 password.</>,
     },
     {
-      q: 'How do I cancel MatchGPT+?',
+      q: 'How do I cancel Shaadi24+?',
       a: platform === 'android'
-        ? <>Settings → MatchGPT+ → <strong>Manage subscription</strong> opens your subscriptions in Google Play
-          (or: Play Store → your picture → Payments &amp; subscriptions → Subscriptions). MatchGPT+ stays on until
+        ? <>Settings → Shaadi24+ → <strong>Manage subscription</strong> opens your subscriptions in Google Play
+          (or: Play Store → your picture → Payments &amp; subscriptions → Subscriptions). Shaadi24+ stays on until
           the end of the time you've paid for.</>
         : platform === 'ios'
-          ? <>Settings → MatchGPT+ → <strong>Manage subscription</strong> (or: iPhone Settings → your name →
-            Subscriptions). MatchGPT+ stays on until the end of the time you've paid for. Deleting your account
+          ? <>Settings → Shaadi24+ → <strong>Manage subscription</strong> (or: iPhone Settings → your name →
+            Subscriptions). Shaadi24+ stays on until the end of the time you've paid for. Deleting your account
             doesn't cancel it, so cancel it first.</>
           : <>In the store you bought it from; it stays on until the end of the time you've paid for. Google Play:
-            in the app, Settings → MatchGPT+ → Manage subscription, or Play Store → your picture → Payments &amp;
+            in the app, Settings → Shaadi24+ → Manage subscription, or Play Store → your picture → Payments &amp;
             subscriptions → Subscriptions. App Store: iPhone Settings → your name → Subscriptions. Deleting your
             account doesn't cancel an App Store subscription, so cancel it first.</>,
     },
@@ -105,19 +105,19 @@ export function helpTopics(platform: HelpPlatform): HelpTopic[] {
         : platform === 'ios'
           ? <>Apple refunds purchases made in the app, under its rules:{' '}
             <a className={link} href="https://reportaproblem.apple.com" target="_blank" rel="noreferrer">reportaproblem.apple.com</a>.</>
-          : <>MatchGPT+ is bought in the apps, so Google Play or Apple refunds it, under their rules:{' '}
+          : <>Shaadi24+ is bought in the apps, so Google Play or Apple refunds it, under their rules:{' '}
             <a className={link} href="https://support.google.com/googleplay" target="_blank" rel="noreferrer">support.google.com/googleplay</a>{' '}
             or <a className={link} href="https://reportaproblem.apple.com" target="_blank" rel="noreferrer">reportaproblem.apple.com</a>.</>,
     },
     {
-      q: 'MatchGPT+ is missing on my new phone',
-      a: <>MatchGPT+ belongs to your account, so sign in with the same account. If you bought it in the app and it
-        still doesn't show, tap Settings → MatchGPT+ → <strong>Restore purchases</strong>.</>,
+      q: 'Shaadi24+ is missing on my new phone',
+      a: <>Shaadi24+ belongs to your account, so sign in with the same account. If you bought it in the app and it
+        still doesn't show, tap Settings → Shaadi24+ → <strong>Restore purchases</strong>.</>,
     },
     {
       q: 'Notifications',
       a: <>{onWebsite ? 'In the app, Settings' : 'Settings'} → Notifications turns them on or off on {onWebsite ? 'that' : 'this'}{' '}
-        phone. If the phone blocks them, allow them for MatchGPT in its own settings. A message notification never
+        phone. If the phone blocks them, allow them for Shaadi24 in its own settings. A message notification never
         shows what was written.</>,
     },
     {

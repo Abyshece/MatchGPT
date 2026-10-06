@@ -10,7 +10,7 @@ import { chromium } from 'playwright';
 import { execFileSync, execSync } from 'node:child_process';
 import fs from 'node:fs';
 
-const DB = process.env.DB_CONTAINER || 'supabase_db_MatchGPT';
+const DB = process.env.DB_CONTAINER || 'supabase_db_Shaadi24';
 const API = process.env.SUPABASE_URL || 'http://127.0.0.1:54321';
 const BASE = process.env.BASE_URL || 'http://localhost:3000';
 const SERVICE = process.env.SERVICE_ROLE_KEY || '';
@@ -74,7 +74,7 @@ const open = async (email) => {
   await page.locator('input[type=email]').fill(email);
   await page.locator('input[type=password]').fill(PASSWORD);
   await page.locator('form').getByRole('button', { name: /Log In/i }).click();
-  await page.getByPlaceholder(/Describe your ideal match/).waitFor({ timeout: 20000 });
+  await page.getByTestId('find-match-box').waitFor({ timeout: 20000 });
   return page;
 };
 

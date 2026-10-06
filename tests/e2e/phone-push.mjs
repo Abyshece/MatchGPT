@@ -14,7 +14,7 @@
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 
-const DB = process.env.DB_CONTAINER || 'supabase_db_MatchGPT';
+const DB = process.env.DB_CONTAINER || 'supabase_db_Shaadi24';
 const API = process.env.SUPABASE_URL || 'http://127.0.0.1:54321';
 const STANDIN = process.env.STORE_STANDIN || 'http://127.0.0.1:8790';
 const ANON = (process.env.ANON_KEY_FILE ? fs.readFileSync(process.env.ANON_KEY_FILE, 'utf8') : process.env.ANON_KEY || '').trim();
@@ -119,7 +119,7 @@ try {
   check(!!match && match.notification.title.startsWith("It's a match") && match.notification.body.includes(nameB)
     && match.android.notification.channel_id === 'matches' && match.data.match_id === matchId,
     `the match: "${match?.notification.title}" / "${match?.notification.body}", channel matches`);
-  check(!!message && message.notification.title === `💬 ${nameB} sent you a message` && message.notification.body === 'Open MatchGPT to read it'
+  check(!!message && message.notification.title === `💬 ${nameB} sent you a message` && message.notification.body === 'Open Shaadi24 to read it'
     && message.android.notification.channel_id === 'messages' && message.data.deep_link === '/matches' && message.data.match_id === matchId,
     `the message: "${message?.notification.title}", channel messages, opens the chat`);
   check(!JSON.stringify(got).includes('Secret words'), "the message's words are never in a notification");

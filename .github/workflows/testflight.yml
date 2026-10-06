@@ -70,7 +70,7 @@ jobs:
       VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
       VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
       VITE_GOOGLE_IOS_CLIENT_ID: ${{ secrets.VITE_GOOGLE_IOS_CLIENT_ID }}
-      ARCHIVE: build/MatchGPT.xcarchive
+      ARCHIVE: build/Shaadi24.xcarchive
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

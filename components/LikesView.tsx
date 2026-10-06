@@ -12,7 +12,7 @@ import type { MatchCandidate } from '../types';
 import { firstCelebration } from '../lib/matchCelebration';
 
 // ============================================================================
-// LikesView — restyled to match the legacy MatchGPT design (see Item 1):
+// LikesView — restyled to match the legacy Shaadi24 design (see Item 1):
 //   - "Likes You (N)" header with sort dropdown on the right (Pro only)
 //   - Cream/yellow gradient upsell banner with circular ⚡ icon and black
 //     "Upgrade to Pro" pill button (Free users only)
@@ -94,7 +94,7 @@ const LikesView: React.FC<{ onNavigateToMatches?: (matchId: string) => void }> =
               <div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white">See who liked you</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Upgrade to MatchGPT Pro to reveal all {likes.length} {likes.length === 1 ? 'person' : 'people'} and sort them.
+                  Upgrade to Shaadi24 Pro to reveal all {likes.length} {likes.length === 1 ? 'person' : 'people'} and sort them.
                 </p>
               </div>
             </div>

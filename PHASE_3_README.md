@@ -111,4 +111,4 @@ You should be able to:
 - ✅ Sign out / sign back in
 - ✅ See clean placeholders for the unimplemented tabs
 
-Tell me when it's working (or if anything errors) and we'll move to **Phase 4: Search + Matching Algorithm** — the actual brain of ShaadiGPT, where natural-language search hits 70+ profile attributes and ranks candidates with detailed compatibility reports.
+Tell me when it's working (or if anything errors) and we'll move to **Phase 4: Search + Matching Algorithm** — the actual brain of Shaadi24, where natural-language search hits 70+ profile attributes and ranks candidates with detailed compatibility reports.

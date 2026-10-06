@@ -28,7 +28,7 @@ if (!rootElement) {
   throw new Error("Could not find root element to mount to");
 }
 
-console.log('MatchGPT Application Mounted');
+console.log('Shaadi24 Application Mounted');
 
 const root = ReactDOM.createRoot(rootElement);
 root.render(

@@ -53,7 +53,7 @@ const WebPushSetup: React.FC<{ forAdmins: boolean }> = ({ forAdmins }) => {
       <div className="text-xs text-gray-500 dark:text-gray-400 py-2 px-1">
         Push notifications aren't supported on this browser.
         {/iPhone|iPad|iPod/.test(navigator.userAgent) && (
-          <> On iOS, add MatchGPT to your home screen first (Share → Add to Home Screen).</>
+          <> On iOS, add Shaadi24 to your home screen first (Share → Add to Home Screen).</>
         )}
       </div>
     );
@@ -170,10 +170,10 @@ const PhonePushSetup: React.FC = () => {
       <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-900/40 rounded-lg p-3 text-xs text-yellow-800 dark:text-yellow-300 flex items-start gap-2" data-testid="phone-push-denied">
         <IconBell />
         <div>
-          <p className="font-bold mb-1">Notifications are off for MatchGPT</p>
+          <p className="font-bold mb-1">Notifications are off for Shaadi24</p>
           <p>
-            To get them, allow notifications for MatchGPT in your phone's settings
-            {Capacitor.getPlatform() === 'ios' ? ' (Settings → Notifications → MatchGPT).' : ' (Settings → Apps → MatchGPT → Notifications).'}
+            To get them, allow notifications for Shaadi24 in your phone's settings
+            {Capacitor.getPlatform() === 'ios' ? ' (Settings → Notifications → Shaadi24).' : ' (Settings → Apps → Shaadi24 → Notifications).'}
           </p>
         </div>
       </div>

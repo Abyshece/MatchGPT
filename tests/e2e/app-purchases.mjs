@@ -1,4 +1,4 @@
-// MatchGPT+ bought inside the phone apps (lib/storePurchases.ts,
+// Shaadi24+ bought inside the phone apps (lib/storePurchases.ts,
 // components/StoreUpgrade.tsx, Settings), in Chromium with stand-ins for
 // Capacitor's Android and iOS bridges. The purchase plugin's calls are
 // answered by the Google Play / App Store stand-in (store-standin.cjs), and
@@ -16,7 +16,7 @@
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
-const DB = process.env.DB_CONTAINER || 'supabase_db_MatchGPT';
+const DB = process.env.DB_CONTAINER || 'supabase_db_Shaadi24';
 const BASE = process.env.BASE_URL || 'http://localhost:3000';
 const STORE = process.env.STORE_STANDIN || 'http://127.0.0.1:8790';
 const REPO = process.env.REPO_ROOT || new URL('../..', import.meta.url).pathname;
@@ -49,24 +49,24 @@ const subOf = (provider) => sql(`select status || '|' || plan_id from subscripti
 // ---- What the store would sell -------------------------------------------------------
 
 const product = (over) => ({
-  title: 'MatchGPT+', description: 'Unlimited searches and likes', currencyCode: 'INR', currencySymbol: '₹',
+  title: 'Shaadi24+', description: 'Unlimited searches and likes', currencyCode: 'INR', currencySymbol: '₹',
   isFamilyShareable: false, subscriptionGroupIdentifier: '21500001', discounts: [], introductoryPrice: null, ...over,
 });
 const ANDROID_PRODUCTS = [
-  product({ identifier: 'monthly', planIdentifier: 'matchgpt_plus', offerId: null, offerToken: 'base-monthly', price: 999,
+  product({ identifier: 'monthly', planIdentifier: 'shaadi24_plus', offerId: null, offerToken: 'base-monthly', price: 999,
     priceString: '₹999.00', subscriptionPeriod: { numberOfUnits: 1, unit: 2 } }),
   // An offer on the monthly plan: listed separately, not a plan of its own
-  product({ identifier: 'monthly', planIdentifier: 'matchgpt_plus', offerId: 'free-trial', offerToken: 'trial-monthly', price: 999,
+  product({ identifier: 'monthly', planIdentifier: 'shaadi24_plus', offerId: 'free-trial', offerToken: 'trial-monthly', price: 999,
     priceString: '₹999.00', subscriptionPeriod: { numberOfUnits: 1, unit: 2 } }),
-  product({ identifier: 'yearly', planIdentifier: 'matchgpt_plus', offerId: null, offerToken: 'base-yearly', price: 9999,
+  product({ identifier: 'yearly', planIdentifier: 'shaadi24_plus', offerId: null, offerToken: 'base-yearly', price: 9999,
     priceString: '₹9,999.00', subscriptionPeriod: { numberOfUnits: 1, unit: 3 } }),
 ];
 const WEEK_FREE = { identifier: '', type: 0, price: 0, priceString: '₹0.00', currencySymbol: '₹', currencyCode: 'INR',
   paymentMode: 0, numberOfPeriods: 1, subscriptionPeriod: { numberOfUnits: 1, unit: 1 } };
 const IOS_PRODUCTS = [
-  product({ identifier: 'matchgpt_plus_monthly', price: 999, priceString: '₹999.00', subscriptionPeriod: { numberOfUnits: 1, unit: 2 },
+  product({ identifier: 'shaadi24_plus_monthly', price: 999, priceString: '₹999.00', subscriptionPeriod: { numberOfUnits: 1, unit: 2 },
     introductoryPrice: WEEK_FREE }),
-  product({ identifier: 'matchgpt_plus_yearly', price: 9999, priceString: '₹9,999.00', subscriptionPeriod: { numberOfUnits: 1, unit: 3 },
+  product({ identifier: 'shaadi24_plus_yearly', price: 9999, priceString: '₹9,999.00', subscriptionPeriod: { numberOfUnits: 1, unit: 3 },
     introductoryPrice: WEEK_FREE }),
 ];
 
@@ -142,12 +142,12 @@ function storeSide(platform, state) {
       }
       case 'getPurchases': {
         if (platform === 'android') {
-          return { data: { purchases: state.owned.map((t) => ({ purchaseToken: t, transactionId: t, purchaseState: '1', productIdentifier: 'matchgpt_plus' })) } };
+          return { data: { purchases: state.owned.map((t) => ({ purchaseToken: t, transactionId: t, purchaseState: '1', productIdentifier: 'shaadi24_plus' })) } };
         }
         const purchases = [];
         for (const orig of state.owned) {
           const l = await store(`/__apple/latest/${orig}`);
-          purchases.push({ transactionId: l.transactionId, jwsRepresentation: l.jws, productIdentifier: 'matchgpt_plus_yearly', willCancel: null });
+          purchases.push({ transactionId: l.transactionId, jwsRepresentation: l.jws, productIdentifier: 'shaadi24_plus_yearly', willCancel: null });
         }
         return { data: { purchases } };
       }
@@ -178,7 +178,7 @@ async function appPage(platform, state) {
   await page.locator('input[type=email]').fill(EMAIL);
   await page.locator('input[type=password]').fill('TestPass!2026');
   await page.locator('form').getByRole('button', { name: /Log In/i }).click();
-  await page.getByPlaceholder(/Describe your ideal match/).waitFor({ timeout: 20000 });
+  await page.getByTestId('find-match-box').waitFor({ timeout: 20000 });
   return page;
 }
 
@@ -197,7 +197,7 @@ try {
   check(firstSync?.options.productType === 'subs' && firstSync.options.appAccountToken === me,
     'signed in: the app asks Google Play for this account\'s purchases');
 
-  await openMenuItem(page, 'Get MatchGPT+');
+  await openMenuItem(page, 'Get Shaadi24+');
   await page.getByText('₹999.00', { exact: false }).first().waitFor({ timeout: 15000 });
   const sheet = page.locator('[role=dialog]');
   check(await sheet.getByText('₹9,999.00').isVisible() && await sheet.getByText('SAVE 17%').isVisible(),
@@ -218,10 +218,10 @@ try {
     'closing the payment sheet: no error, still on the plans');
 
   await sheet.getByRole('button', { name: /Subscribe for ₹999.00\/month/ }).click();
-  await page.getByText('Welcome to MatchGPT+').waitFor({ timeout: 15000 });
+  await page.getByText('Welcome to Shaadi24+').waitFor({ timeout: 15000 });
   const bought = callsTo(a, 'purchaseProduct').at(-1)?.options;
-  check(bought?.productIdentifier === 'matchgpt_plus' && bought.planIdentifier === 'monthly' && bought.productType === 'subs'
-    && bought.appAccountToken === me, `bought matchgpt_plus / monthly for this account (${JSON.stringify(bought)})`);
+  check(bought?.productIdentifier === 'shaadi24_plus' && bought.planIdentifier === 'monthly' && bought.productType === 'subs'
+    && bought.appAccountToken === me, `bought shaadi24_plus / monthly for this account (${JSON.stringify(bought)})`);
   check(a.functions.some((f) => f.name === 'store-billing' && f.body.includes('"verify"')) && !a.functions.some((f) => f.name === 'billing'),
     'the purchase went to store-billing to be checked (never Razorpay)');
   check(subOf('google_play') === 'active|monthly' && tier() === 'PRO', 'checked with Google: Pro on, monthly');
@@ -239,7 +239,7 @@ try {
   check(await settings.getByText('₹999').first().isVisible(), 'the payment is listed');
   const before = callsTo(a, 'getPurchases').length;
   await settings.getByRole('button', { name: 'Restore purchases' }).click();
-  await page.getByText('MatchGPT+ restored.').waitFor({ timeout: 15000 });
+  await page.getByText('Shaadi24+ restored.').waitFor({ timeout: 15000 });
   const restoreCall = callsTo(a, 'getPurchases').at(-1);
   check(callsTo(a, 'getPurchases').length > before && !('appAccountToken' in restoreCall.options), 'Restore purchases: every purchase on this Google account');
   await page.screenshot({ path: `${OUT}android-3-settings.png` });
@@ -248,8 +248,8 @@ try {
   await store(`/__google/expire/${encodeURIComponent(a.owned[0])}`, {});
   check(tier() === 'FREE', '(the subscription ran out)');
   await page.reload();
-  await page.getByPlaceholder(/Describe your ideal match/).waitFor({ timeout: 20000 });
-  await openMenuItem(page, 'Get MatchGPT+');
+  await page.getByTestId('find-match-box').waitFor({ timeout: 20000 });
+  await openMenuItem(page, 'Get Shaadi24+');
   await page.locator('[role=dialog]').getByText('₹999.00').first().waitFor({ timeout: 15000 });
   a.next = 'pending';
   await page.locator('[role=dialog]').getByRole('button', { name: /Subscribe for/ }).click();
@@ -257,8 +257,8 @@ try {
   check(tier() === 'FREE', 'a pending payment: told it turns on once Google Play confirms; no Pro yet');
   await page.locator('[role=dialog]').getByRole('button', { name: 'Close' }).click();
   a.products = [];
-  await openMenuItem(page, 'Get MatchGPT+');
-  await page.getByText('MatchGPT+ is coming to the app soon.').waitFor({ timeout: 15000 });
+  await openMenuItem(page, 'Get Shaadi24+');
+  await page.getByText('Shaadi24+ is coming to the app soon.').waitFor({ timeout: 15000 });
   check(true, 'nothing on sale in Google Play yet: "coming to the app soon"');
   await page.context().close();
 
@@ -270,7 +270,7 @@ try {
   await page.waitForTimeout(1500);
   check(await page.evaluate(() => window.__native.some((c) => c.pluginId === 'NativePurchases' && c.methodName === 'addListener'
     && c.options.eventName === 'transactionUpdated')), 'the app listens for App Store updates');
-  await openMenuItem(page, 'Get MatchGPT+');
+  await openMenuItem(page, 'Get Shaadi24+');
   const isheet = page.locator('[role=dialog]');
   await isheet.getByText('₹999.00').first().waitFor({ timeout: 15000 });
   check(await isheet.getByText(/1-week free trial for new subscribers, then ₹999\.00\/month/).isVisible(), 'the free trial, then the price');
@@ -282,9 +282,9 @@ try {
   await page.waitForTimeout(300);  // the highlight's colour change
   await page.screenshot({ path: `${OUT}ios-1-plans.png` });
   await isheet.getByRole('button', { name: /Subscribe for ₹9,999.00\/year/ }).click();
-  await page.getByText('Welcome to MatchGPT+').waitFor({ timeout: 15000 });
+  await page.getByText('Welcome to Shaadi24+').waitFor({ timeout: 15000 });
   const ibought = callsTo(i, 'purchaseProduct').at(-1)?.options;
-  check(ibought?.productIdentifier === 'matchgpt_plus_yearly' && ibought.appAccountToken === me, 'bought matchgpt_plus_yearly for this account');
+  check(ibought?.productIdentifier === 'shaadi24_plus_yearly' && ibought.appAccountToken === me, 'bought shaadi24_plus_yearly for this account');
   check(subOf('app_store') === 'authenticated|yearly' && tier() === 'PRO', "checked by Apple's signature: Pro on, in the trial");
   check(await isheet.getByText(/Your free trial runs until/).isVisible() && await isheet.getByText(/the App Store charges you after that/).isVisible(),
     'the welcome says when the trial ends and that the App Store charges after');
@@ -312,7 +312,7 @@ try {
   await page.getByRole('button', { name: 'Continue' }).click();
   const note = page.getByTestId('delete-subscription-note');
   await note.waitFor({ timeout: 10000 });
-  check(await note.getByText("Your MatchGPT+ subscription won't stop by itself.").isVisible()
+  check(await note.getByText("Your Shaadi24+ subscription won't stop by itself.").isVisible()
     && await note.getByRole('button', { name: 'Manage subscription' }).isVisible(),
     "deleting the account: warned that the App Store keeps charging until it's cancelled, with a way to cancel");
   await page.screenshot({ path: `${OUT}ios-3-delete.png` });

@@ -26,7 +26,7 @@ const google = (over: Partial<GoogleSubscription> = {}, item: Record<string, unk
   externalAccountIdentifiers: { obfuscatedExternalAccountId: 'user-1' },
   ...over,
   lineItems: [{
-    productId: 'matchgpt_plus',
+    productId: 'shaadi24_plus',
     expiryTime: at(20),
     latestSuccessfulOrderId: 'GPA.1111-2222-3333-44444',
     autoRenewingPlan: { autoRenewEnabled: true, recurringPrice: { currencyCode: 'INR', units: '999' } },
@@ -39,7 +39,7 @@ const google = (over: Partial<GoogleSubscription> = {}, item: Record<string, unk
 Deno.test('Google: an active subscription', () => {
   const s = googleState(google(), NOW);
   assertEquals([s.status, s.productId, s.basePlanId, s.mode, s.currentStart, s.currentEnd, s.trialEndsAt],
-    ['active', 'matchgpt_plus', 'monthly', 'live', at(-10), at(20), null]);
+    ['active', 'shaadi24_plus', 'monthly', 'live', at(-10), at(20), null]);
   assertEquals([s.orderId, s.price, s.userId, s.autoRenew, s.cancelAtPeriodEnd, s.needsAcknowledgement, s.endedAt],
     ['GPA.1111-2222-3333-44444', { amount: 99900, currency: 'INR' }, 'user-1', true, false, false, null]);
 });
@@ -88,8 +88,8 @@ Deno.test("Google's money in the currency's smallest unit", () => {
 const tx = (over: Partial<AppleTransaction> = {}): AppleTransaction => ({
   transactionId: '2000000000000002',
   originalTransactionId: '2000000000000001',
-  bundleId: 'com.matchgpt.app',
-  productId: 'matchgpt_plus_monthly',
+  bundleId: 'com.shaadi24.app',
+  productId: 'shaadi24_plus_monthly',
   purchaseDate: NOW.getTime() - 10 * DAY,
   expiresDate: NOW.getTime() + 20 * DAY,
   environment: 'Production',
@@ -194,7 +194,7 @@ Deno.test("Apple's signatures: a good chain passes, everything else is refused",
   const good = await chain();
   Deno.env.set('APPLE_ROOT_CERTIFICATES', good.certs[2]);
   try {
-    const payload = { transactionId: '1', bundleId: 'com.matchgpt.app', signedDate: NOW.getTime() };
+    const payload = { transactionId: '1', bundleId: 'com.shaadi24.app', signedDate: NOW.getTime() };
     assertEquals(await verifyAppleJws(await jws(good, payload)), payload, 'good');
 
     const token = await jws(good, payload);

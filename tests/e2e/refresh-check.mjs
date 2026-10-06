@@ -16,12 +16,12 @@ await page.getByRole('button', { name: /Continue with Email/ }).click();
 await page.locator('input[type=email]').fill(email);
 await page.locator('input[type=password]').fill('SeedUser!2024');
 await page.locator('form').getByRole('button', { name: /Log In/i }).click();
-await page.getByPlaceholder(/Describe your ideal match/).waitFor({ timeout: 15000 });
+await page.getByTestId('find-match-box').waitFor({ timeout: 15000 });
 log('signed in, main app showing');
 for (let i = 0; i < 5; i++) {
   await page.waitForTimeout(10000);
   const errorShown = await page.getByText("Couldn't load your profile").isVisible();
-  const appShown = await page.getByPlaceholder(/Describe your ideal match/).isVisible();
+  const appShown = await page.getByTestId('find-match-box').isVisible();
   log(errorShown ? 'SCREEN: "Couldn\'t load your profile" error' : appShown ? 'screen: main app' : 'screen: other');
   if (errorShown) break;
 }

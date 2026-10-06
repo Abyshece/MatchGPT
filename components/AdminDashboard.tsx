@@ -66,7 +66,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ userProfile, onVerifyUs
     // Mock Revenue Data
     const transactions = [
         { id: 'tx1', user: 'Alex Morgan', plan: 'Pro Plan', amount: '₹2,999', date: 'Just now', status: 'Success' },
-        { id: 'tx2', user: 'David Kim', plan: 'MatchGPT+', amount: '₹1,999', date: '2 mins ago', status: 'Success' },
+        { id: 'tx2', user: 'David Kim', plan: 'Shaadi24+', amount: '₹1,999', date: '2 mins ago', status: 'Success' },
         { id: 'tx3', user: 'Guest User', plan: 'Boost (24h)', amount: '₹199', date: '15 mins ago', status: 'Failed' },
         { id: 'tx4', user: 'Sarah Jenkins', plan: 'Pro Plan', amount: '₹2,999', date: '1 hour ago', status: 'Success' },
     ];
@@ -111,13 +111,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ userProfile, onVerifyUs
     ]);
 
     const [stories, setStories] = useState([
-        { id: 's1', couple: 'Alex & Sarah', snippet: 'Met via MatchGPT in NYC...', status: 'Published', img: 'https://picsum.photos/id/1005/200/200' },
+        { id: 's1', couple: 'Alex & Sarah', snippet: 'Met via Shaadi24 in NYC...', status: 'Published', img: 'https://picsum.photos/id/1005/200/200' },
         { id: 's2', couple: 'David & Emily', snippet: 'A cross-country love story...', status: 'Pending Review', img: 'https://picsum.photos/id/1011/200/200' },
     ]);
 
     const [faqs, setFaqs] = useState([
         { id: 'q1', question: 'How do I verify my profile?', category: 'Account', lastUpdated: '2 days ago' },
-        { id: 'q2', question: 'Is MatchGPT free?', category: 'Billing', lastUpdated: '1 week ago' },
+        { id: 'q2', question: 'Is Shaadi24 free?', category: 'Billing', lastUpdated: '1 week ago' },
         { id: 'q3', question: 'How to delete account?', category: 'Privacy', lastUpdated: '3 weeks ago' },
     ]);
 
@@ -855,7 +855,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ userProfile, onVerifyUs
                 <div className="p-6 border-b border-gray-100 dark:border-zinc-800">
                     <div className="flex items-center gap-2 mb-1">
                         <span className="text-2xl">💍</span>
-                        <h1 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">MatchGPT</h1>
+                        <h1 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">Shaadi24</h1>
                     </div>
                     <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 pl-8">Admin Console</div>
                 </div>

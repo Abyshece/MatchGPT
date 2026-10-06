@@ -1,7 +1,7 @@
-// One rule for MatchGPT+ (migration …_phase10_pro_access), against the local stack:
-//   - while "MatchGPT+ for everyone" is on, free accounts get every MatchGPT+
+// One rule for Shaadi24+ (migration …_phase10_pro_access), against the local stack:
+//   - while "Shaadi24+ for everyone" is on, free accounts get every Shaadi24+
 //     feature on the server: Super Likes, date proposals, who liked them, the
-//     MatchGPT+ filters, compatibility reports, refreshing Standouts
+//     Shaadi24+ filters, compatibility reports, refreshing Standouts
 //   - the switch can only be read by signed-in members and changed by admins
 //     (has_pro and app_settings stay out of reach)
 //   - turned off, each of those is refused or held back for free accounts,
@@ -15,7 +15,7 @@ import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 
-const DB = process.env.DB_CONTAINER || 'supabase_db_MatchGPT';
+const DB = process.env.DB_CONTAINER || 'supabase_db_Shaadi24';
 const API = process.env.SUPABASE_URL || 'http://127.0.0.1:54321';
 const BASE = process.env.BASE_URL || 'http://localhost:3000';
 const ANON = (process.env.ANON_KEY_FILE ? fs.readFileSync(process.env.ANON_KEY_FILE, 'utf8') : process.env.ANON_KEY || '').trim();
@@ -66,7 +66,7 @@ const setSwitch = (on) => sql(`update app_settings set pro_for_all = ${on};`);
 const clearAB = () => sql(`delete from messages where match_id in (select id from matches where user_a_id = '${lo}' and user_b_id = '${hi}');
   delete from matches where user_a_id = '${lo}' and user_b_id = '${hi}';
   delete from likes where (liker_id = '${A}' and liked_id = '${B}') or (liker_id = '${B}' and liked_id = '${A}');`);
-// Both free (another test may have left one with MatchGPT+), with fresh daily counters so the limits
+// Both free (another test may have left one with Shaadi24+), with fresh daily counters so the limits
 // don't get in the way
 sql(`update profiles set subscription_tier = 'FREE', daily_like_count = 0, daily_search_count = 0 where id in ('${A}', '${B}');
      insert into admin_emails (email) values ('${ADMIN}') on conflict do nothing;`);
@@ -98,7 +98,7 @@ try {
   const anon = await fetch(`${API}/rest/v1/rpc/pro_for_all`, { method: 'POST', headers: { apikey: ANON, 'Content-Type': 'application/json' }, body: '{}' });
   check(anon.status >= 400, `signed out, the switch isn't readable (${anon.status})`);
 
-  log('2. Switch on: free accounts get every MatchGPT+ feature');
+  log('2. Switch on: free accounts get every Shaadi24+ feature');
   let r = await superLike();
   check(r.status === 201, `a free account Super Likes (${r.status})`);
   let likes = await likesOfB();
@@ -136,7 +136,7 @@ try {
   clearAB();
   matchId = sql(`insert into matches (user_a_id, user_b_id) values ('${lo}', '${hi}') returning id;`).split('\n')[0];
   r = await propose(matchId);
-  check(r.status >= 400 && /Date proposals are a MatchGPT\+ feature/.test(JSON.stringify(r.body)), `date proposal refused (${r.status})`);
+  check(r.status >= 400 && /Date proposals are a Shaadi24\+ feature/.test(JSON.stringify(r.body)), `date proposal refused (${r.status})`);
   r = await rest(jwtA, 'POST', 'messages', { match_id: matchId, sender_id: A, content: 'Hi! How was your weekend?' });
   check(r.status === 201, 'ordinary messages still go through');
   r = await searchB();
@@ -177,12 +177,12 @@ try {
     await p.locator('input[type=email]').fill(email);
     await p.locator('input[type=password]').fill('TestPass!2026');
     await p.locator('form').getByRole('button', { name: /Log In/i }).click();
-    await p.getByPlaceholder(/Describe your ideal match/).waitFor({ timeout: 20000 });
+    await p.getByTestId('find-match-box').waitFor({ timeout: 20000 });
   };
   const lockedFilters = async () => {
     await page.getByRole('button', { name: 'Open filters' }).click();
     await page.getByText('Mother tongue').first().waitFor({ timeout: 10000 });
-    const n = await page.getByRole('button', { name: /: unlock with MatchGPT\+$/ }).count();
+    const n = await page.getByRole('button', { name: /: unlock with Shaadi24\+$/ }).count();
     await page.keyboard.press('Escape');
     await page.locator('aside button[aria-label="Close"]').first().click().catch(() => {});
     return n;
@@ -201,26 +201,26 @@ try {
   adminPage.on('dialog', (d) => d.accept());
   await signInPage(adminPage, ADMIN);
   await adminPage.getByRole('button', { name: 'Admin' }).first().click();
-  const sw = adminPage.getByRole('switch', { name: 'MatchGPT+ for everyone' });
+  const sw = adminPage.getByRole('switch', { name: 'Shaadi24+ for everyone' });
   await sw.waitFor({ timeout: 10000 });
   check(await sw.getAttribute('aria-checked') === 'true', 'Admin → Dashboard: the switch shows on');
   await sw.click();
-  check(await appears(adminPage.getByText('MatchGPT+ is for subscribers only now')), 'turning it off (after confirming) says so');
+  check(await appears(adminPage.getByText('Shaadi24+ is for subscribers only now')), 'turning it off (after confirming) says so');
   check(await sw.getAttribute('aria-checked') === 'false' && sql(`select pro_for_all from app_settings;`) === 'f', 'and it is off');
-  check(await appears(adminPage.getByText('turned MatchGPT+ for everyone off')), 'the recent admin actions list it');
+  check(await appears(adminPage.getByText('turned Shaadi24+ for everyone off')), 'the recent admin actions list it');
   await adminPage.screenshot({ path: `${OUT}2-admin-off.png` });
 
   await page.reload();
-  await page.getByPlaceholder(/Describe your ideal match/).waitFor({ timeout: 20000 });
+  await page.getByTestId('find-match-box').waitFor({ timeout: 20000 });
   const locked = await lockedFilters();
-  check(locked === 13, `switch off: the 13 MatchGPT+ filters are locked (${locked})`);
+  check(locked === 13, `switch off: the 13 Shaadi24+ filters are locked (${locked})`);
   await page.getByRole('button', { name: /Likes You/ }).first().click();
   check(await appears(page.getByText('Upgrade to See')), 'switch off: Likes You asks to upgrade');
   check(!(await page.getByText(nameB).first().isVisible().catch(() => false)), `and doesn't show ${nameB}`);
   await page.screenshot({ path: `${OUT}3-likes-off.png` });
 
   await sw.click();
-  check(await appears(adminPage.getByText('MatchGPT+ is on for everyone')), 'an admin turns it back on');
+  check(await appears(adminPage.getByText('Shaadi24+ is on for everyone')), 'an admin turns it back on');
   check(sql(`select pro_for_all from app_settings;`) === 't', 'and it is on');
   await admin.close();
   await ctx.close();

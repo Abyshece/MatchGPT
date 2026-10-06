@@ -42,18 +42,18 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => {
 
       <main className="max-w-3xl mx-auto px-6 py-10">
         <p className="text-xs text-gray-500 dark:text-gray-400 mb-6">
-          Document version: {TERMS_VERSION} · Last updated: October 5, 2026
+          Document version: {TERMS_VERSION} · Last updated: October 6, 2026
         </p>
 
         <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-8">
-          Welcome to MatchGPT. These Terms of Service ("Terms") govern your use of our
+          Welcome to Shaadi24. These Terms of Service ("Terms") govern your use of our
           matchmaking platform. By creating an account or using the service, you agree to be
           bound by these Terms. If you do not agree, please do not use the service.
         </p>
 
         <Section title="1. Eligibility">
           <p>You must be at least 18 years old and legally capable of entering into a binding
-          contract in your jurisdiction. By using MatchGPT, you represent that you meet these
+          contract in your jurisdiction. By using Shaadi24, you represent that you meet these
           requirements.</p>
           <p>The platform is intended for adults seeking serious relationships and matrimony.
           Use by minors is strictly prohibited.</p>
@@ -84,7 +84,7 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => {
             <li>Upload viruses, malware, or other harmful code</li>
             <li>Bypass security features or access controls</li>
           </ul>
-          <p>There is no tolerance on MatchGPT for objectionable content or abusive users. Messages
+          <p>There is no tolerance on Shaadi24 for objectionable content or abusive users. Messages
           and profile text with words we don't allow are refused before anyone sees them. You can
           report a profile or a conversation (⋯ → Report) and block anyone (⋯ → Block user). We
           review every report within 24 hours, remove content that breaks these Terms, and ban the
@@ -95,20 +95,20 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => {
 
         <Section title="4. Content and license">
           <p>You retain ownership of the content you post (profile information, photos, messages).
-          By posting, you grant MatchGPT a worldwide, non-exclusive, royalty-free license to use,
+          By posting, you grant Shaadi24 a worldwide, non-exclusive, royalty-free license to use,
           display, and process that content solely for the purpose of operating the service.</p>
           <p>You represent that you have the right to share any content you post and that it does
           not infringe anyone else's rights.</p>
         </Section>
 
         <Section title="5. Subscriptions and payments">
-          <p>MatchGPT offers a free tier and a paid Pro tier. Pro tier pricing:</p>
+          <p>Shaadi24 offers a free tier and a paid Pro tier. Pro tier pricing:</p>
           <ul className="list-disc list-inside space-y-1 ml-2">
             <li>Monthly: ₹999 per month</li>
             <li>Annual: ₹9,999 per year (saves ~17%)</li>
             <li>Free trial: 7 days for new Pro users</li>
           </ul>
-          <p>MatchGPT+ is sold only in our Android and iPhone apps, through Google Play and the App
+          <p>Shaadi24+ is sold only in our Android and iPhone apps, through Google Play and the App
           Store. The store takes the payment, shows the price in your local currency (which may differ
           from the prices above and include local taxes), and its own terms apply to the purchase.</p>
           <p>Subscriptions auto-renew until cancelled. You may cancel at any time in Google Play or in
@@ -132,7 +132,7 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => {
         </Section>
 
         <Section title="7. Matching, no guarantees">
-          <p>MatchGPT provides tools to help you find compatible partners, but we make no
+          <p>Shaadi24 provides tools to help you find compatible partners, but we make no
           guarantees about:</p>
           <ul className="list-disc list-inside space-y-1 ml-2">
             <li>The quality, accuracy, or truthfulness of other users' profiles</li>
@@ -157,7 +157,7 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => {
           <p>The service is provided "AS IS" and "AS AVAILABLE" without warranties of any kind,
           express or implied. We do not warrant that the service will be uninterrupted, error-free,
           or secure.</p>
-          <p>To the maximum extent permitted by law, MatchGPT will not be liable for any indirect,
+          <p>To the maximum extent permitted by law, Shaadi24 will not be liable for any indirect,
           incidental, consequential, or special damages arising from your use of the service. Our
           total liability to you for any claim will not exceed the amount you paid us in the 12
           months preceding the claim.</p>
@@ -166,7 +166,7 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => {
         </Section>
 
         <Section title="10. Indemnification">
-          <p>You agree to indemnify and hold MatchGPT harmless from any claims, damages, losses,
+          <p>You agree to indemnify and hold Shaadi24 harmless from any claims, damages, losses,
           or expenses (including legal fees) arising from your violation of these Terms or your
           misuse of the service.</p>
         </Section>
@@ -186,13 +186,13 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => {
 
         <Section title="13. Contact">
           <p>Questions about these Terms:<br />
-            <a href="mailto:support@matchgpt.com" className="text-blue-600 dark:text-blue-400 underline">support@matchgpt.com</a>
+            <a href="mailto:support@shaadi24.com" className="text-blue-600 dark:text-blue-400 underline">support@shaadi24.com</a>
           </p>
         </Section>
 
         <div className="border-t border-gray-200 dark:border-zinc-800 pt-6 mt-10 text-center">
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            This document was last updated on October 4, 2026 and is identified internally as {TERMS_VERSION}.
+            This document was last updated on October 6, 2026 and is identified internally as {TERMS_VERSION}.
           </p>
         </div>
       </main>

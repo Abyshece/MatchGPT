@@ -16,7 +16,7 @@ const SUPABASE = process.env.SUPABASE_URL || 'http://127.0.0.1:54321';
 const SERVICE = process.env.SERVICE_ROLE_KEY;
 const MAILPIT = process.env.MAILPIT_URL || 'http://127.0.0.1:54324';
 const BASE = process.env.BASE_URL || 'http://localhost:3000';
-const DB = process.env.DB_CONTAINER || 'supabase_db_MatchGPT';
+const DB = process.env.DB_CONTAINER || 'supabase_db_Shaadi24';
 if (!SERVICE) { console.error('SERVICE_ROLE_KEY is required'); process.exit(2); }
 const OUT = new URL('./.shots/delete-page/', import.meta.url).pathname;
 fs.mkdirSync(OUT, { recursive: true });
@@ -56,7 +56,7 @@ async function open(colorScheme = 'light') {
   const page = await ctx.newPage();
   page.on('pageerror', (e) => log('pageerror:', e.message));
   await page.goto(`${BASE}/delete-account`);
-  await page.getByRole('heading', { name: 'Delete your MatchGPT account' }).waitFor({ timeout: 15000 });
+  await page.getByRole('heading', { name: 'Delete your Shaadi24 account' }).waitFor({ timeout: 15000 });
   return { ctx, page };
 }
 
@@ -93,7 +93,7 @@ try {
   const nobody = `nobody_${Date.now()}@example.com`;
   await page.getByPlaceholder('you@example.com').fill(nobody);
   await page.getByRole('button', { name: 'Email me a code' }).click();
-  check(await appears(page.getByText(`If MatchGPT has an account for`)) && await page.getByText(nobody).isVisible(),
+  check(await appears(page.getByText(`If Shaadi24 has an account for`)) && await page.getByText(nobody).isVisible(),
     'the same answer, so nobody learns who has an account');
   await page.waitForTimeout(1500);
   check((await mails(nobody)).length === 0, '…and no email is sent');
@@ -103,7 +103,7 @@ try {
   const a = await newAccount('del_page');
   ({ ctx, page } = await open());
   const { subject } = await deleteThrough(page, a.email, { wrongCodeFirst: true });
-  check(subject === 'Your MatchGPT code', `the email has the code (${subject})`);
+  check(subject === 'Your Shaadi24 code', `the email has the code (${subject})`);
   check(await page.getByText(`Signed in as ${a.email}.`).isVisible(), 'signed in with the code');
   const del = page.getByRole('button', { name: 'Delete my account permanently' });
   check(await del.isDisabled(), '"Delete" must be typed first');
@@ -121,7 +121,7 @@ try {
   log('== An account made with Google or Apple (no password), with an App Store subscription');
   const b = await newAccount('del_page_apple', false);
   sql(`insert into subscriptions (user_id, provider, store_subscription_id, store_product_id, plan_id, mode, status, current_start, current_end, auto_renew)
-       values ('${b.id}', 'app_store', 'orig-${Date.now()}', 'matchgpt_plus_monthly', 'monthly', 'test', 'active', now(), now() + interval '20 days', true);`);
+       values ('${b.id}', 'app_store', 'orig-${Date.now()}', 'shaadi24_plus_monthly', 'monthly', 'test', 'active', now(), now() + interval '20 days', true);`);
   ({ ctx, page } = await open('dark'));
   await deleteThrough(page, b.email);
   await page.getByPlaceholder('Delete').fill('Delete');

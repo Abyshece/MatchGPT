@@ -9,7 +9,7 @@
 //   - app: the landing and sign-in screens; signed in (an onboarded account,
 //     password TestPass!2026): Find Match with results, filters, a profile,
 //     Likes You, Matches and a chat, Standouts, My Profile, Settings,
-//     MatchGPT+, the phone menu
+//     Shaadi24+, the phone menu
 // Usage: node accessibility.mjs <admin email> <member email>   (DB_CONTAINER as the other tests)
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
@@ -18,7 +18,7 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const AXE = fs.readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
-const DB = process.env.DB_CONTAINER || 'supabase_db_MatchGPT';
+const DB = process.env.DB_CONTAINER || 'supabase_db_Shaadi24';
 const WEBSITE = process.env.WEBSITE_URL || 'http://localhost:3002';
 const BASE = process.env.BASE_URL || 'http://localhost:3000';
 const [ADMIN, MEMBER] = process.argv.slice(2);
@@ -108,7 +108,7 @@ try {
     await page.locator('input[type=email]').fill(MEMBER);
     await page.locator('input[type=password]').fill(PASSWORD);
     await page.locator('form').getByRole('button', { name: /Log In/i }).click();
-    const box = page.getByPlaceholder(/Describe your ideal match/);
+    const box = page.getByTestId('find-match-box');
     await box.waitFor({ timeout: 20000 });
     await audit(page, `find match (${scheme})`);
     await box.fill('someone kind who loves books');
@@ -128,9 +128,9 @@ try {
     await page.getByRole('button', { name: 'Menu', exact: true }).first().click();
     await page.waitForTimeout(500);
     await audit(page, `phone menu (${scheme})`);
-    await page.getByText('Get MatchGPT+', { exact: true }).click().catch(() => {});
+    await page.getByText('Get Shaadi24+', { exact: true }).click().catch(() => {});
     await page.waitForTimeout(800);
-    await audit(page, `MatchGPT+ (${scheme})`);
+    await audit(page, `Shaadi24+ (${scheme})`);
     await ctx.close();
   }
 } catch (e) {

@@ -25,7 +25,7 @@ interface SettingsViewProps {
 }
 
 const DELETE_REASONS = [
-  'I met someone on MatchGPT',
+  'I met someone on Shaadi24',
   `I'm not happy with the matches`,
   'I need a break from dating',
   'Privacy concerns',
@@ -177,7 +177,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
           </InfoSection>
 
-          <InfoSection title="MatchGPT+">
+          <InfoSection title="Shaadi24+">
             <SubscriptionSettings />
           </InfoSection>
 
@@ -198,7 +198,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
             >
               <span className="flex-1 pr-4">
                 <span className="block text-sm font-medium text-gray-900 dark:text-white">{downloading ? 'Preparing your data…' : 'Download my data'}</span>
-                <span className="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">A copy of everything MatchGPT holds about you, as a file.</span>
+                <span className="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">A copy of everything Shaadi24 holds about you, as a file.</span>
               </span>
               <IconChevronRight />
             </button>
@@ -261,7 +261,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
               <IconChevronRight />
             </button>
             <a
-              href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('MatchGPT help')}`}
+              href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('Shaadi24 help')}`}
               className="w-full flex items-center justify-between py-3 px-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800/30 rounded text-left"
             >
               <span>Contact support <span className="text-gray-500 dark:text-gray-400">· {SUPPORT_EMAIL}</span></span>
@@ -296,7 +296,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
             >
               Delete Account
             </button>
-            <p className="text-center text-[10px] text-gray-500 dark:text-gray-400 mt-2">MatchGPT • v{__APP_VERSION__}</p>
+            <p className="text-center text-[10px] text-gray-500 dark:text-gray-400 mt-2">Shaadi24 • v{__APP_VERSION__}</p>
           </div>
         </div>
       </div>
@@ -356,14 +356,14 @@ const SettingsView: React.FC<SettingsViewProps> = ({
                   <p className="text-xs leading-relaxed">
                     Your account, profile, photos, matches, messages, likes, and all other data will be permanently deleted.
                     Anyone who matched with you will lose access to your conversations.
-                    You will need to sign up again from scratch if you want to use MatchGPT in the future.
+                    You will need to sign up again from scratch if you want to use Shaadi24 in the future.
                   </p>
                 </div>
                 {renewing && (
                   <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/40 p-4 rounded-lg text-xs leading-relaxed text-amber-900 dark:text-amber-100" data-testid="delete-subscription-note">
                     {renewing.provider === 'app_store' ? (
                       <>
-                        <p className="font-bold mb-1">Your MatchGPT+ subscription won't stop by itself.</p>
+                        <p className="font-bold mb-1">Your Shaadi24+ subscription won't stop by itself.</p>
                         <p>
                           It's billed by the App Store, which only you can cancel. Cancel it first {storeManageHint('app_store')},
                           or the App Store keeps charging you after your account is gone.

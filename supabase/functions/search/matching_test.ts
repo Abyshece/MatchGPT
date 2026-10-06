@@ -337,7 +337,7 @@ Deno.test('answers as the sign-up form stores them count too ("Dog", "Yes")', ()
   assertEquals(ids(pool, 'someone who can cook')[0], 'cook');
 });
 
-Deno.test('without MatchGPT+: age, place and the switches stay, MatchGPT+\'s filters go', () => {
+Deno.test('without Shaadi24+: age, place and the switches stay, Shaadi24+\'s filters go', () => {
   const all = sanitizeFilters({
     ageRange: [25, 32], country: 'India', state: 'Maharashtra', neighborhood: 'Pune', isVerified: true, hasInstagram: true,
     religion: 'Hindu', motherTongue: 'Marathi', caste: 'Maratha', maritalStatus: 'Never married', heightRange: [160, 175],

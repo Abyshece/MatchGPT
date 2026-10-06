@@ -20,7 +20,7 @@ import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 
-const DB = process.env.DB_CONTAINER || 'supabase_db_MatchGPT';
+const DB = process.env.DB_CONTAINER || 'supabase_db_Shaadi24';
 const API = process.env.SUPABASE_URL || 'http://127.0.0.1:54321';
 const BASE = process.env.BASE_URL || 'http://localhost:3000';
 const STANDIN = process.env.STORE_STANDIN || 'http://127.0.0.1:8790';
@@ -181,7 +181,7 @@ try {
   page.on('pageerror', (e) => log('pageerror:', e.message));
   await page.goto(BASE);
   await signInOnPage(page, ADMIN);
-  await page.getByPlaceholder(/Describe your ideal match/).waitFor({ timeout: 20000 });
+  await page.getByTestId('find-match-box').waitFor({ timeout: 20000 });
   const channelMade = () => page.evaluate(() => window.__native.some((c) => c.methodName === 'createChannel' && c.options.id === 'admin'));
   check(await appears(page.getByText('Admin', { exact: true })) && await page.waitForFunction(() =>
     window.__native.some((c) => c.methodName === 'createChannel' && c.options.id === 'admin'), null, { timeout: 8000 }).then(() => true, () => false),
@@ -199,7 +199,7 @@ try {
   page = await ctx.newPage();
   await page.goto(BASE);
   await signInOnPage(page, EMAIL_A);
-  await page.getByPlaceholder(/Describe your ideal match/).waitFor({ timeout: 20000 });
+  await page.getByTestId('find-match-box').waitFor({ timeout: 20000 });
   await page.waitForTimeout(2500);
   check(!(await channelMade()), 'a member\'s phone doesn\'t');
   await ctx.close();
@@ -210,7 +210,7 @@ try {
   page = await ctx.newPage();
   await page.goto(BASE);
   await signInOnPage(page, ADMIN);
-  await page.getByPlaceholder(/Describe your ideal match/).waitFor({ timeout: 20000 });
+  await page.getByTestId('find-match-box').waitFor({ timeout: 20000 });
   await page.evaluate(() => navigator.serviceWorker.dispatchEvent(new MessageEvent('message', {
     data: { type: 'push_click', data: { event_type: 'admin_verification', admin_tab: 'verifications', deep_link: '/admin' } },
   })));

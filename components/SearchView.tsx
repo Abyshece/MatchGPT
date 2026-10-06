@@ -335,7 +335,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
         )}
 
         {/* Pill-shaped prompt input — filter button on left, textarea in middle, send on right.
-            Inspired by the legacy MatchGPT search bar with rounded-[32px] container and soft drop shadow. */}
+            Inspired by the legacy Shaadi24 search bar with rounded-[32px] container and soft drop shadow. */}
         <div className={`
           w-full relative flex items-center gap-2 bg-white dark:bg-zinc-800 border rounded-[32px] p-1.5 mb-4 transition-all duration-300 ease-out
           ${hasSearched
@@ -365,8 +365,9 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
             )}
           </button>
 
-          {/* Textarea */}
+          {/* Textarea (its test id tells it apart from the welcome screen's box in the tests) */}
           <textarea
+            data-testid="find-match-box"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             onKeyDown={(e) => {
@@ -594,7 +595,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
 
 // ----------------------------------------------------------------------------
 // FilterChip — small removable pill rendered below the prompt input when an
-// active filter is applied. Matches the legacy MatchGPT design (green pill).
+// active filter is applied. Matches the legacy Shaadi24 design (green pill).
 // ----------------------------------------------------------------------------
 const FilterChip: React.FC<{ label: string; onRemove: () => void }> = ({ label, onRemove }) => (
   <button

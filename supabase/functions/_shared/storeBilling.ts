@@ -4,7 +4,7 @@
 // report renewals, cancellations, refunds) and delete-account. Pro itself is
 // set by the database: sync_pro_status() after every change.
 //
-// A purchase belongs to the MatchGPT account the app passed with it (Google's
+// A purchase belongs to the Shaadi24 account the app passed with it (Google's
 // obfuscatedExternalAccountId, Apple's appAccountToken: our user id), so a
 // purchase can't be replayed to give Pro to someone else. If that account has
 // since been deleted, whoever restores the purchase (the person paying for it)
@@ -75,7 +75,7 @@ async function ownerOf(existing: StoreSubscriptionRow | null, tagged: string | n
     owner = p?.id ?? null;
   }
   if (caller && owner && owner !== caller) {
-    throw new StorePurchaseError('This purchase belongs to another MatchGPT account.', 'OTHER_ACCOUNT');
+    throw new StorePurchaseError('This purchase belongs to another Shaadi24 account.', 'OTHER_ACCOUNT');
   }
   return owner ?? caller;
 }
@@ -133,7 +133,7 @@ async function saveSubscription(
   const saved = await findRow(provider, storeId);
   if (!saved) throw new Error(`subscription ${provider}/${storeId} not saved`);
   if (saved.user_id && userId && saved.user_id !== userId) {
-    throw new StorePurchaseError('This purchase belongs to another MatchGPT account.', 'OTHER_ACCOUNT');
+    throw new StorePurchaseError('This purchase belongs to another Shaadi24 account.', 'OTHER_ACCOUNT');
   }
   return await saveSubscription(provider, storeId, saved, userId, planId, state, at);
 }
@@ -195,7 +195,7 @@ export async function applyGooglePurchase(
   const sub = await getSubscription(cfg, purchaseToken);
   const state = googleState(sub, now);
   const plan = await storePlan('google_play', state.productId, state.basePlanId);
-  if (!plan) throw new StorePurchaseError(`Not a MatchGPT+ product: ${state.productId}/${state.basePlanId}`, 'UNKNOWN_PRODUCT');
+  if (!plan) throw new StorePurchaseError(`Not a Shaadi24+ product: ${state.productId}/${state.basePlanId}`, 'UNKNOWN_PRODUCT');
   const existing = await findRow('google_play', purchaseToken);
   const userId = await ownerOf(existing, state.userId, caller);
 
@@ -242,7 +242,7 @@ export async function applyAppleTransaction(
   if (tx.type && tx.type !== 'Auto-Renewable Subscription') throw new StorePurchaseError(`Not a subscription: ${tx.type}`, 'UNKNOWN_PRODUCT');
   const state = appleState(tx, renewal);
   const plan = await storePlan('app_store', state.productId, null);
-  if (!plan) throw new StorePurchaseError(`Not a MatchGPT+ product: ${state.productId}`, 'UNKNOWN_PRODUCT');
+  if (!plan) throw new StorePurchaseError(`Not a Shaadi24+ product: ${state.productId}`, 'UNKNOWN_PRODUCT');
   const existing = await findRow('app_store', tx.originalTransactionId);
   const userId = await ownerOf(existing, state.userId, caller);
 

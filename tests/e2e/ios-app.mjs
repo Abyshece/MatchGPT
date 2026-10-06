@@ -3,15 +3,15 @@
 // calls recorded and answered) on an iPhone 15/16-sized screen. Chromium has
 // no notch, so the test sets --safe-top / --safe-bottom to an iPhone's 59 and
 // 34 points and checks nothing sits under them: the headers, the sign-in
-// popup, the menu, the filters, a toast, the MatchGPT+ sheet, a chat's message
+// popup, the menu, the filters, a toast, the Shaadi24+ sheet, a chat's message
 // box. Also: viewport-fit=cover, the status bar text follows the theme,
 // email-only sign-in while Supabase has Apple and Google off
-// (app-social-signin.mjs covers them), MatchGPT+ "coming to the app soon".
+// (app-social-signin.mjs covers them), Shaadi24+ "coming to the app soon".
 // Usage: node ios-app.mjs <email>   (an onboarded account, password TestPass!2026)
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
-const DB = process.env.DB_CONTAINER || 'supabase_db_MatchGPT';  // `docker ps` shows the name
+const DB = process.env.DB_CONTAINER || 'supabase_db_Shaadi24';  // `docker ps` shows the name
 const BASE = process.env.BASE_URL || 'http://localhost:3000';
 const REPO = process.env.REPO_ROOT || new URL('../..', import.meta.url).pathname;
 const BRIDGE = `${REPO}/node_modules/@capacitor/ios/Capacitor/Capacitor/assets/native-bridge.js`;
@@ -118,7 +118,7 @@ try {
   await page.locator('input[type=email]').fill(EMAIL);
   await page.locator('input[type=password]').fill('TestPass!2026');
   await page.locator('form').getByRole('button', { name: /Log In/i }).click();
-  const prompt = page.getByPlaceholder(/Describe your ideal match/);
+  const prompt = page.getByTestId('find-match-box');
   await prompt.waitFor({ timeout: 15000 });
   await page.waitForTimeout(600);
   clear(await rect(page, 'div.h-screen'), 'the app screen');
@@ -145,11 +145,13 @@ try {
   await page.waitForTimeout(500);
   clear(await innerEdges(page, 'aside.fixed.h-full'), 'the menu');
   await page.screenshot({ path: `${OUT}6-menu.png` });
-  await page.getByText('Get MatchGPT+', { exact: true }).click();
+  await page.getByText('Get Shaadi24+', { exact: true }).click();
   await page.waitForTimeout(500);
-  check(await page.getByText('MatchGPT+ is coming to the app soon.').isVisible(), 'MatchGPT+ "coming to the app soon"');
-  clear(await rect(page, '[role="dialog"]'), 'the MatchGPT+ sheet');
-  await page.screenshot({ path: `${OUT}7-matchgpt-plus.png` });
+  // The note shows once the store has answered (isVisible doesn't wait)
+  check(await page.getByText('Shaadi24+ is coming to the app soon.').waitFor({ timeout: 8000 }).then(() => true, () => false),
+    'Shaadi24+ "coming to the app soon"');
+  clear(await rect(page, '[role="dialog"]'), 'the Shaadi24+ sheet');
+  await page.screenshot({ path: `${OUT}7-shaadi24-plus.png` });
   await page.getByRole('button', { name: 'Maybe later' }).click();
   await page.waitForTimeout(400);
 

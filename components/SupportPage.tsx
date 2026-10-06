@@ -12,7 +12,7 @@ import StoreBadges from './StoreBadges';
 
 const SupportPage: React.FC = () => {
   useEffect(() => {
-    document.title = 'MatchGPT Help & Support';
+    document.title = 'Shaadi24 Help & Support';
     const dark = window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
     document.documentElement.classList.toggle('dark', dark);
   }, []);
@@ -23,18 +23,18 @@ const SupportPage: React.FC = () => {
     <div className="min-h-screen bg-white dark:bg-[#191919] text-gray-900 dark:text-gray-100 font-sans">
       <main className="max-w-2xl mx-auto px-5 py-10 sm:py-16">
         <a href="/" className="inline-flex items-center gap-2 text-sm font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
-          <span aria-hidden="true">💍</span> MatchGPT
+          <span aria-hidden="true">💍</span> Shaadi24
         </a>
         <h1 className="mt-6 text-3xl font-bold tracking-tight">Help &amp; Support</h1>
         <p className="mt-3 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
-          MatchGPT is a matrimony app for India, on Android and iPhone. Here are answers to the questions we're asked
+          Shaadi24 is a matrimony app for India, on Android and iPhone. Here are answers to the questions we're asked
           most, and how to reach us.
         </p>
         <StoreBadges className="mt-5" />
 
         <section className="mt-6 rounded-lg border border-gray-200 dark:border-zinc-800 p-4 text-sm leading-relaxed text-gray-600 dark:text-gray-300 space-y-2" data-testid="support-contact">
           <p><strong className="text-gray-900 dark:text-white">Write to us:</strong>{' '}
-            <a className={link} href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('MatchGPT help')}`}>{SUPPORT_EMAIL}</a>.
+            <a className={link} href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('Shaadi24 help')}`}>{SUPPORT_EMAIL}</a>.
             Tell us the email address of your account and, for a problem in the app, your phone's make and model.</p>
           <p><strong className="text-gray-900 dark:text-white">Privacy and your data:</strong>{' '}
             <a className={link} href={`mailto:${PRIVACY_EMAIL}`}>{PRIVACY_EMAIL}</a>.</p>

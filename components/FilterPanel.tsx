@@ -37,7 +37,7 @@ const FilterRow = ({
       {locked && (
         <button
           onClick={onUpgrade}
-          aria-label={`${label}: unlock with MatchGPT+`}
+          aria-label={`${label}: unlock with Shaadi24+`}
           className="flex items-center gap-1 text-[10px] font-bold text-yellow-700 dark:text-yellow-400 hover:underline"
         >
           <IconLock /> Pro

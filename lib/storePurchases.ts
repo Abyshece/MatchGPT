@@ -1,7 +1,7 @@
 // ============================================================================
-// storePurchases: MatchGPT+ bought inside the phone apps
+// storePurchases: Shaadi24+ bought inside the phone apps
 //
-// MatchGPT+ is sold only here, through the stores' own billing (Google Play
+// Shaadi24+ is sold only here, through the stores' own billing (Google Play
 // Billing and the App Store), as the stores require for digital
 // subscriptions. The store takes the payment; the
 // store-billing edge function checks every purchase with the store before
@@ -148,7 +148,7 @@ export async function reportPurchase(tx: Transaction): Promise<StoreStanding> {
     if (!tx.jwsRepresentation) throw new StoreError("The App Store didn't return the purchase. Please try Restore purchases.", 'NO_TOKEN');
     return await callStore<StoreStanding>({ action: 'verify', platform, jws: tx.jwsRepresentation });
   }
-  throw new StoreError('Purchases are made in the MatchGPT app.', 'NOT_APP');
+  throw new StoreError('Purchases are made in the Shaadi24 app.', 'NOT_APP');
 }
 
 export type PurchaseOutcome =
@@ -183,7 +183,7 @@ export async function buyOffer(offer: StoreOffer, userId: string): Promise<Purch
  */
 export async function restoreStorePurchases(interactive: boolean, userId?: string): Promise<StoreStanding & { restored: number }> {
   const platform = storePlatform();
-  if (!platform) throw new StoreError('Purchases are made in the MatchGPT app.', 'NOT_APP');
+  if (!platform) throw new StoreError('Purchases are made in the Shaadi24 app.', 'NOT_APP');
   if (interactive && platform === 'ios') await NativePurchases.restorePurchases().catch(() => {});
   const { purchases = [] } = await NativePurchases.getPurchases({
     productType: PURCHASE_TYPE.SUBS,

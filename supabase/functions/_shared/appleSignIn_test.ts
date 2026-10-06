@@ -13,7 +13,7 @@ async function testKey() {
 }
 
 const cfgWith = (privateKey: string): AppleSignInConfig =>
-  ({ teamId: 'TEAM123456', keyId: 'KEY1234567', privateKey, clientId: 'com.matchgpt.app', apiBase: 'https://appleid.apple.com' });
+  ({ teamId: 'TEAM123456', keyId: 'KEY1234567', privateKey, clientId: 'com.shaadi24.app', apiBase: 'https://appleid.apple.com' });
 
 Deno.test('the client secret is an ES256 JWT Apple can check', async () => {
   const { pem, publicKey } = await testKey();
@@ -22,7 +22,7 @@ Deno.test('the client secret is an ES256 JWT Apple can check', async () => {
   const [h, p, s] = jwt.split('.');
   assertEquals(JSON.parse(new TextDecoder().decode(fromB64url(h))), { alg: 'ES256', kid: 'KEY1234567' });
   const claims = JSON.parse(new TextDecoder().decode(fromB64url(p)));
-  assertEquals(claims, { iss: 'TEAM123456', iat: now / 1000, exp: now / 1000 + 300, aud: 'https://appleid.apple.com', sub: 'com.matchgpt.app' });
+  assertEquals(claims, { iss: 'TEAM123456', iat: now / 1000, exp: now / 1000 + 300, aud: 'https://appleid.apple.com', sub: 'com.shaadi24.app' });
   assertEquals(fromB64url(s).length, 64);  // r‖s, as JWS wants
   assert(await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, publicKey, fromB64url(s), new TextEncoder().encode(`${h}.${p}`)));
 });
@@ -44,7 +44,7 @@ Deno.test('nothing is set up until all three secrets are there', () => {
     Deno.env.set('APPLE_SIGNIN_KEY_ID', 'KEY1234567');
     assertEquals(appleSignInConfig(), null);
     Deno.env.set('APPLE_SIGNIN_PRIVATE_KEY', '-----BEGIN PRIVATE KEY-----\nAAAA\n-----END PRIVATE KEY-----');
-    assertEquals(appleSignInConfig()?.clientId, 'com.matchgpt.app');
+    assertEquals(appleSignInConfig()?.clientId, 'com.shaadi24.app');
     assertEquals(appleSignInConfig()?.apiBase, 'https://appleid.apple.com');
   } finally {
     names.forEach((n, i) => (saved[i] === undefined ? Deno.env.delete(n) : Deno.env.set(n, saved[i]!)));

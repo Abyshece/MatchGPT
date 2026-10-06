@@ -4,7 +4,7 @@ import LikeButton from './LikeButton';
 import type { MatchCandidate } from '../types';
 
 // ============================================================================
-// MatchCard — restyled to match the legacy MatchGPT design:
+// MatchCard — restyled to match the legacy Shaadi24 design:
 //   - Photo on top with carousel (left/right arrows on hover, swipe on mobile,
 //     dots indicator, online/offline status chip top-left, match% top-right)
 //   - Below photo: badges row (Verified, Pro), name + age, location

@@ -1,4 +1,4 @@
-// Stand-in for Google Play and the App Store, for trying MatchGPT+ bought in
+// Stand-in for Google Play and the App Store, for trying Shaadi24+ bought in
 // the phone apps locally, without store accounts; and for Firebase Cloud
 // Messaging, which sends the apps' notifications.
 //
@@ -83,14 +83,14 @@ const PORT = Number(process.env.PORT || 8790);
 const GATEWAY = process.env.GATEWAY || '172.18.0.1';
 const NOTIFY_URL = process.env.NOTIFY_URL || 'http://127.0.0.1:54321/functions/v1/store-notifications';
 const RTDN_SECRET = process.env.GOOGLE_RTDN_SECRET || 'rtdn_local';
-const PACKAGE = process.env.ANDROID_PACKAGE_NAME || 'com.matchgpt.app';
-const BUNDLE = process.env.APPLE_BUNDLE_ID || 'com.matchgpt.app';
+const PACKAGE = process.env.ANDROID_PACKAGE_NAME || 'com.shaadi24.app';
+const BUNDLE = process.env.APPLE_BUNDLE_ID || 'com.shaadi24.app';
 const KEYS_FILE = process.env.KEYS_FILE || path.join(process.cwd(), 'store-standin.keys.json');
 const ENV_OUT = process.env.ENV_OUT || path.join(process.cwd(), 'store-standin.env');
 
 const DAY = 86_400_000;
 const PRICES = { monthly: 99900, yearly: 999900 };           // paise
-const APPLE_PRODUCTS = { matchgpt_plus_monthly: 'monthly', matchgpt_plus_yearly: 'yearly' };
+const APPLE_PRODUCTS = { shaadi24_plus_monthly: 'monthly', shaadi24_plus_yearly: 'yearly' };
 
 const b64 = (buf) => Buffer.from(buf).toString('base64');
 const b64url = (buf) => Buffer.from(buf).toString('base64url');
@@ -209,7 +209,7 @@ function googleToken(raw) {
   const claims = JSON.parse(Buffer.from(p, 'base64url').toString());
   const nowSec = Math.floor(Date.now() / 1000);
   const scopes = {
-    'play-billing@matchgpt-test.iam.gserviceaccount.com': 'https://www.googleapis.com/auth/androidpublisher',
+    'play-billing@shaadi24-test.iam.gserviceaccount.com': 'https://www.googleapis.com/auth/androidpublisher',
     [FIREBASE_ACCOUNT]: 'https://www.googleapis.com/auth/firebase.messaging',
   };
   if (!scopes[claims.iss] || claims.scope !== scopes[claims.iss] ||
@@ -242,7 +242,7 @@ function googleResource(g) {
     ...(g.test ? { testPurchase: {} } : {}),
     ...(g.state === 'SUBSCRIPTION_STATE_CANCELED' ? { canceledStateContext: { userInitiatedCancellation: {} } } : {}),
     lineItems: [{
-      productId: 'matchgpt_plus',
+      productId: 'shaadi24_plus',
       expiryTime: iso(g.expiryTime),
       ...(g.orders.length ? { latestSuccessfulOrderId: g.orders[g.orders.length - 1] } : {}),
       autoRenewingPlan: {
@@ -265,12 +265,12 @@ async function rtdn(notification) {
   const messageId = randomDigits(16);
   lastPubsub = {
     message: { data: b64(Buffer.from(JSON.stringify(message))), messageId, message_id: messageId, publishTime: iso(Date.now()) },
-    subscription: 'projects/matchgpt-test/subscriptions/play-rtdn',
+    subscription: 'projects/shaadi24-test/subscriptions/play-rtdn',
   };
   return await post(`${NOTIFY_URL}?provider=google&secret=${RTDN_SECRET}`, lastPubsub);
 }
 
-const subNote = (token, type) => ({ subscriptionNotification: { version: '1.0', notificationType: type, purchaseToken: token, subscriptionId: 'matchgpt_plus' } });
+const subNote = (token, type) => ({ subscriptionNotification: { version: '1.0', notificationType: type, purchaseToken: token, subscriptionId: 'shaadi24_plus' } });
 
 function newGooglePurchase({ userId, basePlan = 'monthly', trial = false, test = true, linkedPurchaseToken }) {
   const now = Date.now();
@@ -375,7 +375,7 @@ function googleApi(method, url, auth, res) {
     g.cancelledByDeveloper = true;
     return send(res, 200, {});
   }
-  if (kind === 'subscriptions' && method === 'POST' && verb === 'acknowledge' && productId === 'matchgpt_plus') {
+  if (kind === 'subscriptions' && method === 'POST' && verb === 'acknowledge' && productId === 'shaadi24_plus') {
     g.acknowledged = true;
     return send(res, 200, undefined);
   }
@@ -461,7 +461,7 @@ const newTxId = () => `2000000${randomDigits(9)}`;
 async function appleHook(action, orig, url, body, res) {
   if (action === 'purchase') {
     const now = Date.now();
-    const product = body.product || 'matchgpt_plus_monthly';
+    const product = body.product || 'shaadi24_plus_monthly';
     const id = newTxId();
     const a = {
       orig: id, userId: body.userId, product, environment: body.environment || 'Sandbox', started: now, autoRenew: true,
@@ -529,7 +529,7 @@ async function appleHook(action, orig, url, body, res) {
 
 // ---- Firebase Cloud Messaging ---------------------------------------------------------------
 
-const FIREBASE_ACCOUNT = 'firebase-adminsdk@matchgpt-test.iam.gserviceaccount.com';
+const FIREBASE_ACCOUNT = 'firebase-adminsdk@shaadi24-test.iam.gserviceaccount.com';
 const fcm = { messages: [], mode: 'ok' };
 
 const fcmError = (code, status, message, errorCode) => ({
@@ -541,7 +541,7 @@ function fcmSend(project, auth, raw, res) {
   if (!auth.startsWith('Bearer ') || tokens.get(auth.slice(7)) !== 'https://www.googleapis.com/auth/firebase.messaging') {
     return send(res, 401, fcmError(401, 'UNAUTHENTICATED', 'Request had invalid authentication credentials.', 'THIRD_PARTY_AUTH_ERROR'));
   }
-  if (project !== 'matchgpt-test' || fcm.mode === 'denied') {
+  if (project !== 'shaadi24-test' || fcm.mode === 'denied') {
     return send(res, 403, fcmError(403, 'PERMISSION_DENIED', `Firebase Cloud Messaging API has not been used in project ${project} before or it is disabled.`));
   }
   const message = (JSON.parse(raw || '{}') || {}).message || {};
@@ -625,8 +625,8 @@ async function main() {
   KEYS = await loadKeys();
   const account = {
     type: 'service_account',
-    project_id: 'matchgpt-test',
-    client_email: 'play-billing@matchgpt-test.iam.gserviceaccount.com',
+    project_id: 'shaadi24-test',
+    client_email: 'play-billing@shaadi24-test.iam.gserviceaccount.com',
     private_key: KEYS.google.private_key,
     token_uri: `http://${GATEWAY}:${PORT}/token`,
   };

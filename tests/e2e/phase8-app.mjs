@@ -7,7 +7,7 @@
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
-const DB = process.env.DB_CONTAINER || 'supabase_db_MatchGPT';  // `docker ps` shows the name
+const DB = process.env.DB_CONTAINER || 'supabase_db_Shaadi24';  // `docker ps` shows the name
 
 const EMAIL = process.argv[2];
 const PASSWORD = 'TestPass!2026';
@@ -36,7 +36,7 @@ page.on('pageerror', (e) => log('pageerror:', e.message));
 
 async function search(prompt) {
   await page.getByText('Find Match', { exact: true }).first().click();
-  const box = page.getByPlaceholder(/Describe your ideal match/);
+  const box = page.getByTestId('find-match-box');
   await box.fill(prompt);
   await box.press('Enter');
   await page.getByText('Results for you').waitFor({ timeout: 15000 });
@@ -59,7 +59,7 @@ try {
   await page.locator('input[type=email]').fill(EMAIL);
   await page.locator('input[type=password]').fill(PASSWORD);
   await page.locator('form').getByRole('button', { name: /Log In/i }).click();
-  await page.getByPlaceholder(/Describe your ideal match/).waitFor({ timeout: 15000 });
+  await page.getByTestId('find-match-box').waitFor({ timeout: 15000 });
 
   log('1. online status on result cards');
   await search('someone kind who loves travel');

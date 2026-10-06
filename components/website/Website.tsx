@@ -14,7 +14,7 @@ const PrivacyView = lazyScreen(() => import('../PrivacyView'));
 // ============================================================================
 // Website: the website, for everyone who isn't in the apps (lib/website.ts)
 //
-//   /                 the home page: what MatchGPT is, where to get the apps
+//   /                 the home page: what Shaadi24 is, where to get the apps
 //   /admin            the admin panel, for admins only
 //   /terms, /privacy  Terms of Service and the Privacy Policy (#terms and
 //                     #privacy too, as older links have them)

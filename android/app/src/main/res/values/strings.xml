@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">MatchGPT</string>
-    <string name="title_activity_main">MatchGPT</string>
-    <string name="package_name">com.matchgpt.app</string>
-    <string name="custom_url_scheme">com.matchgpt.app</string>
+    <string name="app_name">Shaadi24</string>
+    <string name="title_activity_main">Shaadi24</string>
+    <string name="package_name">com.shaadi24.app</string>
+    <string name="custom_url_scheme">com.shaadi24.app</string>
 </resources>

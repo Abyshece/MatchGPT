@@ -14,7 +14,7 @@ const SUPABASE = process.env.SUPABASE_URL || 'http://127.0.0.1:54321';
 const ANON = process.env.ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
 const SERVICE = process.env.SERVICE_ROLE_KEY;
 const STANDIN = process.env.STANDIN_URL || 'http://127.0.0.1:8790';
-const DB = process.env.DB_CONTAINER || 'supabase_db_MatchGPT';
+const DB = process.env.DB_CONTAINER || 'supabase_db_Shaadi24';
 if (!SERVICE) { console.error('SERVICE_ROLE_KEY is required'); process.exit(2); }
 
 const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);

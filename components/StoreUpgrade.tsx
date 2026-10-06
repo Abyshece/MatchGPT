@@ -7,14 +7,14 @@ import {
 } from '../lib/storePurchases';
 
 // ============================================================================
-// StoreUpgrade: the MatchGPT+ plans inside the phone apps
+// StoreUpgrade: the Shaadi24+ plans inside the phone apps
 //
 // Prices come from the store (in the person's own currency); the store's
 // payment sheet takes the payment, and the server checks the purchase before
 // Pro turns on (lib/storePurchases.ts). Shows what the stores require next to
 // an auto-renewing subscription: its length and price, that it renews until
 // cancelled, where to cancel, Restore purchases, and the Terms and Privacy
-// Policy. Until the store has the products, it says MatchGPT+ is coming soon.
+// Policy. Until the store has the products, it says Shaadi24+ is coming soon.
 // ============================================================================
 
 interface StoreUpgradeProps {
@@ -81,12 +81,12 @@ const StoreUpgrade: React.FC<StoreUpgradeProps> = ({ paying, setPaying, onPurcha
       const out = await buyOffer(offer, session.user.id);
       if (out.status === 'cancelled') return;
       if (out.status === 'pending') {
-        setNote({ kind: 'info', text: `Your payment is waiting to go through. MatchGPT+ turns on as soon as ${store} confirms it.` });
+        setNote({ kind: 'info', text: `Your payment is waiting to go through. Shaadi24+ turns on as soon as ${store} confirms it.` });
         return;
       }
       await finish(out.standing, out.status === 'restored'
-        ? `This ${account} already has MatchGPT+, but it isn't active now.`
-        : `${store} took the payment, but MatchGPT+ isn't on yet. Try Restore purchases in a minute.`);
+        ? `This ${account} already has Shaadi24+, but it isn't active now.`
+        : `${store} took the payment, but Shaadi24+ isn't on yet. Try Restore purchases in a minute.`);
     } catch (e) {
       setNote({ kind: 'error', text: e instanceof Error ? e.message : 'The purchase did not go through. Please try again.' });
     } finally {
@@ -101,7 +101,7 @@ const StoreUpgrade: React.FC<StoreUpgradeProps> = ({ paying, setPaying, onPurcha
       const r = await restoreStorePurchases(true);
       await finish(r, r.restored
         ? 'Your purchases were checked, but none of them is active now.'
-        : `No MatchGPT+ purchase was found for this ${account}.`);
+        : `No Shaadi24+ purchase was found for this ${account}.`);
     } catch (e) {
       setNote({ kind: 'error', text: e instanceof Error ? e.message : "Couldn't restore purchases. Please try again." });
     } finally {
@@ -182,12 +182,12 @@ const StoreUpgrade: React.FC<StoreUpgradeProps> = ({ paying, setPaying, onPurcha
       </button>
 
       <p className="text-[11px] text-gray-500 dark:text-gray-400 text-center mt-3 leading-relaxed">
-        {!offers ? ' ' : !available ? 'MatchGPT+ is coming to the app soon.' : (
+        {!offers ? ' ' : !available ? 'Shaadi24+ is coming to the app soon.' : (
           <>
             {offer?.freeTrial && <>{offer.freeTrial[0].toUpperCase() + offer.freeTrial.slice(1)} for new subscribers, then {offer.price}/{per(offer.period)}. </>}
             {platform === 'ios'
-              ? <>Payment is charged to your Apple ID when you confirm. MatchGPT+ renews automatically at the same price each {per(offer!.period)} unless you turn it off at least 24 hours before the period ends; manage it in your App Store account settings. </>
-              : <>Payment is charged to your Google Play account. MatchGPT+ renews automatically each {per(offer!.period)} until you cancel, which you can do any time in Google Play's Subscriptions. </>}
+              ? <>Payment is charged to your Apple ID when you confirm. Shaadi24+ renews automatically at the same price each {per(offer!.period)} unless you turn it off at least 24 hours before the period ends; manage it in your App Store account settings. </>
+              : <>Payment is charged to your Google Play account. Shaadi24+ renews automatically each {per(offer!.period)} until you cancel, which you can do any time in Google Play's Subscriptions. </>}
             <button type="button" onClick={() => openLegal('terms', onClose)} className="underline">Terms of Use</button>
             {' · '}
             <button type="button" onClick={() => openLegal('privacy', onClose)} className="underline">Privacy Policy</button>
