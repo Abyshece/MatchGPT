@@ -1,5 +1,5 @@
 {
-  "name": "MatchGPT - AI Matrimony",
+  "name": "Shaadi24 - AI Matrimony",
   "description": "A Notion-style, AI-powered matrimony platform featuring voice-based profiling and structured photo matching.",
   "requestFramePermissions": [
     "microphone",

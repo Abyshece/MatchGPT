@@ -13,7 +13,7 @@ const [EMAIL_A, EMAIL_B] = process.argv.slice(2);
 if (!EMAIL_A || !EMAIL_B) { console.error('usage: node india-profile.mjs <email A> <email B>'); process.exit(2); }
 const PASSWORD = 'TestPass!2026';
 const BASE = process.env.BASE_URL || 'http://localhost:3000';
-const DB = process.env.DB_CONTAINER || 'supabase_db_MatchGPT';  // `docker ps` shows the name
+const DB = process.env.DB_CONTAINER || 'supabase_db_Shaadi24';  // `docker ps` shows the name
 const OUT = new URL('./.shots/india/', import.meta.url).pathname;
 fs.mkdirSync(OUT, { recursive: true });
 
@@ -53,7 +53,7 @@ async function signIn(email) {
   await page.locator('input[type=email]').fill(email);
   await page.locator('input[type=password]').fill(PASSWORD);
   await page.locator('form').getByRole('button', { name: /Log In/i }).click();
-  await page.getByPlaceholder(/Describe your ideal match/).waitFor({ timeout: 15000 });
+  await page.getByTestId('find-match-box').waitFor({ timeout: 15000 });
   return page;
 }
 
@@ -133,7 +133,7 @@ try {
   const pb = await signIn(EMAIL_B);
   const search = async (prompt) => {
     await pb.getByText('Find Match', { exact: true }).first().click();
-    const box = pb.getByPlaceholder(/Describe your ideal match/);
+    const box = pb.getByTestId('find-match-box');
     await box.fill(prompt);
     const responded = pb.waitForResponse((r) => r.url().includes('/functions/v1/search'), { timeout: 15000 });
     await box.press('Enter');

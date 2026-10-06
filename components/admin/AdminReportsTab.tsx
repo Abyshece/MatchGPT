@@ -219,7 +219,7 @@ const ActionModal: React.FC<{
                 'Dismiss this report?';
 
   const description = action === 'ban' ?
-    'The user will be banned and unable to use MatchGPT. Their profile will be hidden from search. They can be unbanned later via the Users tab.' :
+    'The user will be banned and unable to use Shaadi24. Their profile will be hidden from search. They can be unbanned later via the Users tab.' :
     action === 'resolve' ? 'Use this when you took action without banning (e.g. warning sent, content removed).' :
     'Use this if the report is invalid or no action is warranted.';
 

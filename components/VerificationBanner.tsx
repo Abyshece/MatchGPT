@@ -39,7 +39,7 @@ const VerificationBanner: React.FC<VerificationBannerProps> = ({ verification })
             <>
               <h3 className="font-bold text-blue-900 dark:text-blue-200 mb-1">Verification in review</h3>
               <p className="text-sm text-blue-800 dark:text-blue-300 mb-3">
-                Your submission is being reviewed by our team. This usually takes 24-48 hours. You can keep using MatchGPT while you wait.
+                Your submission is being reviewed by our team. This usually takes 24-48 hours. You can keep using Shaadi24 while you wait.
               </p>
               <button
                 onClick={() => setShowModal(true)}

@@ -18,7 +18,7 @@ import { PhotoSlot, MatchCandidate, SubscriptionTier } from './types';
 export const SUBSCRIPTION_PLANS = [
   {
     tier: 'FREE' as SubscriptionTier,
-    name: 'MatchGPT Free',
+    name: 'Shaadi24 Free',
     price: '₹0',
     period: 'Forever',
     features: [
@@ -33,7 +33,7 @@ export const SUBSCRIPTION_PLANS = [
     // Prices and what Pro adds live in lib/billingService.ts (and the database);
     // this is the monthly plan, as in the Terms.
     tier: 'PRO' as SubscriptionTier,
-    name: 'MatchGPT+',
+    name: 'Shaadi24+',
     price: '₹999',
     period: 'per month',
     features: [

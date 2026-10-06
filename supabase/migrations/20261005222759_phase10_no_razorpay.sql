@@ -1,7 +1,7 @@
 -- ============================================================================
--- Phase 10: MatchGPT+ is sold only in the apps, so Razorpay goes
+-- Phase 10: Shaadi24+ is sold only in the apps, so Razorpay goes
 --
--- The owner decided MatchGPT+ is sold only through Google Play and the App
+-- The owner decided Shaadi24+ is sold only through Google Play and the App
 -- Store. What the database kept for Razorpay goes with it:
 --   - its ids on plans, subscriptions, payments and webhook deliveries, and
 --     its invoices;
@@ -148,7 +148,7 @@ begin
       'exported_at', now(),
       'user_id', uid,
       'format_version', '1.4',
-      'app', 'MatchGPT',
+      'app', 'Shaadi24',
       'note', 'This export contains data we hold about your account. It does not include data about other users (e.g. their messages to you are excluded; only your messages are listed).'
     ),
     'profile', (

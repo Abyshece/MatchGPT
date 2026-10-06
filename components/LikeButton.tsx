@@ -52,8 +52,8 @@ const LikeButton: React.FC<LikeButtonProps> = ({
 
   if (!profile || !session?.user.id) return null;
 
-  // The daily limit follows the subscription; Super Likes follow MatchGPT+'s
-  // one rule (hasPro: also everyone's while MatchGPT+ for everyone is on)
+  // The daily limit follows the subscription; Super Likes follow Shaadi24+'s
+  // one rule (hasPro: also everyone's while Shaadi24+ for everyone is on)
   const unlimited = profile.subscriptionTier === 'PRO';
   const superLikes = hasPro;
 

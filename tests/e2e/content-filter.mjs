@@ -1,4 +1,4 @@
-// Words MatchGPT doesn't allow (migration …_phase13_content_filter; Apple's
+// Words Shaadi24 doesn't allow (migration …_phase13_content_filter; Apple's
 // App Review Guideline 1.2 asks for a filter next to reporting and blocking),
 // against the local stack, through the API and in Chromium:
 //   - a message with them is refused with a plain message (English, Hindi in
@@ -16,7 +16,7 @@ import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 
-const DB = process.env.DB_CONTAINER || 'supabase_db_MatchGPT';
+const DB = process.env.DB_CONTAINER || 'supabase_db_Shaadi24';
 const API = process.env.SUPABASE_URL || 'http://127.0.0.1:54321';
 const BASE = process.env.BASE_URL || 'http://localhost:3000';
 const ANON = (process.env.ANON_KEY_FILE ? fs.readFileSync(process.env.ANON_KEY_FILE, 'utf8') : process.env.ANON_KEY || '').trim();
@@ -47,9 +47,9 @@ const rest = async (jwt, method, path, body) => {
   const text = await r.text();
   return { status: r.status, body: text ? JSON.parse(text) : null };
 };
-const MESSAGE_REFUSED = "This message has words MatchGPT doesn't allow. Please keep it respectful.";
+const MESSAGE_REFUSED = "This message has words Shaadi24 doesn't allow. Please keep it respectful.";
 const refusedFor = (r, field) => r.status === 400 && r.body?.code === 'MG001'
-  && r.body?.message === `Your ${field} has words MatchGPT doesn't allow. Please change them.`;
+  && r.body?.message === `Your ${field} has words Shaadi24 doesn't allow. Please change them.`;
 
 const A = sql(`select id from auth.users where email = '${EMAIL_A}';`);
 const B = sql(`select id from auth.users where email = '${EMAIL_B}';`);
@@ -126,7 +126,7 @@ try {
   await page.locator('input[type=email]').fill(EMAIL_A);
   await page.locator('input[type=password]').fill('TestPass!2026');
   await page.locator('form').getByRole('button', { name: /Log In/i }).click();
-  await page.getByPlaceholder(/Describe your ideal match/).waitFor({ timeout: 20000 });
+  await page.getByTestId('find-match-box').waitFor({ timeout: 20000 });
   await page.getByText('Matches', { exact: true }).first().click();
   await page.locator('main').getByText(nameB).first().click();  // not the sidebar's own name
   const box = page.getByPlaceholder(`Message ${nameB}…`);
@@ -143,7 +143,7 @@ try {
   await page.getByText('Chota Bheem fan who loves chutney; magna cum laude.').click();
   await page.getByPlaceholder('Write a few sentences about yourself…').fill('Not a chutiya, I promise');
   await page.getByRole('button', { name: 'Save', exact: true }).click();
-  check(await appears(page.getByText("Couldn't save: Your About me has words MatchGPT doesn't allow. Please change them.")),
+  check(await appears(page.getByText("Couldn't save: Your About me has words Shaadi24 doesn't allow. Please change them.")),
     'My Profile says why About me wasn\'t saved');
   await page.screenshot({ path: `${OUT}2-profile.png` });
   await ctx.close();

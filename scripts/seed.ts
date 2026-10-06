@@ -1,5 +1,5 @@
 // ============================================================================
-// ShaadiGPT Mock Profile Seeder
+// Shaadi24 Mock Profile Seeder
 //
 // Inserts ~50 realistic mock profiles into your Supabase dev database so you
 // can test searches end-to-end before any real users exist.

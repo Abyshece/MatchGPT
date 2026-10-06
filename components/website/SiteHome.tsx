@@ -7,7 +7,7 @@ import StoreBadges from '../StoreBadges';
 // ============================================================================
 // SiteHome: the website's home page
 //
-// What MatchGPT is and where to get the apps; members use MatchGPT there.
+// What Shaadi24 is and where to get the apps; members use Shaadi24 there.
 // Someone signed in on the website (an admin, or a member who opened an email
 // link here) sees who they're signed in as, and can sign out; a member can
 // also delete the account here (the Delete account page sends them here when
@@ -18,7 +18,7 @@ const FEATURES = [
   {
     icon: '✨',
     title: "Say what you're looking for",
-    text: 'Describe the person you hope to marry in your own words. MatchGPT finds the people who fit you best, and says why.',
+    text: 'Describe the person you hope to marry in your own words. Shaadi24 finds the people who fit you best, and says why.',
   },
   {
     icon: '✅',
@@ -54,7 +54,7 @@ const DeleteThisAccount: React.FC<{ onDeleted: (d: Deleted) => void; onCancel: (
     const result = await deleteAccount({ confirmation: 'Delete', reason: 'Deleted on the website' });
     setBusy(false);
     if (!result.success) {
-      setError(result.error || "Your account couldn't be deleted. Please try again, or write to privacy@matchgpt.com.");
+      setError(result.error || "Your account couldn't be deleted. Please try again, or write to privacy@shaadi24.com.");
       return;
     }
     onDeleted({ appStoreRenews: !!result.appStoreRenews });
@@ -96,7 +96,7 @@ const SignedIn: React.FC<{ onDeleted: (d: Deleted) => void }> = ({ onDeleted }) 
       <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-between gap-3">
         <p className="text-gray-700 dark:text-gray-300">
           Signed in as <strong className="text-gray-900 dark:text-white">{session.user.email}</strong>.{' '}
-          {isAdmin ? 'The admin panel is open to you.' : 'MatchGPT is used in the app: sign in there with the same account.'}
+          {isAdmin ? 'The admin panel is open to you.' : 'Shaadi24 is used in the app: sign in there with the same account.'}
         </p>
         <div className="flex items-center gap-2">
           {isAdmin && (
@@ -129,7 +129,7 @@ const SiteHome: React.FC = () => {
       <header className="flex items-center justify-between px-5 sm:px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
         <a href="/" className="flex items-center gap-2.5 select-none">
           <span className="text-2xl" aria-hidden="true">💍</span>
-          <span className="text-lg font-bold tracking-tight">MatchGPT</span>
+          <span className="text-lg font-bold tracking-tight">Shaadi24</span>
         </a>
         <a href="/support" className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800">
           Help
@@ -139,7 +139,7 @@ const SiteHome: React.FC = () => {
       {deleted ? (
         <div role="status" className="border-b border-gray-100 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900 px-5 py-3 text-sm text-gray-700 dark:text-gray-300" data-testid="site-account-deleted">
           <p className="max-w-4xl mx-auto">
-            Your MatchGPT account is deleted.
+            Your Shaadi24 account is deleted.
             {deleted.appStoreRenews && ' Your App Store subscription is still on: cancel it on your iPhone, in Settings → your name → Subscriptions.'}
           </p>
         </div>
@@ -153,14 +153,14 @@ const SiteHome: React.FC = () => {
             Find the person you'll marry, in your own words
           </h1>
           <p className="mt-5 text-base sm:text-lg leading-relaxed text-gray-600 dark:text-gray-300">
-            MatchGPT is a matrimony app for India. Describe the person you hope to marry, and it finds the people who fit
+            Shaadi24 is a matrimony app for India. Describe the person you hope to marry, and it finds the people who fit
             you best: by values, family, lifestyle and plans, not just photos.
           </p>
           <StoreBadges className="mt-8 justify-center" />
           <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">Free to join, on Android and iPhone.</p>
         </section>
 
-        <section aria-label="What MatchGPT does" className="max-w-4xl mx-auto px-5 pb-16 grid gap-4 sm:grid-cols-2">
+        <section aria-label="What Shaadi24 does" className="max-w-4xl mx-auto px-5 pb-16 grid gap-4 sm:grid-cols-2">
           {FEATURES.map((f) => (
             <div key={f.title} className="rounded-xl border border-gray-200 dark:border-zinc-800 p-5">
               <div className="text-2xl" aria-hidden="true">{f.icon}</div>
@@ -172,13 +172,13 @@ const SiteHome: React.FC = () => {
       </main>
 
       <footer className="border-t border-gray-100 dark:border-zinc-800 px-5 py-6">
-        <nav aria-label="About MatchGPT" className="max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-gray-500 dark:text-gray-400">
+        <nav aria-label="About Shaadi24" className="max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-gray-500 dark:text-gray-400">
           <a className={footerLink} href="/support">Help &amp; Support</a>
           <a className={footerLink} href="/privacy">Privacy Policy</a>
           <a className={footerLink} href="/terms">Terms of Service</a>
           <a className={footerLink} href="/delete-account">Delete your account</a>
           <a className={footerLink} href="/admin">Admin</a>
-          <span>© 2026 MatchGPT</span>
+          <span>© 2026 Shaadi24</span>
         </nav>
       </footer>
     </div>

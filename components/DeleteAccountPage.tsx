@@ -33,7 +33,7 @@ const DeleteAccountPage: React.FC = () => {
   const codeInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    document.title = 'Delete your MatchGPT account';
+    document.title = 'Delete your Shaadi24 account';
     const dark = window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
     document.documentElement.classList.toggle('dark', dark);
   }, []);
@@ -101,7 +101,7 @@ const DeleteAccountPage: React.FC = () => {
       if (!message && fnError && 'context' in fnError) {
         message = await (fnError as { context: Response }).context.json().then((b) => b?.error, () => undefined);
       }
-      setError(message || 'Your account couldn\'t be deleted. Please try again, or write to privacy@matchgpt.com.');
+      setError(message || 'Your account couldn\'t be deleted. Please try again, or write to privacy@shaadi24.com.');
       return;
     }
     setAppStoreRenews(!!data.details?.app_store_renews);
@@ -116,21 +116,21 @@ const DeleteAccountPage: React.FC = () => {
     <div className="min-h-screen bg-white dark:bg-[#191919] text-gray-900 dark:text-gray-100 font-sans">
       <main className="max-w-xl mx-auto px-5 py-10 sm:py-16">
         <a href="/" className="inline-flex items-center gap-2 text-sm font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
-          <span aria-hidden="true">💍</span> MatchGPT
+          <span aria-hidden="true">💍</span> Shaadi24
         </a>
-        <h1 className="mt-6 text-3xl font-bold tracking-tight">Delete your MatchGPT account</h1>
+        <h1 className="mt-6 text-3xl font-bold tracking-tight">Delete your Shaadi24 account</h1>
         <p className="mt-3 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
-          You can delete your account in the MatchGPT app (Settings → Delete Account), or here, without the app.
+          You can delete your account in the Shaadi24 app (Settings → Delete Account), or here, without the app.
         </p>
 
         <section className="mt-6 rounded-lg border border-gray-200 dark:border-zinc-800 p-4 text-sm leading-relaxed text-gray-600 dark:text-gray-300 space-y-2">
           <p><strong className="text-gray-900 dark:text-white">What's deleted:</strong> your account and profile, photos, likes, matches,
             messages, searches, verification requests, the phones and browsers that get your notifications, and your
-            Sign in with Apple link to MatchGPT. People you matched with lose your conversations. This can't be undone.</p>
+            Sign in with Apple link to Shaadi24. People you matched with lose your conversations. This can't be undone.</p>
           <p><strong className="text-gray-900 dark:text-white">What's kept:</strong> a record that the account was deleted (its email
             and when), and the records of payments that the law requires us to keep (up to 7 years). Everything else is
             gone within 30 days, backups included.</p>
-          <p><strong className="text-gray-900 dark:text-white">MatchGPT+:</strong> a Google Play subscription stops renewing. An App
+          <p><strong className="text-gray-900 dark:text-white">Shaadi24+:</strong> a Google Play subscription stops renewing. An App
             Store subscription only you can cancel: on your iPhone,
             Settings → your name → Subscriptions, or <a className="underline" href="https://apps.apple.com/account/subscriptions" target="_blank" rel="noreferrer">apps.apple.com/account/subscriptions</a>.</p>
         </section>
@@ -148,7 +148,7 @@ const DeleteAccountPage: React.FC = () => {
               <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className={input} autoComplete="email" required />
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 We'll email you a code to show the account is yours. If you signed in with Apple and hid your email, use
-                the address Apple made for MatchGPT (on your iPhone: Settings → your name → Sign in with Apple → MatchGPT).
+                the address Apple made for Shaadi24 (on your iPhone: Settings → your name → Sign in with Apple → Shaadi24).
               </p>
               <button type="submit" disabled={busy} className={`${primary} bg-black text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-gray-200`}>
                 {busy ? 'Sending…' : 'Email me a code'}
@@ -159,7 +159,7 @@ const DeleteAccountPage: React.FC = () => {
           {step === 'code' && (
             <form onSubmit={verify} className="space-y-3" data-testid="delete-step-code">
               <p className="text-sm text-gray-600 dark:text-gray-300">
-                If MatchGPT has an account for <strong className="text-gray-900 dark:text-white">{email}</strong>, we've emailed it a code.
+                If Shaadi24 has an account for <strong className="text-gray-900 dark:text-white">{email}</strong>, we've emailed it a code.
               </p>
               <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Code</label>
               <input
@@ -202,7 +202,7 @@ const DeleteAccountPage: React.FC = () => {
           {step === 'done' && (
             <div className="space-y-3" data-testid="delete-step-done">
               <p className="text-lg font-semibold">Your account has been deleted.</p>
-              <p className="text-sm text-gray-600 dark:text-gray-300">Thank you for trying MatchGPT. You can uninstall the app.</p>
+              <p className="text-sm text-gray-600 dark:text-gray-300">Thank you for trying Shaadi24. You can uninstall the app.</p>
               {appStoreRenews && (
                 <p className="text-sm rounded-md border border-amber-200 dark:border-amber-900/40 bg-amber-50 dark:bg-amber-900/20 p-3 text-amber-900 dark:text-amber-100">
                   Your App Store subscription is still on. Cancel it on your iPhone (Settings → your name → Subscriptions)
@@ -215,7 +215,7 @@ const DeleteAccountPage: React.FC = () => {
 
         <p className="mt-10 text-xs text-gray-500 dark:text-gray-400">
           Questions, or no access to your email any more? Write to{' '}
-          <a className="underline" href="mailto:privacy@matchgpt.com">privacy@matchgpt.com</a>.
+          <a className="underline" href="mailto:privacy@shaadi24.com">privacy@shaadi24.com</a>.
         </p>
       </main>
     </div>

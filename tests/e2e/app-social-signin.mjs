@@ -26,7 +26,7 @@ import fs from 'node:fs';
 const SUPABASE = process.env.SUPABASE_URL || 'http://127.0.0.1:54321';
 const ANON = process.env.ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
 const SERVICE = process.env.SERVICE_ROLE_KEY;
-const DB = process.env.DB_CONTAINER || 'supabase_db_MatchGPT';
+const DB = process.env.DB_CONTAINER || 'supabase_db_Shaadi24';
 const BASE = process.env.BASE_URL || 'http://localhost:3000';
 const BASE_IOS_GOOGLE = process.env.BASE_IOS_GOOGLE || 'http://localhost:3001';
 const IOS_CLIENT_ID = process.env.IOS_CLIENT_ID || '1095396009529-iosclientfortests.apps.googleusercontent.com';
@@ -120,7 +120,7 @@ function pluginSide(phone) {
     const acct = phone.account;
     phone.idToken = `${b64url({ alg: 'RS256', kid: 'standin' })}.${b64url({
       iss: provider === 'apple' ? 'https://appleid.apple.com' : 'https://accounts.google.com',
-      aud: provider === 'apple' ? 'com.matchgpt.app' : phone.platform === 'ios' ? IOS_CLIENT_ID : WEB_CLIENT_ID,
+      aud: provider === 'apple' ? 'com.shaadi24.app' : phone.platform === 'ios' ? IOS_CLIENT_ID : WEB_CLIENT_ID,
       sub: acct.sub, email: acct.email, nonce: o.nonce, exp: Math.floor(Date.now() / 1000) + 600,
     })}.c2lnbmF0dXJl`;
     if (provider === 'google') {
@@ -189,7 +189,7 @@ const until = async (fn, ms = 6000) => {
 const google = (page) => page.getByTestId('signin-google');
 const apple = (page) => page.getByTestId('signin-apple');
 const errorBox = (page) => page.locator('.text-red-700');
-const home = (page) => page.getByPlaceholder(/Describe your ideal match/);
+const home = (page) => page.getByTestId('find-match-box');
 const consent = (page) => page.getByRole('heading', { name: 'Before you start' });
 // What the app sent Supabase matches the sheet: its token, and the nonce the sheet got the SHA-256 of
 function sentRight(phone, provider) {

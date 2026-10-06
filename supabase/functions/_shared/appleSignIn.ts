@@ -14,7 +14,7 @@
 //   APPLE_TEAM_ID              the team ID (top right of the developer site)
 //   APPLE_SIGNIN_KEY_ID        the key's ID
 //   APPLE_SIGNIN_PRIVATE_KEY   the text of the key's .p8 file
-// APPLE_BUNDLE_ID: the app's bundle ID (default com.matchgpt.app).
+// APPLE_BUNDLE_ID: the app's bundle ID (default com.shaadi24.app).
 // APPLE_ID_API_BASE: only for local testing against a stand-in.
 // Until the secrets are set, nothing is kept and nothing is revoked.
 // ============================================================================
@@ -38,7 +38,7 @@ export function appleSignInConfig(): AppleSignInConfig | null {
     teamId,
     keyId,
     privateKey,
-    clientId: Deno.env.get('APPLE_BUNDLE_ID') || 'com.matchgpt.app',
+    clientId: Deno.env.get('APPLE_BUNDLE_ID') || 'com.shaadi24.app',
     apiBase: (Deno.env.get('APPLE_ID_API_BASE') || 'https://appleid.apple.com').replace(/\/+$/, ''),
   };
 }

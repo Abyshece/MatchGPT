@@ -14,8 +14,8 @@ import type { CapacitorConfig } from '@capacitor/cli';
 // ============================================================================
 
 const config: CapacitorConfig = {
-  appId: 'com.matchgpt.app',
-  appName: 'MatchGPT',
+  appId: 'com.shaadi24.app',
+  appName: 'Shaadi24',
   webDir: 'dist',
   plugins: {
     // Hidden by the app as soon as it has drawn (lib/nativeApp.ts); the

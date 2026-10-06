@@ -36,7 +36,7 @@ interface AuthContextValue {
   refreshProfile: () => Promise<void>;
   retryLoadProfile: () => Promise<void>;
   healMissingProfile: () => Promise<{ error: string | null }>;
-  // MatchGPT+'s features: a subscriber, or everyone while "MatchGPT+ for
+  // Shaadi24+'s features: a subscriber, or everyone while "Shaadi24+ for
   // everyone" is on (proForAll; the database's app_settings, the same rule
   // the server follows). The daily limits follow the subscription alone.
   hasPro: boolean;
@@ -82,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .select('*')
         .eq('id', userId)
         .maybeSingle();
-      // Read alongside: whether MatchGPT+ is open to everyone right now
+      // Read alongside: whether Shaadi24+ is open to everyone right now
       const switchPromise = supabase.rpc('pro_for_all');
 
       const [{ data, error }, { data: forAll, error: switchError }] = await Promise.race([

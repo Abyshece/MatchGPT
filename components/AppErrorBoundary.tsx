@@ -20,7 +20,7 @@ class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, St
   }
 
   componentDidCatch(error: unknown) {
-    console.error('[MatchGPT] a screen failed', error);
+    console.error('[Shaadi24] a screen failed', error);
     reportError(error);
   }
 
@@ -31,7 +31,7 @@ class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, St
         <div className="text-4xl" aria-hidden="true">💍</div>
         <h1 className="text-xl font-bold">Something went wrong</h1>
         <p className="text-sm text-gray-600 dark:text-gray-300 max-w-sm">
-          MatchGPT couldn't show this screen. Reloading usually fixes it. If it keeps happening, write to{' '}
+          Shaadi24 couldn't show this screen. Reloading usually fixes it. If it keeps happening, write to{' '}
           <a className="underline" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.
         </p>
         <button

@@ -1,4 +1,4 @@
-# MatchGPT in Google Play and the App Store
+# Shaadi24 in Google Play and the App Store
 
 Everything needed to put the apps in the stores: the steps in order, the words and answers to paste,
 and the graphics. The code side is done (ROADMAP.md, Phase 13); what's left needs your accounts.
@@ -10,7 +10,7 @@ In this folder:
   Play's icon and feature graphic, made from the app's icon. Change the words in
   `scripts/store-graphics.mjs` and run it to remake them. The App Store takes its icon from the app.
 
-The website pages the stores link to (the home page, https://shaadi-gpt.vercel.app, says what MatchGPT
+The website pages the stores link to (the home page, https://shaadi-gpt.vercel.app, says what Shaadi24
 is and links to the stores; members use the apps):
 
 | Page | Address |
@@ -28,15 +28,16 @@ With a domain of your own (step 1), use it in place of `shaadi-gpt.vercel.app` e
 
 ### 1. Before you start
 - [ ] **The email addresses.** The apps, the Terms, the Privacy Policy and the support page tell people
-  to write to `support@matchgpt.com` and `privacy@matchgpt.com`. Make sure both reach you (they need the
-  matchgpt.com domain), or ask Claude to change them to addresses you have.
+  to write to `support@shaadi24.com` and `privacy@shaadi24.com`. Make sure both reach you: they need the
+  shaadi24.com domain, which in October 2026 was already registered by someone (it answered with a
+  hosted website). If you can't get it, ask Claude to change them to addresses you have.
 - [ ] **The website's address.** The stores show it to everyone. `shaadi-gpt.vercel.app` works; a domain
   of your own (Vercel → your project → Settings → Domains) looks more trustworthy. If you add one, also
   set it as Supabase's Site URL and in `ALLOWED_ORIGINS` (step 3).
-- [ ] **The name.** Search both stores for "MatchGPT" to be sure it's free. "GPT" makes people think of
-  OpenAI's ChatGPT, and App Review has objected to some app names with "GPT" in them. MatchGPT doesn't
-  use OpenAI (its AI search is Google's Gemini). If Apple objects, a store name without "GPT" is the
-  quickest way through; the app can stay as it is.
+- [ ] **The name.** Search both stores for "Shaadi24" to be sure it's free. Shaadi.com is a large
+  matrimony brand in India, so have a lawyer check that "Shaadi24" doesn't conflict with its trademarks
+  (with the legal review of the Terms and Privacy Policy). If a store objects, a different store name is
+  the quickest way through; the app can keep its name inside.
 - [ ] **Demo accounts for the reviewers**: both stores ask for one ("Notes for the reviewers" below).
 
 ### 2. Developer accounts
@@ -58,7 +59,7 @@ With a domain of your own (step 1), use it in place of `shaadi-gpt.vercel.app` e
   address with `/**` after it (`https://shaadi-gpt.vercel.app/**`), so an admin who signs in with Google
   comes back to the admin panel (without it they come back to the home page, which links to it).
 - [ ] Authentication → Sign In / Providers: **Google** (Client IDs: the web client, then the iOS client
-  from step 4) and **Apple** (Client IDs: `com.matchgpt.app`).
+  from step 4) and **Apple** (Client IDs: `com.shaadi24.app`).
 - [ ] Edge Functions → Secrets:
 
 | Secret | For | Where it comes from |
@@ -74,15 +75,15 @@ With a domain of your own (step 1), use it in place of `shaadi-gpt.vercel.app` e
 
 ### 4. Google sign-in, Firebase and Apple keys
 Each is spelled out in ROADMAP.md, Phase 13 ("Owner, Google", "Owner, Firebase", "Owner, Apple"):
-- [ ] **Google Auth Platform**: Branding (MatchGPT, logo, support email) and Audience → Publish app; an
+- [ ] **Google Auth Platform**: Branding (Shaadi24, logo, support email) and Audience → Publish app; an
   **Android** client for each signing key's SHA-1: the Play App Signing key (step 6.2), your upload key
   (step 5) and, for test builds, the debug key; an **iOS** client, whose ID goes in
   `.env.production.local` as `VITE_GOOGLE_IOS_CLIENT_ID` and into Supabase's Google provider (step 3).
 - [ ] **Firebase**: one project with both apps; `google-services.json` into `android/app/`;
   `GoogleService-Info.plist` into Xcode's App folder; the APNs key uploaded to Firebase; a service
   account key as `FIREBASE_SERVICE_ACCOUNT`.
-- [ ] **Apple**: Sign in with Apple ticked for `com.matchgpt.app`; a key with Sign in with Apple (and
-  Apple Push Notifications) for the three `APPLE_*` secrets; the address MatchGPT's emails come from
+- [ ] **Apple**: Sign in with Apple ticked for `com.shaadi24.app`; a key with Sign in with Apple (and
+  Apple Push Notifications) for the three `APPLE_*` secrets; the address Shaadi24's emails come from
   registered for Apple's private relay (Services → Sign in with Apple for Email Communication).
 
 ### 5. Build the apps
@@ -92,14 +93,14 @@ Both builds need the live Supabase URL and anon key in `.env.production.local` (
 Signing); you sign what you upload with an upload key that stays with you. Make it, on your computer:
 
 ```bash
-keytool -genkeypair -v -keystore ~/matchgpt-upload.jks -alias upload -keyalg RSA -keysize 2048 -validity 10000
-keytool -list -v -keystore ~/matchgpt-upload.jks -alias upload    # its SHA-1, for step 4
+keytool -genkeypair -v -keystore ~/shaadi24-upload.jks -alias upload -keyalg RSA -keysize 2048 -validity 10000
+keytool -list -v -keystore ~/shaadi24-upload.jks -alias upload    # its SHA-1, for step 4
 ```
 
 and tell the build where it is in `android/keystore.properties` (git never takes it):
 
 ```properties
-storeFile=/Users/you/matchgpt-upload.jks
+storeFile=/Users/you/shaadi24-upload.jks
 storePassword=the store password
 keyAlias=upload
 keyPassword=the key password
@@ -128,14 +129,14 @@ screenshots. (For a real iPad app later: Xcode → App target → General → Su
 then test it and add iPad screenshots.)
 
 ### 6. Google Play Console
-1. **Create app**: name "MatchGPT: Indian Matrimony" (or yours), default language English (India) – en-IN,
+1. **Create app**: name "Shaadi24: Indian Matrimony" (or yours), default language English (India) – en-IN,
    App, Free (it sells subscriptions inside; a free app can never become paid).
 2. **Test and release → App integrity**: Play App Signing (the default). Copy the app signing key's
    SHA-1 for Google's Android client (step 4).
 3. **Test and release → Testing → Internal testing**: create a release, upload `app-release.aab`, add
    yourself as a tester and install it from the link. Do this before step 4: Play lets you make
    subscriptions only once a build that can sell them has been uploaded.
-4. **Monetize with Play → Products → Subscriptions**: `matchgpt_plus` with base plans `monthly` (₹999,
+4. **Monetize with Play → Products → Subscriptions**: `shaadi24_plus` with base plans `monthly` (₹999,
    renews every month) and `yearly` (₹9,999, every year), both active. Leave free-trial offers out for
    now (ROADMAP.md, Phase 13).
 5. **Users and permissions**: invite the Google Cloud service account whose key is
@@ -163,14 +164,14 @@ then test it and add iPad screenshots.)
 ### 7. App Store Connect
 1. **Business → Agreements**: the Paid Apps agreement, bank and tax details. Join the App Store Small
    Business Program (15% commission instead of 30%).
-2. **Apps → + → New App**: iOS, the name, primary language English (U.K.), bundle ID `com.matchgpt.app`,
-   SKU `matchgpt-ios`.
+2. **Apps → + → New App**: iOS, the name, primary language English (U.K.), bundle ID `com.shaadi24.app`,
+   SKU `shaadi24-ios`.
 3. **App Information**: category Lifestyle (secondary: Social Networking); Age Rating (below); App Store
    Server Notifications, Version 2, for production and sandbox:
    `https://fmrbzzdjtarsaqvfukum.supabase.co/functions/v1/store-notifications?provider=apple`.
-4. **Monetization → Subscriptions**: group "MatchGPT+" with `matchgpt_plus_monthly` (1 month, ₹999) and
-   `matchgpt_plus_yearly` (1 year, ₹9,999), each with a display name, a description and a review
-   screenshot (the MatchGPT+ sheet in the app). Optionally a 1-week free trial as the introductory offer.
+4. **Monetization → Subscriptions**: group "Shaadi24+" with `shaadi24_plus_monthly` (1 month, ₹999) and
+   `shaadi24_plus_yearly` (1 year, ₹9,999), each with a display name, a description and a review
+   screenshot (the Shaadi24+ sheet in the app). Optionally a 1-week free trial as the introductory offer.
    The first subscriptions are reviewed with the app: tick them on the version page before submitting.
 5. **App Privacy**: the Privacy Policy address and the answers below.
 6. **Pricing and Availability**: free; the same countries as Google Play.
@@ -186,7 +187,7 @@ On an Android phone (internal testing) and an iPhone (TestFlight):
 - [ ] Forgot password: the code arrives and the new password works
 - [ ] Make the profile with photos, search, like, match and chat; a rude word in a chat is refused
 - [ ] Notifications for a match and a message; tapping one opens it
-- [ ] Buy MatchGPT+ (license tester / sandbox); Settings shows it; Restore purchases on the other phone
+- [ ] Buy Shaadi24+ (license tester / sandbox); Settings shows it; Restore purchases on the other phone
 - [ ] Report and block someone; the report is in Admin → Reports
 - [ ] Settings → Download my data opens the share sheet; Help Center and Contact support work
 - [ ] Delete an account in the app, and another on the website's Delete account page
@@ -194,7 +195,7 @@ On an Android phone (internal testing) and an iPhone (TestFlight):
 ### 9. After launch
 - [ ] **The website's store badges.** Once each app is live, Vercel → your project → Settings →
   Environment Variables: `VITE_PLAY_STORE_URL` (the app's Google Play address,
-  `https://play.google.com/store/apps/details?id=com.matchgpt.app`) and `VITE_APP_STORE_URL` (the address
+  `https://play.google.com/store/apps/details?id=com.shaadi24.app`) and `VITE_APP_STORE_URL` (the address
   App Store Connect shows, `https://apps.apple.com/app/id…`), then redeploy. The home page and the help
   page link to the stores instead of saying "Coming soon".
 - [ ] **Reports within 24 hours.** The Terms promise it and both stores expect it: look at Admin →
@@ -218,7 +219,7 @@ On an Android phone (internal testing) and an iPhone (TestFlight):
 
 ## Google Play store listing
 
-**App name** (30 characters): `MatchGPT: Indian Matrimony`
+**App name** (30 characters): `Shaadi24: Indian Matrimony`
 
 **Short description** (80):
 
@@ -229,10 +230,10 @@ Describe your life partner in your own words, and meet the people you fit best.
 **Full description** (4,000):
 
 ```
-MatchGPT is a matrimony app for people who know what matters to them. Describe the person you hope to marry in your own words, and MatchGPT finds the people you fit best: by values, family, lifestyle and plans, not just photos.
+Shaadi24 is a matrimony app for people who know what matters to them. Describe the person you hope to marry in your own words, and Shaadi24 finds the people you fit best: by values, family, lifestyle and plans, not just photos.
 
 SEARCH THE WAY YOU TALK
-"A vegetarian doctor in Pune who wants children." "Tamil, settled abroad, open to moving back." Type it and MatchGPT turns it into the right filters, with the people you fit best first.
+"A vegetarian doctor in Pune who wants children." "Tamil, settled abroad, open to moving back." Type it and Shaadi24 turns it into the right filters, with the people you fit best first.
 
 A PROFILE MADE FOR INDIA
 Religion, mother tongue, community, gotra, Manglik status, rashi and nakshatra, education, profession, family type and values, and more. Every detail is optional, and you can hide any answer: hidden answers are never shown and nobody can search by them.
@@ -254,8 +255,8 @@ SAFE AND RESPECTFUL
 • Your date of birth is never shown, only your age
 • For adults 18 and over
 
-MATCHGPT+
-A free account can search 3 times and send 15 likes a day. MatchGPT+ adds unlimited searches and likes, Super Likes, everyone who has liked you, more search filters (religion, mother tongue, community, Manglik, height, diet, education and more), the full compatibility report and date proposals in chat. It's a monthly or yearly subscription through Google Play that renews until you cancel it in Google Play.
+SHAADI24+
+A free account can search 3 times and send 15 likes a day. Shaadi24+ adds unlimited searches and likes, Super Likes, everyone who has liked you, more search filters (religion, mother tongue, community, Manglik, height, diet, education and more), the full compatibility report and date proposals in chat. It's a monthly or yearly subscription through Google Play that renews until you cancel it in Google Play.
 
 Making a profile for a son, daughter, brother, sister or friend? Welcome, with their permission.
 
@@ -264,7 +265,7 @@ Terms of Service: https://shaadi-gpt.vercel.app/terms
 Help: https://shaadi-gpt.vercel.app/support
 ```
 
-**Category**: Dating. **Contact details**: email `support@matchgpt.com`, website
+**Category**: Dating. **Contact details**: email `support@shaadi24.com`, website
 `https://shaadi-gpt.vercel.app`. **Graphics**: `graphics/play-icon-512.png`,
 `graphics/play-feature-graphic.jpg`, and the phone screenshots (below).
 
@@ -272,9 +273,9 @@ Help: https://shaadi-gpt.vercel.app/support
 
 | Field | Text |
 |---|---|
-| Name (30) | `MatchGPT: Indian Matrimony` |
+| Name (30) | `Shaadi24: Indian Matrimony` |
 | Subtitle (30) | `Find a life partner who fits` |
-| Promotional text (170) | `Describe the person you hope to marry, in your own words. MatchGPT finds the people you fit best: by values, family, lifestyle and plans.` |
+| Promotional text (170) | `Describe the person you hope to marry, in your own words. Shaadi24 finds the people you fit best: by values, family, lifestyle and plans.` |
 | Keywords (100) | `shaadi,rishta,marriage,bride,groom,biodata,kundli,manglik,hindu,muslim,sikh,jain,christian,nri,desi` |
 | Support URL | `https://shaadi-gpt.vercel.app/support` |
 | Marketing URL | `https://shaadi-gpt.vercel.app` |
@@ -285,10 +286,10 @@ Help: https://shaadi-gpt.vercel.app/support
 **Description** (4,000):
 
 ```
-MatchGPT is a matrimony app for people who know what matters to them. Describe the person you hope to marry in your own words, and MatchGPT finds the people you fit best: by values, family, lifestyle and plans, not just photos.
+Shaadi24 is a matrimony app for people who know what matters to them. Describe the person you hope to marry in your own words, and Shaadi24 finds the people you fit best: by values, family, lifestyle and plans, not just photos.
 
 SEARCH THE WAY YOU TALK
-"A vegetarian doctor in Pune who wants children." "Tamil, settled abroad, open to moving back." Type it and MatchGPT turns it into the right filters, with the people you fit best first.
+"A vegetarian doctor in Pune who wants children." "Tamil, settled abroad, open to moving back." Type it and Shaadi24 turns it into the right filters, with the people you fit best first.
 
 A PROFILE MADE FOR INDIA
 Religion, mother tongue, community, gotra, Manglik status, rashi and nakshatra, education, profession, family type and values, and more. Every detail is optional, and you can hide any answer: hidden answers are never shown and nobody can search by them.
@@ -310,10 +311,10 @@ SAFE AND RESPECTFUL
 • Your date of birth is never shown, only your age
 • For adults 18 and over
 
-MATCHGPT+
-A free account can search 3 times and send 15 likes a day. MatchGPT+ adds unlimited searches and likes, Super Likes, everyone who has liked you, more search filters (religion, mother tongue, community, Manglik, height, diet, education and more), the full compatibility report and date proposals in chat.
+SHAADI24+
+A free account can search 3 times and send 15 likes a day. Shaadi24+ adds unlimited searches and likes, Super Likes, everyone who has liked you, more search filters (religion, mother tongue, community, Manglik, height, diet, education and more), the full compatibility report and date proposals in chat.
 
-MatchGPT+ is an auto-renewing subscription for 1 month or 1 year. Payment is charged to your Apple Account when you confirm the purchase. It renews automatically unless you turn off auto-renewal at least 24 hours before the end of the current period, and your account is charged for the renewal within 24 hours before the period ends. Manage or cancel it in your Apple Account settings. If a free trial is offered, any unused part of it ends when you buy a subscription.
+Shaadi24+ is an auto-renewing subscription for 1 month or 1 year. Payment is charged to your Apple Account when you confirm the purchase. It renews automatically unless you turn off auto-renewal at least 24 hours before the end of the current period, and your account is charged for the renewal within 24 hours before the period ends. Manage or cancel it in your Apple Account settings. If a free trial is offered, any unused part of it ends when you buy a subscription.
 
 Terms of Use: https://shaadi-gpt.vercel.app/terms
 Privacy Policy: https://shaadi-gpt.vercel.app/privacy
@@ -334,7 +335,7 @@ password, and OAuth (Google; Apple on iPhones).
 | Personal info → Political or religious beliefs | Yes | No | Optional | App functionality |
 | Personal info → Sexual orientation | Yes | No | Optional | App functionality |
 | Personal info → Other info (date of birth, gender, marital status, height, horoscope, family, education, job) | Yes | No | Required | App functionality |
-| Financial info → Purchase history (MatchGPT+) | Yes | No | Optional | App functionality, Account management |
+| Financial info → Purchase history (Shaadi24+) | Yes | No | Optional | App functionality, Account management |
 | Financial info → Other financial info (annual income on the profile) | Yes | No | Optional | App functionality |
 | Health and fitness → Health info (disability, family health history) | Yes | No | Optional | App functionality |
 | Location → Approximate location (the city, state and country people type; no GPS) | Yes | No | Required | App functionality |
@@ -348,15 +349,15 @@ password, and OAuth (Google; Apple on iPhones).
 | App info and performance → Diagnostics (with an error: the screen, app version, phone and system) | Yes | No | Required | App functionality |
 
 Not collected: precise location, contacts, calendar, files, audio, web browsing, payment details (Google
-Play takes the payment; MatchGPT never sees cards or UPI). Error reports (`lib/errorReports.ts`) carry no
+Play takes the payment; Shaadi24 never sees cards or UPI). Error reports (`lib/errorReports.ts`) carry no
 account, name or address, and the app blanks out emails, phone numbers and ids before sending one; they
 are still "collected", as Google counts anything that leaves the phone.
 
 \* **Search.** With `GEMINI_API_KEY` set, the words typed into search go to Google's Gemini AI (without
 names, emails or phone numbers). On Gemini's free tier Google may use them to improve its services, which
-makes this "shared". On a paid Gemini plan Google only processes them for MatchGPT: then answer **No**.
+makes this "shared". On a paid Gemini plan Google only processes them for Shaadi24: then answer **No**.
 Without the key nothing is sent: also **No**. Hosting and delivery companies (Supabase, Vercel, Firebase
-Cloud Messaging) work for MatchGPT and don't count as sharing; other members seeing a profile is what
+Cloud Messaging) work for Shaadi24 and don't count as sharing; other members seeing a profile is what
 the person asked for and doesn't either.
 
 ## App Store: App Privacy answers
@@ -366,7 +367,7 @@ Linked to You**, purpose **App Functionality**, not used for tracking, except th
 which are **Data Not Linked to You** (error reports carry no account, name or address). "Do you or your
 third-party partners use data for tracking?" **No.**
 
-| Category | Data type | What it is in MatchGPT |
+| Category | Data type | What it is in Shaadi24 |
 |---|---|---|
 | Contact Info | Name | the profile's name |
 | Contact Info | Email Address | the account's email |
@@ -377,7 +378,7 @@ third-party partners use data for tracking?" **No.**
 | Sensitive Info | Sensitive Info | religion, community, sexuality, political views (optional) |
 | Location | Coarse Location | the city and state people type |
 | Financial Info | Other Financial Info | annual income on the profile (optional) |
-| Purchases | Purchase History | MatchGPT+ subscriptions and payments |
+| Purchases | Purchase History | Shaadi24+ subscriptions and payments |
 | Search History | Search History | what people type into search |
 | Identifiers | User ID | the account's ID |
 | Identifiers | Device ID | the notification token |
@@ -405,20 +406,20 @@ content; alcohol, tobacco or drug references: infrequent/mild; user-generated co
 1. Make an account with an email you control (for example `appreview@` your domain) and a strong
    password, and finish the profile with photos you have the right to use.
 2. Admin → Users: verify it (unverified accounts can't search after 72 hours). Keep it on the free plan,
-   so the reviewers can buy MatchGPT+ in the sandbox.
+   so the reviewers can buy Shaadi24+ in the sandbox.
 3. Make a second account, like each other, and exchange a message or two, so there's a match and a chat.
 4. Give both stores the first account's email and password, and don't use it yourself after that.
 
 **App Store → App Review Information → Notes** (and, shortened, Play's "App access" instructions):
 
 ```
-MatchGPT is a matrimony app for adults (18+) in India and Indians abroad: members describe the partner they're looking for in their own words, see compatible profiles, like, match and chat.
+Shaadi24 is a matrimony app for adults (18+) in India and Indians abroad: members describe the partner they're looking for in their own words, see compatible profiles, like, match and chat.
 
 DEMO ACCOUNT (verified, with a match and a chat)
 On the first screen tap "Sign in", then "Continue with Email", and use the email and password above.
 
 IN-APP PURCHASES
-MatchGPT+ is an auto-renewable subscription (group "MatchGPT+": matchgpt_plus_monthly and matchgpt_plus_yearly). Open it from the menu ("Get MatchGPT+") or Settings → MatchGPT+, which also has Restore purchases and Manage subscription. Our server checks every purchase with the App Store. The app offers no other way to pay.
+Shaadi24+ is an auto-renewable subscription (group "Shaadi24+": shaadi24_plus_monthly and shaadi24_plus_yearly). Open it from the menu ("Get Shaadi24+") or Settings → Shaadi24+, which also has Restore purchases and Manage subscription. Our server checks every purchase with the App Store. The app offers no other way to pay.
 
 SIGN IN WITH APPLE is on the sign-in screen, above Google.
 
@@ -444,7 +445,7 @@ real members):
 4. Standouts
 5. A chat
 6. Likes You
-7. MatchGPT+
+7. Shaadi24+
 
 Taking them:
 - **iPhone**: in Xcode, run the app on the iPhone 16 Pro Max simulator (or a newer Pro Max). Tidy the

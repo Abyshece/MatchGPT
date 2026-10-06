@@ -101,8 +101,8 @@ export interface SearchAllowance {
 }
 
 export function computeSearchAllowance(profile: UserProfile): SearchAllowance {
-  // The daily limit follows the subscription alone: "MatchGPT+ for everyone"
-  // (useAuth().hasPro) opens MatchGPT+'s features, not unlimited searches.
+  // The daily limit follows the subscription alone: "Shaadi24+ for everyone"
+  // (useAuth().hasPro) opens Shaadi24+'s features, not unlimited searches.
   if (profile.subscriptionTier === 'PRO') {
     return { allowed: true, remaining: Infinity, isPro: true, resetInHours: 0 };
   }

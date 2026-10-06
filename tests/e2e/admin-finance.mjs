@@ -19,7 +19,7 @@
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
-const DB = process.env.DB_CONTAINER || 'supabase_db_MatchGPT';
+const DB = process.env.DB_CONTAINER || 'supabase_db_Shaadi24';
 const BASE = process.env.BASE_URL || 'http://localhost:3000';
 const API = process.env.SUPABASE_URL || 'http://127.0.0.1:54321';
 const REPO = process.env.REPO_ROOT || new URL('../..', import.meta.url).pathname;
@@ -141,7 +141,7 @@ async function openFinance(ctx) {
   await page.locator('input[type=email]').fill(ADMIN);
   await page.locator('input[type=password]').fill('TestPass!2026');
   await page.locator('form').getByRole('button', { name: /Log In/i }).click();
-  await page.getByPlaceholder(/Describe your ideal match/).waitFor({ timeout: 20000 });
+  await page.getByTestId('find-match-box').waitFor({ timeout: 20000 });
   const menu = page.getByRole('button', { name: 'Menu', exact: true });
   if (await menu.isVisible().catch(() => false)) await menu.click();  // phones: the sidebar is a menu
   await page.getByText('Admin', { exact: true }).first().click();
@@ -274,7 +274,7 @@ try {
   const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Export CSV' }).click()]);
   const csvPath = `${OUT}charges.csv`;
   await download.saveAs(csvPath);
-  check(download.suggestedFilename() === `matchgpt-charges-live-${addMonths(M0, -11)}-to-${M0}.csv`, `file name ${download.suggestedFilename()}`);
+  check(download.suggestedFilename() === `shaadi24-charges-live-${addMonths(M0, -11)}-to-${M0}.csv`, `file name ${download.suggestedFilename()}`);
   const csv = fs.readFileSync(csvPath, 'utf8');
   const lines = csv.replace(/^﻿/, '').trim().split('\r\n');
   check(csv.startsWith('﻿') && lines[0].startsWith('Date (India time),Order ID,Seller,Plan,Status,Currency,Amount,Fee'),
@@ -339,7 +339,7 @@ try {
       window.__native.push(call);
       if (call.callbackId === '-1' || call.methodName === 'addListener') return;
       let reply = { data: {} };
-      if (call.pluginId === 'Filesystem' && call.methodName === 'writeFile') reply = { data: { uri: 'file:///data/user/0/com.matchgpt.app/cache/' + call.options.path } };
+      if (call.pluginId === 'Filesystem' && call.methodName === 'writeFile') reply = { data: { uri: 'file:///data/user/0/com.shaadi24.app/cache/' + call.options.path } };
       if (call.pluginId === 'Share' && window.__shareAnswer) reply = window.__shareAnswer;
       setTimeout(() => window.Capacitor.fromNative(Object.assign(
         { callbackId: call.callbackId, pluginId: call.pluginId, methodName: call.methodName, success: !reply.error },
@@ -364,7 +364,7 @@ try {
   check(write?.options.directory === 'CACHE' && write.options.encoding === 'utf8' && write.options.path.endsWith('.csv')
     && write.options.data.startsWith('﻿Date (India time),') && write.options.data.split('\r\n').length === 12,
     'the CSV is written to the app\'s cache');
-  check(share?.options.files?.[0] === `file:///data/user/0/com.matchgpt.app/cache/${write?.options.path}`, 'and handed to the share sheet');
+  check(share?.options.files?.[0] === `file:///data/user/0/com.shaadi24.app/cache/${write?.options.path}`, 'and handed to the share sheet');
   await p3.evaluate(() => { window.__shareAnswer = { error: { message: 'Share canceled' } }; });
   await p3.waitForTimeout(3500);  // the first toast goes
   await p3.getByRole('button', { name: 'Export CSV' }).click();

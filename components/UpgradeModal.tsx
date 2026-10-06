@@ -9,9 +9,9 @@ import StoreBadges from './StoreBadges';
 import StoreUpgrade from './StoreUpgrade';
 
 // ============================================================================
-// UpgradeModal: MatchGPT+
+// UpgradeModal: Shaadi24+
 //
-// MatchGPT+ is sold only inside the phone apps, through Google Play or the App
+// Shaadi24+ is sold only inside the phone apps, through Google Play or the App
 // Store (StoreUpgrade). Anywhere else it says so, with where to get the apps.
 // Rendered into <body>, so it isn't trapped inside the sidebar.
 // ============================================================================
@@ -41,9 +41,9 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ reason, resetInHours, onClo
   const headline =
     reason === 'daily_limit' ? "You've used today's free searches"
       : reason === 'compatibility_report' ? 'Unlock the Compatibility Report'
-        : 'Get MatchGPT+';
+        : 'Get Shaadi24+';
   const subtitle =
-    reason === 'daily_limit' ? `Wait ${resetInHours ?? 24}h, or get MatchGPT+ for unlimited searches.`
+    reason === 'daily_limit' ? `Wait ${resetInHours ?? 24}h, or get Shaadi24+ for unlimited searches.`
       : reason === 'compatibility_report' ? 'See exactly which traits align and where there might be friction.'
         : 'More searches, more likes, more ways to stand out.';
 
@@ -79,7 +79,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ reason, resetInHours, onClo
             <IconZap />
           </div>
           <h2 id="upgrade-title" className="text-2xl font-bold mb-1">
-            {done ? 'Welcome to MatchGPT+' : alreadyPro ? 'You have MatchGPT+' : headline}
+            {done ? 'Welcome to Shaadi24+' : alreadyPro ? 'You have Shaadi24+' : headline}
           </h2>
           <p className="text-sm text-white/90">
             {done || alreadyPro ? 'Unlimited searches and likes, Super Likes and more.' : subtitle}
@@ -123,7 +123,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ reason, resetInHours, onClo
               </ul>
               {proForAll && <p className="-mt-4 mb-6 text-xs text-gray-500 dark:text-gray-400">{FEATURES_FREE_NOW}</p>}
               <p className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-3">
-                MatchGPT+ is bought in the MatchGPT app, on Android or iPhone.
+                Shaadi24+ is bought in the Shaadi24 app, on Android or iPhone.
               </p>
               <StoreBadges className="mb-6" />
               {closeButton('Close')}

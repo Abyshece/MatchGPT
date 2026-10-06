@@ -11,7 +11,7 @@
 //
 // Google: Android uses the "Web application" client that Supabase's Google
 // provider already has (GOOGLE_WEB_CLIENT_ID below; Google Cloud also needs
-// an Android client for com.matchgpt.app with the app's signing
+// an Android client for com.shaadi24.app with the app's signing
 // certificates). iPhones use their own client, VITE_GOOGLE_IOS_CLIENT_ID,
 // set when the app is built (scripts/ios-google-sign-in.mjs adds its URL
 // scheme); without it iPhones don't offer Google.
@@ -139,7 +139,7 @@ function supabaseError(provider: SocialProvider, error: { message: string; code?
   if (error.code === 'user_banned') return new SocialSignInError('This account has been suspended.');
   if (error.code === 'signup_disabled') return new SocialSignInError('New accounts can\'t be created right now. Please try again later.');
   if (!error.status || error.status >= 500) {
-    return new SocialSignInError('Couldn\'t reach MatchGPT. Check your connection and try again.');
+    return new SocialSignInError('Couldn\'t reach Shaadi24. Check your connection and try again.');
   }
   return new SocialSignInError(`${LABEL[provider]} sign-in didn't work. Please try again, or continue with email.`);
 }
@@ -149,7 +149,7 @@ function supabaseError(provider: SocialProvider, error: { message: string; code?
  * person closed it; throws SocialSignInError when something went wrong.
  */
 export async function signInWith(provider: SocialProvider): Promise<'signed-in' | 'cancelled'> {
-  if (!platform()) throw new SocialSignInError(`${LABEL[provider]} sign-in works in the MatchGPT app.`);
+  if (!platform()) throw new SocialSignInError(`${LABEL[provider]} sign-in works in the Shaadi24 app.`);
   const { nonce, hashed } = await makeNonce();
 
   let idToken: string | null;

@@ -1,13 +1,13 @@
 // The website, where members are sent to the apps (lib/website.ts,
 // components/website/), against a dev server WITHOUT VITE_MEMBERS_ON_WEB
 // (BASE_URL, default http://localhost:3002) and the local stack:
-//  1. The home page: what MatchGPT is, the store badges, the footer's pages;
+//  1. The home page: what Shaadi24 is, the store badges, the footer's pages;
 //     no member sign-in, no search box, no cookie banner; at phone width in
 //     dark mode nothing is wider than the screen
 //  2. Terms and Privacy at /terms, /privacy and #privacy, back to the home page;
 //     /support with the store badges
-//  3. /admin: a sign-in for MatchGPT's team (no sign-up). A member who signs
-//     in is told MatchGPT is used in the app; an admin gets the admin panel,
+//  3. /admin: a sign-in for Shaadi24's team (no sign-up). A member who signs
+//     in is told Shaadi24 is used in the app; an admin gets the admin panel,
 //     with browser alerts and signing out
 //  4. Admin alerts: one that opens the site (/?push=…) goes to its admin tab,
 //     and so does one clicked while a page of the website is open
@@ -20,7 +20,7 @@ import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 
-const DB = process.env.DB_CONTAINER || 'supabase_db_MatchGPT';
+const DB = process.env.DB_CONTAINER || 'supabase_db_Shaadi24';
 const BASE = process.env.BASE_URL || 'http://localhost:3002';
 const API = process.env.SUPABASE_URL || 'http://127.0.0.1:54321';
 const SERVICE = process.env.SERVICE_ROLE_KEY || '';
@@ -77,8 +77,8 @@ try {
   check(await page.getByText('Google Play', { exact: true }).isVisible() && await page.getByText('App Store', { exact: true }).isVisible(),
     'Google Play and App Store badges');
   check(await page.getByText('Coming soon to').count() === 2, '"Coming soon" until the store addresses are set');
-  check(await page.getByRole('heading', { level: 2 }).count() === 4, 'what MatchGPT does, in four parts');
-  const footer = await page.getByRole('navigation', { name: 'About MatchGPT' }).locator('a').evaluateAll((as) => as.map((a) => a.getAttribute('href')));
+  check(await page.getByRole('heading', { level: 2 }).count() === 4, 'what Shaadi24 does, in four parts');
+  const footer = await page.getByRole('navigation', { name: 'About Shaadi24' }).locator('a').evaluateAll((as) => as.map((a) => a.getAttribute('href')));
   check(['/support', '/privacy', '/terms', '/delete-account', '/admin'].every((h) => footer.includes(h)), `the footer's pages (${footer.join(' ')})`);
   check(await page.getByRole('button', { name: /Sign in|Create Account/ }).count() === 0
     && await page.getByPlaceholder(/Describe your ideal match/).count() === 0, 'no member sign-in and no search box');
@@ -113,18 +113,18 @@ try {
   await page.goto(`${BASE}/support`);
   check(await appears(page.getByRole('heading', { name: 'Help & Support' })) && await page.getByText('Google Play', { exact: true }).isVisible(),
     '/support, with the store badges');
-  check(await page.getByText(/on Android and iPhone/).isVisible(), 'it says MatchGPT is on Android and iPhone');
+  check(await page.getByText(/on Android and iPhone/).isVisible(), 'it says Shaadi24 is on Android and iPhone');
   await ctx.close();
 
   log('3. /admin');
   ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   page = await ctx.newPage();
   await page.goto(`${BASE}/admin`);
-  check(await appears(page.getByText('Admin sign-in')) && await page.getByText(/For MatchGPT's team/).isVisible(), 'a sign-in for the team');
+  check(await appears(page.getByText('Admin sign-in')) && await page.getByText(/For Shaadi24's team/).isVisible(), 'a sign-in for the team');
   check(await page.getByRole('button', { name: /Create Account/ }).count() === 0, 'no sign-up');
   await page.screenshot({ path: `${OUT}3-admin-sign-in.png` });
   await adminSignIn(page, MEMBER);
-  check(await appears(page.getByTestId('not-an-admin')), 'a member: "MatchGPT is used in the app"');
+  check(await appears(page.getByTestId('not-an-admin')), 'a member: "Shaadi24 is used in the app"');
   check(await appears(page.getByTestId('not-an-admin').getByText('Google Play', { exact: true })), 'with the store badges');
   check(await page.getByText('Total Users').count() === 0, 'and no admin panel');
   await page.screenshot({ path: `${OUT}4-member-at-admin.png` });
@@ -133,7 +133,7 @@ try {
   await page.goto(BASE);
   const banner = page.getByTestId('site-signed-in');
   check(await appears(banner) && (await banner.innerText()).includes(MEMBER) && /used in the app/.test(await banner.innerText()),
-    'the home page says who is signed in, and that MatchGPT is used in the app');
+    'the home page says who is signed in, and that Shaadi24 is used in the app');
   check(await appears(banner.getByRole('button', { name: 'Delete this account' })), 'a member can delete the account here');
   await banner.getByRole('button', { name: 'Sign out' }).click();
   check(await banner.waitFor({ state: 'detached', timeout: 10000 }).then(() => true, () => false), 'signing out');
@@ -151,7 +151,7 @@ try {
   check(await form.getByRole('button', { name: 'Delete my account' }).isDisabled(), 'deleting waits for "Delete" to be typed');
   await form.getByLabel('Type Delete to confirm').fill('Delete');
   await form.getByRole('button', { name: 'Delete my account' }).click();
-  check(await appears(page.getByTestId('site-account-deleted'), 20000), '"Your MatchGPT account is deleted."');
+  check(await appears(page.getByTestId('site-account-deleted'), 20000), '"Your Shaadi24 account is deleted."');
   check(sql(`select count(*) from auth.users where id = '${leaving.id}';`) === '0', 'the account is gone');
   await page.screenshot({ path: `${OUT}5-deleted.png` });
   await ctx.close();

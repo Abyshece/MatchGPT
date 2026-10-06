@@ -1,6 +1,6 @@
 # The screens scripts/ios-screenshots.sh saves from the iPhone app, with
 # Maestro (https://maestro.dev). LOOK is "light" or "dark", for the names.
-appId: com.matchgpt.app
+appId: com.shaadi24.app
 ---
 - launchApp:
     clearState: true

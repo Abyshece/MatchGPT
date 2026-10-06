@@ -5,7 +5,7 @@
 // with Supabase's address as the return address, so Google's screen says
 // "to continue to <project>.supabase.co". With Google's button the sign-in
 // happens on this site: Google shows the site's address instead (or the app
-// name "MatchGPT" once Google has verified the brand), hands the page an ID
+// name "Shaadi24" once Google has verified the brand), hands the page an ID
 // token, and Supabase signs the user in with it (signInWithIdToken).
 //
 // Google only shows the button on sites listed under "Authorized JavaScript

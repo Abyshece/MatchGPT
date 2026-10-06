@@ -38,7 +38,7 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({ onComplete, onBack }) => {
             <IconChevronLeft />
         </button>
         <div className="font-bold text-gray-700 dark:text-gray-100 text-lg flex items-center gap-2 select-none">
-             MatchGPT
+             Shaadi24
         </div>
       </div>
 

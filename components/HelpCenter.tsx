@@ -31,7 +31,7 @@ const HelpCenter: React.FC = () => {
                         <IconBook /> Getting Started
                     </h2>
                     <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                        Welcome to MatchGPT! Describe the person you hope to marry, in your own words, and meet the people you fit best: by values, family, lifestyle and plans, not just photos.
+                        Welcome to Shaadi24! Describe the person you hope to marry, in your own words, and meet the people you fit best: by values, family, lifestyle and plans, not just photos.
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div className="bg-white dark:bg-zinc-800 p-3 rounded-lg border border-gray-200 dark:border-zinc-700 shadow-sm">
@@ -91,7 +91,7 @@ const HelpCenter: React.FC = () => {
                 <div className="border-t border-gray-100 dark:border-zinc-800 pt-8 mt-4 text-center">
                     <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Still have questions? Write to us at {SUPPORT_EMAIL}.</p>
                     <a
-                        href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('MatchGPT help')}`}
+                        href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('Shaadi24 help')}`}
                         className="inline-block bg-black dark:bg-white text-white dark:text-black px-6 py-2 rounded-full text-sm font-bold shadow-md hover:scale-105 transition-transform"
                     >
                         Contact Support

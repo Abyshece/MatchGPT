@@ -66,7 +66,7 @@ const StepConsent: React.FC<StepConsentProps> = ({ onShowLegal }) => {
         <div className="text-5xl mb-6">💍</div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">Before you start</h1>
         <p className="text-gray-500 dark:text-gray-400">
-          Please review and accept our Terms of Service and Privacy Policy to use MatchGPT.
+          Please review and accept our Terms of Service and Privacy Policy to use Shaadi24.
         </p>
       </div>
 
@@ -108,7 +108,7 @@ const StepConsent: React.FC<StepConsentProps> = ({ onShowLegal }) => {
             className="mt-1 w-4 h-4 rounded border-gray-300 dark:border-zinc-600 cursor-pointer flex-shrink-0"
           />
           <span className="text-sm text-gray-500 dark:text-gray-400 leading-snug">
-            Send me occasional tips and news about MatchGPT. (Optional, you can unsubscribe anytime.)
+            Send me occasional tips and news about Shaadi24. (Optional, you can unsubscribe anytime.)
           </span>
         </label>
 

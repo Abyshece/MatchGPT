@@ -1,5 +1,5 @@
 // ============================================================================
-// store-billing Edge Function: MatchGPT+ bought inside the phone apps
+// store-billing Edge Function: Shaadi24+ bought inside the phone apps
 //
 // For the signed-in user (the function checks the access token itself):
 //   POST { action: 'config' }

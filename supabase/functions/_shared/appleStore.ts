@@ -1,5 +1,5 @@
 // ============================================================================
-// App Store: MatchGPT+ bought in the iPhone app
+// App Store: Shaadi24+ bought in the iPhone app
 //
 // Apple signs every transaction, renewal record and server notification as a
 // JWS whose header carries its certificate chain (x5c). verifyAppleJws checks
@@ -8,7 +8,7 @@
 // that the signature matches; then the payload can be trusted. No Apple
 // account settings are needed for this.
 //
-// APPLE_BUNDLE_ID: the app's bundle ID (default com.matchgpt.app).
+// APPLE_BUNDLE_ID: the app's bundle ID (default com.shaadi24.app).
 // APPLE_ROOT_CERTIFICATES: replaces the built-in root (base64 DER, comma
 // separated). Only for local testing.
 // ============================================================================
@@ -34,7 +34,7 @@ export const APPLE_ROOT_CA_G3 =
 const OID_INTERMEDIATE = '1.2.840.113635.100.6.2.1';  // Apple Worldwide Developer Relations CA
 const OID_LEAF = '1.2.840.113635.100.6.11.1';         // Mac App Store and iTunes Store Receipt Signing
 
-export const appleBundleId = () => Deno.env.get('APPLE_BUNDLE_ID') || 'com.matchgpt.app';
+export const appleBundleId = () => Deno.env.get('APPLE_BUNDLE_ID') || 'com.shaadi24.app';
 
 const fromBase64 = (s: string) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
 const fromBase64url = (s: string) => fromBase64(s.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(s.length / 4) * 4, '='));
@@ -105,7 +105,7 @@ export interface AppleTransaction {
   offerDiscountType?: string;      // FREE_TRIAL, PAY_AS_YOU_GO, PAY_UP_FRONT
   price?: number;                  // in thousandths of the currency unit
   currency?: string;
-  appAccountToken?: string;        // the MatchGPT account the app passed with the purchase
+  appAccountToken?: string;        // the Shaadi24 account the app passed with the purchase
   revocationDate?: number;
   revocationReason?: number;
   transactionReason?: 'PURCHASE' | 'RENEWAL';

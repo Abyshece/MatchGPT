@@ -17,7 +17,7 @@ const VerificationLockoutModal: React.FC<VerificationLockoutModalProps> = ({ onV
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3 tracking-tight">Verification Required</h2>
             
             <p className="text-sm text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
-                You have exceeded the 72-hour grace period for new accounts. To ensure the safety of our community, please verify your profile to continue using MatchGPT.
+                You have exceeded the 72-hour grace period for new accounts. To ensure the safety of our community, please verify your profile to continue using Shaadi24.
             </p>
             
             <Button 

@@ -47,7 +47,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
         </p>
 
         <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-8">
-          This Privacy Policy explains how MatchGPT ("we", "us", or "the Service") collects, uses,
+          This Privacy Policy explains how Shaadi24 ("we", "us", or "the Service") collects, uses,
           stores, and protects your personal information when you use our dating and matrimony
           platform. We are committed to handling your data with care and in accordance with the
           EU General Data Protection Regulation (GDPR), India's Digital Personal Data Protection
@@ -56,8 +56,8 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
 
         <Section title="1. Who we are">
           <p>
-            MatchGPT is operated by Abhishek (the "Operator"). For any privacy-related questions,
-            you can contact us at <a href="mailto:privacy@matchgpt.com" className="text-blue-600 dark:text-blue-400 underline">privacy@matchgpt.com</a>.
+            Shaadi24 is operated by Abhishek (the "Operator"). For any privacy-related questions,
+            you can contact us at <a href="mailto:privacy@shaadi24.com" className="text-blue-600 dark:text-blue-400 underline">privacy@shaadi24.com</a>.
           </p>
           <p>
             We are the data controller for the personal information you provide on this platform.
@@ -67,13 +67,13 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
         <Section title="2. What information we collect">
           <p>We collect the following categories of personal data:</p>
           <ul className="list-disc list-inside space-y-1 ml-2">
-            <li><strong>Account data:</strong> email address, password (hashed, if you set one), date of registration. If you sign in with Google or Apple, they tell us your name, email address and an identifier for your Google or Apple account; with Apple you can hide your email address, and we then get an address at Apple's private relay that forwards to you. For Sign in with Apple we also keep a token from Apple, used only to end Sign in with Apple for MatchGPT when you delete your account</li>
+            <li><strong>Account data:</strong> email address, password (hashed, if you set one), date of registration. If you sign in with Google or Apple, they tell us your name, email address and an identifier for your Google or Apple account; with Apple you can hide your email address, and we then get an address at Apple's private relay that forwards to you. For Sign in with Apple we also keep a token from Apple, used only to end Sign in with Apple for Shaadi24 when you delete your account</li>
             <li><strong>Profile data:</strong> name, date of birth (other members only ever see your age), gender, sexuality, marital status, children, height, where you live (country, state, city), hometown, photos, bio, and roughly 80 other optional profile attributes you choose to share (lifestyle, personality, relationship preferences, etc.)</li>
             <li><strong>Background and family details (all optional):</strong> religion, mother tongue, caste or community, sub-caste, sect or denomination, gotra, whether you are open to marrying outside your community, horoscope details (Manglik status, rashi, nakshatra, time and place of birth), education, occupation, annual income, residential status abroad, family details (family type, status and values, your parents' occupations, brothers and sisters, where your family lives) and any disability you choose to mention</li>
             <li><strong>Activity data:</strong> likes you send and receive, matches, messages, search queries, login history</li>
             <li><strong>Technical data:</strong> IP address, browser type, device information, cookies (see Section 8). If you turn on notifications, a notification token for your browser or phone (on phones, from Google's Firebase Cloud Messaging), whether the phone is an Android phone or an iPhone, and the version of our app</li>
             <li><strong>Error reports:</strong> when something goes wrong in the app or on the website, it tells us what the error was, where in our code it happened, which screen you were on, the version of the app, and the kind of phone or computer and browser (for example "Android 14, Chrome 141"). Not who you are: we keep no account, name or IP address with it, and email addresses, phone numbers, IDs and other long numbers are blanked out before it leaves your device. The same error from many people adds up to one report</li>
-            <li><strong>Payment data:</strong> MatchGPT+ is bought in our Android and iPhone apps, and Google Play or Apple processes the payment; we never see your card, UPI or bank details. We receive and keep the purchase details they send us (the purchase or order IDs, the plan, amounts and currency, dates, whether it renews, refunds), linked to your account by your account's ID, which we pass with the purchase. We also record the fees the stores charge us.</li>
+            <li><strong>Payment data:</strong> Shaadi24+ is bought in our Android and iPhone apps, and Google Play or Apple processes the payment; we never see your card, UPI or bank details. We receive and keep the purchase details they send us (the purchase or order IDs, the plan, amounts and currency, dates, whether it renews, refunds), linked to your account by your account's ID, which we pass with the purchase. We also record the fees the stores charge us.</li>
           </ul>
           <p className="mt-2">
             Some categories — religion, caste or community, sexuality, ethnicity, disability and other
@@ -171,7 +171,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
           <ul className="list-disc list-inside space-y-1 ml-2">
             <li><strong>Access:</strong> request a copy of all personal data we hold about you</li>
             <li><strong>Rectification:</strong> correct inaccurate data (most fields are editable directly in your profile)</li>
-            <li><strong>Erasure ("right to be forgotten"):</strong> delete your account at any time via Settings → Delete Account, or without the app on our website's Delete account page (/delete-account), with a code we email you. If you signed in with Apple, this also ends Sign in with Apple for MatchGPT</li>
+            <li><strong>Erasure ("right to be forgotten"):</strong> delete your account at any time via Settings → Delete Account, or without the app on our website's Delete account page (/delete-account), with a code we email you. If you signed in with Apple, this also ends Sign in with Apple for Shaadi24</li>
             <li><strong>Restriction:</strong> ask us to temporarily stop processing your data</li>
             <li><strong>Portability:</strong> receive your data in a machine-readable format</li>
             <li><strong>Objection:</strong> object to processing based on legitimate interests</li>
@@ -179,7 +179,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
             <li><strong>Complain:</strong> lodge a complaint with your local data protection authority</li>
           </ul>
           <p className="mt-2">
-            To exercise any of these rights, email <a href="mailto:privacy@matchgpt.com" className="text-blue-600 dark:text-blue-400 underline">privacy@matchgpt.com</a>. We will respond within 30 days.
+            To exercise any of these rights, email <a href="mailto:privacy@shaadi24.com" className="text-blue-600 dark:text-blue-400 underline">privacy@shaadi24.com</a>. We will respond within 30 days.
           </p>
         </Section>
 
@@ -198,7 +198,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
 
         <Section title="11. Children's privacy">
           <p>
-            MatchGPT is intended only for users 18 years and older. We do not knowingly collect
+            Shaadi24 is intended only for users 18 years and older. We do not knowingly collect
             data from children under 18. If you become aware that a child has provided us with
             personal data, please contact us immediately and we will delete it.
           </p>
@@ -215,7 +215,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
         <Section title="13. Contact">
           <p>
             Questions about this policy or your data:<br />
-            <a href="mailto:privacy@matchgpt.com" className="text-blue-600 dark:text-blue-400 underline">privacy@matchgpt.com</a>
+            <a href="mailto:privacy@shaadi24.com" className="text-blue-600 dark:text-blue-400 underline">privacy@shaadi24.com</a>
           </p>
         </Section>
 

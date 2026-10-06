@@ -73,7 +73,7 @@ try {
     `Google gets the client ID, popup mode and a hashed nonce (${cfg.nonce?.slice(0, 12)}…)`);
   check(cfg.button.text === 'continue_with' && cfg.button.width >= 200 && cfg.button.width <= 400, `button: ${JSON.stringify(cfg.button)}`);
   await google.click();
-  await a.page.getByPlaceholder(/Describe your ideal match/).waitFor({ timeout: 15000 });
+  await a.page.getByTestId('find-match-box').waitFor({ timeout: 15000 });
   const body = a.sent[0] || {};
   const hashed = crypto.createHash('sha256').update(body.nonce || '').digest('hex');
   check(body.provider === 'google' && body.id_token === 'header.payload.signature', "Supabase gets Google's token");

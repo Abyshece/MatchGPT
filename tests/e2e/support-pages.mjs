@@ -48,7 +48,7 @@ const ANDROID = `
     if (call.pluginId === 'Console' || call.type === 'js.error') return;
     window.__native.push(call);
     if (call.callbackId === '-1' || call.methodName === 'addListener') return;
-    const data = call.pluginId === 'Filesystem' ? { uri: 'file:///data/user/0/com.matchgpt.app/cache/' + call.options.path } : {};
+    const data = call.pluginId === 'Filesystem' ? { uri: 'file:///data/user/0/com.shaadi24.app/cache/' + call.options.path } : {};
     setTimeout(() => window.Capacitor.fromNative({ callbackId: call.callbackId, pluginId: call.pluginId, methodName: call.methodName, success: true, data }), 10);
   } };
   window.Capacitor = { PluginHeaders: [
@@ -69,7 +69,7 @@ async function signIn(ctx) {
   await page.locator('input[type=email]').fill(EMAIL);
   await page.locator('input[type=password]').fill('TestPass!2026');
   await page.locator('form').getByRole('button', { name: /Log In/i }).click();
-  await page.getByPlaceholder(/Describe your ideal match/).waitFor({ timeout: 20000 });
+  await page.getByTestId('find-match-box').waitFor({ timeout: 20000 });
   return page;
 }
 const settings = (page) => page.getByText('Settings', { exact: true }).first().click()
@@ -79,15 +79,15 @@ try {
   log('== /support');
   let { ctx, page } = await open('/support');
   check(await appears(page.getByRole('heading', { name: 'Help & Support' }), 15000), 'the support page opens');
-  check(await page.title() === 'MatchGPT Help & Support', `its title (${await page.title()})`);
+  check(await page.title() === 'Shaadi24 Help & Support', `its title (${await page.title()})`);
   const contact = page.getByTestId('support-contact');
-  check(/^mailto:support@matchgpt\.com/.test(await contact.locator('a').first().getAttribute('href') || ''), 'the support address, as an email link');
-  check(await contact.locator('a[href="mailto:privacy@matchgpt.com"]').count() === 1, 'the privacy address');
+  check(/^mailto:support@shaadi24\.com/.test(await contact.locator('a').first().getAttribute('href') || ''), 'the support address, as an email link');
+  check(await contact.locator('a[href="mailto:privacy@shaadi24.com"]').count() === 1, 'the privacy address');
   check(/review every report within 24 hours/.test(await contact.innerText()), 'how reports are handled');
   const questions = page.locator('details');
   check(await questions.count() === 14, `14 questions (${await questions.count()})`);
   check(!(await page.getByText(/search 3 times a day/).isVisible()), 'answers start closed');
-  await page.getByText('Is MatchGPT free?').click();
+  await page.getByText('Is Shaadi24 free?').click();
   check(await appears(page.getByText(/search 3 times a day, send 15 likes a day/)), 'a question opens to its answer');
   await page.getByText('My data, and deleting my account').click();
   const mine = questions.filter({ hasText: 'My data, and deleting my account' });
@@ -130,9 +130,9 @@ try {
   ctx = await browser.newContext({ viewport: { width: 1280, height: 860 }, acceptDownloads: true });
   page = await signIn(ctx);
   await settings(page);
-  check(await page.getByText(`MatchGPT • v${VERSION}`).isVisible(), `the version is package.json's (${VERSION})`);
+  check(await page.getByText(`Shaadi24 • v${VERSION}`).isVisible(), `the version is package.json's (${VERSION})`);
   const mail = page.getByRole('link', { name: /Contact support/ });
-  check(/^mailto:support@matchgpt\.com\?subject=/.test(await mail.getAttribute('href') || ''), 'Contact support writes an email');
+  check(/^mailto:support@shaadi24\.com\?subject=/.test(await mail.getAttribute('href') || ''), 'Contact support writes an email');
   await page.getByRole('button', { name: 'Terms of Service' }).click();
   check(await appears(page.getByRole('heading', { name: 'Terms of Service' })), 'Terms of Service opens');
   await page.getByRole('button', { name: 'Back' }).click();
@@ -148,14 +148,14 @@ try {
   ]);
   const name = download.suggestedFilename();
   const data = JSON.parse(fs.readFileSync(await download.path(), 'utf8'));
-  check(/^matchgpt-my-data-\d{4}-\d{2}-\d{2}\.json$/.test(name), `Download my data saves a file (${name})`);
+  check(/^shaadi24-my-data-\d{4}-\d{2}-\d{2}\.json$/.test(name), `Download my data saves a file (${name})`);
   check(!!data.export_metadata?.format_version && JSON.stringify(data).includes(EMAIL), `with the account's data (format ${data.export_metadata?.format_version})`);
   check(await appears(page.getByText('Your data is saved.')), 'and says so');
   await page.screenshot({ path: `${OUT}3-settings.png`, fullPage: true });
 
   await page.getByRole('button', { name: 'Help Center' }).click();
   await page.getByRole('heading', { name: 'Help Center' }).waitFor();
-  check(/^mailto:support@matchgpt\.com/.test(await page.getByRole('link', { name: 'Contact Support' }).getAttribute('href') || ''),
+  check(/^mailto:support@shaadi24\.com/.test(await page.getByRole('link', { name: 'Contact Support' }).getAttribute('href') || ''),
     'the Help Center\'s Contact Support writes an email');
   await page.getByRole('button', { name: 'How do I report or block someone?' }).click();
   check(await appears(page.getByText(/We review every report within 24 hours/)), 'its questions open to their answers');
@@ -178,13 +178,13 @@ try {
   const share = calls.find((c) => c.methodName === 'share');
   let written = {};
   try { written = JSON.parse(write?.options.data || '{}'); } catch { /* checked below */ }
-  check(/^matchgpt-my-data-.*\.json$/.test(write?.options.path || '') && write.options.directory === 'CACHE'
+  check(/^shaadi24-my-data-.*\.json$/.test(write?.options.path || '') && write.options.directory === 'CACHE'
     && JSON.stringify(written).includes(EMAIL), 'the file is written to the app\'s cache');
-  check(share?.options.files?.[0] === `file:///data/user/0/com.matchgpt.app/cache/${write?.options.path}`, 'and handed to the share sheet');
+  check(share?.options.files?.[0] === `file:///data/user/0/com.shaadi24.app/cache/${write?.options.path}`, 'and handed to the share sheet');
 
   await page.getByRole('button', { name: 'Help Center' }).click();
   await page.getByRole('heading', { name: 'Help Center' }).waitFor();
-  for (const q of ['How do I cancel MatchGPT+?', 'Can I get a refund?', 'My data, and deleting my account']) {
+  for (const q of ['How do I cancel Shaadi24+?', 'Can I get a refund?', 'My data, and deleting my account']) {
     await page.getByRole('button', { name: q }).click();
   }
   const help = await page.locator('main').innerText();

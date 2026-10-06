@@ -94,11 +94,11 @@ await scenario('C Existing account without Terms', async (page, shot) => {
   await shot('consent-screen');
   await page.locator('input[type=checkbox]').first().check();
   await page.getByRole('button', { name: /Continue/ }).click();
-  await page.getByPlaceholder(/Describe your ideal match/).waitFor({ timeout: 15000 });
+  await page.getByTestId('find-match-box').waitFor({ timeout: 15000 });
   await shot('main-app');
   // Reload: the consent screen must not come back.
   await page.reload();
-  await page.getByPlaceholder(/Describe your ideal match/).waitFor({ timeout: 15000 });
+  await page.getByTestId('find-match-box').waitFor({ timeout: 15000 });
   if (await page.getByText('Before you start').isVisible()) throw new Error('consent screen came back after reload');
 });
 

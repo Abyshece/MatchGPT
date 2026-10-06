@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>MatchGPT</string>
+	<string>Shaadi24</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -29,9 +29,9 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>MatchGPT uses the camera when you take a profile photo.</string>
+	<string>Shaadi24 uses the camera when you take a profile photo.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>MatchGPT opens your photos so you can choose profile pictures.</string>
+	<string>Shaadi24 opens your photos so you can choose profile pictures.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

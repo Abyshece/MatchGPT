@@ -219,7 +219,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
             <IconMenu />
           </button>
           <div className="font-bold text-gray-700 dark:text-gray-100 text-lg flex-1">
-            <span className="md:hidden">MatchGPT</span>
+            <span className="md:hidden">Shaadi24</span>
             <span className="hidden md:block capitalize">
               {activeTab === 'search' ? 'Find Match'
                 : activeTab === 'profile' ? 'My Profile'

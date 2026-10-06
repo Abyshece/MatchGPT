@@ -3,7 +3,7 @@
 #   - the iPhone project must build (Xcode 26, which Capacitor 8 needs);
 #   - screenshots on an iPhone Pro Max simulator, light and dark (artifact
 #     "iPhone-screenshots"; the screens are in tests/ios/screenshots.yaml);
-#   - the simulator build, MatchGPT-iPhone-simulator.zip, which
+#   - the simulator build, Shaadi24-iPhone-simulator.zip, which
 #     https://appetize.io/upload turns into an iPhone in the browser, on any
 #     computer.
 # Runs by hand (Actions → iPhone app → Run workflow) and when the iPhone
@@ -90,11 +90,11 @@ jobs:
             -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath build ARCHS=arm64 ONLY_ACTIVE_ARCH=NO CODE_SIGNING_ALLOWED=NO \
             -quiet build
-          ditto -c -k --keepParent build/Build/Products/Debug-iphonesimulator/App.app MatchGPT-iPhone-simulator.zip
+          ditto -c -k --keepParent build/Build/Products/Debug-iphonesimulator/App.app Shaadi24-iPhone-simulator.zip
 
       - uses: actions/upload-artifact@v7
         with:
-          path: MatchGPT-iPhone-simulator.zip
+          path: Shaadi24-iPhone-simulator.zip
           archive: false
 
       - name: Install Maestro (taps through the app)
@@ -119,6 +119,6 @@ jobs:
           {
             echo "### The iPhone app"
             echo "- **iPhone-screenshots**: what the app looks like on $(cat screenshots/device.txt 2>/dev/null || echo 'an iPhone simulator'), light and dark."
-            echo "- **MatchGPT-iPhone-simulator.zip**: upload it at https://appetize.io/upload to use the app in a browser."
+            echo "- **Shaadi24-iPhone-simulator.zip**: upload it at https://appetize.io/upload to use the app in a browser."
             [ -n "$VITE_SUPABASE_URL" ] || echo "- Built without the backend secrets, so it can't sign in (see the top of .github/workflows/ios.yml)."
           } >> "$GITHUB_STEP_SUMMARY"

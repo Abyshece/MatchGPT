@@ -3,12 +3,12 @@
 // line behind it, which an empty second popup box used to draw; scrolls on a
 // short screen), then, signed in as one user (an onboarded account, password
 // TestPass!2026): the like confirmation on a match card (it used to be
-// squeezed into the card), the profile, filters, MatchGPT+ (bought in the
+// squeezed into the card), the profile, filters, Shaadi24+ (bought in the
 // apps), verify and delete-account popups, and the phone menu.
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
-const DB = process.env.DB_CONTAINER || 'supabase_db_MatchGPT';  // `docker ps` shows the name
+const DB = process.env.DB_CONTAINER || 'supabase_db_Shaadi24';  // `docker ps` shows the name
 const BASE = process.env.BASE_URL || 'http://localhost:3000';
 const EMAIL = process.argv[2];
 if (!EMAIL) { console.error('usage: node popups.mjs <email>'); process.exit(2); }
@@ -100,7 +100,7 @@ try {
   await page.locator('input[type=email]').fill(EMAIL);
   await page.locator('input[type=password]').fill(PASSWORD);
   await page.locator('form').getByRole('button', { name: /Log In/i }).click();
-  const box = page.getByPlaceholder(/Describe your ideal match/);
+  const box = page.getByTestId('find-match-box');
   await box.waitFor({ timeout: 15000 });
   await box.fill('someone kind');
   const responded = page.waitForResponse((r) => r.url().includes('/functions/v1/search'), { timeout: 20000 });
@@ -137,13 +137,13 @@ try {
   await page.mouse.click(20, 450);
   await page.waitForTimeout(500);
 
-  log('6. MatchGPT+ and verify popups from the sidebar');
-  await page.getByText('Get MatchGPT+', { exact: true }).click();
+  log('6. Shaadi24+ and verify popups from the sidebar');
+  await page.getByText('Get Shaadi24+', { exact: true }).click();
   await checkBackdrop(page, 'upgrade');
   const upgrade = page.getByRole('dialog');
-  check(await upgrade.getByText('MatchGPT+ is bought in the MatchGPT app, on Android or iPhone.').isVisible()
+  check(await upgrade.getByText('Shaadi24+ is bought in the Shaadi24 app, on Android or iPhone.').isVisible()
     && await upgrade.getByText('Google Play', { exact: true }).isVisible() && await upgrade.getByText('App Store', { exact: true }).isVisible(),
-    'MatchGPT+ on the website: bought in the apps, with Google Play and App Store badges');
+    'Shaadi24+ on the website: bought in the apps, with Google Play and App Store badges');
   await page.mouse.click(20, 20);
   await page.waitForTimeout(400);
   await page.getByText('Get verified today', { exact: true }).click();

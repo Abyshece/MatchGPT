@@ -16,10 +16,10 @@
 //   POST { mode: 'standouts', refresh? }
 //     → { candidates, computed }
 //     Today's 5 picks (UTC day), chosen on the first visit and kept for the
-//     day; refresh (MatchGPT+) picks again.
+//     day; refresh (Shaadi24+) picks again.
 //
-// MatchGPT+ follows the database's one rule, has_pro(): a subscriber, or
-// everyone while "MatchGPT+ for everyone" is on. Without it, the MatchGPT+
+// Shaadi24+ follows the database's one rule, has_pro(): a subscriber, or
+// everyone while "Shaadi24+ for everyone" is on. Without it, the Shaadi24+
 // filters are left out and results come without the compatibility report.
 //
 // Deployed with JWT verification off; the function checks the user itself.
@@ -71,10 +71,10 @@ async function rest(path: string, init: RequestInit = {}): Promise<unknown> {
 const rpc = (fn: string, args: Record<string, unknown>) =>
   rest(`rpc/${fn}`, { method: 'POST', body: JSON.stringify(args) });
 
-// The one rule for MatchGPT+ (has_pro in the database)
+// The one rule for Shaadi24+ (has_pro in the database)
 const hasPro = async (userId: string) => (await rpc('has_pro', { p_user: userId })) === true;
 
-// Without MatchGPT+, people come without the compatibility report
+// Without Shaadi24+, people come without the compatibility report
 const withoutReport = (candidates: MatchCandidate[]) => candidates.map((c) => ({ ...c, compatibilityReport: [] }));
 
 // The signed-in user behind the request's access token, or null.
@@ -165,7 +165,7 @@ async function standouts(me: Row, body: Record<string, unknown>): Promise<Respon
 
   const pro = await hasPro(me.id);
   if (body.refresh === true) {
-    // Picking again is a MatchGPT+ feature
+    // Picking again is a Shaadi24+ feature
     if (!pro) {
       return json({ error: 'Refreshing Standouts is a Pro feature.', code: 'PRO_ONLY' }, 403);
     }

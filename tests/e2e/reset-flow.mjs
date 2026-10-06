@@ -78,7 +78,7 @@ try {
   await page.getByPlaceholder('At least 8 characters').fill(NEW);
   await page.locator('input[autocomplete=new-password]').nth(1).fill(NEW);
   await page.getByRole('button', { name: /Save new password/ }).click();
-  await page.getByPlaceholder(/Describe your ideal match/).waitFor({ timeout: 15000 });
+  await page.getByTestId('find-match-box').waitFor({ timeout: 15000 });
   await page.screenshot({ path: `${OUT}2-back-in-app.png` });
   log('new password saved, back in the app');
 
@@ -88,7 +88,7 @@ try {
   log('old password rejected');
   await page.locator('input[type=password]').fill(NEW);
   await page.locator('form').getByRole('button', { name: /Log In/i }).click();
-  await page.getByPlaceholder(/Describe your ideal match/).waitFor({ timeout: 15000 });
+  await page.getByTestId('find-match-box').waitFor({ timeout: 15000 });
   log('new password works');
 
   // An expired/used link: open the same link again → error message, no password screen.

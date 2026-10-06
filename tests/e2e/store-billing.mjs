@@ -1,4 +1,4 @@
-// MatchGPT+ bought in the phone apps, on the server: the store-billing and
+// Shaadi24+ bought in the phone apps, on the server: the store-billing and
 // store-notifications functions against the local stack and the Google Play
 // and App Store stand-in (tests/e2e/store-standin.cjs; see its header for the
 // functions' env). Calls the functions the way the apps do (no browser), as
@@ -33,7 +33,7 @@
 //   ANON_KEY=<from `npx supabase status`> node tests/e2e/store-billing.mjs <email> <other email>
 import { execSync } from 'node:child_process';
 
-const DB = process.env.DB_CONTAINER || 'supabase_db_MatchGPT';
+const DB = process.env.DB_CONTAINER || 'supabase_db_Shaadi24';
 const SUPABASE = process.env.SUPABASE_URL || 'http://127.0.0.1:54321';
 const STORE = process.env.STORE_STANDIN || 'http://127.0.0.1:8790';
 const RTDN_SECRET = process.env.GOOGLE_RTDN_SECRET || 'rtdn_local';
@@ -146,9 +146,9 @@ log('1. Plans and their store products');
   const monthly = r.body?.plans?.find((p) => p.id === 'monthly');
   const yearly = r.body?.plans?.find((p) => p.id === 'yearly');
   check(r.status === 200 && r.body.googlePlay === true, 'config answers, Google Play set up');
-  check(monthly?.googleProductId === 'matchgpt_plus' && monthly?.googleBasePlanId === 'monthly' &&
-    monthly?.appleProductId === 'matchgpt_plus_monthly' && monthly?.amount === 99900, 'monthly: matchgpt_plus/monthly, matchgpt_plus_monthly, ₹999');
-  check(yearly?.googleBasePlanId === 'yearly' && yearly?.appleProductId === 'matchgpt_plus_yearly', 'yearly: matchgpt_plus/yearly, matchgpt_plus_yearly');
+  check(monthly?.googleProductId === 'shaadi24_plus' && monthly?.googleBasePlanId === 'monthly' &&
+    monthly?.appleProductId === 'shaadi24_plus_monthly' && monthly?.amount === 99900, 'monthly: shaadi24_plus/monthly, shaadi24_plus_monthly, ₹999');
+  check(yearly?.googleBasePlanId === 'yearly' && yearly?.appleProductId === 'shaadi24_plus_yearly', 'yearly: shaadi24_plus/yearly, shaadi24_plus_yearly');
   const anon = await fn('store-billing', null, { action: 'config' });
   check(anon.status === 401, `not signed in: refused (${anon.status})`);
 }
@@ -161,7 +161,7 @@ const trial = await store('/__google/purchase', { userId: me, basePlan: 'monthly
     `verified: Pro in the trial (${r.status} ${r.text.slice(0, 120)})`);
   check(near(r.body?.trialEndsAt, Date.now() + 7 * DAY), 'the trial ends in 7 days');
   const row = subRow('google_play', trial.purchaseToken);
-  check(row?.status === 'authenticated' && row.mode === 'test' && row.userId === me && row.product === 'matchgpt_plus',
+  check(row?.status === 'authenticated' && row.mode === 'test' && row.userId === me && row.product === 'shaadi24_plus',
     'saved: google_play, in the trial, test mode, this account');
   check(payments(`user_id = '${me}'`).length === 0, 'nothing charged in the trial');
   check(tier(me) === 'PRO', 'Pro on');
@@ -285,7 +285,7 @@ log('7. Restore purchases');
 }
 
 log('8. App Store: yearly');
-const yearlyApple = await store('/__apple/purchase', { userId: me, product: 'matchgpt_plus_yearly' });
+const yearlyApple = await store('/__apple/purchase', { userId: me, product: 'shaadi24_plus_yearly' });
 const firstTx = payload(yearlyApple.jws);
 {
   const r = await fn('store-billing', tokenA, { action: 'verify', platform: 'ios', jws: yearlyApple.jws });
@@ -337,7 +337,7 @@ const orig = yearlyApple.originalTransactionId;
 
   // The same delivery twice
   const fixed = { notificationType: 'DID_CHANGE_RENEWAL_STATUS', subtype: 'AUTO_RENEW_ENABLED', notificationUUID: crypto.randomUUID(),
-    data: { bundleId: 'com.matchgpt.app', environment: 'Sandbox', signedTransactionInfo: latest.jws } };
+    data: { bundleId: 'com.shaadi24.app', environment: 'Sandbox', signedTransactionInfo: latest.jws } };
   const d1 = await store('/__apple/notify', { payload: fixed });
   const d2 = await store('/__apple/notify', { payload: fixed });
   check(d1.status === 200 && d2.status === 200 && /already handled/.test(d2.text), `a repeated delivery: ${d2.text}`);
@@ -358,7 +358,7 @@ const orig = yearlyApple.originalTransactionId;
   check(current.notified?.status === 200 && subRow('app_store', orig)?.status === 'cancelled' && tier(me) === 'FREE',
     'the current period refunded: Pro ends');
 
-  const prod = await store('/__apple/purchase', { userId: me, product: 'matchgpt_plus_monthly', environment: 'Production' });
+  const prod = await store('/__apple/purchase', { userId: me, product: 'shaadi24_plus_monthly', environment: 'Production' });
   const v = await fn('store-billing', tokenA, { action: 'verify', platform: 'ios', jws: prod.jws });
   check(v.status === 200 && v.body.pro && subRow('app_store', prod.originalTransactionId)?.mode === 'live', 'a production purchase: live mode');
   await store(`/__apple/expire/${prod.originalTransactionId}`, {});
@@ -440,7 +440,7 @@ log('11. Deleting an account with store subscriptions');
 {
   const c = await newAccount('del');
   const g = await store('/__google/purchase', { userId: c.id, basePlan: 'monthly' });
-  const a = await store('/__apple/purchase', { userId: c.id, product: 'matchgpt_plus_monthly' });
+  const a = await store('/__apple/purchase', { userId: c.id, product: 'shaadi24_plus_monthly' });
   const v1 = await fn('store-billing', c.token, { action: 'verify', platform: 'android', purchaseToken: g.purchaseToken });
   const v2 = await fn('store-billing', c.token, { action: 'verify', platform: 'ios', jws: a.jws });
   check(v1.status === 200 && v2.status === 200 && tier(c.id) === 'PRO', 'a new account buys in both stores');

@@ -5,13 +5,13 @@
 // the bar colours, no cookie banner, email-only sign-in while Supabase has
 // Google and Apple off (app-social-signin.mjs covers them), no Razorpay checkout,
 // the notifications note, no share button, and the back button: popups first
-// (sign-in, MatchGPT+, like, profile, filters, delete account, phone menu),
+// (sign-in, Shaadi24+, like, profile, filters, delete account, phone menu),
 // then a chat, Terms, other tabs, and last the app goes to the background.
 // Usage: node android-app.mjs <email>   (an onboarded account, password TestPass!2026)
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
-const DB = process.env.DB_CONTAINER || 'supabase_db_MatchGPT';  // `docker ps` shows the name
+const DB = process.env.DB_CONTAINER || 'supabase_db_Shaadi24';  // `docker ps` shows the name
 const BASE = process.env.BASE_URL || 'http://localhost:3000';
 const REPO = process.env.REPO_ROOT || new URL('../..', import.meta.url).pathname;
 const BRIDGE = `${REPO}/node_modules/@capacitor/android/capacitor/src/main/assets/native-bridge.js`;
@@ -130,16 +130,16 @@ try {
   await page.locator('input[type=email]').fill(EMAIL);
   await page.locator('input[type=password]').fill('TestPass!2026');
   await page.locator('form').getByRole('button', { name: /Log In/i }).click();
-  const box = page.getByPlaceholder(/Describe your ideal match/);
+  const box = page.getByTestId('find-match-box');
   await box.waitFor({ timeout: 15000 });
 
-  await page.getByText('Get MatchGPT+', { exact: true }).click();
-  check(await page.getByText('MatchGPT+ is coming to the app soon.').waitFor({ timeout: 8000 }).then(() => true, () => false),
-    'MatchGPT+: "coming to the app soon", no Razorpay');
+  await page.getByText('Get Shaadi24+', { exact: true }).click();
+  check(await page.getByText('Shaadi24+ is coming to the app soon.').waitFor({ timeout: 8000 }).then(() => true, () => false),
+    'Shaadi24+: "coming to the app soon", no Razorpay');
   check(billing.length === 0, 'the app never asks the Razorpay billing function');
-  await page.screenshot({ path: `${OUT}3-matchgpt-plus.png` });
+  await page.screenshot({ path: `${OUT}3-shaadi24-plus.png` });
   await back(page);
-  check(await popups(page) === 0, 'back closes MatchGPT+');
+  check(await popups(page) === 0, 'back closes Shaadi24+');
 
   await box.fill('someone kind');
   const responded = page.waitForResponse((r) => r.url().includes('/functions/v1/search'), { timeout: 20000 });

@@ -88,7 +88,7 @@ async function onBackButton(): Promise<void> {
 
 // ---- Status and gesture bars --------------------------------------------------
 
-// android/app/src/main/java/com/matchgpt/app/AppWindowPlugin.java
+// android/app/src/main/java/com/shaadi24/app/AppWindowPlugin.java
 const AppWindow = registerPlugin<{ setTheme(options: { dark: boolean; color: string }): Promise<void> }>('AppWindow');
 let currentDark: boolean | null = null;
 

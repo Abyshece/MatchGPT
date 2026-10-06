@@ -24,7 +24,7 @@ import { supabase } from './supabase';
  * This phone, for this person:
  *   unavailable  this version of the app can't get notifications (or it's the website)
  *   prompt       the phone hasn't asked yet
- *   denied       turned off for MatchGPT in the phone's settings
+ *   denied       turned off for Shaadi24 in the phone's settings
  *   on           allowed, and this phone is signed up
  *   off          allowed, but turned off here in Settings
  */

@@ -161,7 +161,7 @@ export async function verifyUser(userId: string): Promise<{ error: string | null
 // Audit log
 // ----------------------------------------------------------------------------
 
-/** Turns "MatchGPT+ for everyone" on or off (admins only; in the audit log). */
+/** Turns "Shaadi24+ for everyone" on or off (admins only; in the audit log). */
 export async function setProForAll(on: boolean): Promise<{ error: string | null }> {
   const { error } = await supabase.rpc('admin_set_pro_for_all', { p_on: on });
   return { error: error?.message ?? null };

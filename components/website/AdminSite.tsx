@@ -13,7 +13,7 @@ const PushNotifSetup = lazyScreen(() => import('../PushNotifSetup'));
 // AdminSite: /admin on the website
 //
 // Admins sign in here (email, Google, or a reset code by email; no sign-up)
-// and get the admin panel. Anyone else who signs in is told MatchGPT is used
+// and get the admin panel. Anyone else who signs in is told Shaadi24 is used
 // in the app. The database decides who is an admin (is_admin()), and every
 // admin action checks again on the server.
 // ============================================================================
@@ -29,10 +29,10 @@ const NotAnAdmin: React.FC<{ email: string; onSignOut: () => void }> = ({ email,
   <div className="min-h-screen flex items-center justify-center p-6">
     <div className="max-w-md text-center" data-testid="not-an-admin">
       <div className="text-4xl" aria-hidden="true">💍</div>
-      <h1 className="mt-3 text-2xl font-bold tracking-tight">MatchGPT is used in the app</h1>
+      <h1 className="mt-3 text-2xl font-bold tracking-tight">Shaadi24 is used in the app</h1>
       <p className="mt-3 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
         You're signed in as <strong className="text-gray-900 dark:text-white">{email}</strong>. The website's sign-in is
-        for MatchGPT's team; members use MatchGPT on Android and iPhone, with the same account.
+        for Shaadi24's team; members use Shaadi24 on Android and iPhone, with the same account.
       </p>
       <StoreBadges className="mt-6 justify-center" />
       <div className="mt-6 flex justify-center gap-3 text-sm">
@@ -83,7 +83,7 @@ const AdminShell: React.FC<{ email: string; onSignOut: () => void }> = ({ email,
       <header className="flex-none flex items-center justify-between gap-3 px-4 sm:px-6 py-3 border-b border-gray-100 dark:border-zinc-800">
         <a href="/" className="flex items-center gap-2 select-none min-w-0">
           <span className="text-xl" aria-hidden="true">💍</span>
-          <span className="font-bold tracking-tight">MatchGPT</span>
+          <span className="font-bold tracking-tight">Shaadi24</span>
           <span className="text-[10px] font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-zinc-700 rounded px-1.5 py-0.5">Admin</span>
         </a>
         <div className="flex items-center gap-2 text-sm min-w-0">
@@ -121,7 +121,7 @@ const AdminSite: React.FC = () => {
   const { session, loading, signOut } = useAuth();
   const isAdmin = useIsAdmin();
 
-  useEffect(() => { document.title = 'MatchGPT Admin'; }, []);
+  useEffect(() => { document.title = 'Shaadi24 Admin'; }, []);
 
   if (loading) return <Spinner label="Loading…" />;
   if (!session) {

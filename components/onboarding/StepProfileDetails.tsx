@@ -315,7 +315,7 @@ const StepProfileDetails: React.FC<StepProfileDetailsProps> = ({ onComplete, onB
         >
           <IconChevronLeft />
         </button>
-        <div className="font-bold text-gray-700 dark:text-gray-100 text-lg">MatchGPT</div>
+        <div className="font-bold text-gray-700 dark:text-gray-100 text-lg">Shaadi24</div>
         <div className="ml-auto text-xs text-gray-500 dark:text-gray-400 font-medium">
           Page {pageIndex + 1} of {PAGES.length}
         </div>

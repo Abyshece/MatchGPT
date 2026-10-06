@@ -1,7 +1,7 @@
 // ============================================================================
-// billingService: MatchGPT+ subscriptions
+// billingService: Shaadi24+ subscriptions
 //
-// MatchGPT+ is sold only inside the phone apps, through Google Play and the
+// Shaadi24+ is sold only inside the phone apps, through Google Play and the
 // App Store (lib/storePurchases.ts; the server checks each purchase with the
 // store). The app reads its own subscription and payments directly: row
 // access rules let each member read only theirs, and nobody can write them.
@@ -29,17 +29,17 @@ export type Payment = Pick<Tables<'payments'>,
 
 // The prices in the Terms (the stores show their own, in the buyer's currency)
 export const DEFAULT_PLANS: BillingPlan[] = [
-  { id: 'monthly', name: 'MatchGPT+ monthly', amount: 99900, currency: 'INR', period: 'monthly' },
-  { id: 'yearly', name: 'MatchGPT+ yearly', amount: 999900, currency: 'INR', period: 'yearly' },
+  { id: 'monthly', name: 'Shaadi24+ monthly', amount: 99900, currency: 'INR', period: 'monthly' },
+  { id: 'yearly', name: 'Shaadi24+ yearly', amount: 999900, currency: 'INR', period: 'yearly' },
 ];
 
-// What MatchGPT+ adds (each is enforced by the server): the daily limits
+// What Shaadi24+ adds (each is enforced by the server): the daily limits
 // lifted, which takes a subscription...
 const UNLIMITED = [
   'Unlimited AI searches (free: 3 a day)',
   'Unlimited likes (free: 15 a day)',
 ];
-// ...and the features, which are also everyone's while "MatchGPT+ for
+// ...and the features, which are also everyone's while "Shaadi24+ for
 // everyone" is on (useAuth().proForAll; app_settings)
 const FEATURES = [
   'See everyone who liked you',
@@ -50,12 +50,12 @@ const FEATURES = [
   'Refresh your Standouts any time',
 ];
 
-/** What buying MatchGPT+ adds right now. */
+/** What buying Shaadi24+ adds right now. */
 export function proBenefits(proForAll: boolean): string[] {
   return proForAll ? UNLIMITED : [...UNLIMITED, ...FEATURES];
 }
 
-/** Said under the benefits while MatchGPT+'s features are everyone's. */
+/** Said under the benefits while Shaadi24+'s features are everyone's. */
 export const FEATURES_FREE_NOW = 'Likes You, Super Likes, every filter, compatibility reports and date proposals are free for everyone right now.';
 
 const LIVE = ['authenticated', 'active', 'pending', 'paused'];

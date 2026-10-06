@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import zlib from 'node:zlib';
 
 const BASE = process.env.BASE_URL || 'http://localhost:3000';
-const DB = process.env.DB_CONTAINER || 'supabase_db_MatchGPT';  // `docker ps` shows the name
+const DB = process.env.DB_CONTAINER || 'supabase_db_Shaadi24';  // `docker ps` shows the name
 const sql = (q) => execSync(`docker exec -i ${DB} psql -U postgres -At`, { input: q }).toString().trim();
 const OUT = new URL('./.shots/shots/', import.meta.url).pathname;
 fs.mkdirSync(OUT, { recursive: true });
@@ -177,7 +177,7 @@ try {
   });
 
   await step('saved as chosen, with age, location and height worked out', async () => {
-    await page.getByPlaceholder(/Describe your ideal match/).waitFor({ timeout: 20000 });
+    await page.getByTestId('find-match-box').waitFor({ timeout: 20000 });
     const row = sql(`select concat_ws(' | ', age = extract(year from age(current_date, date '1997-01-15')), location, height_cm,
         marital_status, children, mother_tongue, caste, sub_caste, education_level, occupation, brothers || '+' || brothers_married,
         birth_time, manglik, dietary_preferences, hobbies, languages, profile_created_for, annual_income)
@@ -188,13 +188,13 @@ try {
   });
 
   await step('reach the dashboard', async () => {
-    await page.getByPlaceholder(/Describe your ideal match/).waitFor({ timeout: 20000 });
+    await page.getByTestId('find-match-box').waitFor({ timeout: 20000 });
     await page.waitForTimeout(1500);
     await shot('dashboard');
   });
 
   await step('run a search', async () => {
-    const box = page.getByPlaceholder(/Describe your ideal match/);
+    const box = page.getByTestId('find-match-box');
     await box.fill('someone who loves travel and books');
     await box.press('Enter');
     await page.waitForTimeout(4000);
@@ -215,7 +215,7 @@ try {
     await page.locator('input[type=email]').fill(email);
     await page.locator('input[type=password]').fill(password);
     await page.locator('form').getByRole('button', { name: /Log In/i }).click();
-    await page.getByPlaceholder(/Describe your ideal match/).waitFor({ timeout: 20000 });
+    await page.getByTestId('find-match-box').waitFor({ timeout: 20000 });
     await shot('signed-back-in');
   });
   log('RESULT: all steps passed for', email);

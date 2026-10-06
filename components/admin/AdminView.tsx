@@ -135,7 +135,7 @@ const AdminView: React.FC<{ initialTab?: AdminTab }> = ({ initialTab }) => {
 };
 
 // ============================================================================
-// "MatchGPT+ for everyone": the one switch for MatchGPT+'s features
+// "Shaadi24+ for everyone": the one switch for Shaadi24+'s features
 // (app_settings; the server and the apps follow it at once)
 // ============================================================================
 
@@ -146,7 +146,7 @@ const ProForAllSwitch: React.FC<{ onChanged: () => void }> = ({ onChanged }) => 
 
   const toggle = async () => {
     const on = !proForAll;
-    if (!on && !window.confirm('Turn off MatchGPT+ for everyone? Members without a subscription lose Likes You, Super Likes, the extra filters, compatibility reports and date proposals straight away.')) return;
+    if (!on && !window.confirm('Turn off Shaadi24+ for everyone? Members without a subscription lose Likes You, Super Likes, the extra filters, compatibility reports and date proposals straight away.')) return;
     setSaving(true);
     const { error } = await setProForAll(on);
     if (!error) await refreshProfile();
@@ -155,18 +155,18 @@ const ProForAllSwitch: React.FC<{ onChanged: () => void }> = ({ onChanged }) => 
       showToast(`Couldn't change it: ${error}`, 'error');
       return;
     }
-    showToast(on ? 'MatchGPT+ is on for everyone' : 'MatchGPT+ is for subscribers only now', 'success');
+    showToast(on ? 'Shaadi24+ is on for everyone' : 'Shaadi24+ is for subscribers only now', 'success');
     onChanged();
   };
 
   return (
     <div className="mb-6 rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-4 flex items-start justify-between gap-4">
       <div className="min-w-0">
-        <h2 id="pro-for-all-label" className="text-sm font-bold text-gray-900 dark:text-white">MatchGPT+ for everyone</h2>
+        <h2 id="pro-for-all-label" className="text-sm font-bold text-gray-900 dark:text-white">Shaadi24+ for everyone</h2>
         <p id="pro-for-all-description" className="text-xs text-gray-500 dark:text-gray-400 mt-1">
           {proForAll
-            ? 'On: every member gets Likes You, Super Likes, refreshing Standouts, every filter, compatibility reports and date proposals for free. Free accounts keep the daily limits (3 AI searches, 15 likes). Turn it off when MatchGPT+ goes on sale.'
-            : 'Off: only subscribers get MatchGPT+\'s features.'}
+            ? 'On: every member gets Likes You, Super Likes, refreshing Standouts, every filter, compatibility reports and date proposals for free. Free accounts keep the daily limits (3 AI searches, 15 likes). Turn it off when Shaadi24+ goes on sale.'
+            : 'Off: only subscribers get Shaadi24+\'s features.'}
         </p>
       </div>
       <button
@@ -188,7 +188,7 @@ const ProForAllSwitch: React.FC<{ onChanged: () => void }> = ({ onChanged }) => 
 // What an audit entry says was done
 function auditAction(entry: AdminAuditRow): string {
   const details = entry.details && typeof entry.details === 'object' && !Array.isArray(entry.details) ? entry.details : null;
-  if (entry.action === 'set_pro_for_all') return `turned MatchGPT+ for everyone ${details?.on ? 'on' : 'off'}`;
+  if (entry.action === 'set_pro_for_all') return `turned Shaadi24+ for everyone ${details?.on ? 'on' : 'off'}`;
   return entry.action.replace(/_/g, ' ');
 }
 

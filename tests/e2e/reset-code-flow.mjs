@@ -85,7 +85,7 @@ async function resetOn(label, android) {
     'asks for the code from the email');
   check(await page.getByText(/Send again in \d+s/).isVisible(), '"Send a new code" waits a minute');
   const { subject, code, text } = await codeFor(email);
-  check(subject === 'Your MatchGPT password reset code' && /^\d{6}$/.test(code || ''), `the email has the code (${subject}: ${code})`);
+  check(subject === 'Your Shaadi24 password reset code' && /^\d{6}$/.test(code || ''), `the email has the code (${subject}: ${code})`);
   check(/follow this link/.test(text), '…and, for the website, the link');
   await page.screenshot({ path: `${OUT}${android ? 'app' : 'web'}-1-code.png` });
 

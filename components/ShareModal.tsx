@@ -9,10 +9,10 @@ interface ShareModalProps {
 }
 
 const ShareModal: React.FC<ShareModalProps> = ({ onClose, match }) => {
-    const shareLink = `https://matchgpt.app/match/${match.id}`;
+    const shareLink = `https://shaadi24.app/match/${match.id}`;
     const [copied, setCopied] = useState(false);
     const handleCopy = () => { navigator.clipboard.writeText(shareLink); setCopied(true); setTimeout(() => setCopied(false), 2000); };
-    const shareText = `Check out ${match.name}'s profile on MatchGPT!`;
+    const shareText = `Check out ${match.name}'s profile on Shaadi24!`;
     return (
         <div className="fixed inset-0 z-[250] flex items-center justify-center p-4 popup-backdrop animate-fade-in">
             <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl w-full max-w-sm overflow-hidden relative">

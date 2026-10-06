@@ -12,10 +12,10 @@ import {
 import UpgradeModal from './UpgradeModal';
 
 // ============================================================================
-// SubscriptionSettings: the MatchGPT+ part of Settings
+// SubscriptionSettings: the Shaadi24+ part of Settings
 //
 // Shows the plan and what happens next (trial end, renewal, end date) and the
-// payments. MatchGPT+ is bought in the phone apps, so the store that sold it
+// payments. Shaadi24+ is bought in the phone apps, so the store that sold it
 // bills it and manages it: the app opens the store's page, and anywhere else
 // this says where. In the apps there's Restore purchases too, and on opening
 // the subscription is caught up with the store, in case a notification was
@@ -67,7 +67,7 @@ const SubscriptionSettings: React.FC = () => {
   const manageHere = !!store && ((store === 'google_play' && platform === 'android') || (store === 'app_store' && platform === 'ios'));
   const live = !!sub && ['authenticated', 'active', 'pending', 'halted', 'paused'].includes(sub.status);
   const inTrial = !!sub?.trial_ends_at && Date.parse(sub.trial_ends_at) > now && !sub.current_end;
-  const planName = plan?.name ?? 'MatchGPT+';
+  const planName = plan?.name ?? 'Shaadi24+';
 
   const manage = async () => {
     try {
@@ -82,7 +82,7 @@ const SubscriptionSettings: React.FC = () => {
     try {
       const r = await restoreStorePurchases(true);
       await Promise.all([load(), refreshProfile()]);
-      showToast(r.pro ? 'MatchGPT+ restored.' : r.restored ? 'Checked: none of your purchases is active now.' : 'No MatchGPT+ purchase found to restore.',
+      showToast(r.pro ? 'Shaadi24+ restored.' : r.restored ? 'Checked: none of your purchases is active now.' : 'No Shaadi24+ purchase found to restore.',
         r.pro ? 'success' : 'info');
     } catch (e) {
       showToast(e instanceof Error ? e.message : "Couldn't restore purchases. Please try again.", 'error');
@@ -100,20 +100,20 @@ const SubscriptionSettings: React.FC = () => {
     if (sub.status === 'authenticated' && inTrial) {
       status = <>Free trial until <strong>{formatDate(sub.trial_ends_at)}</strong>, then billed by {storeLabel}{sub.cancel_at_period_end ? '; it won\'t renew' : ''}.{manageWhere}</>;
     } else if (sub.status === 'active' && sub.cancel_at_period_end) {
-      status = <>Won't renew. MatchGPT+ stays on until <strong>{formatDate(sub.current_end)}</strong>.{manageWhere}</>;
+      status = <>Won't renew. Shaadi24+ stays on until <strong>{formatDate(sub.current_end)}</strong>.{manageWhere}</>;
     } else if (sub.status === 'active') {
       status = <>Renews on <strong>{formatDate(sub.current_end)}</strong>, billed by {storeLabel}.{manageWhere}</>;
     } else if (sub.status === 'pending') {
-      status = <>Your last payment didn't go through. {storeLabel} is trying again, and you keep MatchGPT+ meanwhile; please update your payment method {storeManageHint(store)}.</>;
+      status = <>Your last payment didn't go through. {storeLabel} is trying again, and you keep Shaadi24+ meanwhile; please update your payment method {storeManageHint(store)}.</>;
     } else if (sub.status === 'halted') {
-      status = <>Payments failed, so MatchGPT+ is off. Update your payment method {storeManageHint(store)} and it comes back.</>;
+      status = <>Payments failed, so Shaadi24+ is off. Update your payment method {storeManageHint(store)} and it comes back.</>;
     } else {
       status = <>Paused in {storeLabel}; it starts again on its own.{manageWhere}</>;
     }
   } else if (sub && sub.status === 'cancelled' && inTrial) {
-    status = <>Trial cancelled; you won't be charged. MatchGPT+ stays on until <strong>{formatDate(sub.trial_ends_at)}</strong>.</>;
+    status = <>Trial cancelled; you won't be charged. Shaadi24+ stays on until <strong>{formatDate(sub.trial_ends_at)}</strong>.</>;
   } else if (isPro) {
-    status = <>MatchGPT+ is on for your account.</>;
+    status = <>Shaadi24+ is on for your account.</>;
   } else {
     status = <>Free plan: 3 AI searches and 15 likes a day.</>;
   }
@@ -137,7 +137,7 @@ const SubscriptionSettings: React.FC = () => {
             onClick={() => setShowUpgrade(true)}
             className="flex-shrink-0 text-xs font-bold px-3 py-2 rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:opacity-90"
           >
-            Get MatchGPT+
+            Get Shaadi24+
           </button>
         )}
         {store && live && manageHere && (
