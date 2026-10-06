@@ -43,7 +43,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
 
       <main className="max-w-3xl mx-auto px-6 py-10">
         <p className="text-xs text-gray-500 dark:text-gray-400 mb-6">
-          Document version: {PRIVACY_VERSION} · Last updated: October 5, 2026
+          Document version: {PRIVACY_VERSION} · Last updated: October 6, 2026
         </p>
 
         <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-8">
@@ -72,6 +72,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
             <li><strong>Background and family details (all optional):</strong> religion, mother tongue, caste or community, sub-caste, sect or denomination, gotra, whether you are open to marrying outside your community, horoscope details (Manglik status, rashi, nakshatra, time and place of birth), education, occupation, annual income, residential status abroad, family details (family type, status and values, your parents' occupations, brothers and sisters, where your family lives) and any disability you choose to mention</li>
             <li><strong>Activity data:</strong> likes you send and receive, matches, messages, search queries, login history</li>
             <li><strong>Technical data:</strong> IP address, browser type, device information, cookies (see Section 8). If you turn on notifications, a notification token for your browser or phone (on phones, from Google's Firebase Cloud Messaging), whether the phone is an Android phone or an iPhone, and the version of our app</li>
+            <li><strong>Error reports:</strong> when something goes wrong in the app or on the website, it tells us what the error was, where in our code it happened, which screen you were on, the version of the app, and the kind of phone or computer and browser (for example "Android 14, Chrome 141"). Not who you are: we keep no account, name or IP address with it, and email addresses, phone numbers, IDs and other long numbers are blanked out before it leaves your device. The same error from many people adds up to one report</li>
             <li><strong>Payment data:</strong> MatchGPT+ is bought in our Android and iPhone apps, and Google Play or Apple processes the payment; we never see your card, UPI or bank details. We receive and keep the purchase details they send us (the purchase or order IDs, the plan, amounts and currency, dates, whether it renews, refunds), linked to your account by your account's ID, which we pass with the purchase. We also record the fees the stores charge us.</li>
           </ul>
           <p className="mt-2">
@@ -99,6 +100,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
             <li>Processing subscription payments (Pro tier)</li>
             <li>Sending essential service emails (account verification, security alerts)</li>
             <li>Sending optional notifications (new matches, messages, super-likes) — only if you turn them on; you can turn them off any time in Settings or in your phone's settings</li>
+            <li>Finding and fixing errors in the app and the website (error reports)</li>
             <li>Investigating reports and enforcing community guidelines</li>
             <li>Complying with legal obligations</li>
           </ul>
@@ -146,6 +148,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
           <ul className="list-disc list-inside space-y-1 ml-2">
             <li><strong>Active account:</strong> as long as you use the service</li>
             <li><strong>Deleted account:</strong> within 30 days of deletion request. Some records (transactions, fraud-prevention logs) may be retained for up to 7 years where legally required.</li>
+            <li><strong>Error reports:</strong> we keep at most 5,000; once there are that many, each new one takes the place of the one seen longest ago</li>
             <li><strong>Consent records:</strong> for the duration of our legal obligation to demonstrate compliance (typically 6 years)</li>
             <li><strong>Backups:</strong> regularly overwritten; deleted data is gone within 30 days even from backups</li>
           </ul>
@@ -218,7 +221,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
 
         <div className="border-t border-gray-200 dark:border-zinc-800 pt-6 mt-10 text-center">
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            This document was last updated on October 4, 2026 and is identified internally as {PRIVACY_VERSION}.
+            This document was last updated on October 6, 2026 and is identified internally as {PRIVACY_VERSION}.
           </p>
         </div>
       </main>

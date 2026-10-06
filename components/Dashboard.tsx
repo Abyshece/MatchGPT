@@ -14,6 +14,7 @@ import NotificationOffer from './NotificationOffer';
 import type { MatchCandidate } from '../types';
 import type { AdminTab } from './admin/AdminView';
 import { firstCelebration } from '../lib/matchCelebration';
+import { setErrorScreen } from '../lib/errorReports';
 
 // ============================================================================
 // Dashboard (Phase 6 Batch 3 — code-splitting)
@@ -73,6 +74,9 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
   // Bumping this forces SearchView to remount, clearing prompt + results.
   // Used by the pencil "new chat" icon in the topbar.
   const [searchResetKey, setSearchResetKey] = useState(0);
+
+  // Error reports say which screen they came from
+  useEffect(() => setErrorScreen(activeTab), [activeTab]);
 
   // Global new-match subscription (works regardless of which tab is active)
   useEffect(() => {

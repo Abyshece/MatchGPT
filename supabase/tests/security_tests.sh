@@ -27,6 +27,7 @@ rollback;
 SQL
 )
   if [[ $? -eq 0 ]]; then status=ALLOWED; else status=BLOCKED; fi
+  out=$(printf '%s\n' "$out" | sed '/^$/d')   # functions that return nothing print empty lines
   summary=$(echo "$out" | grep -oE 'ERROR:.*' | head -1)
   [[ -z $summary ]] && summary=$(echo "$out" | tr '\n' ' ')
   if [[ $status == "$expect" && ( -z $want || $out == *"$want"* ) ]]; then
@@ -171,6 +172,32 @@ check BLOCKED "A44 signed-out visitor calls is_admin()" anon "" "" \
 check BLOCKED "A45 signed-out visitor reads reports, verification requests or the admin tables" anon "" "" \
   "select (select count(*) from public.reports) + (select count(*) from public.verification_requests)
         + (select count(*) from public.admin_emails) + (select count(*) from public.admin_audit);" "permission denied"
+check BLOCKED "A46 signed-out visitor reads the error reports" anon "" "" \
+  "select count(*) from public.error_reports;" "permission denied"
+check BLOCKED "A47 member reads or changes the error reports directly" authenticated "$USER_X" "x@example.com" \
+  "update public.error_reports set fixed_at = now();" "permission denied"
+check BLOCKED "A48 member lists the error reports (admin_list_errors)" authenticated "$USER_X" "x@example.com" \
+  "select count(*) from public.admin_list_errors(true);" "Forbidden"
+check BLOCKED "A49 member marks an error fixed" authenticated "$USER_X" "x@example.com" \
+  "select public.admin_mark_error_fixed(1);" "Forbidden"
+check ALLOWED "A50 a flood of errors can't fill the table: 20 new a minute, 1,000 a day" anon "" "" \
+  "select public.report_error('web', 'flood ' || g) from generate_series(1, 25) g;
+   reset role; select 'minute=' || count(*) from public.error_reports;
+   update public.error_reports set first_seen_at = now() - interval '2 minutes';
+   insert into public.error_reports (fingerprint, first_seen_at, platform, message)
+   select md5('day ' || g), now() - interval '2 minutes', 'web', 'day ' || g from generate_series(1, 980) g;
+   set local role anon; select public.report_error('ios', 'one too many');
+   select public.report_error('web', 'flood 1');
+   reset role; select 'day=' || count(*) || ' added_up=' || max(times) from public.error_reports;" "minute=20
+day=1000 added_up=2"
+check ALLOWED "A51 a report can't say who: no account, and only the platforms there are" authenticated "$USER_X" "x@example.com" \
+  "select public.report_error('windows', 'from somewhere else');
+   select public.report_error('android', repeat('m', 900), repeat('s', 9000), repeat('c', 500), repeat('v', 99), repeat('u', 999));
+   reset role; select 'rows=' || count(*) || ' sizes=' || max(length(message)) || '/' || max(length(stack)) || '/' || max(length(screen))
+     || '/' || max(length(app_version)) || '/' || max(length(user_agent)) from public.error_reports;
+   select 'columns=' || string_agg(column_name, ',' order by ordinal_position) from information_schema.columns
+    where table_schema = 'public' and table_name = 'error_reports';" "rows=1 sizes=500/3000/120/40/300
+columns=id,fingerprint,day,first_seen_at,last_seen_at,times,platform,app_version,screen,message,stack,user_agent,fixed_at"
 echo
 echo "Normal app use — must keep working:"
 check ALLOWED "N1  user reads their own profile row" authenticated "$USER_X" "x@example.com" \
@@ -386,5 +413,42 @@ check ALLOWED "N53 subscriber sees who liked them (MatchGPT+ for subscribers onl
   "reset role; update public.app_settings set pro_for_all = false; update public.profiles set subscription_tier = 'PRO' where id = '$USER_X';
    insert into public.likes (liker_id, liked_id) values ('$OTHER', '$USER_X') on conflict do nothing; set local role authenticated;
    select 'shown=' || bool_and(liker_id is not null and liker_name is not null) from public.get_likes_received('$USER_X');" "shown=true"
+check ALLOWED "N54 signed-out visitor reports an error; the same one again adds up" anon "" "" \
+  "select public.report_error('android', 'TypeError: x is undefined', E'TypeError: x is undefined\\n    at Chat (index-a1.js:1:2)', 'matches', '1.0.0', 'Mozilla/5.0');
+   select public.report_error('android', 'TypeError: x is undefined', E'TypeError: x is undefined\\n    at Chat (index-a1.js:1:2)', 'matches', '1.0.1', 'Mozilla/5.0');
+   select public.report_error('android', 'TypeError: x is undefined', E'TypeError: x is undefined\\n    at Likes (index-a1.js:9:9)', 'likes', '1.0.1', 'Mozilla/5.0');
+   reset role; select 'rows=' || count(*) || ' times=' || max(times) || ' version=' || max(app_version) from public.error_reports;" \
+  "rows=2 times=2 version=1.0.1"
+check ALLOWED "N55 admin sees each error once, all its days together, most recent first" authenticated "$ADMIN" "owner@example.com" \
+  "select public.report_error('web', 'RangeError: too deep', E'RangeError: too deep\\n    at f (a.js:1:1)');
+   reset role; update public.error_reports set day = day - 1, first_seen_at = now() - interval '1 day', last_seen_at = now() - interval '1 day';
+   set local role authenticated;
+   select public.report_error('web', 'RangeError: too deep', E'RangeError: too deep\\n    at f (a.js:1:1)');
+   select public.report_error('web', 'RangeError: too deep', E'RangeError: too deep\\n    at f (a.js:1:1)');
+   select public.report_error('ios', 'Error: older', null);
+   reset role; update public.error_reports set last_seen_at = now() - interval '1 hour' where platform = 'ios'; set local role authenticated;
+   select string_agg(platform || ':' || times || 'x' || days || 'd', ' ' order by last_seen_at desc) from public.admin_list_errors();" \
+  "web:3x2d ios:1x1d"
+check ALLOWED "N56 admin marks an error fixed: gone from the list, in the audit log, back if it happens again" authenticated "$ADMIN" "owner@example.com" \
+  "select public.report_error('web', 'Error: fixed soon');
+   select public.admin_mark_error_fixed((select id from public.admin_list_errors()));
+   select 'waiting=' || count(*) from public.admin_list_errors();
+   select 'all=' || count(*) || ' fixed=' || count(fixed_at) from public.admin_list_errors(true);
+   select 'audited=' || count(*) from public.admin_audit where action = 'mark_error_fixed' and details ->> 'error' = 'Error: fixed soon';
+   select public.report_error('web', 'Error: fixed soon');
+   select 'back=' || count(*) from public.admin_list_errors();" "waiting=0
+all=1 fixed=1
+audited=1
+back=1"
+check ALLOWED "N57 with 5,000 kept, a new error takes the place of the oldest (fixed ones first)" anon "" "" \
+  "reset role;
+   insert into public.error_reports (fingerprint, day, first_seen_at, last_seen_at, platform, message, fixed_at)
+   select md5('old ' || g), (now() at time zone 'utc')::date - 1, now() - interval '1 day', now() - interval '1 day' - g * interval '1 second', 'web', 'old ' || g,
+          case when g = 10 then now() end
+     from generate_series(1, 5000) g;
+   set local role anon; select public.report_error('web', 'Error: new one'); select public.report_error('web', 'Error: newer one');
+   reset role; select 'kept=' || count(*) || ' new=' || count(*) filter (where message like 'Error: new%')
+     || ' left=' || string_agg(message, ',') filter (where message in ('old 10', 'old 5000', 'old 4999')) from public.error_reports;" \
+  "kept=5000 new=2 left=old 4999"
 echo
 if [[ $fails -eq 0 ]]; then echo "All checks passed."; else echo "$fails check(s) FAILED."; exit 1; fi

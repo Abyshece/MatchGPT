@@ -23,7 +23,9 @@ const me = sql(`select id from auth.users where email = '${EMAIL}';`);
 sql(`update profiles set last_active_at = now(), settings_show_online = (coalesce(name, '') >= 'N') where id <> '${me}';
      delete from blocks where blocker_id = '${me}';
      delete from standouts where user_id = '${me}';
-     update profiles set is_paused = false, daily_search_count = 0, account_created = now() where id = '${me}';`);  // inside the 3 days to verify
+     delete from verification_requests where user_id = '${me}';
+     update profiles set is_paused = false, is_verified = false, daily_search_count = 0, account_created = now()
+      where id = '${me}';`);  // not verified yet, and inside the 3 days to verify
 const hidden = new Set(sql(`select name from profiles where settings_show_online = false;`).split('\n'));
 
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });

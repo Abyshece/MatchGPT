@@ -1,10 +1,11 @@
 import React from 'react';
 import { SUPPORT_EMAIL } from './helpTopics';
+import { reportError } from '../lib/errorReports';
 
 // ============================================================================
 // AppErrorBoundary: when something breaks while drawing a screen, a way out
 // instead of a blank page. Reload usually fixes it; the address is there if
-// it doesn't.
+// it doesn't. The error goes to Admin → Errors.
 // ============================================================================
 
 interface State {
@@ -20,6 +21,7 @@ class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, St
 
   componentDidCatch(error: unknown) {
     console.error('[MatchGPT] a screen failed', error);
+    reportError(error);
   }
 
   render() {

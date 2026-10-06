@@ -28,7 +28,7 @@ const me = sql(`select id from profiles where email = '${EMAIL}';`);
 // A fresh account (not yet locked out for being unverified), free plan, no searches today
 sql(`update profiles set daily_search_count = 0, subscription_tier = 'FREE', is_paused = false,
        account_created = now(), city = 'Mumbai', state = 'Maharashtra', country = 'India' where id = '${me}';
-     delete from likes where liker_id = '${me}';
+     delete from likes where '${me}' in (liker_id, liked_id);  -- a like back would pop up "It's a Match!"
      delete from blocks where blocker_id = '${me}';
      delete from standouts where user_id = '${me}';
      update profiles set hidden_fields = '{}' where hidden_fields <> '{}';`);

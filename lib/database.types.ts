@@ -347,6 +347,54 @@ export type Database = {
         }
         Relationships: []
       }
+      error_reports: {
+        Row: {
+          app_version: string | null
+          day: string
+          first_seen_at: string
+          fingerprint: string
+          fixed_at: string | null
+          id: number
+          last_seen_at: string
+          message: string
+          platform: string
+          screen: string | null
+          stack: string | null
+          times: number
+          user_agent: string | null
+        }
+        Insert: {
+          app_version?: string | null
+          day?: string
+          first_seen_at?: string
+          fingerprint: string
+          fixed_at?: string | null
+          id?: never
+          last_seen_at?: string
+          message: string
+          platform: string
+          screen?: string | null
+          stack?: string | null
+          times?: number
+          user_agent?: string | null
+        }
+        Update: {
+          app_version?: string | null
+          day?: string
+          first_seen_at?: string
+          fingerprint?: string
+          fixed_at?: string | null
+          id?: never
+          last_seen_at?: string
+          message?: string
+          platform?: string
+          screen?: string | null
+          stack?: string | null
+          times?: number
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       likes: {
         Row: {
           created_at: string
@@ -1493,6 +1541,23 @@ export type Database = {
         Args: { p_mode?: string; p_months?: number }
         Returns: Json
       }
+      admin_list_errors: {
+        Args: { p_include_fixed?: boolean; p_limit?: number }
+        Returns: {
+          app_version: string
+          days: number
+          first_seen_at: string
+          fixed_at: string
+          id: number
+          last_seen_at: string
+          message: string
+          platform: string
+          screen: string
+          stack: string
+          times: number
+          user_agent: string
+        }[]
+      }
       admin_list_payments: {
         Args: {
           p_from?: string
@@ -1557,6 +1622,7 @@ export type Database = {
           user_photo_urls: string[]
         }[]
       }
+      admin_mark_error_fixed: { Args: { p_id: number }; Returns: undefined }
       admin_platform_stats: { Args: never; Returns: Json }
       admin_review_verification: {
         Args: { decision: string; notes: string; request_id: string }
@@ -1662,6 +1728,17 @@ export type Database = {
       pro_for_all: { Args: never; Returns: boolean }
       register_push_device: {
         Args: { p_app_version?: string; p_platform: string; p_token: string }
+        Returns: undefined
+      }
+      report_error: {
+        Args: {
+          p_app_version?: string
+          p_message: string
+          p_platform: string
+          p_screen?: string
+          p_stack?: string
+          p_user_agent?: string
+        }
         Returns: undefined
       }
       save_vapid_keys: {

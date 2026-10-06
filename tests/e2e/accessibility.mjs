@@ -5,7 +5,7 @@
 // VITE_MEMBERS_ON_WEB=true), in light and dark. Each screen must have no
 // serious or critical problems; moderate and minor ones are listed.
 //   - website: home, Help & Support, Delete account, Terms, admin sign-in,
-//     the admin panel
+//     the admin panel and its Errors tab (with an error open)
 //   - app: the landing and sign-in screens; signed in (an onboarded account,
 //     password TestPass!2026): Find Match with results, filters, a profile,
 //     Likes You, Matches and a chat, Standouts, My Profile, Settings,
@@ -62,6 +62,11 @@ async function audit(page, name) {
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
 const phone = (colorScheme = 'light') => browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, colorScheme });
 
+// An error for the Errors tab to show
+sql(`select report_error('android', 'TypeError: Cannot read properties of undefined (reading ''photos'')',
+       E'TypeError: Cannot read properties of undefined (reading ''photos'')\\n    at ProfileCard (index-a1b2c3.js:1:2345)',
+       'matches', '1.0.0', 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Mobile Safari/537.36');`);
+
 try {
   for (const scheme of ['light', 'dark']) {
     log(`== The website (${scheme})`);
@@ -79,6 +84,10 @@ try {
     await page.getByText('Admin Panel').waitFor({ timeout: 20000 });
     await page.waitForTimeout(1500);
     await audit(page, `admin panel (${scheme})`);
+    await page.getByRole('button', { name: /^errors$/i }).click();
+    await page.getByTestId('admin-error').first().waitFor({ timeout: 15000 });
+    await page.getByTestId('admin-error').first().getByRole('button').first().click();
+    await audit(page, `admin errors (${scheme})`);
     await ctx.close();
   }
 

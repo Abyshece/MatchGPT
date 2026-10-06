@@ -10,6 +10,7 @@ import AdminUsersTab from './AdminUsersTab';
 import AdminReportsTab from './AdminReportsTab';
 import AdminVerificationsTab from './AdminVerificationsTab';
 import AdminFinanceTab from './AdminFinanceTab';
+import AdminErrorsTab from './AdminErrorsTab';
 
 // ============================================================================
 // AdminView
@@ -26,7 +27,7 @@ import AdminFinanceTab from './AdminFinanceTab';
 // denied", and the admin RPCs refuse them anyway.
 // ============================================================================
 
-export type AdminTab = 'dashboard' | 'reports' | 'verifications' | 'users' | 'finance';
+export type AdminTab = 'dashboard' | 'reports' | 'verifications' | 'users' | 'finance' | 'errors';
 
 // initialTab: the tab an admin alert opens (Dashboard)
 const AdminView: React.FC<{ initialTab?: AdminTab }> = ({ initialTab }) => {
@@ -97,7 +98,7 @@ const AdminView: React.FC<{ initialTab?: AdminTab }> = ({ initialTab }) => {
 
         {/* Tabs */}
         <div className="flex gap-1 mb-6 border-b border-gray-200 dark:border-zinc-800 overflow-x-auto">
-          {(['dashboard', 'reports', 'verifications', 'users', 'finance'] as const).map((t) => (
+          {(['dashboard', 'reports', 'verifications', 'users', 'finance', 'errors'] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -127,6 +128,7 @@ const AdminView: React.FC<{ initialTab?: AdminTab }> = ({ initialTab }) => {
         {tab === 'verifications' && <AdminVerificationsTab onAuditUpdate={loadDashboard} />}
         {tab === 'users' && <AdminUsersTab onAuditUpdate={loadDashboard} />}
         {tab === 'finance' && <AdminFinanceTab />}
+        {tab === 'errors' && <AdminErrorsTab onAuditUpdate={loadDashboard} />}
       </div>
     </div>
   );

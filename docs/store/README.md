@@ -340,9 +340,13 @@ password, and OAuth (Google; Apple on iPhones).
 | App activity → In-app search history | Yes | **Yes**\* | Optional | App functionality |
 | App activity → Other user-generated content (About me, profile answers) | Yes | No | Optional | App functionality |
 | Device or other IDs (the notification token, if notifications are on) | Yes | No | Optional | App functionality |
+| App info and performance → Crash logs (error reports: the error and where in the code) | Yes | No | Required | App functionality |
+| App info and performance → Diagnostics (with an error: the screen, app version, phone and system) | Yes | No | Required | App functionality |
 
-Not collected: precise location, contacts, calendar, files, audio, web browsing, crash logs and
-diagnostics, payment details (Google Play takes the payment; MatchGPT never sees cards or UPI).
+Not collected: precise location, contacts, calendar, files, audio, web browsing, payment details (Google
+Play takes the payment; MatchGPT never sees cards or UPI). Error reports (`lib/errorReports.ts`) carry no
+account, name or address, and the app blanks out emails, phone numbers and ids before sending one; they
+are still "collected", as Google counts anything that leaves the phone.
 
 \* **Search.** With `GEMINI_API_KEY` set, the words typed into search go to Google's Gemini AI (without
 names, emails or phone numbers). On Gemini's free tier Google may use them to improve its services, which
@@ -354,8 +358,9 @@ the person asked for and doesn't either.
 ## App Store: App Privacy answers
 
 These match the app's privacy manifest (`ios/App/App/PrivacyInfo.xcprivacy`). Every type: **Data
-Linked to You**, purpose **App Functionality**, not used for tracking. "Do you or your third-party
-partners use data for tracking?" **No.**
+Linked to You**, purpose **App Functionality**, not used for tracking, except the two Diagnostics types,
+which are **Data Not Linked to You** (error reports carry no account, name or address). "Do you or your
+third-party partners use data for tracking?" **No.**
 
 | Category | Data type | What it is in MatchGPT |
 |---|---|---|
@@ -374,6 +379,8 @@ partners use data for tracking?" **No.**
 | Identifiers | Device ID | the notification token |
 | Usage Data | Product Interaction | likes, matches, last active |
 | Other Data | Other Data Types | date of birth, gender, marital status, height, horoscope, family, education, job |
+| Diagnostics (Not Linked to You) | Crash Data | error reports: the error and where in the code |
+| Diagnostics (Not Linked to You) | Other Diagnostic Data | with an error: the screen, app version, phone and system |
 
 ## Content rating
 

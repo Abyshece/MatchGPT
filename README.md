@@ -43,6 +43,11 @@ in the apps, through Google Play and the App Store.
   features while it's on; only the daily limits (3 AI searches, 15 likes) stay for free accounts. The
   server (`has_pro()` in the database) and the apps (`useAuth().hasPro`) follow it at once, with no
   new app release.
+- **Errors.** When the apps or the website hit an error, they report it to the database
+  (`lib/errorReports.ts`): the error, where in the code, the screen, the app version and the device,
+  never who (emails, phone numbers and ids are blanked out, and reports go without the member's
+  sign-in). Admin → Errors lists each error once with how often it happened, and "Mark fixed" hides one
+  until it happens again. At most 5,000 are kept.
 - **Hosting.** The website is on Vercel (`vercel.json`) and the backend on Supabase.
 
 ## Run it locally
@@ -100,7 +105,8 @@ With a local backend you can also run:
   app, which shows those pages.
 - **Database.** Each change is a new file in `supabase/migrations/`. `npx supabase link --project-ref
   fmrbzzdjtarsaqvfukum` once, then `npx supabase db push` applies the ones the live database doesn't
-  have yet. You can also paste a file into Supabase → SQL Editor.
+  have yet (with `--include-all` when one that waits is older than the newest live one). You can also
+  paste a file into Supabase → SQL Editor.
 - **Edge functions.** Deploy with `npx supabase functions deploy <name> --project-ref fmrbzzdjtarsaqvfukum`.
   Their secrets (Google Play, Firebase, Gemini, Apple) go in Supabase → Edge Functions →
   Secrets. `.env.local.example` says what each one switches on.
