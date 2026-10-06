@@ -10,6 +10,7 @@ import { isAppPreview } from '../../lib/appPreview';
 import type { PlatformStats, ReportRow, AdminAuditRow } from '../../lib/adminService';
 import AdminUsersTab from './AdminUsersTab';
 import AdminReportsTab from './AdminReportsTab';
+import AdminGrievancesTab from './AdminGrievancesTab';
 import AdminVerificationsTab from './AdminVerificationsTab';
 import AdminFinanceTab from './AdminFinanceTab';
 import AdminErrorsTab from './AdminErrorsTab';
@@ -21,6 +22,7 @@ import AdminAppTab from './AdminAppTab';
 // Admin panel tabs:
 //   1. Dashboard — platform stats + recent audit log
 //   2. Reports — pending reports queue
+//   2b. Complaints — complaints to the Grievance Officer, with their legal deadlines
 //   3. Verifications — identity checks waiting for a decision
 //   4. Users — search any user, take actions
 //   5. Finance — subscribers, revenue by month and seller, every charge (CSV)
@@ -32,13 +34,14 @@ import AdminAppTab from './AdminAppTab';
 // denied", and the admin RPCs refuse them anyway.
 // ============================================================================
 
-export type AdminTab = 'dashboard' | 'reports' | 'verifications' | 'users' | 'finance' | 'errors' | 'app';
+export type AdminTab = 'dashboard' | 'reports' | 'grievances' | 'verifications' | 'users' | 'finance' | 'errors' | 'app';
 
 // The app preview opens the members' app from the website; inside the phone
 // apps and the preview itself, admins are in the members' app already
 const TABS: AdminTab[] = isNativeApp() || isAppPreview()
-  ? ['dashboard', 'reports', 'verifications', 'users', 'finance', 'errors']
-  : ['dashboard', 'reports', 'verifications', 'users', 'finance', 'errors', 'app'];
+  ? ['dashboard', 'reports', 'grievances', 'verifications', 'users', 'finance', 'errors']
+  : ['dashboard', 'reports', 'grievances', 'verifications', 'users', 'finance', 'errors', 'app'];
+const TAB_LABEL: Partial<Record<AdminTab, string>> = { app: 'App preview', grievances: 'Complaints' };
 
 // initialTab: the tab an admin alert opens (Dashboard)
 const AdminView: React.FC<{ initialTab?: AdminTab }> = ({ initialTab }) => {
@@ -119,7 +122,7 @@ const AdminView: React.FC<{ initialTab?: AdminTab }> = ({ initialTab }) => {
                   : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
               }`}
             >
-              {t === 'app' ? 'App preview' : t}
+              {TAB_LABEL[t] ?? t}
             </button>
           ))}
         </div>
@@ -136,6 +139,7 @@ const AdminView: React.FC<{ initialTab?: AdminTab }> = ({ initialTab }) => {
           />
         )}
         {tab === 'reports' && <AdminReportsTab onAuditUpdate={loadDashboard} />}
+        {tab === 'grievances' && <AdminGrievancesTab onAuditUpdate={loadDashboard} />}
         {tab === 'verifications' && <AdminVerificationsTab onAuditUpdate={loadDashboard} />}
         {tab === 'users' && <AdminUsersTab onAuditUpdate={loadDashboard} />}
         {tab === 'finance' && <AdminFinanceTab />}

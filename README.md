@@ -7,12 +7,15 @@ answer can be hidden. Likes that go both ways become matches, and matches can ch
 verified through their social links, and Shaadi24+ adds unlimited searches and likes.
 
 Members use Shaadi24 in the **Android and iPhone apps**. The website, **https://shaadi-gpt.vercel.app**,
-says what Shaadi24 is and where to get the apps, serves the pages the stores link to (support, privacy,
-terms, account deletion), and has the admin panel for Shaadi24's team at `/admin`. Shaadi24+ is sold only
+says what Shaadi24 is and where to get the apps, serves the pages the stores and Indian law ask for
+(support, privacy, terms, grievances, safety, refunds, account deletion), and has the admin panel for
+Shaadi24's team at `/admin`. Shaadi24+ is sold only
 in the apps, through Google Play and the App Store.
 
 - What's done and what's left: [ROADMAP.md](ROADMAP.md)
 - The launch checklist for the stores: [docs/store/README.md](docs/store/README.md)
+- Indian law, what Shaadi24 does about it, and what's left for you and a lawyer:
+  [docs/legal/README.md](docs/legal/README.md)
 - Every setting and secret: [.env.local.example](.env.local.example)
 
 ## How it's built
@@ -39,12 +42,11 @@ in the apps, through Google Play and the App Store.
   | `search` | Search and matching: typed searches (understood by Google Gemini, or by rules without its key), filters, scores, the daily limit |
   | `store-billing`, `store-notifications` | Shaadi24+ in the apps: purchases checked with Google Play and the App Store, and the stores' notifications |
   | `send-push` | Notifications: phones through Firebase Cloud Messaging, and admin alerts in browsers through Web Push. A cron job runs it every minute |
-  | `delete-account` | Deletes an account and everything kept about it, stopping its Google Play renewal first |
+  | `delete-account` | Deletes an account and everything kept about it, stopping its Google Play renewal first; keeps only the registration record Indian law asks for, for a year |
   | `apple-sign-in` | Keeps the Sign in with Apple token, so deleting the account also ends it at Apple |
 
-- **The profile.** Every member gives 16 answers before using the app: who the profile is for, name,
-  date of birth, gender, who they're interested in, what they're looking for, marital status, height,
-  where they live, religion, mother tongue, highest qualification, occupation and at least 30
+- **The profile.** Every member gives 15 answers before using the app: who the profile is for, name,
+  date of birth, gender, who they're interested in, marital status, height, where they live, religion, mother tongue, highest qualification, occupation and at least 30
   characters about themselves (`lib/profileRewards.ts`; members who joined earlier are asked for what's
   missing, `components/RequiredDetails.tsx`). The other answers come in six sections (religion and
   community, education and career, family, lifestyle, appearance, plans and personality). Each section a
@@ -61,6 +63,15 @@ in the apps, through Google Play and the App Store.
   never who (emails, phone numbers and ids are blanked out, and reports go without the member's
   sign-in). Admin → Errors lists each error once with how often it happened, and "Mark fixed" hides one
   until it happens again. At most 5,000 are kept.
+- **Indian law** ([docs/legal/README.md](docs/legal/README.md)). Shaadi24 is for marriage only (nobody is
+  asked what they're "looking for"; the database keeps it at Marriage) and for women of 18 and men of 21
+  or older (`lib/legalAge.ts`, and the database). Every member agrees to the current Terms and Privacy
+  Policy, and to separate declarations, on the consent screen, again whenever they change
+  (`lib/consentService.ts`), and is reminded of the rules every 90 days (`components/RulesReminder.tsx`).
+  The legal pages are shared by the website and the apps (`components/legal/`, `lib/legalInfo.ts` holds
+  the operator's details). Complaints to the Grievance Officer get a ticket and the deadline the law sets
+  (`submit_grievance()`, Admin → Complaints), and what the law asks to keep after an account is deleted
+  or content removed sits in `legal_holds` until a daily job deletes it.
 - **Hosting.** The website is on Vercel (`vercel.json`) and the backend on Supabase.
 
 ## Run it locally

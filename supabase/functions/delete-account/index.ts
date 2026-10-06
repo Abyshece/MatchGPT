@@ -141,6 +141,13 @@ serve(withCors(async (req: Request): Promise<Response> => {
   }
   const auditLogId = auditRow?.id ?? 'unknown';
 
+  // ---- 1b. Keep the registration record the law asks for (name, email, date of
+  // birth, the addresses used) for a year, out of everyone's sight: the IT Rules
+  // 2021, rule 3(1)(h), and the 2016 advisory for matrimonial sites. Deleted by
+  // run_legal_retention() after that. A failure doesn't stop the deletion. ----
+  const { error: holdError } = await admin.rpc('keep_registration_record', { p_user_id: userId });
+  if (holdError) console.warn('[delete-account] registration record not kept:', holdError.message);
+
   // ---- 2. Delete photos from Storage ----
   let photosDeleted = 0;
   let storageErrors = 0;

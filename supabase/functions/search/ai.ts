@@ -50,7 +50,7 @@ export function resetAiState() {
   pausedUntil = 0;
 }
 
-const INSTRUCTIONS = `You turn a search typed into an Indian dating and marriage app into a JSON search plan.
+const INSTRUCTIONS = `You turn a search typed into an Indian matrimony app (for finding a life partner to marry) into a JSON search plan.
 The person describes who they want to meet. Record only what they asked for and leave the rest empty
 (gender "any", ages and heights 0, city "", false, empty lists). Never guess.
 

@@ -395,6 +395,96 @@ export type Database = {
         }
         Relationships: []
       }
+      grievances: {
+        Row: {
+          about: string | null
+          acknowledged_at: string
+          category: string
+          created_at: string
+          details: string
+          due_at: string
+          email: string
+          handled_by: string | null
+          id: string
+          ip_address: unknown
+          name: string
+          on_behalf: boolean
+          phone: string | null
+          resolution: string | null
+          resolved_at: string | null
+          status: string
+          ticket: string
+          user_id: string | null
+        }
+        Insert: {
+          about?: string | null
+          acknowledged_at?: string
+          category: string
+          created_at?: string
+          details: string
+          due_at: string
+          email: string
+          handled_by?: string | null
+          id?: string
+          ip_address?: unknown
+          name: string
+          on_behalf?: boolean
+          phone?: string | null
+          resolution?: string | null
+          resolved_at?: string | null
+          status?: string
+          ticket?: string
+          user_id?: string | null
+        }
+        Update: {
+          about?: string | null
+          acknowledged_at?: string
+          category?: string
+          created_at?: string
+          details?: string
+          due_at?: string
+          email?: string
+          handled_by?: string | null
+          id?: string
+          ip_address?: unknown
+          name?: string
+          on_behalf?: boolean
+          phone?: string | null
+          resolution?: string | null
+          resolved_at?: string | null
+          status?: string
+          ticket?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      legal_holds: {
+        Row: {
+          created_at: string
+          data: Json
+          id: string
+          kind: string
+          purge_after: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data: Json
+          id?: string
+          kind: string
+          purge_after: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          id?: string
+          kind?: string
+          purge_after?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       likes: {
         Row: {
           created_at: string
@@ -718,10 +808,12 @@ export type Database = {
           photo_urls: string[] | null
           politics: string | null
           privacy_accepted_at: string | null
+          privacy_version: string | null
           profile_created_for: string | null
           pronouns: string | null
           race: string | null
           rashi: string | null
+          rules_reminded_at: string | null
           reading_interest: string | null
           relationship_type: string | null
           religion: string | null
@@ -751,6 +843,7 @@ export type Database = {
           subscription_renews_at: string | null
           subscription_tier: string | null
           terms_accepted_at: string | null
+          terms_version: string | null
           therapy_history: string | null
           travel_style: string | null
           twitter: string | null
@@ -884,10 +977,12 @@ export type Database = {
           photo_urls?: string[] | null
           politics?: string | null
           privacy_accepted_at?: string | null
+          privacy_version?: string | null
           profile_created_for?: string | null
           pronouns?: string | null
           race?: string | null
           rashi?: string | null
+          rules_reminded_at?: string | null
           reading_interest?: string | null
           relationship_type?: string | null
           religion?: string | null
@@ -917,6 +1012,7 @@ export type Database = {
           subscription_renews_at?: string | null
           subscription_tier?: string | null
           terms_accepted_at?: string | null
+          terms_version?: string | null
           therapy_history?: string | null
           travel_style?: string | null
           twitter?: string | null
@@ -1050,10 +1146,12 @@ export type Database = {
           photo_urls?: string[] | null
           politics?: string | null
           privacy_accepted_at?: string | null
+          privacy_version?: string | null
           profile_created_for?: string | null
           pronouns?: string | null
           race?: string | null
           rashi?: string | null
+          rules_reminded_at?: string | null
           reading_interest?: string | null
           relationship_type?: string | null
           religion?: string | null
@@ -1083,6 +1181,7 @@ export type Database = {
           subscription_renews_at?: string | null
           subscription_tier?: string | null
           terms_accepted_at?: string | null
+          terms_version?: string | null
           therapy_history?: string | null
           travel_style?: string | null
           twitter?: string | null
@@ -1536,6 +1635,25 @@ export type Database = {
       }
     }
     Functions: {
+      grievance_due: {
+        Args: { p_at: string; p_category: string }
+        Returns: string
+      }
+      grievance_label: { Args: { p_category: string }; Returns: string }
+      keep_registration_record: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
+      request_ip: { Args: never; Returns: unknown }
+      run_legal_retention: { Args: never; Returns: Json }
+      admin_grievances: {
+        Args: { p_open_only?: boolean }
+        Returns: Database['public']['Tables']['grievances']['Row'][]
+      }
+      admin_update_grievance: {
+        Args: { p_id: string; p_resolution?: string; p_status: string }
+        Returns: undefined
+      }
       admin_ban_user: {
         Args: { reason: string; target_id: string }
         Returns: undefined
@@ -1744,6 +1862,18 @@ export type Database = {
           p_user_agent?: string
         }
         Returns: undefined
+      }
+      submit_grievance: {
+        Args: {
+          p_about?: string
+          p_category: string
+          p_details: string
+          p_email: string
+          p_name: string
+          p_on_behalf?: boolean
+          p_phone?: string
+        }
+        Returns: Json
       }
       save_vapid_keys: {
         Args: { p_private_key: string; p_public_key: string }

@@ -15,6 +15,14 @@ create table auth.users (
   email_confirmed_at timestamptz,
   created_at timestamptz default now()
 );
+-- Supabase Auth's log of sign-ins (the addresses they came from)
+create table auth.audit_log_entries (
+  instance_id uuid,
+  id uuid primary key,
+  payload json,
+  created_at timestamptz default now(),
+  ip_address varchar(64) not null default ''
+);
 CREATE OR REPLACE FUNCTION auth.uid()
  RETURNS uuid
  LANGUAGE sql

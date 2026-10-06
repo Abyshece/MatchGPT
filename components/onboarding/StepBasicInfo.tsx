@@ -6,8 +6,10 @@ import { useAuth } from '../../lib/AuthContext';
 import { ChoiceField, DateOfBirthField, ageFromDateOfBirth } from '../ProfileInputs';
 import {
   CHILDREN, CHILDREN_COUNT, CITIES_BY_STATE, COUNTRIES, GENDERS, HEIGHTS, INDIAN_STATES, INTERESTED_IN, MARITAL_STATUS,
-  PROFILE_CREATED_FOR, RELATIONSHIP_INTENTS,
+  PROFILE_CREATED_FOR,
 } from '../../lib/matrimonyOptions';
+import { belowMarriageAge, tooYoungMessage } from '../../lib/legalAge';
+import { TERMS_VERSION, recordConsent } from '../../lib/consentService';
 
 interface StepBasicInfoProps {
   onComplete: () => void;
@@ -29,7 +31,6 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ onComplete }) => {
   const [gender, setGender] = useState('');
   const [pronouns, setPronouns] = useState('');
   const [interestedIn, setInterestedIn] = useState('');
-  const [intention, setIntention] = useState('');
   const [maritalStatus, setMaritalStatus] = useState('');
   const [children, setChildren] = useState('');
   const [childrenCount, setChildrenCount] = useState('');
@@ -38,6 +39,7 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ onComplete }) => {
   const [state, setState] = useState('');
   const [city, setCity] = useState('');
   const [hometown, setHometown] = useState('');
+  const [theyAgreed, setTheyAgreed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -54,15 +56,17 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ onComplete }) => {
     if (!name.trim()) return 'Name is required.';
     if (!dateOfBirth) return 'Please choose the date of birth.';
     const age = ageFromDateOfBirth(dateOfBirth);
-    if (age === null || age < 18 || age > 99) return 'You must be at least 18 to use Shaadi24.';
+    if (age === null || age > 99) return 'Please check the date of birth.';
+    if (age < 18) return tooYoungMessage('Female', forSomeoneElse);
     if (!gender) return 'Please select the gender.';
+    if (belowMarriageAge(gender, age)) return tooYoungMessage(gender, forSomeoneElse);
     if (!interestedIn) return 'Please select who you\'re interested in.';
-    if (!intention) return 'Please select what you\'re looking for.';
     if (!maritalStatus) return 'Please select the marital status.';
     if (!height) return 'Please choose the height.';
     if (!country) return 'Please choose the country you live in.';
     if (inIndia && !state) return 'Please choose the state.';
     if (!city.trim()) return 'Please enter the city.';
+    if (forSomeoneElse && !theyAgreed) return 'Please confirm they know about this profile and want it.';
     return null;
   };
 
@@ -91,7 +95,7 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ onComplete }) => {
         gender,
         pronouns: pronouns || null,
         interested_in: interestedIn,
-        dating_intention: intention,
+        dating_intention: 'Marriage', // for marriage only (the database insists too)
         marital_status: maritalStatus,
         children: askChildren ? children || null : null,
         children_count: askChildren && children && children !== 'No' ? childrenCount || null : null,
@@ -108,6 +112,15 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ onComplete }) => {
     if (updateError) {
       setError(updateError.message);
       return;
+    }
+    // A profile made for a son, daughter, sibling, relative or friend: keep the
+    // record that they agreed to it (the DPDP Act asks for the person's own
+    // consent; the 2016 advisory for matrimonial sites for the creator's word)
+    if (forSomeoneElse) {
+      await recordConsent({
+        userId: session.user.id, email: session.user.email, eventType: 'profile_for_other_consent',
+        consented: true, documentVersion: `${TERMS_VERSION}:${createdFor}`,
+      });
     }
     await refreshProfile();
     onComplete();
@@ -165,10 +178,6 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ onComplete }) => {
 
         <Field label="Interested in">
           <Select value={interestedIn} onChange={setInterestedIn} options={INTERESTED_IN} placeholder="Select" />
-        </Field>
-
-        <Field label="Looking for">
-          <Select value={intention} onChange={setIntention} options={RELATIONSHIP_INTENTS} placeholder="Select" />
         </Field>
 
         <Field label="Marital status">
@@ -244,6 +253,18 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ onComplete }) => {
             maxLength={100}
           />
         </Field>
+
+        {forSomeoneElse && (
+          <label className="flex items-start gap-3 p-3 rounded-lg border border-gray-200 dark:border-zinc-700 cursor-pointer" data-testid="for-other-consent">
+            <input type="checkbox" checked={theyAgreed} onChange={(e) => setTheyAgreed(e.target.checked)}
+              className="mt-0.5 w-4 h-4 flex-none accent-black dark:accent-white" />
+            <span className="text-sm text-gray-700 dark:text-gray-300">
+              {name.trim() || 'They'} know{name.trim() ? 's' : ''} about this profile and want{name.trim() ? 's' : ''} it,
+              {' '}{name.trim() ? 'is' : 'are'} looking to marry, and {name.trim() ? 'is' : 'are'} of the legal age to marry.
+              Everything I write about them is true.
+            </span>
+          </label>
+        )}
 
         {/* Like the other steps: the button on the right */}
         <div className="pt-6 border-t border-gray-100 dark:border-zinc-800 flex items-center justify-end">

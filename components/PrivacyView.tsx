@@ -1,232 +1,226 @@
 import React from 'react';
-import { IconChevronLeft, IconShield } from '../constants';
+import { IconShield } from '../constants';
 import { PRIVACY_VERSION } from '../lib/consentService';
+import { LEGAL, orPending } from '../lib/legalInfo';
+import { HindiSummary, LegalLayout, List, Mail, Section, Summary, linkClass } from './legal/LegalLayout';
 
 // ============================================================================
-// PrivacyView
-//
-// GDPR-compliant Privacy Policy. Plain language, structured by section.
-// Must cover: what data, why, where stored, retention, rights, contact.
+// Privacy Policy, written for India. It is the notice the Digital Personal Data
+// Protection Act 2023 (section 5) and Rules 2025 (rule 3) ask for: what personal
+// data, for what, how to withdraw consent, use your rights and complain to the
+// Data Protection Board (most of the Act applies from 13 May 2027), and the
+// privacy policy that the IT (Reasonable Security Practices and Sensitive
+// Personal Data or Information) Rules 2011 and IT Rules 2021 ask for now. What
+// we keep after an account is deleted, and for how long, follows rule 3(1)(g)
+// and (h) of the IT Rules, the 2016 advisory for matrimonial websites and rule
+// 8(3) of the DPDP Rules (docs/legal/README.md). A lawyer should review it.
 // ============================================================================
 
 interface PrivacyViewProps {
   onBack: () => void;
 }
 
-const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-  <section className="mb-8">
-    <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">{title}</h2>
-    <div className="space-y-3 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-      {children}
-    </div>
-  </section>
+// An item of personal data and why we use it
+const Item: React.FC<{ what: React.ReactNode; why: React.ReactNode }> = ({ what, why }) => (
+  <li className="py-2.5">
+    <div className="font-semibold text-gray-900 dark:text-white">{what}</div>
+    <div className="mt-0.5">{why}</div>
+  </li>
 );
 
-const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => {
-  return (
-    <div className="min-h-screen bg-white dark:bg-[#191919]">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-white/95 dark:bg-zinc-900/95 backdrop-blur border-b border-gray-200 dark:border-zinc-800">
-        <div className="max-w-3xl mx-auto px-6 py-4 flex items-center gap-4">
-          <button
-            onClick={onBack}
-            className="p-1.5 -ml-1.5 rounded text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800"
-            aria-label="Back"
-          >
-            <IconChevronLeft />
-          </button>
-          <h1 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <IconShield /> Privacy Policy
-          </h1>
-        </div>
-      </header>
+const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => (
+  <LegalLayout title="Privacy Policy" icon={<IconShield />} version={PRIVACY_VERSION} onBack={onBack}>
+    <Summary>
+      <p>We use your details to show your profile to people who might marry you and to find you matches. Your data is
+        stored in {LEGAL.dataRegion}. We never sell it and show no ads.</p>
+      <p>Only your sign-in and the basics are required; everything else is optional, and you can hide any answer.
+        Sensitive details (such as religion, caste, health or who you are interested in) are used only with your
+        consent, which you can withdraw.</p>
+      <p>You can see, download, correct and delete your data in the app, and complain to our Grievance Officer and
+        then to the Data Protection Board of India.</p>
+    </Summary>
 
-      <main className="max-w-3xl mx-auto px-6 py-10">
-        <p className="text-xs text-gray-500 dark:text-gray-400 mb-6">
-          Document version: {PRIVACY_VERSION} · Last updated: October 6, 2026
-        </p>
+    <Section title="1. Who we are">
+      <p>{LEGAL.brand} is run by {LEGAL.operator} ({LEGAL.operatorKind}; address: {orPending(LEGAL.address)}), who
+        decides how and why your personal data is used: in India's Digital Personal Data Protection Act, 2023 (the
+        "DPDP Act"), the "Data Fiduciary". This policy is the notice that Act asks for, and the privacy policy that the
+        Information Technology Act, 2000 and its rules ask for.</p>
+      <p>Questions about your personal data: <Mail to={LEGAL.privacyEmail} />. Our Grievance Officer is{' '}
+        {LEGAL.grievanceOfficer.name} (<Mail to={LEGAL.grievanceEmail} />; see our{' '}
+        <a className={linkClass} href="/grievances">Grievance Redressal</a> page).</p>
+    </Section>
 
-        <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-8">
-          This Privacy Policy explains how Shaadi24 ("we", "us", or "the Service") collects, uses,
-          stores, and protects your personal information when you use our dating and matrimony
-          platform. We are committed to handling your data with care and in accordance with the
-          EU General Data Protection Regulation (GDPR), India's Digital Personal Data Protection
-          Act, and other applicable laws.
-        </p>
+    <Section title="2. The personal data we use, and why">
+      <p>{LEGAL.brand} is a matrimonial service: it lets you make a profile, find people you might marry and talk to
+        them. This is what we use for it.</p>
+      <ul className="divide-y divide-gray-100 dark:divide-zinc-800">
+        <Item what="Your account: email address, password (kept only in a form that can't be turned back into it), and how you sign in"
+          why="To create your account, sign you in and keep it secure. With Google or Apple sign-in, they give us your name, email address and an identifier; with Apple you can hide your email, and for Sign in with Apple we keep a token from Apple, used only to end Sign in with Apple when you delete your account." />
+        <Item what="The answers every member gives: who the profile is for, name, date of birth, gender, who you are interested in, marital status, children, height, country, state and city, religion, mother tongue, highest qualification, occupation, and a few sentences about yourself"
+          why="To show your profile to people who might want to marry you, and to find your matches. Your date of birth also lets us check you are of the legal age to marry (other members only ever see your age)." />
+        <Item what="Optional answers you choose to give: caste or community, sub-caste, sect, gotra, horoscope (Manglik, rashi, nakshatra, time and place of birth), education and work (degree, college, employer, job, annual income), family (parents' occupations, brothers and sisters, family type, status, values and where they live), lifestyle, appearance, plans and personality, hometown, disability, vaccination and similar"
+          why="To show your profile and work out how well you might match someone. Completing sections of these also gives you extra free searches a day. Leave out anything you prefer not to say." />
+        <Item what="Photos" why="To show your profile to other members." />
+        <Item what="Links to your profiles on LinkedIn, Instagram, Facebook or X, if you ask to be verified"
+          why="So our team can check them and give your profile the Verified badge. Only our team sees them." />
+        <Item what="What you do on Shaadi24: likes, matches, messages, what you search for, Standouts, the people you block and the reports you make"
+          why="To provide these features (for example, to deliver your messages), to keep members safe, and to act on reports." />
+        <Item what="Device and technical data: the internet (IP) addresses and devices you sign in from and use to set up your profile, the app's version, and a notification token if you turn notifications on"
+          why="To keep accounts secure, prevent fraud and fake profiles, send notifications you asked for, and keep the records Indian law requires (section 6)." />
+        <Item what="Error reports" why="When something goes wrong in the app, we get what went wrong, on which screen, and the kind of device, without your name, email or account; email addresses and phone numbers in it are removed first." />
+        <Item what="Purchases of Shaadi24+: the store's order number, the plan, the price, dates and refunds (never your card, UPI or bank details)"
+          why="To give you Shaadi24+ and keep the accounts that tax law requires." />
+        <Item what="Complaints and requests you send us, and the consents you give (which documents, when)"
+          why="To answer them, and to show what you agreed to." />
+      </ul>
+      <p><strong>Sensitive details.</strong> Some of this is sensitive: who you are interested in (which can show your
+        sexual orientation), any health detail such as a disability or vaccination, and your password are "sensitive
+        personal data" under the IT (Reasonable Security Practices and Procedures and Sensitive Personal Data or
+        Information) Rules, 2011, and many people also regard religion, caste and horoscope details as private. We use
+        them only with the consent you give on the consent screen, only to provide {LEGAL.brand}, and you can leave
+        out, hide or delete the optional ones at any time.</p>
+      <p><strong>Profiles made for someone else.</strong> If a parent, relative or friend makes a profile for someone,
+        the personal data is that person's. The person making it confirms that they have that person's permission
+        (see our <a className={linkClass} href="/terms">Terms</a>, section 3), and that person can use all the rights
+        in section 7.</p>
+      <p>We don't use your data for advertising, we don't sell it, and we don't make decisions with legal effects about
+        you by automated means: match scores only change the order in which profiles are shown.</p>
+    </Section>
 
-        <Section title="1. Who we are">
-          <p>
-            Shaadi24 is operated by Abhishek (the "Operator"). For any privacy-related questions,
-            you can contact us at <a href="mailto:privacy@shaadi24.com" className="text-blue-600 dark:text-blue-400 underline">privacy@shaadi24.com</a>.
-          </p>
-          <p>
-            We are the data controller for the personal information you provide on this platform.
-          </p>
-        </Section>
+    <Section title="3. Who sees your data">
+      <List>
+        <li><strong>Other members</strong> see your profile and photos, except answers you hide and your date of birth
+          (they see your age), and can filter searches by the answers you show. Whether you're online shows only if
+          Active Status is on. Messages are seen by the person you send them to.</li>
+        <li><strong>Our team</strong> sees what it needs to verify profiles, review reports and complaints, and run{' '}
+          {LEGAL.brand}, and every action in the admin panel is logged.</li>
+        <li><strong>Service providers</strong> that process data for us, under contract and only to provide{' '}
+          {LEGAL.brand} (in the DPDP Act, "Data Processors"):
+          <List>
+            <li>Supabase: our database, photo storage and sign-in, on servers in {LEGAL.dataRegion};</li>
+            <li>Vercel: hosts the website;</li>
+            <li>Google: Gemini, which reads the text you type into search (with email addresses and phone numbers
+              removed, and never with your name or profile) to understand what you're looking for; Firebase Cloud
+              Messaging, which delivers notifications; Google sign-in; and Google Play, which sells Shaadi24+ on
+              Android;</li>
+            <li>Apple: Sign in with Apple, the App Store and its notification service on iPhone; and</li>
+            <li>an email service, to send sign-up codes and password resets.</li>
+          </List>
+        </li>
+        <li><strong>The authorities</strong>, when Indian law requires it: for example, government agencies lawfully
+          authorised to ask for information to verify identity or to prevent, detect, investigate or prosecute offences
+          (IT Rules 2021, rule 3(1)(j)), and courts.</li>
+        <li>If {LEGAL.brand} is ever sold or merged, your data would go to the new owner under this policy, and we would
+          tell you first.</li>
+      </List>
+    </Section>
 
-        <Section title="2. What information we collect">
-          <p>We collect the following categories of personal data:</p>
-          <ul className="list-disc list-inside space-y-1 ml-2">
-            <li><strong>Account data:</strong> email address, password (hashed, if you set one), date of registration. If you sign in with Google or Apple, they tell us your name, email address and an identifier for your Google or Apple account; with Apple you can hide your email address, and we then get an address at Apple's private relay that forwards to you. For Sign in with Apple we also keep a token from Apple, used only to end Sign in with Apple for Shaadi24 when you delete your account</li>
-            <li><strong>Profile data:</strong> name, date of birth (other members only ever see your age), gender, sexuality, marital status, children, height, where you live (country, state, city), hometown, photos, bio, and roughly 80 other optional profile attributes you choose to share (lifestyle, personality, relationship preferences, etc.)</li>
-            <li><strong>Background and family details (all optional):</strong> religion, mother tongue, caste or community, sub-caste, sect or denomination, gotra, whether you are open to marrying outside your community, horoscope details (Manglik status, rashi, nakshatra, time and place of birth), education, occupation, annual income, residential status abroad, family details (family type, status and values, your parents' occupations, brothers and sisters, where your family lives) and any disability you choose to mention</li>
-            <li><strong>Activity data:</strong> likes you send and receive, matches, messages, search queries, login history</li>
-            <li><strong>Technical data:</strong> IP address, browser type, device information, cookies (see Section 8). If you turn on notifications, a notification token for your browser or phone (on phones, from Google's Firebase Cloud Messaging), whether the phone is an Android phone or an iPhone, and the version of our app</li>
-            <li><strong>Error reports:</strong> when something goes wrong in the app or on the website, it tells us what the error was, where in our code it happened, which screen you were on, the version of the app, and the kind of phone or computer and browser (for example "Android 14, Chrome 141"). Not who you are: we keep no account, name or IP address with it, and email addresses, phone numbers, IDs and other long numbers are blanked out before it leaves your device. The same error from many people adds up to one report</li>
-            <li><strong>Payment data:</strong> Shaadi24+ is bought in our Android and iPhone apps, and Google Play or Apple processes the payment; we never see your card, UPI or bank details. We receive and keep the purchase details they send us (the purchase or order IDs, the plan, amounts and currency, dates, whether it renews, refunds), linked to your account by your account's ID, which we pass with the purchase. We also record the fees the stores charge us.</li>
-          </ul>
-          <p className="mt-2">
-            Some categories — religion, caste or community, sexuality, ethnicity, disability and other
-            health-related fields — are considered "special category" data under GDPR, and your
-            income and horoscope details are personal too. All of them are optional. We process them
-            only because you have given explicit consent by entering them into your profile, and only
-            for the matchmaking purpose. You can hide any answer: hidden answers are never shown to
-            other members and nobody can search or filter by them, but they still help us pick your
-            own matches. You can change or delete any answer at any time.
-          </p>
-          <p className="mt-2">
-            If you create a profile for someone else (a son, daughter, brother, sister, relative or
-            friend), you must have their permission, and the profile must describe them.
-          </p>
-        </Section>
+    <Section title="4. Where your data is kept">
+      <p>Your profile, photos, messages and the rest of your account are kept on servers in {LEGAL.dataRegion}. Some
+        service providers in section 3 (such as Google, Apple and Vercel) process some data outside India, for
+        example the text of a search or a notification on its way to your phone. The DPDP Act allows this except to
+        countries the Government of India restricts, and we require them to protect the data.</p>
+    </Section>
 
-        <Section title="3. Why we process your data">
-          <p>We use your data for:</p>
-          <ul className="list-disc list-inside space-y-1 ml-2">
-            <li>Creating your account and providing the matchmaking service</li>
-            <li>Showing relevant profiles to you and your profile to relevant others</li>
-            <li>Enabling chat between matched users</li>
-            <li>Verifying account identity to prevent fraud and abuse</li>
-            <li>Processing subscription payments (Pro tier)</li>
-            <li>Sending essential service emails (account verification, security alerts)</li>
-            <li>Sending optional notifications (new matches, messages, super-likes) — only if you turn them on; you can turn them off any time in Settings or in your phone's settings</li>
-            <li>Finding and fixing errors in the app and the website (error reports)</li>
-            <li>Investigating reports and enforcing community guidelines</li>
-            <li>Complying with legal obligations</li>
-          </ul>
-        </Section>
+    <Section title="5. How we keep it safe">
+      <p>Data is encrypted on its way to and from our servers (HTTPS) and where it is stored; database rules let each
+        member read only what they are allowed to; few people on our team can reach members' data, and their actions
+        are logged. These are the reasonable security practices the IT Rules ask for.</p>
+      <p>If a breach of personal data ever happens, we will tell the affected members and the Data Protection Board of
+        India without delay, as the DPDP Rules require (with a full report to the Board within 72 hours), and report it
+        to CERT-In, India's computer emergency response team.</p>
+    </Section>
 
-        <Section title="4. Legal basis for processing">
-          <p>Under GDPR, we process your data on the following legal bases:</p>
-          <ul className="list-disc list-inside space-y-1 ml-2">
-            <li><strong>Contract:</strong> processing required to deliver the service you signed up for</li>
-            <li><strong>Consent:</strong> for special-category data (religion, sexuality, etc.), marketing emails, and optional cookies</li>
-            <li><strong>Legitimate interests:</strong> security, fraud prevention, and basic analytics</li>
-            <li><strong>Legal obligation:</strong> where required by law (e.g., responding to legal requests)</li>
-          </ul>
-        </Section>
+    <Section title="6. How long we keep it">
+      <List>
+        <li>While your account is open, we keep your data so that {LEGAL.brand} works for you. You can delete any
+          optional answer, photo or your whole account at any time.</li>
+        <li><strong>When you delete your account</strong>, your profile, photos, likes, matches, messages and searches
+          are deleted straight away, and from our backups within 30 days.</li>
+        <li><strong>What Indian law requires us to keep after that</strong>, kept apart, seen by nobody at{' '}
+          {LEGAL.brand} except to answer a lawful request, and then deleted:
+          <List>
+            <li>a registration record (your name, email address, date of birth, gender, city, when you joined and
+              left, and the internet addresses you used to set up and use your profile) for one year after the account
+              is deleted. The IT Rules 2021 require registration details to be kept for 180 days after an account ends
+              (rule 3(1)(h)), the Government's advisory for matrimonial websites asks for the address used to set up
+              a profile to be kept for one year, and the DPDP Rules require records of processing to be kept for one
+              year (rule 8(3));</li>
+            <li>anything removed after a complaint or report, with the records about it, for 180 days, or longer if a
+              court or lawfully authorised agency asks (IT Rules, rule 3(1)(g));</li>
+            <li>records of Shaadi24+ purchases, for up to 8 years, as tax and accounting laws require;</li>
+            <li>records of the consents you gave, for up to 3 years after your account ends, to show what you agreed
+              to; and</li>
+            <li>complaints to our Grievance Officer and our answers, for 3 years after each complaint is closed.</li>
+          </List>
+        </li>
+        <li>Error reports carry nothing that identifies you; we keep at most 5,000 of them.</li>
+      </List>
+    </Section>
 
-        <Section title="5. How we share your data">
-          <p>We share data with the following categories of recipients:</p>
-          <ul className="list-disc list-inside space-y-1 ml-2">
-            <li><strong>Other users:</strong> your profile (excluding fields you mark hidden, and never your date of birth) is visible to other users in search results and matches. Other members can filter search results by answers you show, such as religion, mother tongue, caste or community, marital status, height, Manglik status, diet and where you live</li>
-            <li><strong>Supabase (database & auth):</strong> our backend hosting provider, EU/US infrastructure</li>
-            <li><strong>Vercel (web hosting):</strong> hosts the website and serves it from edge locations worldwide</li>
-            <li><strong>Google (Gemini AI):</strong> the text you type into search is sent to Google's Gemini AI to work out what you're looking for, with emails and phone numbers removed. With it we send the list of answers members have chosen for the searchable questions (for example "Tamil, Marathi" for mother tongue), never names, photos, or which answer belongs to whom. Nothing else from your account or profile is sent. We use Google's free tier, under which Google may use this text to improve its services, so please don't type personal details into search</li>
-            <li><strong>Google and Apple (sign-in):</strong> if you choose "Continue with Google" or "Continue with Apple", they confirm who you are under their own privacy policies and tell us your name and email address. We never see your Google or Apple password</li>
-            <li><strong>Google Play and Apple (app payments):</strong> process Pro subscriptions bought in our Android and iPhone apps under their own privacy policies; we exchange the purchase details with them to check purchases and keep subscriptions current</li>
-            <li><strong>Google Firebase Cloud Messaging and Apple Push Notification service (notifications):</strong> if you turn on notifications in our app, each notification (for example "It's a match! You and Priya liked each other") goes with your phone's notification token to Google's Firebase Cloud Messaging, which delivers it to Android phones itself and to iPhones through Apple's push service. Message notifications never include what was written</li>
-            <li><strong>Resend (email):</strong> sends transactional emails — when configured with a real domain</li>
-            <li><strong>Law enforcement:</strong> only when legally compelled (court order, subpoena)</li>
-          </ul>
-          <p className="mt-2">
-            We <strong>do not sell</strong> your personal data to anyone, ever. We do not run ads
-            on the platform.
-          </p>
-        </Section>
+    <Section id="rights" title="7. Your rights, and how to use them">
+      <p>Under the DPDP Act you have these rights. Most can be used in the app at once; for the rest, write to{' '}
+        <Mail to={LEGAL.privacyEmail} /> from your account's email address, or use the form on our{' '}
+        <a className={linkClass} href="/grievances">Grievance Redressal</a> page.</p>
+      <List>
+        <li><strong>See your data and get a copy</strong>: Settings → Download my data gives you everything we hold
+          about you, and who we share it with is in section 3.</li>
+        <li><strong>Correct or complete it</strong>: edit your profile in My Profile.</li>
+        <li><strong>Erase it</strong>: delete answers or photos in My Profile, or your whole account in Settings →
+          Delete Account or on our <a className={linkClass} href="/delete-account">Delete account</a> page (except what
+          section 6 says the law requires us to keep).</li>
+        <li><strong>Withdraw your consent</strong>, as easily as you gave it: turn off notifications or emails from us
+          in Settings, delete sensitive answers, or delete your account. Withdrawing doesn't affect what was done
+          before, but without the consent to use your basic profile we can't provide {LEGAL.brand}.</li>
+        <li><strong>Nominate someone</strong> to use these rights for you if you die or become unable to: write to us
+          with their name and contact details.</li>
+        <li><strong>Have your complaints answered</strong>: our Grievance Officer answers within 7 days, and always
+          within the 90 days the DPDP Rules allow. If you're not satisfied, you can complain to the{' '}
+          <strong>Data Protection Board of India</strong> once you have used our grievance process.</li>
+      </List>
+      <p>If a member has a lawful guardian, the guardian can use these rights for them. We may ask you to confirm who
+        you are before we act on a request.</p>
+    </Section>
 
-        <Section title="6. International data transfers">
-          <p>
-            Some of our service providers (Vercel, Supabase, Google, Apple) operate globally and may transfer your
-            data outside the European Economic Area. When this happens, we rely on Standard
-            Contractual Clauses approved by the European Commission, or the recipient country's
-            adequacy decision, to ensure your data is protected.
-          </p>
-        </Section>
+    <Section title="8. Children">
+      <p>{LEGAL.brand} is only for people of the legal age to marry in India: men of 21 or older and women of 18 or
+        older (members of any other gender, 21 or older). We don't knowingly collect data about children or anyone
+        younger than that, and we delete such profiles when we find them. If you know of one, please report it.</p>
+    </Section>
 
-        <Section title="7. How long we keep your data">
-          <ul className="list-disc list-inside space-y-1 ml-2">
-            <li><strong>Active account:</strong> as long as you use the service</li>
-            <li><strong>Deleted account:</strong> within 30 days of deletion request. Some records (transactions, fraud-prevention logs) may be retained for up to 7 years where legally required.</li>
-            <li><strong>Error reports:</strong> we keep at most 5,000; once there are that many, each new one takes the place of the one seen longest ago</li>
-            <li><strong>Consent records:</strong> for the duration of our legal obligation to demonstrate compliance (typically 6 years)</li>
-            <li><strong>Backups:</strong> regularly overwritten; deleted data is gone within 30 days even from backups</li>
-          </ul>
-        </Section>
+    <Section title="9. On your device">
+      <p>The apps and the website keep your sign-in and settings on your device so you stay signed in. The website
+        shows a cookie notice, and uses no advertising or tracking cookies; any optional analytics stays off unless you
+        turn it on. Notifications are sent only if you turn them on, and you can turn them off in Settings or in your
+        phone's settings. Emails with tips and news are sent only if you agreed, and you can stop them in Settings.</p>
+    </Section>
 
-        <Section title="8. Cookies and tracking">
-          <p>We use cookies and similar technologies for:</p>
-          <ul className="list-disc list-inside space-y-1 ml-2">
-            <li><strong>Essential (always on):</strong> keeping you logged in, security tokens, basic functionality</li>
-            <li><strong>Analytics (optional):</strong> understanding how the service is used to improve it — disabled by default until you consent</li>
-            <li><strong>Marketing (optional):</strong> currently unused, but reserved for future promotional features — disabled by default</li>
-          </ul>
-          <p className="mt-2">
-            You can change your cookie preferences anytime via Settings → Privacy.
-          </p>
-        </Section>
+    <Section title="10. Changes to this policy">
+      <p>We tell you about changes in the app. If we start using your data in a new way, or change this policy in a way
+        that matters, we ask you to read and accept it before you continue. We also remind you of this policy at
+        least once a year.</p>
+    </Section>
 
-        <Section title="9. Your rights under GDPR">
-          <p>You have the following rights:</p>
-          <ul className="list-disc list-inside space-y-1 ml-2">
-            <li><strong>Access:</strong> request a copy of all personal data we hold about you</li>
-            <li><strong>Rectification:</strong> correct inaccurate data (most fields are editable directly in your profile)</li>
-            <li><strong>Erasure ("right to be forgotten"):</strong> delete your account at any time via Settings → Delete Account, or without the app on our website's Delete account page (/delete-account), with a code we email you. If you signed in with Apple, this also ends Sign in with Apple for Shaadi24</li>
-            <li><strong>Restriction:</strong> ask us to temporarily stop processing your data</li>
-            <li><strong>Portability:</strong> receive your data in a machine-readable format</li>
-            <li><strong>Objection:</strong> object to processing based on legitimate interests</li>
-            <li><strong>Withdraw consent:</strong> at any time, by changing settings or contacting us</li>
-            <li><strong>Complain:</strong> lodge a complaint with your local data protection authority</li>
-          </ul>
-          <p className="mt-2">
-            To exercise any of these rights, email <a href="mailto:privacy@shaadi24.com" className="text-blue-600 dark:text-blue-400 underline">privacy@shaadi24.com</a>. We will respond within 30 days.
-          </p>
-        </Section>
+    <Section title="11. Contact">
+      <List>
+        <li>Questions about your personal data, and requests: <Mail to={LEGAL.privacyEmail} /></li>
+        <li>Grievance Officer: {LEGAL.grievanceOfficer.name}, <Mail to={LEGAL.grievanceEmail} /></li>
+        <li>{LEGAL.operator}, {orPending(LEGAL.address)}</li>
+      </List>
+      <p>This policy is in English, and the English text is the one that applies. A Hindi summary is below; ask us for
+        it in any language of the Eighth Schedule to the Constitution.</p>
+    </Section>
 
-        <Section title="10. Security">
-          <p>
-            We protect your data with industry-standard security measures including encrypted
-            transit (HTTPS/TLS), encrypted storage at rest, row-level security policies on the
-            database, and access controls limiting which engineers can view production data.
-          </p>
-          <p>
-            However, no system is 100% secure. If we ever experience a data breach affecting your
-            personal data, we will notify you and the relevant authorities within 72 hours, as
-            required by GDPR.
-          </p>
-        </Section>
-
-        <Section title="11. Children's privacy">
-          <p>
-            Shaadi24 is intended only for users 18 years and older. We do not knowingly collect
-            data from children under 18. If you become aware that a child has provided us with
-            personal data, please contact us immediately and we will delete it.
-          </p>
-        </Section>
-
-        <Section title="12. Changes to this policy">
-          <p>
-            We may update this Privacy Policy from time to time. Significant changes will be
-            notified to you by email and in the app. The "Last updated" date at the top of this
-            document indicates when it was last revised.
-          </p>
-        </Section>
-
-        <Section title="13. Contact">
-          <p>
-            Questions about this policy or your data:<br />
-            <a href="mailto:privacy@shaadi24.com" className="text-blue-600 dark:text-blue-400 underline">privacy@shaadi24.com</a>
-          </p>
-        </Section>
-
-        <div className="border-t border-gray-200 dark:border-zinc-800 pt-6 mt-10 text-center">
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            This document was last updated on October 6, 2026 and is identified internally as {PRIVACY_VERSION}.
-          </p>
-        </div>
-      </main>
-    </div>
-  );
-};
+    <HindiSummary>
+      <p>हम आपकी जानकारी का उपयोग केवल आपकी प्रोफ़ाइल दिखाने और आपके लिए विवाह योग्य मैच खोजने के लिए करते हैं। आपका डेटा मुंबई,
+        भारत में स्थित सर्वरों पर रखा जाता है। हम इसे कभी बेचते नहीं और कोई विज्ञापन नहीं दिखाते।</p>
+      <p>धर्म, जाति, स्वास्थ्य या आपकी रुचि (आप किससे विवाह करना चाहते हैं) जैसी संवेदनशील जानकारी का उपयोग केवल आपकी सहमति से
+        होता है, जिसे आप कभी भी वापस ले सकते हैं। आप ऐप में अपना डेटा देख, डाउनलोड, सुधार और हटा सकते हैं।</p>
+      <p>खाता हटाने पर प्रोफ़ाइल, फ़ोटो और संदेश तुरंत हटा दिए जाते हैं; कानून के अनुसार पंजीकरण का एक छोटा रिकॉर्ड एक वर्ष तक
+        सुरक्षित रखा जाता है। शिकायत के लिए हमारे शिकायत निवारण अधिकारी से संपर्क करें; संतुष्ट न होने पर भारतीय डेटा संरक्षण बोर्ड
+        में शिकायत कर सकते हैं।</p>
+    </HindiSummary>
+  </LegalLayout>
+);
 
 export default PrivacyView;

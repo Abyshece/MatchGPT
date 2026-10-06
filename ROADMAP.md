@@ -446,7 +446,7 @@ Part 8 done 2026-10-06: **the members' app inside the admin panel**, to see that
 
 Part 9 done 2026-10-06: **required answers, and free searches for filling in the profile.**
 
-- [x] **16 answers every member gives** before using the app (`lib/profileRewards.ts`): who the profile
+- [x] **16 answers every member gives** (15 since part 11, without "looking for") before using the app (`lib/profileRewards.ts`): who the profile
   is for, name, date of birth, gender, interested in, looking for, marital status, height, country,
   state (in India) and city, religion, mother tongue, highest qualification, occupation, and at least
   30 characters about themselves. Sign-up asks for them (height and the five on the details pages are
@@ -496,6 +496,43 @@ panel, at phone and desktop width, in light and dark (over 100 screenshots).
   reads "Joined … · N searches today · N likes today" (lines started with "·"); the chat's
   Shift+Enter hint is hidden on touch screens.
 
+Part 11 done 2026-10-06: **Indian law: the legal pages, and the app made to follow them.** The report,
+with what's left for you and a lawyer: [docs/legal/README.md](docs/legal/README.md).
+
+- [x] **Five legal pages**, on the website (`/terms`, `/privacy`, `/grievances`, `/safety`, `/refunds`)
+  and in the apps, each with a summary in Hindi: the Terms and Privacy Policy rewritten for Indian law
+  (the IT Rules 2021 as amended in February 2026, the DPDP Act 2023 and its Rules, the SPDI Rules 2011,
+  the Government's advisory for matrimonial websites, consumer law), and new Grievance Redressal,
+  Community Guidelines and Safety, and Refund and Cancellation pages.
+- [x] **Marriage only**: "Looking for" (casual, friendship…) is gone from sign-up, the profile, the
+  filters and search, and the database keeps every profile at Marriage. The home page and the welcome
+  screen say Shaadi24 is for marriage only, not dating.
+- [x] **The legal age to marry**: 21 for men, 18 for women, checked in the app and by the database.
+  Anyone under it is hidden from everyone and told why (one live profile was).
+- [x] **A consent screen** with separate ticks, none ticked in advance: the Terms and Privacy Policy;
+  looking to marry, with true details; the legal age; the sensitive details; emails (optional). Each is
+  recorded with the internet address it came from, and asked again when the documents change. A profile
+  made for a family member needs a tick that they know and agree.
+- [x] **The rules every three months**, as the IT Rules now ask.
+- [x] **Complaints to the Grievance Officer**, from members and anyone else: a ticket at once and the
+  law's deadline (2 hours for intimate images or impersonation, 36 hours for unlawful content, a month
+  for payments, 7 days for the rest), an alert for admins, and **Admin → Complaints**. Reports have two
+  new reasons (intimate or morphed photos; dowry), and Admin → Reports shows the time left on each. The
+  app's menu links Terms, Privacy, Safety and Complaints.
+- [x] **What's kept after an account goes**: a registration record for a year, what a ban removes for
+  180 days, consents and complaints for 3 years, deleted by a daily job when their time is up.
+- [x] Checked: 21 new database checks (135 in all), a new browser test (`tests/e2e/legal-pages.mjs`), the
+  consent test extended (updated Terms, the reminder, a man under 21), the other tests updated, and the
+  full browser run (28 suites) and the accessibility check (48 screens) passed. Migrations
+  `20261006181147_phase10_india_law`, `20261006183822_phase10_india_law_grievances` and
+  `20261006185006_phase10_india_law_retention` are applied live; `search`, `send-push` and
+  `delete-account` were redeployed.
+- [ ] **Owner: the daily clean-up job.** Its migration
+  (`supabase/migrations/20261006185100_phase10_india_law_purge.sql`) deletes data, and Supabase's tool
+  here waits for a confirmation it can't get, so it isn't live yet. Paste the file into Supabase → SQL
+  Editor and run it. Nothing is due to be deleted before April 2027 (a ban's records are kept 180
+  days), so there's time, but do it before launch.
+
 **Still to do**
 
 - [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.
@@ -515,8 +552,14 @@ panel, at phone and desktop width, in light and dark (over 100 screenshots).
     asking;
   - "signed-out visitors can run `report_error`": on purpose, so errors before sign-in are reported
     too. It only adds to the error table, within its limits, and returns nothing;
+  - "signed-out visitors can run `submit_grievance`": on purpose, as anyone may complain to the
+    Grievance Officer (IT Rules 2021, rule 3(2)). It only adds a complaint, within its limits (5 a day
+    from one email address, 10 from one internet address);
   - "RLS enabled, no policy" on the tables only the server uses.
-- [ ] Legal review of Terms and Privacy. (The mobile and accessibility check is done: Phase 10, part 5.)
+- [ ] **Owner:** what [docs/legal/README.md](docs/legal/README.md) asks of you before launch: the
+  operator's legal name and address, the Grievance Officer's name and phone, working mailboxes, CERT-In,
+  keeping logs for 180 days, the trade mark. Then a lawyer's review (its "For the lawyer" list). (The
+  mobile and accessibility check is done: Phase 10, part 5.)
 
 ## Phase 11 — Payments (Shaadi24+ via Razorpay) — dropped 2026-10-05
 Built 2026-09-27 for the website, but never switched on. On 2026-10-05 you decided Shaadi24+ is sold

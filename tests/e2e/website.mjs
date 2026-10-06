@@ -79,7 +79,8 @@ try {
   check(await page.getByText('Coming soon to').count() === 2, '"Coming soon" until the store addresses are set');
   check(await page.getByRole('heading', { level: 2 }).count() === 4, 'what Shaadi24 does, in four parts');
   const footer = await page.getByRole('navigation', { name: 'About Shaadi24' }).locator('a').evaluateAll((as) => as.map((a) => a.getAttribute('href')));
-  check(['/support', '/privacy', '/terms', '/delete-account', '/admin'].every((h) => footer.includes(h)), `the footer's pages (${footer.join(' ')})`);
+  check(['/support', '/privacy', '/terms', '/grievances', '/safety', '/refunds', '/delete-account', '/admin'].every((h) => footer.includes(h)),
+    `the footer's pages (${footer.join(' ')})`);
   check(await page.getByRole('button', { name: /Sign in|Create Account/ }).count() === 0
     && await page.getByPlaceholder(/Describe your ideal match/).count() === 0, 'no member sign-in and no search box');
   await page.waitForTimeout(1500);

@@ -41,8 +41,8 @@ const EXAMPLE_PROMPTS = [
   'Marathi-speaking engineer in Pune',
   'Never married, vegetarian, under 30',
   'Show me all online matches',
-  'Find coffee lovers',
-  'Find an ambitious introvert',
+  'Family-oriented doctor in Delhi',
+  'Settled abroad, open to relocating',
   'Most compatible matches',
 ];
 
@@ -266,10 +266,10 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
           <div className="text-center mb-10 animate-fade-in">
             <div className="text-6xl mb-4">✨</div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">
-              Find your meaningful match
+              Find your life partner
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Search by personality, interests, or vibe.
+              Search by community, profession, family values or anything you're looking for.
             </p>
           </div>
         ) : (

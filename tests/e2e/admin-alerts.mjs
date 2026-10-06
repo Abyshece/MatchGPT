@@ -1,7 +1,7 @@
 // Admins hear about new reports and verification requests (migration
 // …_phase10_admin_alerts), against the local stack:
 //   - a report queues one notification for each admin, in general words (the
-//     reason, never names), with its own title when someone may be under 18;
+//     reason, never names), with its own title when someone may be under age;
 //     nothing for whoever reported, for other members, or for an admin with
 //     notifications off
 //   - a verification request queues one; updating it while it waits doesn't
@@ -140,8 +140,8 @@ try {
 
   r = await rest(jwtA, 'POST', 'reports', { reporter_id: A, reported_id: B, reason: 'underage' });
   got = alerts(ADMIN_ID);
-  check(got.length === 2 && got[1].title === '🚨 Report: someone may be under 18' && got[1].body === 'Reason: Underage user. Open Admin → Reports.',
-    `someone maybe under 18 gets its own title ("${got[1]?.title}")`);
+  check(got.length === 2 && got[1].title === '🚨 Report: someone may be under age' && got[1].body === 'Reason: Underage user. Open Admin → Reports.',
+    `someone maybe under age gets its own title ("${got[1]?.title}")`);
 
   r = await rest(jwtAdmin, 'POST', 'reports', { reporter_id: ADMIN_ID, reported_id: B, reason: 'spam' });
   check(r.status === 201 && alerts(ADMIN_ID).length === 2, 'an admin who reports isn\'t told about their own report');

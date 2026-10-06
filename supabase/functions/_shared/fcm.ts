@@ -34,7 +34,7 @@ export function fcmConfig(): FcmConfig | null {
 
 export interface PhonePush {
   token: string;
-  eventType: string;  // new_message, new_match, super_like; admin_report, admin_verification
+  eventType: string;  // new_message, new_match, super_like; admin_report, admin_verification, admin_grievance
   title: string;
   body: string;
   data: Record<string, unknown> | null;
@@ -45,7 +45,7 @@ export interface PhonePush {
 // one more, for reports and verification requests to review
 const CHANNEL: Record<string, string> = {
   new_message: 'messages', new_match: 'matches', super_like: 'likes',
-  admin_report: 'admin', admin_verification: 'admin',
+  admin_report: 'admin', admin_verification: 'admin', admin_grievance: 'admin',
 };
 const BRAND_ORANGE = '#F97316';
 

@@ -381,7 +381,7 @@ check ALLOWED "N43 the daily job moves ages on at birthdays" service_role "" "" 
     where date_of_birth is not null and age is distinct from public.age_on_today(date_of_birth);
    select 'age=' || age from public.profiles where id = '$USER_X';" "age=30"
 check BLOCKED "N44 a date of birth under 18 is refused" authenticated "$USER_X" "x@example.com" \
-  "update public.profiles set date_of_birth = current_date - interval '17 years' where id = '$USER_X';" "profiles_age_check"
+  "update public.profiles set gender = 'Female', date_of_birth = current_date - interval '17 years' where id = '$USER_X';" "profiles_age_check"
 check ALLOWED "N45 height in cm follows the height (and can't be set on its own)" authenticated "$USER_X" "x@example.com" \
   "update public.profiles set height = '5'' 8\" (173 cm)', height_cm = 250 where id = '$USER_X';
    select 'cm=' || height_cm from public.profiles where id = '$USER_X';
@@ -474,5 +474,91 @@ check ALLOWED "N60 the horoscope counts only for the religions that use one" aut
    update public.profiles set religion = 'Hindu' where id = '$USER_X';
    select 'hindu=' || (select s ->> 'total' from jsonb_array_elements(public.my_profile_sections() -> 'sections') s where s ->> 'id' = 'community');" "christian=4
 hindu=10"
+check BLOCKED "N61 a man under 21 is refused (the legal age to marry)" authenticated "$USER_X" "x@example.com" \
+  "update public.profiles set gender = 'Male', date_of_birth = current_date - interval '20 years' where id = '$USER_X';" \
+  "legal ages to marry in India"
+check ALLOWED "N62 a woman of 19 is welcome" authenticated "$USER_X" "x@example.com" \
+  "update public.profiles set gender = 'Female', date_of_birth = ((now() at time zone 'Asia/Kolkata')::date - interval '19 years')::date where id = '$USER_X';
+   select 'age=' || age || ' paused=' || coalesce(is_paused, false) from public.profiles where id = '$USER_X';" "age=19 paused=false"
+check BLOCKED "N63 a woman of 19 can't change her gender to a man's" authenticated "$USER_X" "x@example.com" \
+  "update public.profiles set gender = 'Female', date_of_birth = current_date - interval '19 years' where id = '$USER_X';
+   update public.profiles set gender = 'Male' where id = '$USER_X';" "legal ages to marry in India"
+check BLOCKED "N64 without a date of birth, a man's typed age under 21 is refused" authenticated "$USER_X" "x@example.com" \
+  "update public.profiles set gender = 'Male', date_of_birth = null, age = 30 where id = '$USER_X';
+   update public.profiles set age = 20 where id = '$USER_X';" "legal ages to marry in India"
+check ALLOWED "N65 a man already under 21 stays hidden, and other changes still save" authenticated "$USER_X" "x@example.com" \
+  "reset role; set local session_replication_role = replica;
+   update public.profiles set gender = 'Male', date_of_birth = current_date - interval '20 years', age = 20, is_paused = true where id = '$USER_X';
+   set local session_replication_role = origin; set local role authenticated;
+   update public.profiles set is_paused = false, city = 'Pune' where id = '$USER_X';
+   select 'paused=' || is_paused || ' city=' || city from public.profiles where id = '$USER_X';" "paused=true city=Pune"
+check ALLOWED "N66 every profile is for marriage" authenticated "$USER_X" "x@example.com" \
+  "update public.profiles set dating_intention = 'Casual / Dating' where id = '$USER_X';
+   select 'intention=' || dating_intention from public.profiles where id = '$USER_X';" "intention=Marriage"
+check ALLOWED "N67 signed-out visitor complains: a ticket at once, 2 hours for intimate images" anon "" "" \
+  "select 'ticket=' || (g ->> 'ticket' like 'SH24-%') || ' hours=' || extract(epoch from (g ->> 'due_at')::timestamptz - (g ->> 'acknowledged_at')::timestamptz) / 3600
+     from public.submit_grievance('intimate_images', 'Asha', 'Asha@Example.com', 'Someone posted my private photos.') g;
+   reset role; select 'stored=' || email || ' admins_told=' || (select count(*) from public.push_queue where event_type = 'admin_grievance') from public.grievances;" \
+  "ticket=true hours=2"
+check ALLOWED "N68 the deadline follows the complaint: 36 hours, a month, 7 days" authenticated "$USER_X" "x@example.com" \
+  "select string_agg(extract(epoch from public.grievance_due(c, now()) - now())::int / 3600 || 'h', ' ' order by c)
+     from unnest(array['dowry', 'payment', 'privacy']) c;" "36h 720h 168h"
+check BLOCKED "N69 signed-out visitor reads the complaints" anon "" "" \
+  "select count(*) from public.grievances;" "permission denied"
+check ALLOWED "N70 member sees only their own complaints" authenticated "$USER_X" "x@example.com" \
+  "reset role; insert into public.grievances (category, name, email, details, user_id, due_at)
+     values ('other', 'Someone', 'v@example.com', 'Not about user X at all.', '$OTHER', now()); set local role authenticated;
+   select public.submit_grievance('account', 'User X', 'x@example.com', 'I cannot change my email address.');
+   select 'mine=' || count(*) || ' email=' || max(email) from public.grievances;" "mine=1 email=x@example.com"
+check BLOCKED "N71 the sixth complaint of the day from one email address" anon "" "" \
+  "select public.submit_grievance('other', 'Spammer', 'spam@example.com', 'Complaint number ' || g) from generate_series(1, 6) g;" \
+  "several complaints today"
+check BLOCKED "N72 the eleventh complaint of the day from one internet address" anon "" "" \
+  "set local request.headers = '{\"cf-connecting-ip\": \"203.0.113.7\"}';
+   select public.submit_grievance('other', 'Spammer', 'spam' || g || '@example.com', 'Complaint number ' || g) from generate_series(1, 11) g;" \
+  "several complaints today"
+check BLOCKED "N73 member answers complaints (admins only)" authenticated "$USER_X" "x@example.com" \
+  "select count(*) from public.admin_grievances();" "only admins"
+check ALLOWED "N74 admin resolves a complaint, in the audit log" authenticated "$ADMIN" "owner@example.com" \
+  "select public.submit_grievance('fraud', 'Asha', 'asha@example.com', 'He asked me for money for his visa.');
+   select public.admin_update_grievance((select id from public.admin_grievances()), 'resolved', 'Profile removed; told the police.');
+   select 'open=' || (select count(*) from public.admin_grievances()) || ' all=' || (select count(*) from public.admin_grievances(false))
+     || ' audited=' || (select count(*) from public.admin_audit where action = 'grievance_resolved');" "open=0 all=1 audited=1"
+check BLOCKED "N75 member reads the records kept for the law" authenticated "$USER_X" "x@example.com" \
+  "select count(*) from public.legal_holds;" "permission denied"
+check BLOCKED "N76 member keeps a registration record (the server only)" authenticated "$USER_X" "x@example.com" \
+  "select public.keep_registration_record('$USER_X');" "permission denied"
+check ALLOWED "N77 consents keep the internet address they came from" authenticated "$USER_X" "x@example.com" \
+  "set local request.headers = '{\"cf-connecting-ip\": \"203.0.113.9\", \"x-forwarded-for\": \"10.0.0.1\"}';
+   insert into public.consent_records (user_id, event_type, consented) values ('$USER_X', 'terms_accepted', true);
+   select 'ip=' || host(ip_address) from public.consent_records where user_id = '$USER_X';" "ip=203.0.113.9"
+check ALLOWED "N78 deleting an account keeps its registration record for a year" service_role "" "" \
+  "reset role; insert into public.consent_records (user_id, event_type, consented, ip_address) values ('$USER_X', 'terms_accepted', true, '198.51.100.4');
+   insert into auth.audit_log_entries (id, payload, ip_address) values (gen_random_uuid(), '{\"actor_id\": \"$USER_X\"}', '192.0.2.1');
+   set local role service_role;
+   select public.keep_registration_record('$USER_X');
+   reset role; select 'kind=' || kind || ' email=' || (data ->> 'email') || ' ips=' || (data -> 'ip_addresses')::text
+     || ' year=' || (purge_after = created_at + interval '1 year') from public.legal_holds where user_id = '$USER_X';" \
+  'kind=registration email=x@example.com ips=["198.51.100.4", "192.0.2.1"] year=true'
+check ALLOWED "N79 a ban keeps what it removed for 180 days" authenticated "$ADMIN" "owner@example.com" \
+  "select public.admin_ban_user('$OTHER', 'Fake profile');
+   reset role; select 'kind=' || kind || ' reason=' || (data ->> 'reason') || ' name=' || (data -> 'profile' ->> 'name')
+     || ' days=' || (purge_after = created_at + interval '180 days') from public.legal_holds where user_id = '$OTHER';" \
+  "kind=removed_content reason=Fake profile name=Profile 00000000 days=true"
+check ALLOWED "N80 the daily job deletes what's past its time, and only that" service_role "" "" \
+  "reset role;
+   insert into public.legal_holds (kind, user_id, data, purge_after) values
+     ('registration', '$USER_X', '{}', now() - interval '1 day'), ('registration', '$OTHER', '{}', now() + interval '1 day');
+   insert into public.grievances (category, name, email, details, due_at, status, resolved_at) values
+     ('other', 'Old', 'old@example.com', 'Closed four years ago.', now(), 'resolved', now() - interval '4 years'),
+     ('other', 'Open', 'open@example.com', 'Still open from long ago.', now(), 'open', null);
+   insert into public.deletion_audit (deleted_user_id, requested_at) values (gen_random_uuid(), now() - interval '2 years'), (gen_random_uuid(), now());
+   set local role service_role;
+   select public.run_legal_retention()::text;
+   reset role; select 'holds=' || (select count(*) from public.legal_holds) || ' grievances=' || (select count(*) from public.grievances)
+     || ' deletions=' || (select count(*) from public.deletion_audit);" \
+  "holds=1 grievances=1 deletions=1"
+check BLOCKED "N81 member runs the daily deletion job" authenticated "$USER_X" "x@example.com" \
+  "select public.run_legal_retention();" "permission denied"
 echo
 if [[ $fails -eq 0 ]]; then echo "All checks passed."; else echo "$fails check(s) FAILED."; exit 1; fi

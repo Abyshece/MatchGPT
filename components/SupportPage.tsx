@@ -40,6 +40,8 @@ const SupportPage: React.FC = () => {
             <a className={link} href={`mailto:${PRIVACY_EMAIL}`}>{PRIVACY_EMAIL}</a>.</p>
           <p><strong className="text-gray-900 dark:text-white">Someone bothering you?</strong> Report them in the app
             (⋯ on their profile or in the chat → Report). We review every report within 24 hours.</p>
+          <p><strong className="text-gray-900 dark:text-white">A complaint?</strong> Our Grievance Officer answers on the{' '}
+            <a className={link} href="/grievances">Grievance Redressal</a> page, member or not.</p>
         </section>
 
         <section className="mt-8 divide-y divide-gray-200 dark:divide-zinc-800 border-y border-gray-200 dark:border-zinc-800">
@@ -57,6 +59,9 @@ const SupportPage: React.FC = () => {
         <nav className="mt-10 flex flex-wrap gap-x-5 gap-y-2 text-xs text-gray-500 dark:text-gray-400">
           <a className="underline hover:text-gray-900 dark:hover:text-white" href="/terms">Terms of Service</a>
           <a className="underline hover:text-gray-900 dark:hover:text-white" href="/privacy">Privacy Policy</a>
+          <a className="underline hover:text-gray-900 dark:hover:text-white" href="/grievances">Grievances</a>
+          <a className="underline hover:text-gray-900 dark:hover:text-white" href="/safety">Safety</a>
+          <a className="underline hover:text-gray-900 dark:hover:text-white" href="/refunds">Refunds</a>
           <a className="underline hover:text-gray-900 dark:hover:text-white" href="/delete-account">Delete your account</a>
         </nav>
       </main>

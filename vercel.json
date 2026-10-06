@@ -1,10 +1,40 @@
 {
   "rewrites": [
-    { "source": "/admin", "destination": "/index.html" },
-    { "source": "/app-preview", "destination": "/index.html" },
-    { "source": "/delete-account", "destination": "/index.html" },
-    { "source": "/support", "destination": "/index.html" },
-    { "source": "/privacy", "destination": "/index.html" },
-    { "source": "/terms", "destination": "/index.html" }
+    {
+      "source": "/admin",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/app-preview",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/delete-account",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/support",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/terms",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/grievances",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/safety",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/refunds",
+      "destination": "/index.html"
+    }
   ]
 }

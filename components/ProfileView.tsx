@@ -20,10 +20,11 @@ import {
   EDUCATION_LEVELS, EMPLOYED_IN, FAMILY_STATUS, FAMILY_TYPE, FAMILY_VALUES, FATHER_OCCUPATION, GENDERS, GOTRA_RELIGIONS,
   GOTRAS, HEIGHTS, HOBBY_GROUPS, HOROSCOPE_MATCH, INDIAN_STATES, INTERESTED_IN, LANGUAGES_SPOKEN, LIVING_WITH_FAMILY, MANGLIK,
   MARITAL_STATUS, MOTHER_OCCUPATION, MOTHER_TONGUES, NAKSHATRA, OCCUPATIONS, OPEN_TO_OTHER_COMMUNITIES,
-  PREFER_NOT_TO_SAY, PROFILE_CREATED_FOR, RASHI, RELATIONSHIP_INTENTS, RELIGIONS, RESIDENTIAL_STATUS, SECTS, SETTLING_ABROAD,
+  PREFER_NOT_TO_SAY, PROFILE_CREATED_FOR, RASHI, RELIGIONS, RESIDENTIAL_STATUS, SECTS, SETTLING_ABROAD,
   SIBLING_COUNTS, SUB_CASTES, educationLevelForDegree, type OptionGroup,
 } from '../lib/matrimonyOptions';
 import type { UserProfile } from '../types';
+import { belowMarriageAge, tooYoungMessage } from '../lib/legalAge';
 
 // The religions whose families often match horoscopes (as the database counts them)
 const HOROSCOPE_RELIGIONS = ['Hindu', 'Jain', 'Sikh', 'Buddhist'];
@@ -140,30 +141,34 @@ const ProfileView: React.FC = () => {
       showToast(`${REQUIRED_LABELS[editingField as keyof typeof REQUIRED_LABELS]} is required`, 'error');
       return;
     }
-    setSavingField(editingField as string);
+    // The legal age to marry in India depends on the gender (18 for women,
+    // 21 for men), so a new age, date of birth or gender is checked against it
+    const forSomeoneElse = (profile?.profileCreatedFor ?? 'Myself') !== 'Myself';
+    const tooYoung = (gender: string | undefined, age: number | null | undefined) =>
+      belowMarriageAge(gender, age) ? tooYoungMessage(gender, forSomeoneElse) : null;
+    const refuse = (message: string) => showToast(message, 'error');
 
     const change: Partial<UserProfile> = {};
     if (editingField === 'age' || editingField === 'nationalityCount') {
       const n = Number(editValue);
-      if (Number.isNaN(n)) {
-        showToast('Must be a number', 'error');
-        setSavingField(null);
-        return;
-      }
+      if (Number.isNaN(n)) return refuse('Must be a number');
+      const young = editingField === 'age' ? tooYoung(profile?.gender, n) : null;
+      if (young) return refuse(young);
       (change as Record<string, unknown>)[editingField] = n;
     } else if (editingField === 'dateOfBirth' && editValue !== '') {
       const age = ageFromDateOfBirth(String(editValue));
-      if (age === null || age < 18 || age > 99) {
-        showToast('Please choose a full date of birth (18 or older)', 'error');
-        setSavingField(null);
-        return;
-      }
+      if (age === null || age > 99) return refuse('Please choose a full date of birth');
+      const young = tooYoung(profile?.gender, age);
+      if (young) return refuse(young);
       change.dateOfBirth = String(editValue);
     } else {
+      const young = editingField === 'gender' ? tooYoung(String(editValue), profile?.age) : null;
+      if (young) return refuse(young);
       (change as Record<string, unknown>)[editingField] = editValue;
       if (profile) Object.assign(change, dependentChanges(profile, editingField, String(editValue)));
     }
 
+    setSavingField(editingField as string);
     const result = await updateProfile(session.user.id, change);
     setSavingField(null);
     if (result.error) {
@@ -426,7 +431,6 @@ const ProfileView: React.FC = () => {
               {renderRow('age', 'Age', undefined, 'number', [], { editable: !profile.dateOfBirth })}
               {renderRow('gender', 'Gender', undefined, 'select', GENDERS)}
               {renderRow('interestedIn', 'Interested in', undefined, 'select', INTERESTED_IN)}
-              {renderRow('datingIntention', 'Looking for', undefined, 'select', RELATIONSHIP_INTENTS)}
               {renderRow('maritalStatus', 'Marital status', undefined, 'select', MARITAL_STATUS)}
               {renderRow('children', 'Children', undefined, 'select', CHILDREN, {
                 display: formatChildren(profile.children, profile.childrenCount),

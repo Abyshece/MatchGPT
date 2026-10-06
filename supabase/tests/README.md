@@ -52,8 +52,9 @@ done
 
 `platform_stub.sql` stands in for the parts of Supabase the migrations rely on:
 the `anon` / `authenticated` / `service_role` roles, a minimal `auth.users`
-table with Supabase's `auth.uid()` / `auth.jwt()`, the `storage` tables, the
-realtime publication, a plain-text Vault and Supabase's default grants.
+table with Supabase's `auth.uid()` / `auth.jwt()`, Supabase Auth's sign-in log
+(`auth.audit_log_entries`), the `storage` tables, the realtime publication, a
+plain-text Vault and Supabase's default grants.
 
 ## Compare with the live database
 
