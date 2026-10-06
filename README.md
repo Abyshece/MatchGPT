@@ -21,6 +21,10 @@ in the apps, through Google Play and the App Store.
   apps run the same code (`App.tsx`, `components/`, `lib/`), and each screen loads the first time
   it's shown (`lib/lazyScreen.ts`). On the website (`lib/website.ts`, `components/website/`) members
   get the home page with the store links instead of the app, and admins sign in at `/admin`.
+- **App preview.** Admin → App Preview shows the members' app on the website, phone-sized (iPhone 16,
+  iPhone SE or Android), for admins only (`lib/appPreview.ts`, `/app-preview`). It runs on the live
+  data and keeps its own sign-in, so it can be tried with any account while the admin panel stays
+  signed in. Purchases, phone notifications and Google or Apple sign-in are tried in the phone apps.
 - **The phone apps.** [Capacitor](https://capacitorjs.com) wraps that code (`capacitor.config.ts`,
   `android/`, `ios/`).
 - **The backend.** [Supabase](https://supabase.com) (project `fmrbzzdjtarsaqvfukum`) provides:
@@ -130,7 +134,8 @@ on the server. They start once the app has its Firebase files (Firebase console 
 Your apps):
 
 - `android/app/google-services.json`;
-- `ios/App/App/GoogleService-Info.plist`, added to the App target in Xcode.
+- `ios/App/App/GoogleService-Info.plist`, added to the App target in Xcode. Builds from GitHub's Macs
+  (TestFlight) take it from the repository secret `FIREBASE_IOS_CONFIG` instead (the file's text).
 
 Without them the app still builds and runs, and says notifications are coming soon. Admins also get
 alerts for new reports and verification requests, on Android in a channel of their own.

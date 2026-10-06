@@ -18,6 +18,10 @@
 #   APPLE_TEAM_ID: developer.apple.com → Account → Membership details
 #   VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY: as in .env.production.local
 #   VITE_GOOGLE_IOS_CLIENT_ID (optional): Google sign-in on iPhones
+#   FIREBASE_IOS_CONFIG (optional): notifications on iPhones, the text of
+#     GoogleService-Info.plist (Firebase console → Project settings → Your
+#     apps → the iOS app com.shaadi24.app); without it the app says
+#     notifications are coming soon
 # Build numbers are the date and time (261006.1530), so each upload is higher
 # than the last; uploads from Xcode with package.json's build number would be
 # lower, so keep uploading from here.
@@ -70,6 +74,7 @@ jobs:
       VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
       VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
       VITE_GOOGLE_IOS_CLIENT_ID: ${{ secrets.VITE_GOOGLE_IOS_CLIENT_ID }}
+      FIREBASE_IOS_CONFIG: ${{ secrets.FIREBASE_IOS_CONFIG }}
       ARCHIVE: build/Shaadi24.xcarchive
     steps:
       - uses: actions/checkout@v4
@@ -113,6 +118,19 @@ jobs:
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY= \
             CURRENT_PROJECT_VERSION=${{ steps.mode.outputs.build }} \
             -quiet archive
+
+      # Firebase reads GoogleService-Info.plist from the app's top folder. The
+      # archive isn't signed yet, so the file can go in now, with no Xcode
+      - name: Firebase's file for notifications (when the secret is set)
+        if: env.FIREBASE_IOS_CONFIG != ''
+        run: |
+          PLIST="$ARCHIVE/Products/Applications/App.app/GoogleService-Info.plist"
+          printf '%s\n' "$FIREBASE_IOS_CONFIG" > "$PLIST"
+          plutil -lint "$PLIST" >/dev/null || { echo "::error::FIREBASE_IOS_CONFIG isn't a plist: paste the whole GoogleService-Info.plist"; exit 1; }
+          bundle=$(/usr/libexec/PlistBuddy -c 'Print :BUNDLE_ID' "$PLIST" 2>/dev/null)
+          [ "$bundle" = com.shaadi24.app ] \
+            || { echo "::error::FIREBASE_IOS_CONFIG is for $bundle, not com.shaadi24.app: download it from the iOS app com.shaadi24.app in Firebase"; exit 1; }
+          echo "GoogleService-Info.plist added (Firebase project $(/usr/libexec/PlistBuddy -c 'Print :PROJECT_ID' "$PLIST"))"
 
       # Signing at export takes the entitlements from the archived app's
       # signature, and an unsigned app has none: a placeholder signature

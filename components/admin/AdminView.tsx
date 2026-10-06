@@ -5,12 +5,15 @@ import {
   fetchPlatformStats, fetchReports, fetchAuditLog, setProForAll,
 } from '../../lib/adminService';
 import { useIsAdmin } from '../../lib/useIsAdmin';
+import { isNativeApp } from '../../lib/nativeApp';
+import { isAppPreview } from '../../lib/appPreview';
 import type { PlatformStats, ReportRow, AdminAuditRow } from '../../lib/adminService';
 import AdminUsersTab from './AdminUsersTab';
 import AdminReportsTab from './AdminReportsTab';
 import AdminVerificationsTab from './AdminVerificationsTab';
 import AdminFinanceTab from './AdminFinanceTab';
 import AdminErrorsTab from './AdminErrorsTab';
+import AdminAppTab from './AdminAppTab';
 
 // ============================================================================
 // AdminView
@@ -21,13 +24,21 @@ import AdminErrorsTab from './AdminErrorsTab';
 //   3. Verifications — identity checks waiting for a decision
 //   4. Users — search any user, take actions
 //   5. Finance — subscribers, revenue by month and seller, every charge (CSV)
+//   6. Errors — what the apps and the website reported
+//   7. App Preview — the members' app, phone-sized (website only)
 //
 // Access is decided by the database (is_admin(): the signed-in email must be
 // in admin_emails). If a non-admin somehow reaches this view they see "Access
 // denied", and the admin RPCs refuse them anyway.
 // ============================================================================
 
-export type AdminTab = 'dashboard' | 'reports' | 'verifications' | 'users' | 'finance' | 'errors';
+export type AdminTab = 'dashboard' | 'reports' | 'verifications' | 'users' | 'finance' | 'errors' | 'app';
+
+// The app preview opens the members' app from the website; inside the phone
+// apps and the preview itself, admins are in the members' app already
+const TABS: AdminTab[] = isNativeApp() || isAppPreview()
+  ? ['dashboard', 'reports', 'verifications', 'users', 'finance', 'errors']
+  : ['dashboard', 'reports', 'verifications', 'users', 'finance', 'errors', 'app'];
 
 // initialTab: the tab an admin alert opens (Dashboard)
 const AdminView: React.FC<{ initialTab?: AdminTab }> = ({ initialTab }) => {
@@ -98,7 +109,7 @@ const AdminView: React.FC<{ initialTab?: AdminTab }> = ({ initialTab }) => {
 
         {/* Tabs */}
         <div className="flex gap-1 mb-6 border-b border-gray-200 dark:border-zinc-800 overflow-x-auto">
-          {(['dashboard', 'reports', 'verifications', 'users', 'finance', 'errors'] as const).map((t) => (
+          {TABS.map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -108,7 +119,7 @@ const AdminView: React.FC<{ initialTab?: AdminTab }> = ({ initialTab }) => {
                   : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
               }`}
             >
-              {t}
+              {t === 'app' ? 'App preview' : t}
             </button>
           ))}
         </div>
@@ -129,6 +140,7 @@ const AdminView: React.FC<{ initialTab?: AdminTab }> = ({ initialTab }) => {
         {tab === 'users' && <AdminUsersTab onAuditUpdate={loadDashboard} />}
         {tab === 'finance' && <AdminFinanceTab />}
         {tab === 'errors' && <AdminErrorsTab onAuditUpdate={loadDashboard} />}
+        {tab === 'app' && <AdminAppTab />}
       </div>
     </div>
   );

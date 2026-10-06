@@ -6,6 +6,7 @@ import { emailLinkError, supabase } from './lib/supabase';
 import LandingView from './components/LandingView';
 import CookieBanner from './components/CookieBanner';
 import { BACK, isNativeApp, setNativeTheme, useBackHandler } from './lib/nativeApp';
+import { isAppPreview } from './lib/appPreview';
 import { startStoreSync, stopStoreSync } from './lib/storePurchases';
 import { onNotificationWhileOpen, startNativePush, stopNativePush } from './lib/nativePush';
 import { setErrorScreen } from './lib/errorReports';
@@ -308,7 +309,8 @@ const App: React.FC = () => {
             />
           </Suspense>
           {/* The apps use no cookies or trackers, so they don't ask about them */}
-          {!isNativeApp() && <CookieBanner onNavigateToPrivacy={() => setLegalPage('privacy')} />}
+          {/* Not in the phone apps, nor in the admin panel's preview of them */}
+          {!isNativeApp() && !isAppPreview() && <CookieBanner onNavigateToPrivacy={() => setLegalPage('privacy')} />}
         </div>
       </AuthProvider>
     </ToastProvider>

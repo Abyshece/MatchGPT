@@ -3,10 +3,10 @@
 13 phases in total. Phases 1–5, 7–9 and 12 are done, and Phase 6 is mostly done. **Phase 13 (the
 phone apps ready for the stores) is built. What's left of it is yours: the launch checklist in
 [docs/store/README.md](docs/store/README.md).** Phase 10 (launch readiness) is under way: parts 1 to
-7 are done (checks and a linter on every push, a faster first load, admin alerts, one switch for
+8 are done (checks and a linter on every push, a faster first load, admin alerts, one switch for
 Shaadi24+, tidier access rules, the whole journey tested, the README, Shaadi24+ sold only in the
 apps, the website as a home page with the admin panel, an accessibility check, error reports in
-Admin → Errors, and the new name, Shaadi24). The iPhone app goes to TestFlight from GitHub's Macs.
+Admin → Errors, the new name, Shaadi24, and the members' app inside the admin panel). The iPhone app goes to TestFlight from GitHub's Macs.
 AI search (Gemini) is built and live; it switches on once you add the `GEMINI_API_KEY` secret (Phase 9).
 Shaadi24+ is sold only in the apps, through Google Play and the App Store (Phase 13); Razorpay was
 dropped on 2026-10-05 (Phase 11).
@@ -24,7 +24,7 @@ Items left unfinished in earlier phases were moved into later ones, so each open
 | 7 | Make the backend safe and rebuildable | **Done** (3 small owner follow-ups) |
 | 8 | Finish half-built features | **Done** (owner checks listed) |
 | 9 | Smarter search that scales | **Done** (add the Gemini key to switch AI on) |
-| 10 | Launch readiness → public launch | **In progress** (parts 1–7 done 2026-10-06) |
+| 10 | Launch readiness → public launch | **In progress** (parts 1–8 done 2026-10-06) |
 | 11 | Payments (Shaadi24+ via Razorpay) | Dropped 2026-10-05: Shaadi24+ is sold only in the apps (Phase 13) |
 | 12 | Profile details for India (community, family, horoscope) | **Done** |
 | 13 | The phone apps, ready for Google Play and the App Store | **Built**; your launch checklist: [docs/store/README.md](docs/store/README.md) |
@@ -428,6 +428,21 @@ Part 7 done 2026-10-06: **the name is now Shaadi24** (it was MatchGPT), everywhe
   otherwise tell Claude which addresses to use. Shaadi.com is a big matrimony brand: have a lawyer check
   the name with the legal review.
 
+Part 8 done 2026-10-06: **the members' app inside the admin panel**, to see that everything works.
+
+- [x] **Admin → App Preview** shows the members' app on the website, phone-sized (iPhone 16, iPhone SE
+  or Android), scaled to fit the screen, with Reload and "Open in a new tab" (`/app-preview`). Only
+  someone signed in to the admin panel as an admin gets it (`is_admin()`); anyone else is told it's
+  for Shaadi24's admins. Members still use the phone apps.
+- [x] **Its own sign-in** (`lib/appPreview.ts`): any account can be tried in it, a test account or
+  your own, while the admin panel stays signed in; signing out of one leaves the other signed in.
+- [x] Like the phone apps: no cookie banner, and sign-in by email (Google's page can't open inside
+  the admin panel; Google and Apple sign-in, purchases and phone notifications are tried in the phone
+  apps). It runs on the live data, so what's done in it is real. Its errors show in Admin → Errors
+  as "app preview: …".
+- [x] Checked: a new browser test (`tests/e2e/app-preview.mjs`, 28 checks); the accessibility check
+  covers the tab.
+
 **Still to do**
 
 - [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.
@@ -596,7 +611,9 @@ Migrations `20261004094057_phase13_phone_notifications` (applied live) and `2026
   1. [console.firebase.google.com](https://console.firebase.google.com) → Add project (no Analytics
      needed). Add an Android app with package `com.shaadi24.app` → download `google-services.json`
      into `android/app/`. Add an iOS app with bundle ID `com.shaadi24.app` → download
-     `GoogleService-Info.plist`, and in Xcode drag it into the App folder (tick "App" under targets)
+     `GoogleService-Info.plist`, and in Xcode drag it into the App folder (tick "App" under targets),
+     or, with no Mac, paste its text into the GitHub secret `FIREBASE_IOS_CONFIG`: the TestFlight
+     build adds it
   2. Apple Developer → Certificates, Identifiers & Profiles → Keys → + → "Apple Push Notifications
      service (APNs)" → download the .p8 key (note its Key ID and your Team ID). Firebase → Project
      settings → Cloud Messaging → Apple app configuration → upload it

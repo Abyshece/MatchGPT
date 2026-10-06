@@ -5,7 +5,7 @@
 // VITE_MEMBERS_ON_WEB=true), in light and dark. Each screen must have no
 // serious or critical problems; moderate and minor ones are listed.
 //   - website: home, Help & Support, Delete account, Terms, admin sign-in,
-//     the admin panel and its Errors tab (with an error open)
+//     the admin panel, its Errors tab (with an error open) and its App Preview tab
 //   - app: the landing and sign-in screens; signed in (an onboarded account,
 //     password TestPass!2026): Find Match with results, filters, a profile,
 //     Likes You, Matches and a chat, Standouts, My Profile, Settings,
@@ -88,6 +88,10 @@ try {
     await page.getByTestId('admin-error').first().waitFor({ timeout: 15000 });
     await page.getByTestId('admin-error').first().getByRole('button').first().click();
     await audit(page, `admin errors (${scheme})`);
+    await page.getByRole('button', { name: /^app preview$/i }).click();
+    await page.getByTestId('app-preview-frame').waitFor({ timeout: 15000 });
+    await page.waitForTimeout(1500);
+    await audit(page, `admin app preview (${scheme})`);
     await ctx.close();
   }
 
