@@ -43,6 +43,11 @@ in the apps, through Google Play and the App Store.
   features while it's on; only the daily limits (3 AI searches, 15 likes) stay for free accounts. The
   server (`has_pro()` in the database) and the apps (`useAuth().hasPro`) follow it at once, with no
   new app release.
+- **Errors.** When the apps or the website hit an error, they report it to the database
+  (`lib/errorReports.ts`): the error, where in the code, the screen, the app version and the device,
+  never who (emails, phone numbers and ids are blanked out, and reports go without the member's
+  sign-in). Admin → Errors lists each error once with how often it happened, and "Mark fixed" hides one
+  until it happens again. At most 5,000 are kept.
 - **Hosting.** The website is on Vercel (`vercel.json`) and the backend on Supabase.
 
 ## Run it locally

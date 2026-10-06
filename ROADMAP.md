@@ -3,9 +3,10 @@
 13 phases in total. Phases 1–5, 7–9 and 12 are done, and Phase 6 is mostly done. **Phase 13 (the
 phone apps ready for the stores) is built. What's left of it is yours: the launch checklist in
 [docs/store/README.md](docs/store/README.md).** Phase 10 (launch readiness) is under way: parts 1 to
-5 are done (checks and a linter on every push, a faster first load, admin alerts, one switch for
+6 are done (checks and a linter on every push, a faster first load, admin alerts, one switch for
 MatchGPT+, tidier access rules, the whole journey tested, the README, MatchGPT+ sold only in the
-apps, the website as a home page with the admin panel, an accessibility check).
+apps, the website as a home page with the admin panel, an accessibility check, error reports in
+Admin → Errors).
 AI search (Gemini) is built and live; it switches on once you add the `GEMINI_API_KEY` secret (Phase 9).
 MatchGPT+ is sold only in the apps, through Google Play and the App Store (Phase 13); Razorpay was
 dropped on 2026-10-05 (Phase 11).
@@ -23,7 +24,7 @@ Items left unfinished in earlier phases were moved into later ones, so each open
 | 7 | Make the backend safe and rebuildable | **Done** (3 small owner follow-ups) |
 | 8 | Finish half-built features | **Done** (owner checks listed) |
 | 9 | Smarter search that scales | **Done** (add the Gemini key to switch AI on) |
-| 10 | Launch readiness → public launch | **In progress** (parts 1–5 done 2026-10-06) |
+| 10 | Launch readiness → public launch | **In progress** (parts 1–6 done 2026-10-06) |
 | 11 | Payments (MatchGPT+ via Razorpay) | Dropped 2026-10-05: MatchGPT+ is sold only in the apps (Phase 13) |
 | 12 | Profile details for India (community, family, horoscope) | **Done** |
 | 13 | The phone apps, ready for Google Play and the App Store | **Built**; your launch checklist: [docs/store/README.md](docs/store/README.md) |
@@ -369,10 +370,36 @@ all fixed:
   an emulator or a connected phone (README, "Phone apps"). It needs a computer that can run an
   emulator, or a phone: the cloud container these changes are made in can't run Android fast enough.
 
+Part 6 done 2026-10-06: **error reports, in MatchGPT's own database.** When the apps or the website hit
+an error, it's reported, so it can be fixed before members write in about it. No outside service and
+no key to add.
+
+- [x] **What's sent**: the error and where in the code it came from, the screen (the tab, or the
+  sign-in, setup or website page), the app version and the kind of phone or browser. Not who: emails,
+  phone numbers, ids and sign-in tokens are blanked out on the device, the report goes with the app's
+  public key rather than the member's sign-in, and the database keeps no account or address with it.
+- [x] **What's reported**: errors nobody caught, promises that failed with nobody waiting for them, and
+  screens that fail to draw (the "Something went wrong" screen). Not the noise that isn't MatchGPT's to
+  fix (the network dropping, a cancelled request, a browser quirk, browser extensions). The same error
+  is sent once per page or app session, and at most 10 errors are.
+- [x] **Kept small** (`supabase/migrations/…_phase10_error_reports.sql`): the same error on the same
+  day adds up on one row; at most 20 new errors a minute and 1,000 a day are kept; the table never holds
+  more than 5,000, as a new error takes the place of the one seen longest ago (errors marked fixed
+  first). Nothing is ever deleted. Members and visitors can only send reports, never read them.
+- [x] **Admin → Errors**: each error once, most recent first, with how often and on how many days, the
+  device, version and screen; tap one for its stack and browser. "Mark fixed" (in the audit log) hides
+  it until it happens again.
+- [x] **Privacy**: the Privacy Policy says what error reports contain and how many are kept (new
+  version, so members accept it again). The store answers (docs/store/README.md) and the iPhone
+  privacy manifest add crash data and diagnostics, which App Store answers count as not linked to you.
+- [x] **Tests**: `tests/e2e/error-reports.mjs` (26 checks: the app, the Android app, the website and
+  Admin → Errors); 10 new database checks (51 attacks blocked, 57 normal actions working); the
+  accessibility check covers the Errors tab (36 screens); the other browser tests ran again.
+
 **Still to do**
 
 - [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.
-- [ ] Error tracking (on once its key is added), and analytics that respect the cookie banner.
+- [ ] Analytics that respect the cookie banner.
 - [ ] Separate test and live Supabase projects, with database backups.
 - [ ] A proper email service. Sign-up codes and password resets come first (the built-in sender only
   reaches your Supabase team); then the weekly email digest and its Settings switch.
@@ -386,6 +413,8 @@ all fixed:
   keys, overlapping rules, `is_admin()` callable signed out. Expected, so no change needed:
   - "signed-in users can run SECURITY DEFINER functions": each of those functions checks who is
     asking;
+  - "signed-out visitors can run `report_error`": on purpose, so errors before sign-in are reported
+    too. It only adds to the error table, within its limits, and returns nothing;
   - "RLS enabled, no policy" on the tables only the server uses.
 - [ ] Legal review of Terms and Privacy. (The mobile and accessibility check is done: Phase 10, part 5.)
 

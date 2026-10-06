@@ -9,7 +9,7 @@ supabase/tests/run_local.sh
 ```
 
 Rebuilds an empty local database from every migration, loads `test_data.sql`
-and runs `security_tests.sh`: 45 attacks that must be blocked and 53 normal
+and runs `security_tests.sh`: 51 attacks that must be blocked and 57 normal
 app actions that must keep working. It exits non-zero if any check fails.
 `UP_TO=<version>` stops after that migration (useful to see a bug before its fix).
 

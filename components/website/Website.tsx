@@ -3,6 +3,7 @@ import { lazyScreen } from '../../lib/lazyScreen';
 import { AuthProvider, useAuth } from '../../lib/AuthContext';
 import { ToastProvider, useToast } from '../../lib/useToast';
 import { emailLinkError } from '../../lib/supabase';
+import { setErrorScreen } from '../../lib/errorReports';
 import SiteHome from './SiteHome';
 
 const AdminSite = lazyScreen(() => import('./AdminSite'));
@@ -71,6 +72,7 @@ const Routes: React.FC<{ route: Route }> = ({ route }) => {
 
 // Read once, when the page loads (each page of the website is a page load)
 const route = currentRoute();
+setErrorScreen(`website ${route}`);
 
 const Website: React.FC = () => {
 

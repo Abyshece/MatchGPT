@@ -8,6 +8,7 @@ import CookieBanner from './components/CookieBanner';
 import { BACK, isNativeApp, setNativeTheme, useBackHandler } from './lib/nativeApp';
 import { startStoreSync, stopStoreSync } from './lib/storePurchases';
 import { onNotificationWhileOpen, startNativePush, stopNativePush } from './lib/nativePush';
+import { setErrorScreen } from './lib/errorReports';
 
 // Screens a first visit doesn't need load when they're shown, so the first
 // download is small; the signed-in app starts loading as soon as there's a
@@ -174,6 +175,21 @@ const AppRouter: React.FC<{
     const next: ThemeMode = themeMode === 'light' ? 'dark' : themeMode === 'dark' ? 'system' : 'light';
     setTheme(next);
   };
+
+  // The screen shown, for error reports (Dashboard names its tabs itself)
+  const screen = legalPage
+    ?? (loading ? 'loading'
+      : !session ? (pendingSignupEmail ? 'confirm email' : 'landing')
+      : passwordRecovery ? 'new password'
+      : profileError && !profileLoading ? 'profile error'
+      : profileMissing && !profileLoading ? 'profile missing'
+      : !profileRow ? 'loading profile'
+      : !profileRow.terms_accepted_at ? 'consent'
+      : !profileRow.onboarding_complete ? 'onboarding'
+      : null);
+  useEffect(() => {
+    if (screen) setErrorScreen(screen);
+  }, [screen]);
 
   // ---- Legal pages take precedence over everything ----
   if (legalPage === 'terms') {

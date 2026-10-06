@@ -5,8 +5,10 @@
   domains. The "required reason" APIs the app's plugins use without a manifest
   of their own: file dates (@capacitor/filesystem, for files the app saves)
   and UserDefaults (the sign-in plugin keeps Apple's name there). What the app
-  collects, all linked to the account and only to run the app; the App Store's
-  privacy answers (docs/store/README.md) say the same.
+  collects, all linked to the account and only to run the app, except the
+  error reports (crash and other diagnostic data, lib/errorReports.ts), which
+  carry nothing that says who; the App Store's privacy answers
+  (docs/store/README.md) say the same.
 -->
 <plist version="1.0">
 <dict>
@@ -223,6 +225,32 @@
 			<string>NSPrivacyCollectedDataTypeDeviceID</string>
 			<key>NSPrivacyCollectedDataTypeLinked</key>
 			<true/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+			</array>
+		</dict>
+		<!-- error reports: the error and where in the code (not linked to anyone) -->
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeCrashData</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+			</array>
+		</dict>
+		<!-- error reports: screen, app version, phone and system (not linked to anyone) -->
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeOtherDiagnosticData</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<false/>
 			<key>NSPrivacyCollectedDataTypeTracking</key>
 			<false/>
 			<key>NSPrivacyCollectedDataTypePurposes</key>

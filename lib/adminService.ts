@@ -7,6 +7,7 @@
 // ============================================================================
 
 import { supabase } from './supabase';
+import type { Database } from './database.types';
 
 // ----------------------------------------------------------------------------
 // Types
@@ -187,4 +188,22 @@ export async function checkIsAdmin(): Promise<boolean> {
   const { data, error } = await supabase.rpc('is_admin');
   if (error) return false;
   return data === true;
+}
+
+// ----------------------------------------------------------------------------
+// Errors the app and the website reported (lib/errorReports.ts): each error
+// once, most recent first. Marking one fixed hides it until it happens again.
+// ----------------------------------------------------------------------------
+
+export type ErrorReportRow = Database['public']['Functions']['admin_list_errors']['Returns'][number];
+
+export async function fetchErrorReports(includeFixed: boolean): Promise<{ errors: ErrorReportRow[]; error: string | null }> {
+  const { data, error } = await supabase.rpc('admin_list_errors', { p_include_fixed: includeFixed, p_limit: 200 });
+  if (error) return { errors: [], error: error.message };
+  return { errors: data ?? [], error: null };
+}
+
+export async function markErrorFixed(id: number): Promise<{ error: string | null }> {
+  const { error } = await supabase.rpc('admin_mark_error_fixed', { p_id: id });
+  return { error: error?.message ?? null };
 }
