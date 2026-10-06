@@ -3,10 +3,11 @@
 13 phases in total. Phases 1–5, 7–9 and 12 are done, and Phase 6 is mostly done. **Phase 13 (the
 phone apps ready for the stores) is built. What's left of it is yours: the launch checklist in
 [docs/store/README.md](docs/store/README.md).** Phase 10 (launch readiness) is under way: parts 1 to
-8 are done (checks and a linter on every push, a faster first load, admin alerts, one switch for
+9 are done (checks and a linter on every push, a faster first load, admin alerts, one switch for
 Shaadi24+, tidier access rules, the whole journey tested, the README, Shaadi24+ sold only in the
 apps, the website as a home page with the admin panel, an accessibility check, error reports in
-Admin → Errors, the new name, Shaadi24, and the members' app inside the admin panel). The iPhone app goes to TestFlight from GitHub's Macs.
+Admin → Errors, the new name, Shaadi24, the members' app inside the admin panel, and required
+answers with free searches for filling in the profile). The iPhone app goes to TestFlight from GitHub's Macs.
 AI search (Gemini) is built and live; it switches on once you add the `GEMINI_API_KEY` secret (Phase 9).
 Shaadi24+ is sold only in the apps, through Google Play and the App Store (Phase 13); Razorpay was
 dropped on 2026-10-05 (Phase 11).
@@ -24,7 +25,7 @@ Items left unfinished in earlier phases were moved into later ones, so each open
 | 7 | Make the backend safe and rebuildable | **Done** (3 small owner follow-ups) |
 | 8 | Finish half-built features | **Done** (owner checks listed) |
 | 9 | Smarter search that scales | **Done** (add the Gemini key to switch AI on) |
-| 10 | Launch readiness → public launch | **In progress** (parts 1–8 done 2026-10-06) |
+| 10 | Launch readiness → public launch | **In progress** (parts 1–9 done 2026-10-06) |
 | 11 | Payments (Shaadi24+ via Razorpay) | Dropped 2026-10-05: Shaadi24+ is sold only in the apps (Phase 13) |
 | 12 | Profile details for India (community, family, horoscope) | **Done** |
 | 13 | The phone apps, ready for Google Play and the App Store | **Built**; your launch checklist: [docs/store/README.md](docs/store/README.md) |
@@ -442,6 +443,35 @@ Part 8 done 2026-10-06: **the members' app inside the admin panel**, to see that
   as "app preview: …".
 - [x] Checked: a new browser test (`tests/e2e/app-preview.mjs`, 28 checks); the accessibility check
   covers the tab.
+
+Part 9 done 2026-10-06: **required answers, and free searches for filling in the profile.**
+
+- [x] **16 answers every member gives** before using the app (`lib/profileRewards.ts`): who the profile
+  is for, name, date of birth, gender, interested in, looking for, marital status, height, country,
+  state (in India) and city, religion, mother tongue, highest qualification, occupation, and at least
+  30 characters about themselves. Sign-up asks for them (height and the five on the details pages are
+  new; those pages have no Skip), and members who joined earlier get a short screen with only what's
+  missing (`components/RequiredDetails.tsx`) before anything else. My Profile won't remove them.
+- [x] **The other answers come in six sections**: religion and community (12, the horoscope only for
+  Hindu, Jain, Sikh and Buddhist members), education and career (7), family (11), lifestyle (11),
+  appearance (7), plans and personality (11). A section is complete with about 7 in 10 of its answers
+  given, and **each section complete adds one free AI search a day**: free accounts get 3 to 9.
+  Shaadi24+ stays unlimited.
+- [x] **The server decides** (migrations `20261006151802_phase10_profile_sections` and
+  `20261006152044_phase10_search_bonus`, applied live): `profile_sections()` counts the answers,
+  `profiles.search_bonus` is set by the database on every change (members can't set it) and
+  `consume_search()` allows 3 plus the bonus. On the live database 51 of the 55 profiles already had
+  sections complete, so they got their extra searches at once.
+- [x] **What members see**: My Profile opens with "Earn free AI searches" (how many a day, each section's
+  progress and what's left in it; tapping one goes to it), each section's heading says what it earns,
+  and completing one says "Section complete! You now get N free AI searches a day". Find Match says
+  "N of M searches remaining today" with "Earn more: fill in your profile"; the limit popup, Settings,
+  the help answers ("How do I get more free searches?") and Shaadi24+'s list say so too.
+- [x] Checked: 6 new database checks (members can't set the bonus or call `consume_search()`, signed-out
+  visitors can't read anyone's sections; the sections, the limit, the horoscope only where it counts),
+  a new browser test (`tests/e2e/profile-rewards.mjs`, 24 checks), the sign-up, India-profile, reset
+  and journey tests updated for the required answers, and the full browser run (27 suites) and the
+  accessibility check passed.
 
 **Still to do**
 

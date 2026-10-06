@@ -10,6 +10,7 @@ import {
   manageStoreSubscription, restoreStorePurchases, startStoreSync, storeManageHint, storeName, storePlatform,
 } from '../lib/storePurchases';
 import UpgradeModal from './UpgradeModal';
+import { DAILY_LIMITS } from '../lib/profileService';
 
 // ============================================================================
 // SubscriptionSettings: the Shaadi24+ part of Settings
@@ -115,7 +116,8 @@ const SubscriptionSettings: React.FC = () => {
   } else if (isPro) {
     status = <>Shaadi24+ is on for your account.</>;
   } else {
-    status = <>Free plan: 3 AI searches and 15 likes a day.</>;
+    status = <>Free plan: {DAILY_LIMITS.FREE.searches + (profile?.searchBonus ?? 0)} AI searches and {DAILY_LIMITS.FREE.likes} likes a day.
+      {(profile?.searchBonus ?? 0) < 6 && <> Each profile section you complete adds a search a day.</>}</>;
   }
 
   const showUpgradeButton = !loading && !isPro && !(store && live);

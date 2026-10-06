@@ -5,7 +5,7 @@ import { useToast } from '../lib/useToast';
 import { searchProfiles, SearchError } from '../lib/searchService';
 import { saveSearch } from '../lib/searchHistoryService';
 import { computeSearchAllowance, computeVerificationStatus } from '../lib/profileService';
-import { hasIndiaDetails, profileCompletion } from '../lib/profileCompletion';
+import { profileCompletion } from '../lib/profileCompletion';
 import MatchCard from './MatchCard';
 import ProfileModal from './ProfileModal';
 import VerificationBanner from './VerificationBanner';
@@ -46,9 +46,6 @@ const EXAMPLE_PROMPTS = [
   'Most compatible matches',
 ];
 
-// Remembers (in this browser) that the invitation to add the new details was closed
-const INVITE_DISMISSED_KEY = 'matchgpt_india_details_invite_closed';
-
 function countActiveFilters(f: FilterOptions): number {
   let n = 0;
   if (f.ageRange && (f.ageRange[0] !== 21 || f.ageRange[1] !== 45)) n++;
@@ -77,6 +74,9 @@ function countActiveFilters(f: FilterOptions): number {
   return n;
 }
 
+// The profile sections that each add a free search a day (lib/profileRewards.ts)
+const MAX_SECTIONS = 6;
+
 const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigateToProfile }) => {
   const { profile, profileRow, session, refreshProfile, hasPro } = useAuth();
   const { showToast } = useToast();
@@ -95,9 +95,6 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
   useEffect(() => { if (showFilterPanel) setFilterPanelLoaded(true); }, [showFilterPanel]);
   const [matchCelebration, setMatchCelebration] = useState<{ matchId: string; candidate: MatchCandidate } | null>(null);
   const [bannerDismissed, setBannerDismissed] = useState(false);
-  const [inviteDismissed, setInviteDismissed] = useState(() => {
-    try { return localStorage.getItem(INVITE_DISMISSED_KEY) === '1'; } catch { return false; }
-  });
 
   // Track whether we've already consumed the pending prompt this session so we
   // don't re-trigger on every re-render of SearchView.
@@ -151,15 +148,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
     [profile, profileRow],
   );
 
-  // Members from before the India details (mother tongue, community, family,
-  // horoscope) are invited to add them, until they do or close the invitation.
-  const showIndiaInvite = !!profile && !hasIndiaDetails(profile) && !inviteDismissed;
-  const closeInvite = () => {
-    setInviteDismissed(true);
-    try { localStorage.setItem(INVITE_DISMISSED_KEY, '1'); } catch { /* private mode: closes for this visit */ }
-  };
-
-  const showCompletionBanner = !!profile && completionPercentage < 100 && !bannerDismissed && !showIndiaInvite;
+  const showCompletionBanner = !!profile && completionPercentage < 100 && !bannerDismissed;
 
   const handleSearch = useCallback(async (overridePrompt?: string) => {
     if (!userId) return;
@@ -233,31 +222,6 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
 
   return (
     <div className="h-full overflow-y-auto">
-      {/* Invitation to add the India details (members who joined before them) */}
-      {showIndiaInvite && (
-        <div className="bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-900/30 px-4 py-3 relative animate-fade-in">
-          <div className="max-w-6xl mx-auto flex items-center justify-center gap-3 flex-wrap pr-8">
-            <span className="text-lg flex-shrink-0">🪔</span>
-            <span className="text-sm text-amber-900 dark:text-amber-100 font-medium">
-              <strong>New on your profile:</strong> mother tongue, community, family and horoscope details. Families look for these first, and all of them are optional.
-            </span>
-            <button
-              onClick={() => { closeInvite(); if (onNavigateToProfile) onNavigateToProfile(); }}
-              className="text-xs bg-amber-600 hover:bg-amber-700 text-white px-4 py-1.5 rounded-full font-bold transition-colors shadow-sm whitespace-nowrap"
-            >
-              Add details →
-            </button>
-          </div>
-          <button
-            onClick={closeInvite}
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-amber-500 hover:text-amber-800 dark:hover:text-amber-200 rounded-full transition-colors"
-            aria-label="Close"
-          >
-            <div className="transform scale-75"><IconX /></div>
-          </button>
-        </div>
-      )}
-
       {/* Profile completion banner — full-width, dismissible. Encourages users to
           finish their profile because a 100% profile leads to more accurate matches. */}
       {showCompletionBanner && (
@@ -267,7 +231,10 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
               !
             </div>
             <span className="text-sm text-rose-800 dark:text-rose-200 font-medium">
-              Your profile is only <strong>{completionPercentage}%</strong> complete (~{estimatedMinutes} min to finish). A 100% profile leads to more accurate matches.
+              Your profile is only <strong>{completionPercentage}%</strong> complete (~{estimatedMinutes} min to finish).
+              {(profile?.searchBonus ?? 0) < MAX_SECTIONS
+                ? ' Each section you complete adds a free AI search a day.'
+                : ' A complete profile leads to more accurate matches.'}
             </span>
             <button
               onClick={() => {
@@ -406,8 +373,8 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
           </button>
         </div>
 
-        {/* Daily allowance — shows how many of the day's 3 free searches remain.
-            Subtle until you're running low. */}
+        {/* Daily allowance: the day's free searches left (3, plus one for each
+            profile section completed). Subtle until you're running low. */}
         <div className="flex items-center justify-center gap-3 mb-2 flex-wrap text-[11px]">
           <span className={`font-medium ${
             !allowance.allowed
@@ -420,8 +387,18 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
               ? <>Daily limit reached · resets in {allowance.resetInHours}h</>
               : allowance.isPro
                 ? <>Unlimited searches</>
-                : <>{allowance.remaining} of 3 searches remaining today</>}
+                : <>{allowance.remaining} of {allowance.limit} searches remaining today</>}
           </span>
+          {!allowance.isPro && allowance.bonus < MAX_SECTIONS && onNavigateToProfile && (
+            <button
+              type="button"
+              onClick={onNavigateToProfile}
+              data-testid="earn-searches"
+              className="font-semibold text-amber-700 dark:text-amber-300 hover:underline"
+            >
+              Earn more: fill in your profile
+            </button>
+          )}
         </div>
 
         {/* Remove isPremium chip — Pro tier hidden during free period.

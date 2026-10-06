@@ -5,24 +5,15 @@ import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../lib/AuthContext';
 import { ChoiceField, DateOfBirthField, ageFromDateOfBirth } from '../ProfileInputs';
 import {
-  CHILDREN, CHILDREN_COUNT, CITIES_BY_STATE, COUNTRIES, HEIGHTS, INDIAN_STATES, MARITAL_STATUS, PROFILE_CREATED_FOR,
+  CHILDREN, CHILDREN_COUNT, CITIES_BY_STATE, COUNTRIES, GENDERS, HEIGHTS, INDIAN_STATES, INTERESTED_IN, MARITAL_STATUS,
+  PROFILE_CREATED_FOR, RELATIONSHIP_INTENTS,
 } from '../../lib/matrimonyOptions';
 
 interface StepBasicInfoProps {
   onComplete: () => void;
 }
 
-// Options shown in the form. These match what the matching algorithm expects.
-const GENDERS = ['Female', 'Male', 'Non-binary', 'Prefer to self-describe'];
 const PRONOUNS = ['She/Her', 'He/Him', 'They/Them', 'Other'];
-const INTERESTED_IN = ['Men', 'Women', 'Everyone'];
-const RELATIONSHIP_INTENTS = [
-  'Marriage',
-  'Long-term relationship',
-  'Long-term, open to short',
-  'Casual / Dating',
-  'Friendship',
-];
 // A profile made for a son is a man's profile, and so on
 const GENDER_FOR: Record<string, string> = { Son: 'Male', Brother: 'Male', Daughter: 'Female', Sister: 'Female' };
 
@@ -68,6 +59,7 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ onComplete }) => {
     if (!interestedIn) return 'Please select who you\'re interested in.';
     if (!intention) return 'Please select what you\'re looking for.';
     if (!maritalStatus) return 'Please select the marital status.';
+    if (!height) return 'Please choose the height.';
     if (!country) return 'Please choose the country you live in.';
     if (inIndia && !state) return 'Please choose the state.';
     if (!city.trim()) return 'Please enter the city.';
@@ -103,7 +95,7 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ onComplete }) => {
         marital_status: maritalStatus,
         children: askChildren ? children || null : null,
         children_count: askChildren && children && children !== 'No' ? childrenCount || null : null,
-        height: height || null,
+        height,
         country,
         state: state.trim() || null,
         city: city.trim(),
@@ -196,7 +188,7 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ onComplete }) => {
           </div>
         )}
 
-        <Field label="Height (optional)">
+        <Field label="Height">
           <Select value={height} onChange={setHeight} options={HEIGHTS} placeholder="Select" />
         </Field>
 

@@ -30,6 +30,7 @@ export interface UserProfile {
   isPremium?: boolean;
   subscriptionTier?: SubscriptionTier;
   dailySearchCount?: number;
+  searchBonus?: number;           // profile sections completed: one more free search a day each
   lastSearchDate?: string;
   dailyLikeCount?: number;
   lastLikeDate?: string;

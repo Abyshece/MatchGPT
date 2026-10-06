@@ -36,7 +36,7 @@ export const DEFAULT_PLANS: BillingPlan[] = [
 // What Shaadi24+ adds (each is enforced by the server): the daily limits
 // lifted, which takes a subscription...
 const UNLIMITED = [
-  'Unlimited AI searches (free: 3 a day)',
+  'Unlimited AI searches (free: 3 a day, up to 9 with a complete profile)',
   'Unlimited likes (free: 15 a day)',
 ];
 // ...and the features, which are also everyone's while "Shaadi24+ for

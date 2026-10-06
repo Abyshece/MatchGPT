@@ -198,6 +198,13 @@ check ALLOWED "A51 a report can't say who: no account, and only the platforms th
    select 'columns=' || string_agg(column_name, ',' order by ordinal_position) from information_schema.columns
     where table_schema = 'public' and table_name = 'error_reports';" "rows=1 sizes=500/3000/120/40/300
 columns=id,fingerprint,day,first_seen_at,last_seen_at,times,platform,app_version,screen,message,stack,user_agent,fixed_at"
+check ALLOWED "A52 user gives themself extra free searches (search_bonus)" authenticated "$USER_X" "x@example.com" \
+  "update public.profiles set search_bonus = 6, name = name where id = '$USER_X';
+   select 'bonus=' || search_bonus from public.profiles where id = '$USER_X';" "bonus=0"
+check BLOCKED "A53 signed-out visitor reads profile sections" anon "" "" \
+  "select public.my_profile_sections();"
+check BLOCKED "A54 user uses up someone else's searches (consume_search)" authenticated "$USER_X" "x@example.com" \
+  "select public.consume_search('$OTHER');"
 echo
 echo "Normal app use — must keep working:"
 check ALLOWED "N1  user reads their own profile row" authenticated "$USER_X" "x@example.com" \
@@ -450,5 +457,22 @@ check ALLOWED "N57 with 5,000 kept, a new error takes the place of the oldest (f
    reset role; select 'kept=' || count(*) || ' new=' || count(*) filter (where message like 'Error: new%')
      || ' left=' || string_agg(message, ',') filter (where message in ('old 10', 'old 5000', 'old 4999')) from public.error_reports;" \
   "kept=5000 new=2 left=old 4999"
+check ALLOWED "N58 a completed section adds a free search a day; members see where each stands" authenticated "$USER_X" "x@example.com" \
+  "update public.profiles set family_type = 'Nuclear', family_status = 'Middle Class', family_values = 'Moderate', father_occupation = 'Business',
+     mother_occupation = 'Homemaker', brothers = '1', sisters = '0', family_location = 'Pune' where id = '$USER_X';
+   select 'bonus=' || (public.my_profile_sections() ->> 'bonus') || ' daily=' || (public.my_profile_sections() ->> 'daily_searches')
+     || ' family=' || (select s ->> 'answered' || '/' || (s ->> 'needed') from jsonb_array_elements(public.my_profile_sections() -> 'sections') s
+                         where s ->> 'id' = 'family');" "bonus=1 daily=4 family=8/8"
+check ALLOWED "N59 the search limit is 3 a day plus the sections complete" service_role "" "" \
+  "reset role; update public.profiles set family_type = 'Nuclear', family_status = 'Middle Class', family_values = 'Moderate', father_occupation = 'Business',
+     mother_occupation = 'Homemaker', brothers = '1', sisters = '0', family_location = 'Pune', daily_search_count = 0, subscription_tier = 'FREE' where id = '$USER_X';
+   set local role service_role;
+   select string_agg(public.consume_search('$USER_X') ->> 'allowed', ',') from generate_series(1, 5);" "true,true,true,true,false"
+check ALLOWED "N60 the horoscope counts only for the religions that use one" authenticated "$USER_X" "x@example.com" \
+  "update public.profiles set religion = 'Christian' where id = '$USER_X';
+   select 'christian=' || (select s ->> 'total' from jsonb_array_elements(public.my_profile_sections() -> 'sections') s where s ->> 'id' = 'community');
+   update public.profiles set religion = 'Hindu' where id = '$USER_X';
+   select 'hindu=' || (select s ->> 'total' from jsonb_array_elements(public.my_profile_sections() -> 'sections') s where s ->> 'id' = 'community');" "christian=4
+hindu=10"
 echo
 if [[ $fails -eq 0 ]]; then echo "All checks passed."; else echo "$fails check(s) FAILED."; exit 1; fi

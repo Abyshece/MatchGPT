@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { PageHeader, PropertyRow, InfoSection } from './NotionUI';
 import { useAuth } from '../lib/AuthContext';
 import { useToast } from '../lib/useToast';
@@ -11,16 +11,22 @@ import {
   IconCheck, IconUpload, IconEdit, IconX, IconZap, IconShield, IconClock,
 } from '../constants';
 import { profileCompletion } from '../lib/profileCompletion';
+import { ABOUT_ME_MIN, REQUIRED_LABELS, fetchProfileSections, type ProfileSections, type SectionId } from '../lib/profileRewards';
+import { DAILY_LIMITS } from '../lib/profileService';
+import ProfileRewardsCard from './ProfileRewardsCard';
 import { SECT_LABEL, formatBirthTime, formatChildren, formatSiblings } from '../lib/profileDisplay';
 import {
   ANNUAL_INCOME, CASTES, CHILDREN, CHILDREN_COUNT, CITIES_BY_STATE, COUNTRIES, DEGREES, DIETS, DISABILITY,
-  EDUCATION_LEVELS, EMPLOYED_IN, FAMILY_STATUS, FAMILY_TYPE, FAMILY_VALUES, FATHER_OCCUPATION, GOTRA_RELIGIONS,
-  GOTRAS, HEIGHTS, HOBBY_GROUPS, HOROSCOPE_MATCH, INDIAN_STATES, LANGUAGES_SPOKEN, LIVING_WITH_FAMILY, MANGLIK,
+  EDUCATION_LEVELS, EMPLOYED_IN, FAMILY_STATUS, FAMILY_TYPE, FAMILY_VALUES, FATHER_OCCUPATION, GENDERS, GOTRA_RELIGIONS,
+  GOTRAS, HEIGHTS, HOBBY_GROUPS, HOROSCOPE_MATCH, INDIAN_STATES, INTERESTED_IN, LANGUAGES_SPOKEN, LIVING_WITH_FAMILY, MANGLIK,
   MARITAL_STATUS, MOTHER_OCCUPATION, MOTHER_TONGUES, NAKSHATRA, OCCUPATIONS, OPEN_TO_OTHER_COMMUNITIES,
-  PREFER_NOT_TO_SAY, PROFILE_CREATED_FOR, RASHI, RELIGIONS, RESIDENTIAL_STATUS, SECTS, SETTLING_ABROAD,
+  PREFER_NOT_TO_SAY, PROFILE_CREATED_FOR, RASHI, RELATIONSHIP_INTENTS, RELIGIONS, RESIDENTIAL_STATUS, SECTS, SETTLING_ABROAD,
   SIBLING_COUNTS, SUB_CASTES, educationLevelForDegree, type OptionGroup,
 } from '../lib/matrimonyOptions';
 import type { UserProfile } from '../types';
+
+// The religions whose families often match horoscopes (as the database counts them)
+const HOROSCOPE_RELIGIONS = ['Hindu', 'Jain', 'Sikh', 'Buddhist'];
 
 const VISIBILITY_KEY: Partial<Record<keyof UserProfile, string>> = {
   country: 'location', state: 'location', city: 'location', dateOfBirth: 'age',
@@ -82,6 +88,38 @@ const ProfileView: React.FC = () => {
     [profile, photos.length],
   );
 
+  // ---- free searches for completed sections (lib/profileRewards.ts) ---------
+  // The database counts them; read again after every save
+  const [sections, setSections] = useState<ProfileSections | null>(null);
+  const savedAt = profileRow?.updated_at;
+  useEffect(() => {
+    let live = true;
+    fetchProfileSections().then((s) => { if (live && s) setSections(s); });
+    return () => { live = false; };
+  }, [savedAt]);
+
+  // A section just completed: say what it earned
+  const bonus = profile?.searchBonus ?? 0;
+  const isPro = profile?.subscriptionTier === 'PRO';
+  const lastBonus = useRef<number | null>(null);
+  useEffect(() => {
+    if (lastBonus.current !== null && bonus > lastBonus.current) {
+      showToast(isPro
+        ? 'Section complete! Your profile is stronger for it.'
+        : `Section complete! You now get ${DAILY_LIMITS.FREE.searches + bonus} free AI searches a day.`, 'success');
+    }
+    lastBonus.current = bonus;
+  }, [bonus, isPro, showToast]);
+
+  // The badge on a section's heading: earned, or how many answers are left
+  const rewardBadge = (id: SectionId): { badge?: string; badgeTone?: 'done' | 'todo' } => {
+    const s = sections?.sections.find((x) => x.id === id);
+    if (!s) return {};
+    if (s.complete) return { badge: '✓ +1 search a day', badgeTone: 'done' };
+    const left = s.needed - s.answered;
+    return { badge: `${left} more for +1 search a day`, badgeTone: 'todo' };
+  };
+
   // ---- helpers -------------------------------------------------------------
   const startEditing = (field: keyof UserProfile, currentValue: unknown) => {
     setEditingField(field);
@@ -95,6 +133,13 @@ const ProfileView: React.FC = () => {
 
   const saveField = async () => {
     if (!editingField || !session?.user.id) return;
+    // A required answer can be changed, not removed (state only in India)
+    const required = editingField in REQUIRED_LABELS
+      && (editingField !== 'state' || (profile?.country ?? 'India') === 'India');
+    if (required && String(editValue ?? '').trim() === '') {
+      showToast(`${REQUIRED_LABELS[editingField as keyof typeof REQUIRED_LABELS]} is required`, 'error');
+      return;
+    }
     setSavingField(editingField as string);
 
     const change: Partial<UserProfile> = {};
@@ -151,6 +196,10 @@ const ProfileView: React.FC = () => {
 
   const handleSaveSummary = async () => {
     if (!session?.user.id) return;
+    if (summaryEditValue.trim().length < ABOUT_ME_MIN) {
+      showToast(`Please write at least ${ABOUT_ME_MIN} characters about yourself.`, 'error');
+      return;
+    }
     setSavingField('description');
     const result = await updateProfile(session.user.id, { description: summaryEditValue });
     setSavingField(null);
@@ -313,45 +362,9 @@ const ProfileView: React.FC = () => {
           }
         />
 
-        {/* Completion widget */}
-        <div className="mb-10">
-          <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-6 shadow-sm relative overflow-hidden">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
-              <div className="flex-1">
-                <div className="flex justify-between items-end mb-2">
-                  <div className="flex items-center gap-3">
-                    <h3 className="font-bold text-gray-900 dark:text-white text-lg">Profile Completion</h3>
-                    {completionPercentage < 100 && (
-                      <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-green-200 dark:border-green-800 flex items-center gap-1">
-                        ⏱️ ~{estimatedMinutes} min
-                      </span>
-                    )}
-                  </div>
-                  <span className={`text-2xl font-bold ${completionPercentage === 100 ? 'text-green-500' : 'text-gray-900 dark:text-white'}`}>{completionPercentage}%</span>
-                </div>
-                <div className="w-full bg-gray-100 dark:bg-zinc-800 rounded-full h-3 mb-3 overflow-hidden">
-                  <div
-                    className={`h-3 rounded-full transition-all duration-1000 ease-out ${completionPercentage === 100 ? 'bg-green-500' : 'bg-black dark:bg-white'}`}
-                    style={{ width: `${completionPercentage}%` }}
-                  />
-                </div>
-                <p className="text-sm text-gray-600 dark:text-gray-300 flex items-start gap-2">
-                  {completionPercentage < 100 ? (
-                    <>
-                      <span className="text-yellow-500 mt-0.5"><IconZap /></span>
-                      <span><strong>Tip:</strong> A complete profile gets better matches. Click any field to edit.</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-green-500 mt-0.5"><IconCheck /></span>
-                      <span><strong>Complete!</strong> You have the best chance of finding a high-quality match.</span>
-                    </>
-                  )}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* Free searches for filling in the profile (lib/profileRewards.ts) */}
+        <ProfileRewardsCard sections={sections} isPro={profile.subscriptionTier === 'PRO'}
+          completionPercentage={completionPercentage} estimatedMinutes={estimatedMinutes} />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* LEFT — INFORMATION */}
@@ -363,8 +376,9 @@ const ProfileView: React.FC = () => {
             {/* About Me */}
             <div className="mb-8 group">
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-xl">✨</span>
+                <span className="text-xl" aria-hidden="true">✨</span>
                 <h3 className="font-bold text-gray-900 dark:text-white text-sm">About Me</h3>
+                <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300">Required</span>
               </div>
 
               {isEditingSummary ? (
@@ -377,7 +391,7 @@ const ProfileView: React.FC = () => {
                     autoFocus
                   />
                   <div className="flex items-center justify-between bg-gray-50 dark:bg-zinc-800 px-3 py-2 border-t border-gray-100 dark:border-zinc-700">
-                    <span className="text-xs text-gray-500 dark:text-gray-400 italic">{savingField === 'description' ? 'Saving…' : 'Press Save to update'}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{savingField === 'description' ? 'Saving…' : `${summaryEditValue.trim().length} characters (at least ${ABOUT_ME_MIN})`}</span>
                     <div className="flex gap-2">
                       <button onClick={() => setIsEditingSummary(false)} disabled={savingField === 'description'} className="text-xs font-medium text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-white px-3 py-1.5 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors">Cancel</button>
                       <button onClick={handleSaveSummary} disabled={savingField === 'description'} className="text-xs font-bold bg-black dark:bg-white text-white dark:text-black px-4 py-1.5 rounded shadow-sm hover:opacity-90 transition-opacity disabled:opacity-60">Save</button>
@@ -401,8 +415,8 @@ const ProfileView: React.FC = () => {
               )}
             </div>
 
-            {/* === BASICS === */}
-            <InfoSection title="The Basics">
+            {/* === REQUIRED === */}
+            <InfoSection title="Required details" id="section-required" badge="Every member gives these" badgeTone="required">
               {renderRow('profileCreatedFor', 'Profile created for', undefined, 'select', PROFILE_CREATED_FOR)}
               {renderRow('name', 'Name')}
               {renderRow('dateOfBirth', 'Date of birth', undefined, 'text', [], {
@@ -410,36 +424,29 @@ const ProfileView: React.FC = () => {
                 editor: <DateOfBirthField value={String(editValue ?? '')} onChange={(v) => setEditValue(v)} size="compact" />,
               })}
               {renderRow('age', 'Age', undefined, 'number', [], { editable: !profile.dateOfBirth })}
-              {renderRow('gender', 'Gender', undefined, 'select', ['Man', 'Woman', 'Non-binary', 'Other'])}
-              {renderRow('pronouns', 'Pronouns', undefined, 'select', ['He/Him', 'She/Her', 'They/Them', 'He/They', 'She/They', 'Other'])}
-              {renderRow('sexuality', 'Sexuality', undefined, 'select', ['Straight', 'Gay', 'Lesbian', 'Bisexual', 'Pansexual', 'Asexual', 'Queer', 'Other', 'Prefer not to say'])}
+              {renderRow('gender', 'Gender', undefined, 'select', GENDERS)}
+              {renderRow('interestedIn', 'Interested in', undefined, 'select', INTERESTED_IN)}
+              {renderRow('datingIntention', 'Looking for', undefined, 'select', RELATIONSHIP_INTENTS)}
               {renderRow('maritalStatus', 'Marital status', undefined, 'select', MARITAL_STATUS)}
               {renderRow('children', 'Children', undefined, 'select', CHILDREN, {
                 display: formatChildren(profile.children, profile.childrenCount),
               })}
               {profile.children && profile.children !== 'No' && renderRow('childrenCount', 'Number of children', undefined, 'select', CHILDREN_COUNT)}
               {renderChoice('height', 'Height', { options: HEIGHTS })}
-              {renderRow('disability', 'Disability', undefined, 'select', DISABILITY)}
-            </InfoSection>
-
-            {/* === LOCATION === */}
-            <InfoSection title="Location">
               {renderChoice('country', 'Country', { groups: COUNTRIES })}
               {(profile.country ?? 'India') === 'India'
                 ? renderChoice('state', 'State', { options: INDIAN_STATES })
                 : renderRow('state', 'State / province')}
               {renderChoice('city', 'City', { options: CITIES_BY_STATE[profile.state ?? ''] ?? [], allowCustom: true })}
               {!profile.city && renderRow('location', 'Location (as typed before)')}
-              {renderRow('hometown', 'Grew up in')}
-              {profile.country && profile.country !== 'India' && renderRow('residentialStatus', 'Residential status', undefined, 'select', RESIDENTIAL_STATUS)}
-              {renderRow('settlingAbroad', 'Settling abroad', undefined, 'select', SETTLING_ABROAD)}
-            </InfoSection>
-
-            {/* === RELIGION & COMMUNITY === */}
-            <InfoSection title="Religion & Community" badge="New">
               {renderRow('religion', 'Religion', undefined, 'select', RELIGIONS)}
               {renderChoice('motherTongue', 'Mother tongue', { groups: MOTHER_TONGUES })}
-              {renderChips('languages', 'Languages', { options: LANGUAGES_SPOKEN })}
+              {renderRow('educationLevel', 'Highest qualification', undefined, 'select', EDUCATION_LEVELS)}
+              {renderChoice('occupation', 'Occupation', { groups: OCCUPATIONS, allowCustom: true })}
+            </InfoSection>
+
+            {/* === RELIGION & COMMUNITY (a reward section) === */}
+            <InfoSection title="Religion & community" id="section-community" {...rewardBadge('community')}>
               {SECTS[profile.religion] && renderChoice('sect', SECT_LABEL[profile.religion], { options: SECTS[profile.religion] })}
               {renderChoice('caste', CASTES[profile.religion] ? 'Caste' : 'Caste / community', {
                 options: [PREFER_NOT_TO_SAY, ...(CASTES[profile.religion] ?? [])], allowCustom: true,
@@ -447,48 +454,44 @@ const ProfileView: React.FC = () => {
               {renderChoice('subCaste', 'Sub-caste', { options: SUB_CASTES[profile.caste ?? ''] ?? [], allowCustom: true })}
               {GOTRA_RELIGIONS.includes(profile.religion) && renderChoice('gotra', 'Gotra', { options: GOTRAS, allowCustom: true })}
               {renderRow('openToOtherCommunities', 'Other communities', undefined, 'select', OPEN_TO_OTHER_COMMUNITIES)}
-              {renderRow('ethnicity', 'Ethnicity')}
-              {renderRow('race', 'Race', undefined, 'select', ['Asian', 'Black/African', 'Hispanic/Latino', 'Middle Eastern', 'Native American', 'Pacific Islander', 'South Asian', 'White/Caucasian', 'Mixed', 'Other'])}
-              {renderRow('nationalityCount', 'Number of nationalities', undefined, 'number')}
+              {renderChips('languages', 'Languages', { options: LANGUAGES_SPOKEN })}
+              {HOROSCOPE_RELIGIONS.includes(profile.religion) && (
+                <>
+                  {renderRow('manglik', 'Manglik', undefined, 'select', MANGLIK)}
+                  {renderRow('rashi', 'Rashi (moon sign)', undefined, 'select', RASHI)}
+                  {renderChoice('nakshatra', 'Nakshatra', { options: NAKSHATRA })}
+                  {renderRow('birthTime', 'Time of birth', undefined, 'text', [], {
+                    display: formatBirthTime(profile.birthTime),
+                    editor: (
+                      <input
+                        type="time"
+                        value={String(editValue ?? '')}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        className="w-full bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded px-2 py-1.5 text-sm outline-none text-gray-900 dark:text-gray-100"
+                        autoFocus
+                      />
+                    ),
+                  })}
+                  {renderRow('birthPlace', 'Place of birth')}
+                  {renderRow('horoscopeMatch', 'Horoscope match', undefined, 'select', HOROSCOPE_MATCH)}
+                </>
+              )}
             </InfoSection>
 
-            {/* === HOROSCOPE === */}
-            <InfoSection title="Horoscope" badge="New">
-              {renderRow('manglik', 'Manglik', undefined, 'select', MANGLIK)}
-              {renderRow('rashi', 'Rashi (moon sign)', undefined, 'select', RASHI)}
-              {renderChoice('nakshatra', 'Nakshatra', { options: NAKSHATRA })}
-              {renderRow('birthTime', 'Time of birth', undefined, 'text', [], {
-                display: formatBirthTime(profile.birthTime),
-                editor: (
-                  <input
-                    type="time"
-                    value={String(editValue ?? '')}
-                    onChange={(e) => setEditValue(e.target.value)}
-                    className="w-full bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded px-2 py-1.5 text-sm outline-none text-gray-900 dark:text-gray-100"
-                    autoFocus
-                  />
-                ),
-              })}
-              {renderRow('birthPlace', 'Place of birth')}
-              {renderRow('horoscopeMatch', 'Horoscope match', undefined, 'select', HOROSCOPE_MATCH)}
-              {renderRow('zodiac', 'Zodiac (sun sign)', undefined, 'select', ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'])}
-            </InfoSection>
-
-            {/* === CAREER & EDUCATION === */}
-            <InfoSection title="Education & Career">
-              {renderRow('educationLevel', 'Highest qualification', undefined, 'select', EDUCATION_LEVELS)}
+            {/* === EDUCATION & CAREER (a reward section) === */}
+            <InfoSection title="Education & career" id="section-career" {...rewardBadge('career')}>
               {renderChoice('degree', 'Degree', { groups: DEGREES, allowCustom: true })}
               {renderRow('university', 'College / university')}
               {renderRow('employedIn', 'Employed in', undefined, 'select', EMPLOYED_IN)}
-              {renderChoice('occupation', 'Occupation', { groups: OCCUPATIONS, allowCustom: true })}
-              {renderRow('jobTitle', 'Job title')}
-              {renderRow('work', 'Workplace')}
-              {renderRow('workStyle', 'Work style', undefined, 'select', ['Remote', 'Hybrid', 'In-office', 'Self-employed', `Don't work`])}
+              {profile.employedIn !== 'Not working' && renderRow('jobTitle', 'Job title')}
+              {profile.employedIn !== 'Not working' && renderRow('work', 'Workplace')}
+              {profile.employedIn !== 'Not working' && renderRow('workStyle', 'Work style', undefined, 'select', ['Remote', 'Hybrid', 'In-office', 'Self-employed', `Don't work`])}
               {renderChoice('annualIncome', 'Annual income', { groups: ANNUAL_INCOME })}
+              {profile.country && profile.country !== 'India' && renderRow('residentialStatus', 'Residential status', undefined, 'select', RESIDENTIAL_STATUS)}
             </InfoSection>
 
-            {/* === FAMILY === */}
-            <InfoSection title="Family" badge="New">
+            {/* === FAMILY (a reward section) === */}
+            <InfoSection title="Family" id="section-family" {...rewardBadge('family')}>
               {renderRow('familyType', 'Family type', undefined, 'select', FAMILY_TYPE)}
               {renderRow('familyStatus', 'Family status', undefined, 'select', FAMILY_STATUS)}
               {renderRow('familyValues', 'Family values', undefined, 'select', FAMILY_VALUES)}
@@ -508,93 +511,84 @@ const ProfileView: React.FC = () => {
               {renderRow('aboutFamily', 'About my family', undefined, 'textarea')}
             </InfoSection>
 
-            {/* === APPEARANCE === */}
-            <InfoSection title="Appearance">
-              {renderRow('bodyType', 'Body Type', undefined, 'select', ['Slim', 'Athletic', 'Average', 'Curvy', 'Plus Size', 'Muscular'])}
-              {renderRow('hairColor', 'Hair Color', undefined, 'select', ['Black', 'Brown', 'Blonde', 'Red', 'Gray', 'White', 'Dyed/Other'])}
-              {renderRow('hairType', 'Hair Type', undefined, 'select', ['Straight', 'Wavy', 'Curly', 'Coily', 'Bald'])}
-              {renderRow('eyeColor', 'Eye Color', undefined, 'select', ['Brown', 'Blue', 'Green', 'Hazel', 'Gray', 'Amber', 'Other'])}
-              {renderRow('facialHair', 'Facial Hair', undefined, 'select', ['Clean shaven', 'Stubble', 'Beard', 'Moustache', 'Goatee', `Doesn't apply`])}
-              {renderRow('makeupRoutine', 'Makeup', undefined, 'select', ['None', 'Minimal', 'Daily', 'Special occasions only', `Doesn't apply`])}
-              {renderRow('clothingStyle', 'Style', undefined, 'select', ['Casual', 'Formal', 'Streetwear', 'Vintage', 'Minimalist', 'Sporty', 'Bohemian', 'Preppy'])}
-              {renderRow('dressesWell', 'Dresses well?', undefined, 'select', ['Yes', 'Sometimes', `I don't focus on it`])}
-              {renderRow('wearsGlasses', 'Wears glasses?', undefined, 'select', ['Yes', 'No', 'Sometimes'])}
-              {renderRow('wearsLenses', 'Wears contact lenses?', undefined, 'select', ['Yes', 'No', 'Sometimes'])}
-              {renderRow('wearsJewelry', 'Wears jewelry?', undefined, 'select', ['Always', 'Sometimes', 'Rarely', 'Never'])}
-              {renderRow('bodyHair', 'Body hair', undefined, 'select', ['Natural', 'Trimmed', 'Removed', 'Prefer not to say'])}
-              {renderRow('hasTattoos', 'Tattoos?', undefined, 'select', ['Yes', 'No', 'A few small ones'])}
-              {renderRow('hygiene', 'Hygiene', undefined, 'select', ['Very meticulous', 'Standard daily routine', 'Easygoing'])}
-            </InfoSection>
-
-            {/* === LIFESTYLE === */}
-            <InfoSection title="Lifestyle & Habits">
+            {/* === LIFESTYLE (a reward section) === */}
+            <InfoSection title="Lifestyle" id="section-lifestyle" {...rewardBadge('lifestyle')}>
               {renderRow('dietaryPreferences', 'Diet', undefined, 'select', DIETS)}
               {renderRow('drinking', 'Drinking', undefined, 'select', ['No', 'Socially', 'Regularly'])}
               {renderRow('smoking', 'Smoking', undefined, 'select', ['No', 'Socially', 'Regularly'])}
-              {renderRow('covidVaccine', 'COVID Vaccine', undefined, 'select', ['Vaccinated', 'Not vaccinated', 'Prefer not to say'])}
               {renderRow('gymRoutine', 'Exercise', undefined, 'select', ['Daily', '3-4 times a week', '1-2 times a week', 'Occasionally', 'Never'])}
-              {renderRow('sportsInterest', 'Sports interest', undefined, 'select', ['Avid fan', 'Casual viewer', 'I play, not watch', 'Not interested'])}
-              {renderRow('canCook', 'Can cook?', undefined, 'select', ['Excellent', 'Decent', 'Basic', `Can't cook`])}
-              {renderRow('bakingInterest', 'Baking', undefined, 'select', ['Love it', 'Occasionally', `Don't bake`])}
-              {renderRow('favoriteDrink', 'Favorite drink')}
-              {renderRow('shoppingPreference', 'Shopping', undefined, 'select', ['In-store', 'Online', 'Both', `I don't enjoy shopping`])}
-              {renderRow('readingInterest', 'Reading', undefined, 'select', ['Avid reader', 'Occasional', `I prefer audiobooks`, `I don't read much`])}
-              {renderChips('hobbies', 'Hobbies & interests', { groups: HOBBY_GROUPS })}
-              {renderRow('isOrganised', 'Organisation', undefined, 'select', ['Very organised', 'Somewhat', 'Messy but functional', 'Chaotic'])}
-              {renderRow('snoring', 'Snoring', undefined, 'select', ['Never', 'Sometimes', 'Often', `I don't know`])}
-              {renderRow('drivesCar', 'Drives a car?', undefined, 'select', ['Yes', 'No', 'Sometimes'])}
-              {renderRow('hasDriversLicense', `Driver's license`, undefined, 'select', ['Yes', 'No', 'Learner permit'])}
-              {renderRow('livingPreference', 'Living situation', undefined, 'select', ['Lives alone', 'With roommates', 'With family', 'With partner', 'Other'])}
-              {renderRow('phoneType', 'Phone', undefined, 'select', ['iPhone', 'Android', `Don't care`])}
               {renderRow('sleepSchedule', 'Sleep schedule', undefined, 'select', ['Early Bird', 'Night Owl', 'Flexible', 'Irregular'])}
-            </InfoSection>
-
-            {/* === TRAVEL === */}
-            <InfoSection title="Travel">
+              {renderRow('canCook', 'Can cook?', undefined, 'select', ['Excellent', 'Decent', 'Basic', `Can't cook`])}
+              {renderChips('hobbies', 'Hobbies & interests', { groups: HOBBY_GROUPS })}
+              {renderRow('readingInterest', 'Reading', undefined, 'select', ['Avid reader', 'Occasional', `I prefer audiobooks`, `I don't read much`])}
+              {renderRow('sportsInterest', 'Sports interest', undefined, 'select', ['Avid fan', 'Casual viewer', 'I play, not watch', 'Not interested'])}
               {renderRow('lovesTravel', 'Loves travel?', undefined, 'select', ['Yes, frequently', 'Occasionally', `I prefer staying home`])}
               {renderRow('travelStyle', 'Travel style', undefined, 'select', ['Budget/Backpacking', 'Standard', 'Luxury', 'Adventure', 'Relaxing', 'Cultural'])}
-              {renderRow('nextTravelDestination', 'Next destination')}
             </InfoSection>
 
-            {/* === BACKGROUND === */}
-            <InfoSection title="Background & Beliefs">
-              {renderRow('politics', 'Politics', undefined, 'select', ['Liberal', 'Moderate', 'Conservative', 'Apolitical', 'Other'])}
-              {renderRow('musicGenre', 'Favorite music genre')}
-              {renderRow('therapyHistory', 'Therapy', undefined, 'select', ['Currently', 'In the past', 'Open to it', 'Not for me'])}
-              {renderRow('childhoodDescription', 'Childhood', undefined, 'textarea')}
-              {renderRow('familyHealthHistory', 'Family health history', undefined, 'textarea')}
-              {renderRow('criminalRecord', 'Criminal record', undefined, 'select', ['No', 'Minor offense', 'Yes — happy to explain'])}
+            {/* === APPEARANCE (a reward section) === */}
+            <InfoSection title="Appearance" id="section-appearance" {...rewardBadge('appearance')}>
+              {renderRow('bodyType', 'Body type', undefined, 'select', ['Slim', 'Athletic', 'Average', 'Curvy', 'Plus Size', 'Muscular'])}
+              {renderRow('hairColor', 'Hair colour', undefined, 'select', ['Black', 'Brown', 'Blonde', 'Red', 'Gray', 'White', 'Dyed/Other'])}
+              {renderRow('hairType', 'Hair type', undefined, 'select', ['Straight', 'Wavy', 'Curly', 'Coily', 'Bald'])}
+              {renderRow('eyeColor', 'Eye colour', undefined, 'select', ['Brown', 'Blue', 'Green', 'Hazel', 'Gray', 'Amber', 'Other'])}
+              {renderRow('wearsGlasses', 'Wears glasses?', undefined, 'select', ['Yes', 'No', 'Sometimes'])}
+              {renderRow('hasTattoos', 'Tattoos?', undefined, 'select', ['Yes', 'No', 'A few small ones'])}
+              {renderRow('clothingStyle', 'Style', undefined, 'select', ['Casual', 'Formal', 'Streetwear', 'Vintage', 'Minimalist', 'Sporty', 'Bohemian', 'Preppy'])}
             </InfoSection>
 
-            {/* === RELATIONSHIPS & PLANS === */}
-            <InfoSection title="Relationships & Plans">
+            {/* === PLANS & PERSONALITY (a reward section) === */}
+            <InfoSection title="Plans & personality" id="section-plans" {...rewardBadge('plans')}>
               {renderRow('marriageTimeline', 'Marriage timeline', undefined, 'select', ['ASAP', 'Within 6 months', 'Within 1 year', '1-2 years', '3-5 years', '5+ years', 'Not sure yet'])}
               {renderRow('familyPlans', 'Wants children?', undefined, 'select', ['Wants children', 'Open to children', 'Does not want children', 'Already have, want more', 'Already have, no more'])}
-              {renderRow('pets', 'Pets', undefined, 'select', ['Has pets', 'No pets', 'Wants pets', 'Allergic'])}
-              {renderRow('interracialMarriage', 'Open to interracial marriage?', undefined, 'select', ['Yes', 'No', 'Prefer same race'])}
-              {renderRow('financialSplitting', 'Approach to splitting bills', undefined, 'select', ['50/50', 'Proportional to income', `One partner pays`, `It depends`])}
-            </InfoSection>
-
-            {/* === LOOKING FOR === */}
-            <InfoSection title="Looking For">
-              {renderRow('interestedIn', 'Interested in')}
-              {renderRow('datingIntention', 'Looking for', undefined, 'select', ['Marriage', 'Long-term relationship', 'Long-term, open to short', 'Casual / Dating', 'Friendship'])}
-              {renderRow('loveLanguage', 'Love Language', undefined, 'select', ['Words of Affirmation', 'Acts of Service', 'Receiving Gifts', 'Quality Time', 'Physical Touch'])}
-              {renderRow('sexStyle', 'Sex style', undefined, 'select', ['Adventurous', 'Romantic', 'Vanilla', 'Reserved', 'Open to explore', 'Prefer not to say'])}
-            </InfoSection>
-
-            {/* === PSYCHOLOGY === */}
-            <InfoSection title="Psychology">
+              {renderRow('settlingAbroad', 'Settling abroad', undefined, 'select', SETTLING_ABROAD)}
+              {renderRow('loveLanguage', 'Love language', undefined, 'select', ['Words of Affirmation', 'Acts of Service', 'Receiving Gifts', 'Quality Time', 'Physical Touch'])}
               {renderRow('socialBattery', 'Social battery', undefined, 'select', ['Introvert', 'Ambivert', 'Extrovert', 'Social Butterfly', 'Homebody'])}
               {renderRow('attachmentStyle', 'Attachment style', undefined, 'select', ['Secure', 'Anxious', 'Avoidant', 'Disorganized', `Don't know`])}
               {renderRow('conflictResolution', 'Conflict style', undefined, 'select', ['Calm discussion', 'Needs space', 'Direct & assertive', 'Avoidant'])}
               {renderRow('financialApproach', 'Money', undefined, 'select', ['Saver', 'Spender', 'Balanced', 'Investor'])}
-            </InfoSection>
-
-            {/* === FUTURE === */}
-            <InfoSection title="Future Plans">
               {renderRow('futurePlans', '5-year vision', undefined, 'textarea')}
               {renderRow('dreamHouseType', 'Dream home', undefined, 'select', ['Apartment in the city', 'Suburban house', 'Rural farm/cottage', 'Beach house', 'Travel & live nomadically', 'Off-grid'])}
+              {renderRow('pets', 'Pets', undefined, 'select', ['Has pets', 'No pets', 'Wants pets', 'Allergic'])}
+            </InfoSection>
+
+            {/* === MORE ABOUT YOU (optional, not counted) === */}
+            <InfoSection title="More about you">
+              {renderRow('hometown', 'Grew up in')}
+              {renderRow('disability', 'Disability', undefined, 'select', DISABILITY)}
+              {renderRow('pronouns', 'Pronouns', undefined, 'select', ['He/Him', 'She/Her', 'They/Them', 'He/They', 'She/They', 'Other'])}
+              {renderRow('sexuality', 'Sexuality', undefined, 'select', ['Straight', 'Gay', 'Lesbian', 'Bisexual', 'Pansexual', 'Asexual', 'Queer', 'Other', 'Prefer not to say'])}
+              {renderRow('ethnicity', 'Ethnicity')}
+              {renderRow('race', 'Race', undefined, 'select', ['Asian', 'Black/African', 'Hispanic/Latino', 'Middle Eastern', 'Native American', 'Pacific Islander', 'South Asian', 'White/Caucasian', 'Mixed', 'Other'])}
+              {renderRow('nationalityCount', 'Number of nationalities', undefined, 'number')}
+              {renderRow('zodiac', 'Zodiac (sun sign)', undefined, 'select', ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'])}
+              {renderRow('politics', 'Politics', undefined, 'select', ['Liberal', 'Moderate', 'Conservative', 'Apolitical', 'Other'])}
+              {renderRow('facialHair', 'Facial hair', undefined, 'select', ['Clean shaven', 'Stubble', 'Beard', 'Moustache', 'Goatee', `Doesn't apply`])}
+              {renderRow('makeupRoutine', 'Makeup', undefined, 'select', ['None', 'Minimal', 'Daily', 'Special occasions only', `Doesn't apply`])}
+              {renderRow('dressesWell', 'Dresses well?', undefined, 'select', ['Yes', 'Sometimes', `I don't focus on it`])}
+              {renderRow('wearsLenses', 'Wears contact lenses?', undefined, 'select', ['Yes', 'No', 'Sometimes'])}
+              {renderRow('wearsJewelry', 'Wears jewelry?', undefined, 'select', ['Always', 'Sometimes', 'Rarely', 'Never'])}
+              {renderRow('bodyHair', 'Body hair', undefined, 'select', ['Natural', 'Trimmed', 'Removed', 'Prefer not to say'])}
+              {renderRow('hygiene', 'Hygiene', undefined, 'select', ['Very meticulous', 'Standard daily routine', 'Easygoing'])}
+              {renderRow('covidVaccine', 'COVID vaccine', undefined, 'select', ['Vaccinated', 'Not vaccinated', 'Prefer not to say'])}
+              {renderRow('bakingInterest', 'Baking', undefined, 'select', ['Love it', 'Occasionally', `Don't bake`])}
+              {renderRow('favoriteDrink', 'Favourite drink')}
+              {renderRow('shoppingPreference', 'Shopping', undefined, 'select', ['In-store', 'Online', 'Both', `I don't enjoy shopping`])}
+              {renderRow('isOrganised', 'Organisation', undefined, 'select', ['Very organised', 'Somewhat', 'Messy but functional', 'Chaotic'])}
+              {renderRow('snoring', 'Snoring', undefined, 'select', ['Never', 'Sometimes', 'Often', `I don't know`])}
+              {renderRow('drivesCar', 'Drives a car?', undefined, 'select', ['Yes', 'No', 'Sometimes'])}
+              {renderRow('hasDriversLicense', `Driver's licence`, undefined, 'select', ['Yes', 'No', 'Learner permit'])}
+              {renderRow('livingPreference', 'Living situation', undefined, 'select', ['Lives alone', 'With roommates', 'With family', 'With partner', 'Other'])}
+              {renderRow('phoneType', 'Phone', undefined, 'select', ['iPhone', 'Android', `Don't care`])}
+              {renderRow('nextTravelDestination', 'Next destination')}
+              {renderRow('musicGenre', 'Favourite music genre')}
+              {renderRow('therapyHistory', 'Therapy', undefined, 'select', ['Currently', 'In the past', 'Open to it', 'Not for me'])}
+              {renderRow('childhoodDescription', 'Childhood', undefined, 'textarea')}
+              {renderRow('familyHealthHistory', 'Family health history', undefined, 'textarea')}
+              {renderRow('criminalRecord', 'Criminal record', undefined, 'select', ['No', 'Minor offense', 'Yes — happy to explain'])}
+              {renderRow('interracialMarriage', 'Open to interracial marriage?', undefined, 'select', ['Yes', 'No', 'Prefer same race'])}
+              {renderRow('financialSplitting', 'Approach to splitting bills', undefined, 'select', ['50/50', 'Proportional to income', `One partner pays`, `It depends`])}
+              {renderRow('sexStyle', 'Sex style', undefined, 'select', ['Adventurous', 'Romantic', 'Vanilla', 'Reserved', 'Open to explore', 'Prefer not to say'])}
             </InfoSection>
 
             {/* === SOCIAL === */}

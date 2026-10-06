@@ -25,8 +25,13 @@ const user = await r.json();
 await fetch(`${API}/rest/v1/profiles?id=eq.${user.id}`, {
   method: 'PATCH',
   headers: { apikey: SERVICE, Authorization: `Bearer ${SERVICE}`, 'Content-Type': 'application/json' },
-  body: JSON.stringify({ name: 'Reset Tester', age: 30, gender: 'Female', interested_in: 'Men', onboarding_complete: true,
-    terms_accepted_at: new Date().toISOString(), privacy_accepted_at: new Date().toISOString() }),
+  body: JSON.stringify({ name: 'Reset Tester', gender: 'Female', interested_in: 'Men', onboarding_complete: true,
+    terms_accepted_at: new Date().toISOString(), privacy_accepted_at: new Date().toISOString(),
+    // the answers every member gives (lib/profileRewards.ts)
+    profile_created_for: 'Myself', date_of_birth: '1995-06-15', dating_intention: 'Marriage', marital_status: 'Never Married',
+    height: `5' 5" (165 cm)`, country: 'India', state: 'Maharashtra', city: 'Mumbai', religion: 'Hindu',
+    mother_tongue: 'Marathi', education_level: "Bachelor's", occupation: 'Software Professional',
+    description: 'Kind, curious and close to family. Testing Shaadi24.' }),
 });
 
 async function resetLink() {

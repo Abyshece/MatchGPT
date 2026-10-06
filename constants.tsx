@@ -22,7 +22,7 @@ export const SUBSCRIPTION_PLANS = [
     price: '₹0',
     period: 'Forever',
     features: [
-      '3 AI searches a day',
+      '3 AI searches a day, up to 9 with a complete profile',
       '15 likes a day',
       'Chat with your matches',
     ],

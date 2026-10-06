@@ -232,11 +232,22 @@ export const SelectField = ({ label, value, options, onChange }: { label: string
 );
 
 // Helper for Profile Sections
-export const InfoSection = ({ title, badge, children }: { title: string, badge?: string, children?: React.ReactNode }) => (
-    <div className="mb-8">
-        <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3 border-b border-gray-100 dark:border-zinc-800 pb-1 flex items-center gap-2">
-          {title}
-          {badge && <span className="normal-case tracking-normal text-[10px] font-bold bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 px-1.5 py-0.5 rounded">{badge}</span>}
+// badgeTone: 'new' (rose), 'done' (green: a section's reward earned), 'todo'
+// (amber: answers still to give), 'required' (gray)
+const BADGE_TONE = {
+  new: 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300',
+  done: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300',
+  todo: 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200',
+  required: 'bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300',
+} as const;
+
+export const InfoSection = ({ title, badge, badgeTone = 'new', id, children }: {
+  title: string, badge?: string, badgeTone?: keyof typeof BADGE_TONE, id?: string, children?: React.ReactNode,
+}) => (
+    <div className="mb-8 scroll-mt-4" id={id}>
+        <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3 border-b border-gray-100 dark:border-zinc-800 pb-1 flex items-center justify-between gap-2">
+          <span>{title}</span>
+          {badge && <span className={`normal-case tracking-normal text-[10px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap ${BADGE_TONE[badgeTone]}`}>{badge}</span>}
         </h4>
         <div className="space-y-0.5">
             {children}

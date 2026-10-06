@@ -43,7 +43,10 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ reason, resetInHours, onClo
       : reason === 'compatibility_report' ? 'Unlock the Compatibility Report'
         : 'Get Shaadi24+';
   const subtitle =
-    reason === 'daily_limit' ? `Wait ${resetInHours ?? 24}h, or get Shaadi24+ for unlimited searches.`
+    reason === 'daily_limit'
+      ? (profile?.searchBonus ?? 0) < 6
+        ? `Wait ${resetInHours ?? 24}h, complete more profile sections (each adds a free search a day), or get Shaadi24+ for unlimited searches.`
+        : `Wait ${resetInHours ?? 24}h, or get Shaadi24+ for unlimited searches.`
       : reason === 'compatibility_report' ? 'See exactly which traits align and where there might be friction.'
         : 'More searches, more likes, more ways to stand out.';
 

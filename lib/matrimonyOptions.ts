@@ -67,6 +67,17 @@ export const MOTHER_TONGUES: OptionGroup[] = [
 
 export const PREFER_NOT_TO_SAY = 'Prefer not to say';
 
+// Who someone is and is looking for: the words the matching expects
+export const GENDERS = ['Female', 'Male', 'Non-binary', 'Prefer to self-describe'];
+export const INTERESTED_IN = ['Men', 'Women', 'Everyone'];
+export const RELATIONSHIP_INTENTS = [
+  'Marriage',
+  'Long-term relationship',
+  'Long-term, open to short',
+  'Casual / Dating',
+  'Friendship',
+];
+
 // Caste lists by religion. Other religions take a typed answer.
 export const CASTES: Record<string, string[]> = {
   'Hindu': [

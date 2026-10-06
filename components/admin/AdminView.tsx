@@ -177,7 +177,7 @@ const ProForAllSwitch: React.FC<{ onChanged: () => void }> = ({ onChanged }) => 
         <h2 id="pro-for-all-label" className="text-sm font-bold text-gray-900 dark:text-white">Shaadi24+ for everyone</h2>
         <p id="pro-for-all-description" className="text-xs text-gray-500 dark:text-gray-400 mt-1">
           {proForAll
-            ? 'On: every member gets Likes You, Super Likes, refreshing Standouts, every filter, compatibility reports and date proposals for free. Free accounts keep the daily limits (3 AI searches, 15 likes). Turn it off when Shaadi24+ goes on sale.'
+            ? 'On: every member gets Likes You, Super Likes, refreshing Standouts, every filter, compatibility reports and date proposals for free. Free accounts keep the daily limits (3 AI searches, plus one for each profile section completed, and 15 likes). Turn it off when Shaadi24+ goes on sale.'
             : 'Off: only subscribers get Shaadi24+\'s features.'}
         </p>
       </div>

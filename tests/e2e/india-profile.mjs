@@ -1,7 +1,8 @@
 // Phase 12: the India details in My Profile, on other people's screens and in search.
 // Usage: node india-profile.mjs <email A> <email B>
 //   A: an onboarded account (password TestPass!2026). Its India details are cleared
-//      first, so it gets the invitation; then they are filled in through My Profile.
+//      first, so the app asks for the required ones (RequiredDetails) before anything
+//      else; then the rest are filled in through My Profile.
 //   B: another onboarded account (same password), who searches for A.
 // Both accounts are changed: A becomes a woman looking for men in Chennai, B a
 // verified Pro man looking for women.
@@ -34,6 +35,7 @@ const tierB = sql(`select subscription_tier from profiles where id = '${B}';`);
 const NAME_A = 'Meera Testcase';
 sql(`update profiles set ${INDIA_COLUMNS.map((c) => `${c} = null`).join(', ')}, name = '${NAME_A}', gender = 'Female',
        interested_in = 'Men', location = 'Mumbai, MH', height = null, religion = null, dietary_preferences = null, languages = null,
+       description = 'Loves music.',
        hidden_fields = '{}', is_paused = false, settings_incognito = false, onboarding_complete = true where id = '${A}';
      update profiles set gender = 'Male', interested_in = 'Women', is_verified = true, subscription_tier = 'PRO',
        daily_search_count = 0, is_paused = false where id = '${B}';
@@ -53,20 +55,53 @@ async function signIn(email) {
   await page.locator('input[type=email]').fill(email);
   await page.locator('input[type=password]').fill(PASSWORD);
   await page.locator('form').getByRole('button', { name: /Log In/i }).click();
-  await page.getByTestId('find-match-box').waitFor({ timeout: 15000 });
+  await page.getByTestId('find-match-box').or(page.getByTestId('required-details')).first().waitFor({ timeout: 15000 });
   return page;
 }
+const appears = (locator, ms = 10000) => locator.first().waitFor({ state: 'visible', timeout: ms }).then(() => true, () => false);
 
 try {
-  // ---- A: the invitation, then My Profile -------------------------------------
+  // ---- A: the required details, then My Profile ---------------------------------
   const pa = await signIn(EMAIL_A);
-  log('1. the invitation to add the new details');
-  await pa.getByText('New on your profile:').waitFor({ timeout: 5000 });
-  await pa.screenshot({ path: `${OUT}1-invitation.png` });
-  check(true, 'dashboard shows the invitation');
-  await pa.getByRole('button', { name: /Add details/ }).click();
-  await pa.getByText('Religion & Community').first().waitFor({ timeout: 5000 });
-  check(true, '"Add details" opens My Profile');
+  log('1. the required details, asked before anything else');
+  const gate = pa.getByTestId('required-details');
+  check(await appears(gate), 'the app asks for the missing required details first');
+  const asked = (await gate.innerText()).toUpperCase();
+  check(['PROFILE CREATED FOR', 'DATE OF BIRTH', 'MARITAL STATUS', 'HEIGHT', 'RELIGION', 'MOTHER TONGUE', 'OCCUPATION',
+    'ABOUT ME', 'LIVES IN'].every((w) => asked.includes(w)), 'it asks what is missing');
+  check(!asked.includes('HIGHEST QUALIFICATION') && !asked.includes('LOOKING FOR'), 'and not what the profile has');
+  await gate.getByRole('button', { name: /Save and continue/ }).click();
+  check(await appears(gate.getByText(/^Please answer: /)), 'nothing is saved until everything is answered');
+  await pa.screenshot({ path: `${OUT}1-required-details.png`, fullPage: true });
+  const pickIn = async (name, typed, option) => {
+    const box = gate.getByRole('combobox', { name });
+    await box.fill(typed);
+    await pa.getByRole('option', { name: option, exact: true }).click();
+  };
+  await gate.getByLabel('Profile created for').selectOption('Myself');
+  await gate.getByLabel('Day').selectOption('2');
+  await gate.getByLabel('Month').selectOption({ label: 'Apr' });
+  await gate.getByLabel('Year').selectOption('1996');
+  await gate.getByLabel('Marital status').selectOption('Never Married');
+  await pickIn('Height', `5' 8`, `5' 8" (173 cm)`);
+  await gate.getByLabel('Religion').selectOption('Hindu');
+  await pickIn('Mother tongue', 'tam', 'Tamil');
+  await pickIn('Occupation', 'software prof', 'Software Professional');
+  await gate.getByLabel('About me').fill('Short.');
+  await pickIn('Country', 'India', 'India');
+  await pickIn('State', 'tamil', 'Tamil Nadu');
+  await pickIn('City', 'chen', 'Chennai');
+  await gate.getByRole('button', { name: /Save and continue/ }).click();
+  check(await appears(gate.getByText('Please write at least 30 characters about yourself.')), 'About me needs 30 characters');
+  await gate.getByLabel('About me').fill('A Chennai girl who loves music, books and long walks.');
+  await gate.getByRole('button', { name: /Save and continue/ }).click();
+  check(await appears(pa.getByTestId('find-match-box'), 20000), 'saved: on to Find Match');
+  check(sql(`select concat_ws(' | ', profile_created_for, marital_status, religion, mother_tongue, occupation, city)
+      from profiles where id = '${A}';`) === 'Myself | Never Married | Hindu | Tamil | Software Professional | Chennai',
+    'the answers are saved');
+  await pa.getByText('My Profile', { exact: true }).first().click();
+  await pa.getByText('Religion & community').first().waitFor({ timeout: 5000 });
+  check(true, 'My Profile opens');
 
   // A profile row, found by its label
   const row = (label) => pa.locator('div.group', { has: pa.locator(`span.truncate:text-is("${label}")`) }).first();

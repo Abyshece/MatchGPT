@@ -726,6 +726,7 @@ export type Database = {
           relationship_type: string | null
           religion: string | null
           residential_status: string | null
+          search_bonus: number
           sect: string | null
           settings_email_notifs: boolean | null
           settings_incognito: boolean | null
@@ -891,6 +892,7 @@ export type Database = {
           relationship_type?: string | null
           religion?: string | null
           residential_status?: string | null
+          search_bonus?: number
           sect?: string | null
           settings_email_notifs?: boolean | null
           settings_incognito?: boolean | null
@@ -1056,6 +1058,7 @@ export type Database = {
           relationship_type?: string | null
           religion?: string | null
           residential_status?: string | null
+          search_bonus?: number
           sect?: string | null
           settings_email_notifs?: boolean | null
           settings_incognito?: boolean | null
@@ -1717,6 +1720,7 @@ export type Database = {
       has_pro: { Args: { p_user: string }; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
       mark_messages_read: { Args: { p_match_id: string }; Returns: number }
+      my_profile_sections: { Args: never; Returns: Json }
       payment_net: {
         Args: { p: Database["public"]["Tables"]["payments"]["Row"] }
         Returns: number
