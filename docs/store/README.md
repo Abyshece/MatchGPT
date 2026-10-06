@@ -41,9 +41,15 @@ With a domain of your own (step 1), use it in place of `shaadi-gpt.vercel.app` e
 - [ ] **Demo accounts for the reviewers**: both stores ask for one ("Notes for the reviewers" below).
 
 ### 2. Developer accounts
+- [ ] **As an organization, on both stores.** Apple's guideline 5.1.1(ix) says apps that "require
+  sensitive user information should be submitted by a legal entity that provides the services, and not
+  by an individual developer", and a matrimony app asks for religion, caste, health and sexuality.
+  Sole traders can only enrol as individuals, so the plan is a German company (a UG) with a D-U-N-S
+  number: [docs/legal/README.md, "Running Shaadi24 from Germany"](../legal/README.md#running-shaadi24-from-germany).
 - [ ] **Google Play Console** (play.google.com/console): US$25 once, with identity checks. A *personal*
   account must run a closed test with at least 12 testers for 14 days in a row before Google lets an
-  app into production; an *organization* account (it needs a D-U-N-S number) doesn't. Start early.
+  app into production, and once it sells, Google Play shows its owner's full address; an
+  *organization* account (it needs a D-U-N-S number) does neither. Start early.
 - [ ] **Apple Developer Program** (developer.apple.com/programs): US$99 a year. As an individual your own
   name shows as the seller; as an organization (D-U-N-S number) the company's does.
 

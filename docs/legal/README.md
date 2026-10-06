@@ -30,6 +30,106 @@ What changed in the product is listed in [What was changed](#what-was-changed). 
 still has to supply the details in [Before launch: from you](#before-launch-from-you). Nothing in the
 product itself blocks launch once those are in.
 
+The owner lives in Germany, without an Indian company, address, phone number or bank account. None of
+these is needed: [Running Shaadi24 from Germany](#running-shaadi24-from-germany) explains why, which
+structure suits the app stores, and what German law (tax, the Impressum, the GDPR) adds.
+
+## Running Shaadi24 from Germany
+
+The owner is a German citizen living in Germany, with no OCI card and no Indian company, address, phone
+number or bank account. This section was researched on 6 October 2026, to be confirmed with the lawyer
+and a German tax adviser (Steuerberater). It isn't advice.
+
+**What Google and Apple do, and what they don't.**
+
+- **They sell Shaadi24+ to Indian members in their own name.** Apple's agreement (Schedule 2, Exhibit A)
+  makes Apple Distribution International (Ireland) the developer's *commissionaire* for India: it sells in
+  its own name on the developer's behalf. Google says that for developers outside India it "is
+  responsible for setting, charging and remitting goods and services tax (GST)" on Google Play purchases
+  in India. Under GST law the store that collects the payment counts as the supplier (IGST Act 2017,
+  section 14). So there's no Indian GST registration (GSTIN) to get.
+- Apple lists India among the countries where it collects and remits the tax (Exhibit B), and its terms
+  deduct no Indian tax from the developer's proceeds.
+- **They pay out to a bank account in Germany.** This works because Shaadi24+ is sold only in the apps:
+  payments on the website (Razorpay, UPI) would need an Indian business.
+- **They don't become the operator.** Every duty in this report (complaints, removals, data protection,
+  consumer law) stays with whoever runs Shaadi24.
+
+**Indian tax.**
+
+- No GST to charge or file (above).
+- No Indian income tax while there's no office, staff or agent in India: under the India–Germany tax
+  treaty (Articles 5 and 7), the profits are taxed in Germany. India's 2% equalisation levy on foreign
+  e-commerce ended on 1 August 2024.
+- India's "significant economic presence" rule (₹2 crore of payments from India, or 3 lakh users, in a
+  year: Income-tax Rules, rule 11UD) widens Indian tax law but not the treaty. Near those numbers, have an
+  Indian chartered accountant confirm it, with a German certificate of tax residence.
+- No PAN is needed.
+
+**What Indian law asks of an operator abroad.**
+
+| Duty | From Germany | Changes only when |
+|---|---|---|
+| Being an Indian company | Not required. Since the 2021 amendment, the E-Commerce Rules (rule 4(1)) ask for a nodal officer resident in India only of Indian companies, LLPs and partnerships, foreign companies with a place of business in India, and offices abroad controlled by Indian residents | — |
+| A Grievance Officer (IT Rules, rule 3(2)) | Anyone, anywhere: the owner, in Germany | Officers resident in India, and an address in India, at 50 lakh registered users (a significant social media intermediary: rule 4(1)(a)–(c) and 4(5)) |
+| The DPDP Act | Applies to processing abroad for people in India (section 3(b)); no local representative | A data protection officer in India, if the Government names Shaadi24 a Significant Data Fiduciary (section 10) |
+| An address and phone number on the platform (E-Commerce Rules, rule 4(2)) | The German ones | — |
+
+An Indian company would need a director who stays in India at least 182 days a year (Companies Act 2013,
+section 149(3); for an LLP, a designated partner and 120 days), an office, a bank account, PAN and TAN,
+GST registration, audits and annual filings. None of that is needed.
+
+**Individual or company: the app stores decide.**
+
+- **Apple, guideline 5.1.1(ix):** apps "that require sensitive user information should be submitted by a
+  legal entity that provides the services, and not by an individual developer". A matrimony app asks for
+  religion, caste, health and sexuality, so an individual account should expect to be refused. Sole
+  traders can only enrol as individuals; an organization needs a company and a D-U-N-S number. Guideline
+  4.3(b) also takes new dating apps only with "a meaningfully different or improved experience": the
+  notes for the reviewers should explain the matrimony focus and the AI search.
+- **Google Play:** a new personal account must run a closed test with 12 testers for 14 days in a row
+  before it can publish; an organization account doesn't. A personal account that sells shows the
+  owner's full address on Google Play.
+
+| | German sole trader (Einzelunternehmen) | German UG (haftungsbeschränkt): recommended |
+|---|---|---|
+| Setting up | A Gewerbeanmeldung at the town hall | A notary (the standard protocol) and the commercial register, a few hundred euros; capital from €1, with a quarter of each year's profit kept until it reaches €25,000 |
+| Apple | An individual account: likely refused (5.1.1(ix)) | An organization account |
+| Google Play | 12 testers for 14 days; the home address shown | No tester rule; the company's address shown |
+| Liability | Personal and unlimited | The company's (DPDP penalties go up to ₹250 crore) |
+| Each year | An income tax return | Annual accounts, corporation and trade tax: a Steuerberater |
+| A question for the Indian lawyer | — | Whether a foreign company selling online to India is a "foreign company" with a place of business in India "through electronic mode" (Companies Act 2013, section 2(42); Companies (Registration of Foreign Companies) Rules 2014, rule 2(1)(c)). If so, it would register in India and need a resident nodal officer (E-Commerce Rules, rule 4(1)). The definition is broad but rarely applied to small app makers; as an individual, it doesn't arise |
+
+Give the company a neutral name until the trade mark search on "Shaadi24" is done
+([Before launch](#before-launch-from-you), step 9).
+
+**Germany and the EU, because the operator is there.**
+
+| Law | What it means | Status |
+|---|---|---|
+| Registering the business | For a UG, the commercial register; a Gewerbeanmeldung either way; the tax office's questionnaire in ELSTER for a tax number; a VAT ID | You |
+| VAT (UStG) | A sale through a store is a supply to the store (Apple's is in Ireland), not to the member: the EU Court of Justice, *Xyrality* (C-101/24, 3 November 2025). No German VAT on those sales. The small-business limit (§ 19 UStG): €25,000 last year, €100,000 this year. Services bought from abroad (Supabase, Vercel, Google Cloud) may owe VAT under the reverse charge | You (Steuerberater) |
+| Income tax | The profits are taxed in Germany: income tax, or corporation and trade tax for a UG | You (Steuerberater) |
+| Digitale-Dienste-Gesetz, § 5 (the Impressum) | On the website and in the apps: the name, an address where papers can be served (a business-address service, not a PO box), email and phone; for a UG, its register entry and VAT ID | To add with the operator's details |
+| GDPR, Article 3(1) | Applies to the members' data because the operator is established in Germany, wherever the members live (EDPB Guidelines 3/2018) | Privacy Policy additions (the operator in Germany, the legal bases, transfers, the supervisory authority): to add with the Impressum |
+| GDPR Article 35; BDSG § 38 | Sensitive data at scale probably needs a data protection impact assessment, and in Germany that means appointing a data protection officer, whatever the size (external services are common) | You |
+| GDPR Articles 28 and 44–46 | Processing agreements with standard contractual clauses (Supabase, Vercel, Google) | You ([Before launch](#before-launch-from-you), step 6) |
+| EU Digital Services Act; EU consumer law | Only if the apps are offered in EU stores (for Indians living in Europe): trader details shown in the stores, EU consumer rights | Keep to India's stores at first |
+
+**Steps.**
+
+1. Choose a UG (recommended) or a sole trader.
+2. A UG: the notary, a German business bank account, the commercial register, the Gewerbeanmeldung, then
+   the tax office. A sole trader: the Gewerbeanmeldung, then the tax office.
+3. For a UG, a D-U-N-S number (free, through Apple's lookup; it can take a week or two).
+4. The Apple Developer Program and the Google Play Console as an organization, paid out to the German
+   account.
+5. A business address, a phone number (a German one with WhatsApp Business) and the mailboxes. The owner
+   as Grievance Officer, with the admin alerts on: India is 3½ hours ahead of Germany in summer and 4½ in
+   winter, and the urgent complaints have 2 hours.
+6. The details go into `lib/legalInfo.ts`, with the Impressum and the GDPR additions, as one new version
+   of the documents, so members agree only once.
+
 ## Before launch: from you
 
 These go in `lib/legalInfo.ts` (one file; every page reads it). Until then the pages say "to be published
@@ -37,43 +137,54 @@ before launch" where an address is missing.
 
 | What | Why | Where it shows |
 |---|---|---|
-| The operator's **legal name**, and whether it's you as a sole proprietor or a company/LLP (now: "Abhishek", sole proprietor) | Consumer Protection (E-Commerce) Rules 2020, rule 4(2); IT Rules 3(2)(a); DPDP Rules, rule 3 | Terms, Privacy, Grievances, website footer |
-| The **registered address** | E-Commerce Rules, rule 4(2)(a) | Terms, Privacy, Grievances |
-| **CIN** (a company) or **GSTIN** (if registered) | E-Commerce Rules, rule 4(2) | Terms |
-| The **Grievance Officer**: name and a phone number (now: "Abhishek", no phone). Must be someone who can act within 2 hours, every day | IT Rules 3(2)(a): "the name of the Grievance Officer and his contact details"; E-Commerce Rules 4(4) | Grievances page, Terms, Privacy |
+| The **operator**: a German UG (recommended) or you as a German sole trader ([Running Shaadi24 from Germany](#running-shaadi24-from-germany)), and its **legal name** (now: "Abhishek", sole proprietor) | Consumer Protection (E-Commerce) Rules 2020, rule 4(2); IT Rules 3(2)(a); DPDP Rules, rule 3; the Impressum (§ 5 DDG) | Terms, Privacy, Grievances, website footer |
+| The **address**, in Germany (a business-address service is fine; a PO box isn't) | E-Commerce Rules, rule 4(2)(b); § 5 DDG | Terms, Privacy, Grievances |
+| For a UG, its **commercial register entry** and **VAT ID**. No CIN or GSTIN: there's no Indian company, and the stores pay India's GST | E-Commerce Rules, rule 4(2); § 5 DDG | Terms, the Impressum |
+| The **Grievance Officer**: name and a phone number (now: "Abhishek", no phone). Can be you, in Germany, with a German number. Must be someone who can act within 2 hours, every day | IT Rules 3(2)(a): "the name of the Grievance Officer and his contact details"; E-Commerce Rules 4(4) | Grievances page, Terms, Privacy |
 | **Working mailboxes**: support@, privacy@ and grievance@shaadi24.com, read every day | Every page gives them; complaints by email are as valid as by the form | Everywhere |
-| The **city whose courts** hear disputes (now: Bengaluru, Karnataka) | Terms, section 14 | Terms |
+| The **city whose courts** hear disputes (now: Bengaluru, Karnataka; the lawyer to confirm, with the operator in Germany) | Terms, section 14 | Terms |
 | The website's **own domain** when it moves from shaadi-gpt.vercel.app | Links in the apps and emails | `websiteUrl` |
 
 Then, outside the code:
 
-1. **Watch the complaints.** Admin → Complaints, and the phone alerts it sends. Intimate images and
+1. **Set up the business in Germany and the store accounts**, as in
+   [Running Shaadi24 from Germany](#running-shaadi24-from-germany): a UG (recommended), a D-U-N-S number,
+   the Apple and Google accounts as an organization, the Impressum, and the GDPR steps (a data protection
+   impact assessment and a data protection officer).
+2. **Watch the complaints.** Admin → Complaints, and the phone alerts it sends. Intimate images and
    impersonation must be acted on within **2 hours** of a complaint, unlawful content within 36 hours,
    everything else within 7 days. Reply by email to each, then record what was done.
-2. **Lawful requests**: a court order, or a written notice from an authorised officer, to remove something
+3. **Lawful requests**: a court order, or a written notice from an authorised officer, to remove something
    must be acted on within **3 hours** (IT Rules 3(1)(d)); a written order for information within **72 hours**
    (3(1)(j)). Admin → Users finds the account; the records kept after deletion are in the `legal_holds`
    table (Supabase → Table Editor, as the owner). Keep a copy of each order and what you sent.
-3. **CERT-In** (Directions of 28 April 2022 under section 70B(6)): register a point of contact with CERT-In;
+4. **CERT-In** (Directions of 28 April 2022 under section 70B(6)): register a point of contact with CERT-In;
    report a cyber security incident to `incident@cert-in.org.in` within **6 hours** of noticing it; keep
    the logs of the systems for **180 days**. Supabase keeps its logs for 1 day (Free) or 7 days (Pro): set
    up a log drain or export (Supabase Team plan, or a daily export job) before launch. Vercel's logs need the
    same.
-4. **A personal data breach** (DPDP Act section 8(6); DPDP Rules, rule 7): tell the affected members and the
+5. **A personal data breach** (DPDP Act section 8(6); DPDP Rules, rule 7): tell the affected members and the
    Data Protection Board of India without delay, and send the Board a full report within **72 hours**; also
    CERT-In as above. A short plan is in [If data leaks](#if-data-leaks).
-5. **Agreements with the companies that process data for Shaadi24** (DPDP Act section 8(2)): accept the
+6. **Agreements with the companies that process data for Shaadi24** (DPDP Act section 8(2)): accept the
    data processing terms of Supabase, Vercel, Google (Firebase Cloud Messaging, Gemini, Google sign-in, Play)
-   and Apple in each one's dashboard. Supabase's project is in Mumbai (ap-south-1); keep it there.
-6. **Gemini on a paid plan** before launch: on the free tier Google may use the search text to improve its
+   and Apple in each one's dashboard. With the operator in Germany they are also the GDPR's processing
+   agreements, with standard contractual clauses (GDPR Articles 28 and 46). Supabase's project is in
+   Mumbai (ap-south-1); keep it there.
+7. **Gemini on a paid plan** before launch: on the free tier Google may use the search text to improve its
    products, which the Privacy Policy would then have to say as "shared" (it now says Google processes it
    for Shaadi24). See `docs/store/README.md`.
-7. **An accountant** for GST and income tax on store sales (who the seller of record is in India for Google
-   Play and the App Store, and whether TDS under section 194-O applies).
-8. **The name.** "Shaadi" is in trademarks of Shaadi.com's owner (People Interactive), who has gone to court
-   over them. Have a trade mark attorney search "Shaadi24" and file it (classes 45, 9 and 42) before launch.
-9. **Turn on the daily clean-up job**: paste `supabase/migrations/20261006185100_phase10_india_law_purge.sql`
-   into Supabase → SQL Editor and run it (see [What was changed](#what-was-changed)).
+8. **A tax adviser in Germany** (Steuerberater) for the registration, income tax and VAT. The stores charge
+   and pay India's GST, and there's no Indian income tax without an office in India
+   ([Running Shaadi24 from Germany](#running-shaadi24-from-germany)); an Indian chartered accountant only as
+   the Indian revenue nears ₹2 crore a year or 3 lakh users. (TDS under section 194-O applies only to
+   sellers resident in India.)
+9. **The name.** "Shaadi" is in trademarks of Shaadi.com's owner (People Interactive), who has gone to court
+   over them. Have a trade mark attorney search "Shaadi24" and file it (classes 45, 9 and 42) before launch;
+   a foreign applicant files in India through an Indian trade mark agent. Until then, give a company a
+   neutral name.
+10. **Turn on the daily clean-up job**: paste `supabase/migrations/20261006185100_phase10_india_law_purge.sql`
+    into Supabase → SQL Editor and run it (see [What was changed](#what-was-changed)).
 
 ## What was changed
 
@@ -277,7 +388,8 @@ In force until the DPDP Act's provisions replace them.
 | SC/ST (Prevention of Atrocities) Act, 1989, s.3(1)(r)–(s) | Caste insults in public view are offences, online too | Community Guidelines forbid hate based on caste; report and ban | Done |
 | Rights of Persons with Disabilities Act, 2016 | Accessible digital services | axe-core checks of every screen at phone width | Done |
 | Trade Marks Act, 1999 | The name "Shaadi24" | You (above) |
-| GST and income tax | Store sales | You (an accountant) |
+| GST (IGST Act 2017, s.14) and income tax | The stores charge and pay India's GST on every sale; no Indian income tax without an office in India (India–Germany tax treaty) | GST: done by the stores; German tax: You (a Steuerberater) |
+| German and EU law (the operator lives in Germany) | Registering the business, VAT, the Impressum, the GDPR | See [Running Shaadi24 from Germany](#running-shaadi24-from-germany) |
 | Google Play and App Store rules | User content, account deletion, privacy answers | Done earlier (Phase 13); privacy answers updated |
 
 ## If data leaks
@@ -300,12 +412,18 @@ Please review:
    doesn't recognise same-sex marriages (Supriyo Chakraborty, 2023), and the Transgender Persons
    (Protection of Rights) Act, 2019.
 3. The retention periods (table above), and whether to delete inactive accounts after a time.
-4. The structure of the business (sole proprietorship or a company), given the duties above and the
-   liability that comes with them.
+4. The structure of the business: a German UG or a German sole trader
+   ([Running Shaadi24 from Germany](#running-shaadi24-from-germany)), given the duties above, the liability
+   that comes with them and Apple's guideline 5.1.1(ix); and, for a company, whether India's "foreign
+   company… through electronic mode" (Companies Act 2013, s.2(42)) reaches it.
 5. The Hindi summaries (a native speaker should read them), and whether any other language is needed for
    the states Shaadi24 targets first.
 6. The trade mark question.
 7. The consent screen's words (`components/onboarding/StepConsent.tsx`) and the sign-up form's.
+8. The courts (Terms §14) and the governing law, now that the operator is in Germany.
+
+For a German lawyer or data protection officer: the GDPR additions to the Privacy Policy, the data
+protection impact assessment, and the Impressum.
 
 ## Sources
 
@@ -318,3 +436,23 @@ Please review:
 - CERT-In Directions under section 70B(6) of the IT Act, 28 April 2022.
 - Prohibition of Child Marriage Act 2006; Dowry Prohibition Act 1961; Bharatiya Nyaya Sanhita 2023.
 - Supriyo Chakraborty v. Union of India, Supreme Court, 17 October 2023.
+
+For [Running Shaadi24 from Germany](#running-shaadi24-from-germany):
+
+- Google Play Help, "Region and country-specific guidelines" (tax for developers outside India):
+  support.google.com/paymentscenter/answer/7161449.
+- Apple, Exhibits to Schedules 2 and 3 of the Apple Developer Program License Agreement (27 August 2026):
+  Exhibit A (Apple Distribution International as commissionaire for India), Exhibit B (taxes Apple collects
+  and remits).
+- App Store Review Guidelines 5.1.1(ix) and 4.3(b); Apple Developer Program enrollment (individuals and
+  organizations).
+- Play Console Help: testing requirements for new personal accounts (answer 14151465); apps that need an
+  organization account (answer 13634885); developer details shown on Google Play (answer 13634081).
+- IGST Act 2017, section 14; Finance (No. 2) Act 2024 (the 2% equalisation levy ends on 1 August 2024);
+  Income-tax Rules, rule 11UD (Notification 41/2021); India–Germany tax treaty (1995), Articles 5 and 7.
+- Consumer Protection (E-Commerce) (Amendment) Rules 2021 (rule 4(1)); Companies Act 2013, sections 2(42)
+  and 149(3); Companies (Registration of Foreign Companies) Rules 2014, rule 2(1)(c); LLP Act 2008,
+  section 7.
+- Court of Justice of the EU, *Xyrality*, C-101/24, 3 November 2025; UStG § 19 as from 1 January 2025.
+- GDPR Article 3(1) and EDPB Guidelines 3/2018 on territorial scope; BDSG § 38; Digitale-Dienste-Gesetz
+  § 5.
