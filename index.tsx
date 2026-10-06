@@ -7,6 +7,7 @@ import App from './App';
 import AppErrorBoundary from './components/AppErrorBoundary';
 import { startNativeApp } from './lib/nativeApp';
 import { isWebsite } from './lib/website';
+import { isAppPreview } from './lib/appPreview';
 import { startErrorReports } from './lib/errorReports';
 
 // Pages of the website that stand on their own: account deletion (Google
@@ -19,6 +20,9 @@ const Page = Capacitor.isNativePlatform() ? undefined : PAGES.get(window.locatio
 // Everywhere else on the website: the home page, legal pages and admin panel
 // (members use the apps; lib/website.ts)
 const Website = lazyScreen(() => import('./components/website/Website'));
+// /app-preview: the members' app, for admins only (Admin → App Preview)
+const AppPreview = lazyScreen(() => import('./components/website/AppPreview'));
+const preview = !Page && isAppPreview();
 
 // Errors nobody caught go to Admin → Errors (lib/errorReports.ts)
 startErrorReports();
@@ -37,6 +41,12 @@ root.render(
       {Page ? (
         <Suspense fallback={null}>
           <Page />
+        </Suspense>
+      ) : preview ? (
+        <Suspense fallback={null}>
+          <AppPreview>
+            <App />
+          </AppPreview>
         </Suspense>
       ) : isWebsite() ? (
         <Suspense fallback={null}>

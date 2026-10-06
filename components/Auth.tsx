@@ -7,6 +7,7 @@ import { GOOGLE_CLIENT_ID } from '../lib/googleSignIn';
 import GoogleSignInButton from './GoogleSignInButton';
 import NativeSignInButtons from './NativeSignInButtons';
 import { isNativeApp } from '../lib/nativeApp';
+import { APP_PREVIEW_PATH, isAppPreview } from '../lib/appPreview';
 
 interface AuthProps {
   // Sign-up that needs the emailed code: parent shows the email-verification screen.
@@ -147,7 +148,7 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
       // The site has one page; the app spots the reset link and asks for the new
       // password. Inside the phone app there's no web address to come back to,
       // so the link opens the website (Supabase's Site URL) instead.
-      redirectTo: isNativeApp() ? undefined : window.location.origin,
+      redirectTo: isNativeApp() ? undefined : `${window.location.origin}${isAppPreview() ? APP_PREVIEW_PATH : ''}`,
     });
     setIsLoading(false);
     if (resetError) {
@@ -239,6 +240,12 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
                 onSignedIn={onSignInSuccess}
                 onError={(message) => { setInfo(null); setError(message); }}
               />
+            ) : isAppPreview() ? (
+              // Google's page won't open inside the admin panel, and would
+              // come back signed in to the website rather than the preview
+              <p data-testid="preview-sign-in-note" className="px-1 text-[11px] leading-relaxed text-center text-gray-500 dark:text-gray-400">
+                In the app preview, sign in with email. Google and Apple sign-in are tried in the phone apps.
+              </p>
             ) : GOOGLE_CLIENT_ID ? (
               <GoogleSignInButton
                 clientId={GOOGLE_CLIENT_ID}

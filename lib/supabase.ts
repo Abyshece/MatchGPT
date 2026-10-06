@@ -6,6 +6,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './database.types';
+import { APP_PREVIEW_STORAGE_KEY, isAppPreview } from './appPreview';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
@@ -34,5 +35,7 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
+    // The app preview in the admin panel signs in on its own (lib/appPreview.ts)
+    ...(isAppPreview() ? { storageKey: APP_PREVIEW_STORAGE_KEY } : {}),
   },
 });

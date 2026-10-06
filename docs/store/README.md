@@ -80,8 +80,9 @@ Each is spelled out in ROADMAP.md, Phase 13 ("Owner, Google", "Owner, Firebase",
   (step 5) and, for test builds, the debug key; an **iOS** client, whose ID goes in
   `.env.production.local` as `VITE_GOOGLE_IOS_CLIENT_ID` and into Supabase's Google provider (step 3).
 - [ ] **Firebase**: one project with both apps; `google-services.json` into `android/app/`;
-  `GoogleService-Info.plist` into Xcode's App folder; the APNs key uploaded to Firebase; a service
-  account key as `FIREBASE_SERVICE_ACCOUNT`.
+  `GoogleService-Info.plist` into Xcode's App folder, or, with no Mac, its text as the GitHub secret
+  `FIREBASE_IOS_CONFIG` (the TestFlight build puts it in the app); the APNs key uploaded to Firebase; a
+  service account key as `FIREBASE_SERVICE_ACCOUNT`.
 - [ ] **Apple**: Sign in with Apple ticked for `com.shaadi24.app`; a key with Sign in with Apple (and
   Apple Push Notifications) for the three `APPLE_*` secrets; the address Shaadi24's emails come from
   registered for Apple's private relay (Services → Sign in with Apple for Email Communication).

@@ -10,6 +10,7 @@
 // ============================================================================
 
 import { Capacitor } from '@capacitor/core';
+import { isAppPreview } from './appPreview';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const PUBLIC_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
@@ -59,7 +60,7 @@ export function reportError(error: unknown, where?: string): void {
         p_platform: Capacitor.getPlatform(),
         p_message: message,
         p_stack: stack || null,
-        p_screen: (where || screen || window.location.pathname).slice(0, 120),
+        p_screen: `${isAppPreview() ? 'app preview: ' : ''}${where || screen || window.location.pathname}`.slice(0, 120),
         p_app_version: __APP_VERSION__,
         p_user_agent: navigator.userAgent.slice(0, 300),
       }),
