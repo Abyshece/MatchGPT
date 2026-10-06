@@ -105,7 +105,8 @@ With a local backend you can also run:
   app, which shows those pages.
 - **Database.** Each change is a new file in `supabase/migrations/`. `npx supabase link --project-ref
   fmrbzzdjtarsaqvfukum` once, then `npx supabase db push` applies the ones the live database doesn't
-  have yet. You can also paste a file into Supabase → SQL Editor.
+  have yet (with `--include-all` when one that waits is older than the newest live one). You can also
+  paste a file into Supabase → SQL Editor.
 - **Edge functions.** Deploy with `npx supabase functions deploy <name> --project-ref fmrbzzdjtarsaqvfukum`.
   Their secrets (Google Play, Firebase, Gemini, Apple) go in Supabase → Edge Functions →
   Secrets. `.env.local.example` says what each one switches on.

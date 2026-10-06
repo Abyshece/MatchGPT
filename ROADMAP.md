@@ -320,8 +320,9 @@ database change that removes its fields is ready and waits for your approval (be
   database checks were updated (still 45 attacks blocked, 53 normal actions working).
 - [ ] **Owner: approve the database change.** It removes columns, so the Supabase connector asks you
   to confirm before it runs, and the request timed out twice. Approve it the next time I apply it, or
-  run `npx supabase db push`. Until then the live database keeps the old, unused Razorpay fields, which
-  changes nothing for members.
+  run `npx supabase db push --include-all` (newer changes are already live, hence `--include-all`; it
+  also applies the notifications sign-out change in Phase 13). Until then the live database keeps the
+  old, unused Razorpay fields, which changes nothing for members.
 - [ ] **Owner:** Supabase → Edge Functions: delete `billing` and `razorpay-webhook`, which are no longer
   used, and remove any `RAZORPAY_*` secrets. The live `delete-account` still has its old Razorpay
   step until it's next deployed (`npx supabase functions deploy delete-account --project-ref
