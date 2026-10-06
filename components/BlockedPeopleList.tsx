@@ -64,7 +64,7 @@ const BlockedPeopleList: React.FC<{ userId: string }> = ({ userId }) => {
   };
 
   if (error) return <p className="text-xs text-red-600 dark:text-red-400 px-2 py-3">Couldn't load blocked people: {error}</p>;
-  if (!people) return <p className="text-xs text-gray-400 px-2 py-3">Loading…</p>;
+  if (!people) return <p className="text-xs text-gray-500 dark:text-gray-400 px-2 py-3">Loading…</p>;
   if (people.length === 0) return <p className="text-xs text-gray-500 dark:text-gray-400 px-2 py-3">You haven't blocked anyone.</p>;
 
   return (
@@ -82,7 +82,7 @@ const BlockedPeopleList: React.FC<{ userId: string }> = ({ userId }) => {
             )}
             <div className="min-w-0">
               <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{person.name}</p>
-              <p className="text-[11px] text-gray-400">Blocked {new Date(person.blockedAt).toLocaleDateString()}</p>
+              <p className="text-[11px] text-gray-500 dark:text-gray-400">Blocked {new Date(person.blockedAt).toLocaleDateString()}</p>
             </div>
           </div>
           <button

@@ -37,7 +37,7 @@ const Section: React.FC<{
   if (visible.length === 0 && !children) return null;
   return (
     <div className="mb-6">
-      <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">{title}</h4>
+      <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">{title}</h4>
       <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-3">
         {visible.map(([k, label, text]) => (
           <div key={k as string} className="flex justify-between gap-3 py-1.5 text-sm border-b border-gray-100 dark:border-zinc-800/50 last:border-0">
@@ -225,7 +225,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                 {candidate.compatibilityScore > 0 && (
                   <div className="text-right flex-shrink-0">
                     <div className="text-2xl font-bold text-green-600 dark:text-green-500">{candidate.compatibilityScore}%</div>
-                    <div className="text-[10px] text-gray-400 uppercase tracking-wider">Match</div>
+                    <div className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">Match</div>
                   </div>
                 )}
               </div>
@@ -243,7 +243,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
 
               {candidate.bio && (
                 <div className="mb-6">
-                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">About</h4>
+                  <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">About</h4>
                   <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
                     {candidate.bio}
                   </p>
@@ -252,7 +252,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
 
               {candidate.tags && candidate.tags.length > 0 && (
                 <div className="mb-6">
-                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Interests</h4>
+                  <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">Interests</h4>
                   <div className="flex flex-wrap gap-2">
                     {candidate.tags.map((tag) => (
                       <span key={tag} className="px-3 py-1 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 text-xs rounded-full font-medium">
@@ -369,7 +369,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                   href={`https://linkedin.com/in/${candidate.linkedin.replace(/^@/, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-[#0077b5] transition-colors p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md flex items-center justify-center"
+                  className="text-gray-500 dark:text-gray-400 hover:text-[#0077b5] transition-colors p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md flex items-center justify-center"
                   title="LinkedIn"
                   aria-label="LinkedIn"
                 >
@@ -385,7 +385,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                   href={`https://instagram.com/${candidate.instagram.replace(/^@/, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-[#E1306C] transition-colors p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md flex items-center justify-center"
+                  className="text-gray-500 dark:text-gray-400 hover:text-[#E1306C] transition-colors p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md flex items-center justify-center"
                   title="Instagram"
                   aria-label="Instagram"
                 >
@@ -405,7 +405,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                     navigator.clipboard?.writeText(window.location.href).catch(() => {});
                   }
                 }}
-                className="text-gray-400 hover:text-black dark:hover:text-white transition-colors p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md flex items-center justify-center"
+                className="text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md flex items-center justify-center"
                 title="Share profile"
                 aria-label="Share profile"
               >

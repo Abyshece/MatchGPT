@@ -149,7 +149,7 @@ const StepPhotos: React.FC<StepPhotosProps> = ({ onComplete, onBack }) => {
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-5xl mx-auto py-6 px-4 h-full flex flex-col">
           <div className="flex-none mb-4">
-            <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Step 2 of 3</div>
+            <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">Step 2 of 3</div>
             <PageHeader title="Add your photos" />
             <div className="text-gray-600 dark:text-gray-300 text-sm -mt-6">
               Upload at least <strong>{minRequired} photos</strong>. Each slot has a category to help your matches see different sides of you.
@@ -191,14 +191,14 @@ const StepPhotos: React.FC<StepPhotosProps> = ({ onComplete, onBack }) => {
                         </button>
                       </>
                     ) : isUploading ? (
-                      <div className="flex flex-col items-center gap-2 text-gray-400">
+                      <div className="flex flex-col items-center gap-2 text-gray-500 dark:text-gray-400">
                         <div className="w-5 h-5 border-2 border-gray-300 border-t-black dark:border-zinc-600 dark:border-t-white rounded-full animate-spin" />
                         <span className="text-[10px] uppercase font-bold">Uploading…</span>
                       </div>
                     ) : (
                       <div className="text-center p-2">
                         <div className="mx-auto w-6 h-6 mb-1 text-gray-300 dark:text-gray-600"><IconUpload /></div>
-                        <span className="text-[10px] text-gray-400 dark:text-gray-500">Upload</span>
+                        <span className="text-[10px] text-gray-500 dark:text-gray-400">Upload</span>
                       </div>
                     )}
 

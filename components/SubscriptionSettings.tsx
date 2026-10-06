@@ -93,7 +93,7 @@ const SubscriptionSettings: React.FC = () => {
 
   let status: React.ReactNode;
   if (loading) {
-    status = <span className="text-gray-400">Loading…</span>;
+    status = <span className="text-gray-500 dark:text-gray-400">Loading…</span>;
   } else if (sub && store && live) {
     // Bought in a phone app: the store bills it and runs the renewals
     const manageWhere = manageHere ? '' : ` Manage it ${storeManageHint(store)}.`;
@@ -160,10 +160,10 @@ const SubscriptionSettings: React.FC = () => {
                 <li key={p.id} className="flex items-center justify-between gap-3 py-2 text-sm">
                   <span className="text-gray-700 dark:text-gray-300">
                     {formatDate(p.paid_at)}
-                    <span className="ml-2 text-xs text-gray-400">{sellerName(p.provider)}</span>
+                    <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">{sellerName(p.provider)}</span>
                   </span>
                   <span className="flex items-center gap-3">
-                    <span className={p.status === 'captured' && !refundedAll ? 'text-gray-900 dark:text-white font-medium' : 'text-gray-400 line-through'}>
+                    <span className={p.status === 'captured' && !refundedAll ? 'text-gray-900 dark:text-white font-medium' : 'text-gray-500 line-through'}>
                       {formatMoney(p.amount, p.currency)}
                     </span>
                     {refundedAll

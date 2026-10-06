@@ -66,7 +66,7 @@ const AdminView: React.FC<{ initialTab?: AdminTab }> = ({ initialTab }) => {
   // ---- Access control ----
   if (!profile) return null;
   if (isAdmin === null) {
-    return <div className="flex items-center justify-center h-full text-sm text-gray-400">Checking access…</div>;
+    return <div className="flex items-center justify-center h-full text-sm text-gray-500 dark:text-gray-400">Checking access…</div>;
   }
   if (!isAdmin) {
     return (
@@ -212,14 +212,14 @@ const DashboardTab: React.FC<{
   }
 
   if (!stats) {
-    return <div className="text-center py-12 text-gray-400">Couldn't load stats.</div>;
+    return <div className="text-center py-12 text-gray-500 dark:text-gray-400">Couldn't load stats.</div>;
   }
 
   return (
     <div className="space-y-6">
       {/* High-level stats */}
       <div>
-        <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Users</h2>
+        <h2 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3">Users</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <StatCard label="Total users" value={stats.total_users} />
           <StatCard label="Pro users" value={stats.pro_users} subtle={`${pct(stats.pro_users, stats.total_users)}% conversion`} />
@@ -229,7 +229,7 @@ const DashboardTab: React.FC<{
       </div>
 
       <div>
-        <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Activity</h2>
+        <h2 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3">Activity</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <StatCard label="Total matches" value={stats.total_matches} />
           <StatCard label="Matches today" value={stats.matches_today} />
@@ -239,7 +239,7 @@ const DashboardTab: React.FC<{
       </div>
 
       <div>
-        <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Growth</h2>
+        <h2 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3">Growth</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <StatCard label="Signups today" value={stats.signups_today} />
           <StatCard label="Signups this week" value={stats.signups_week} />
@@ -253,7 +253,7 @@ const DashboardTab: React.FC<{
       </div>
 
       <div>
-        <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Moderation queue</h2>
+        <h2 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3">Moderation queue</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <StatCard
             label="Pending reports"
@@ -295,10 +295,10 @@ const DashboardTab: React.FC<{
 
       {/* Recent admin actions */}
       <div>
-        <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Recent admin actions</h2>
+        <h2 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3">Recent admin actions</h2>
         <div className="bg-white dark:bg-zinc-800 rounded-lg overflow-hidden border border-gray-200 dark:border-zinc-700">
           {recentAudit.length === 0 ? (
-            <div className="p-6 text-center text-sm text-gray-400">No admin actions yet.</div>
+            <div className="p-6 text-center text-sm text-gray-500 dark:text-gray-400">No admin actions yet.</div>
           ) : (
             recentAudit.map((entry, idx) => (
               <div
@@ -317,7 +317,7 @@ const DashboardTab: React.FC<{
                       </span>
                     )}
                   </div>
-                  <span className="text-gray-400 flex-shrink-0">
+                  <span className="text-gray-500 dark:text-gray-400 flex-shrink-0">
                     {new Date(entry.created_at).toLocaleString()}
                   </span>
                 </div>
@@ -345,14 +345,14 @@ const StatCard: React.FC<{
       ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-900/40'
       : 'bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700'
   }`}>
-    <div className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">
+    <div className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1">
       {label}
     </div>
     <div className={`text-2xl font-bold ${alert ? 'text-red-700 dark:text-red-300' : 'text-gray-900 dark:text-white'}`}>
       {value.toLocaleString()}
     </div>
     {subtle && (
-      <div className="text-[10px] text-gray-400 mt-0.5">{subtle}</div>
+      <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">{subtle}</div>
     )}
   </div>
 );

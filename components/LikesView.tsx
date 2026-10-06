@@ -50,7 +50,7 @@ const LikesView: React.FC<{ onNavigateToMatches?: (matchId: string) => void }> =
   useEffect(() => { fetchLikes(); }, [fetchLikes]);
 
   if (!profile) {
-    return <div className="p-12 text-center text-gray-400">Loading…</div>;
+    return <div className="p-12 text-center text-gray-500 dark:text-gray-400">Loading…</div>;
   }
 
   const isPro = hasPro;
@@ -70,8 +70,9 @@ const LikesView: React.FC<{ onNavigateToMatches?: (matchId: string) => void }> =
           </h1>
           {isPro && (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500 dark:text-gray-400">Sort by:</span>
+              <label htmlFor="likes-sort" className="text-sm text-gray-500 dark:text-gray-400">Sort by:</label>
               <select
+                id="likes-sort"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as SortOption)}
                 className="bg-transparent text-sm font-semibold text-gray-800 dark:text-gray-200 border-none outline-none cursor-pointer focus:ring-0 hover:underline"

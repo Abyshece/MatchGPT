@@ -85,7 +85,7 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({ email, onVerified
       <div className="flex-none flex items-center p-4 z-20">
         <button
           onClick={onBack}
-          className="p-2 text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md transition-colors"
+          className="p-2 text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md transition-colors"
           title="Back"
         >
           <IconChevronLeft />
@@ -115,7 +115,7 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({ email, onVerified
 
           <form onSubmit={handleVerify} className="space-y-6">
             <div className="space-y-2">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1 block">Verification code</label>
+              <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest pl-1 block">Verification code</label>
               <input
                 ref={inputRef}
                 type="text"
@@ -140,7 +140,7 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({ email, onVerified
 
           <div className="mt-6 text-center">
             {resendCooldown > 0 ? (
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 Resend available in {resendCooldown}s
               </p>
             ) : (
@@ -154,7 +154,7 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({ email, onVerified
           </div>
 
           <div className="mt-8 pt-6 border-t border-gray-100 dark:border-zinc-800 text-center">
-            <p className="text-[10px] text-gray-400 max-w-sm mx-auto leading-relaxed">
+            <p className="text-[10px] text-gray-500 dark:text-gray-400 max-w-sm mx-auto leading-relaxed">
               Check your spam folder if you don't see it. The code expires in 1 hour.
             </p>
           </div>

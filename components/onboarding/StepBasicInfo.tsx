@@ -124,7 +124,7 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ onComplete }) => {
   return (
     <div className="max-w-xl w-full mx-auto py-8 px-6 animate-fade-in">
       <div className="mb-8">
-        <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Step 1 of 3</div>
+        <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">Step 1 of 3</div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">
           {forSomeoneElse ? 'Tell us about them' : 'Tell us about yourself'}
         </h1>
@@ -141,7 +141,7 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ onComplete }) => {
         <Field label="This profile is for">
           <Select value={createdFor} onChange={chooseCreatedFor} options={PROFILE_CREATED_FOR} placeholder="Select" />
           {forSomeoneElse && (
-            <p className="text-[10px] text-gray-400 mt-1">Answer every question about them, not yourself.</p>
+            <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">Answer every question about them, not yourself.</p>
           )}
         </Field>
 
@@ -159,7 +159,7 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ onComplete }) => {
 
         <Field label="Date of birth">
           <DateOfBirthField value={dateOfBirth} onChange={setDateOfBirth} />
-          <p className="text-[10px] text-gray-400 mt-1">Others only see the age, never the date.</p>
+          <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">Others only see the age, never the date.</p>
         </Field>
 
         <div className="grid grid-cols-2 gap-4">
@@ -292,7 +292,7 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ onComplete }) => {
 
 const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
   <div>
-    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">{label}</label>
+    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5">{label}</label>
     {children}
   </div>
 );

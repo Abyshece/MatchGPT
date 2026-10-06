@@ -185,6 +185,8 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
 
   // As a popup, the card centres itself with m-auto, so on a short screen it
   // starts at the top and scrolls instead of being cut off.
+  // A popup over the page, or the page's main content (the website's admin sign-in)
+  const Container = onClose ? 'div' : 'main';
   const containerClasses = onClose
     ? 'fixed inset-0 z-[200] flex overflow-y-auto p-4 popup-backdrop animate-fade-in font-sans'
     : 'flex flex-col items-center justify-center p-6 min-h-screen bg-white dark:bg-[#191919] font-sans';
@@ -194,13 +196,13 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
     : 'w-full max-w-sm p-8 shadow-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 rounded-xl relative';
 
   return (
-    <div className={containerClasses}>
+    <Container className={containerClasses}>
       <div className={cardClasses}>
         {onClose && (
           <button
             onClick={onClose}
             aria-label="Close"
-            className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-black dark:text-gray-500 dark:hover:text-white transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800"
+            className="absolute top-3 right-3 p-1.5 text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800"
           >
             <div className="transform scale-75"><IconX /></div>
           </button>
@@ -270,7 +272,7 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
                       <div className="w-full border-t border-gray-200 dark:border-zinc-800" />
                     </div>
                     <div className="relative flex justify-center text-sm">
-                      <span className="px-2 bg-white dark:bg-zinc-900 text-gray-400 dark:text-gray-500 text-[10px] uppercase tracking-wider font-semibold">New here?</span>
+                      <span className="px-2 bg-white dark:bg-zinc-900 text-gray-500 dark:text-gray-400 text-[10px] uppercase tracking-wider font-semibold">New here?</span>
                     </div>
                   </div>
 
@@ -287,7 +289,7 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
               <div className="text-center mt-3">
                 <button
                   onClick={() => { clearMessages(); setMode('FORGOT'); }}
-                  className="text-[10px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  className="text-[10px] text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                 >
                   Forgot Password?
                 </button>
@@ -324,7 +326,7 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-1 transition-colors"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-1 transition-colors"
                   title={showPassword ? 'Hide password' : 'Show password'}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
@@ -353,7 +355,7 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
             <button
               type="button"
               onClick={() => { clearMessages(); setMode('MENU'); }}
-              className="text-[10px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 mt-1 text-center"
+              className="text-[10px] text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 mt-1 text-center"
             >
               ← Back
             </button>
@@ -388,7 +390,7 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-1 transition-colors"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-1 transition-colors"
                   title={showPassword ? 'Hide password' : 'Show password'}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
@@ -434,7 +436,7 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
                 onChange={(e) => setMarketingOptIn(e.target.checked)}
                 className="mt-0.5 w-3.5 h-3.5 rounded border-gray-300 dark:border-zinc-600 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer flex-shrink-0"
               />
-              <span className="text-[11px] text-gray-500 dark:text-gray-500 leading-snug">
+              <span className="text-[11px] text-gray-500 dark:text-gray-400 leading-snug">
                 Send me occasional tips and news about MatchGPT. (Optional, you can unsubscribe anytime.)
               </span>
             </label>
@@ -450,7 +452,7 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
             <button
               type="button"
               onClick={() => { clearMessages(); setMode('MENU'); }}
-              className="text-[10px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 mt-1 text-center"
+              className="text-[10px] text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 mt-1 text-center"
             >
               ← Back
             </button>
@@ -486,7 +488,7 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
             <button
               type="button"
               onClick={() => { clearMessages(); setMode('MENU'); }}
-              className="text-[10px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 mt-1 text-center"
+              className="text-[10px] text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 mt-1 text-center"
             >
               ← Back
             </button>
@@ -515,31 +517,31 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
             >
               {isLoading ? 'Checking…' : 'Continue'}
             </Button>
-            <p className="text-[10px] text-gray-400 dark:text-gray-500 text-center leading-relaxed">
+            <p className="text-[10px] text-gray-500 dark:text-gray-400 text-center leading-relaxed">
               The email's link works too: it opens the website to choose a new password.
             </p>
             <div className="flex justify-between text-[10px]">
               <button
                 type="button"
                 onClick={() => { clearMessages(); setMode('FORGOT'); }}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
               >
                 ← Back
               </button>
               {resendIn > 0
-                ? <span className="text-gray-400">Send again in {resendIn}s</span>
+                ? <span className="text-gray-500 dark:text-gray-400">Send again in {resendIn}s</span>
                 : <button type="button" onClick={() => handleForgot()} className="font-medium text-blue-600 dark:text-blue-400">Send a new code</button>}
             </div>
           </form>
         )}
 
         <div className="mt-6 pt-4 border-t border-gray-100 dark:border-zinc-800 text-center">
-          <p className="text-[9px] text-gray-400 dark:text-gray-500 max-w-xs mx-auto leading-relaxed">
+          <p className="text-[9px] text-gray-500 dark:text-gray-400 max-w-xs mx-auto leading-relaxed">
             By continuing, you agree to our <a href="#" className="hover:text-gray-600 dark:hover:text-gray-300 underline">Terms</a> & <a href="#" className="hover:text-gray-600 dark:hover:text-gray-300 underline">Privacy Policy</a>.
           </p>
         </div>
       </div>
-    </div>
+    </Container>
   );
 };
 

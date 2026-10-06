@@ -161,7 +161,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                 triggerExit('reject');
                 setTimeout(() => onReject(candidate.id), 0);
               }}
-              className="px-3 h-9 rounded-lg border border-transparent text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 dark:text-gray-500 hover:border-red-100 dark:hover:border-red-900/30 transition-colors flex items-center justify-center"
+              className="px-3 h-9 rounded-lg border border-transparent text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 dark:text-gray-400 hover:border-red-100 dark:hover:border-red-900/30 transition-colors flex items-center justify-center"
               title="Pass"
               aria-label="Pass"
               disabled={!!exiting}

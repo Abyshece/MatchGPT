@@ -79,7 +79,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
   const [downloading, setDownloading] = useState(false);
 
   if (!settings || !profile) {
-    return <div className="p-12 text-center text-gray-400">Loading…</div>;
+    return <div className="p-12 text-center text-gray-500 dark:text-gray-400">Loading…</div>;
   }
 
   const updateOne = async <K extends keyof UserSettings>(key: K, value: UserSettings[K]) => {
@@ -246,7 +246,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
                   );
                 })}
               </div>
-              <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-2 px-1">
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-2 px-1">
                 {themeMode === 'system' ? 'Follows your device setting.' : `Always ${themeMode}, on every device.`}
               </p>
             </div>
@@ -264,7 +264,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
               href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('MatchGPT help')}`}
               className="w-full flex items-center justify-between py-3 px-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800/30 rounded text-left"
             >
-              <span>Contact support <span className="text-gray-400 dark:text-gray-500">· {SUPPORT_EMAIL}</span></span>
+              <span>Contact support <span className="text-gray-500 dark:text-gray-400">· {SUPPORT_EMAIL}</span></span>
               <IconChevronRight />
             </a>
             <button
@@ -296,7 +296,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
             >
               Delete Account
             </button>
-            <p className="text-center text-[10px] text-gray-400 mt-2">MatchGPT • v{__APP_VERSION__}</p>
+            <p className="text-center text-[10px] text-gray-500 dark:text-gray-400 mt-2">MatchGPT • v{__APP_VERSION__}</p>
           </div>
         </div>
       </div>
@@ -304,7 +304,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
       {showDeleteModal && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 popup-backdrop animate-fade-in">
           <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl w-full max-w-md overflow-hidden p-6 border border-gray-200 dark:border-zinc-800 relative">
-            <button onClick={() => setShowDeleteModal(false)} aria-label="Close" className="absolute top-4 right-4 text-gray-400 hover:text-black dark:hover:text-white"><IconX /></button>
+            <button onClick={() => setShowDeleteModal(false)} aria-label="Close" className="absolute top-4 right-4 text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white"><IconX /></button>
 
             <div className="text-center mb-6">
               <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4"><IconTrash /></div>

@@ -191,7 +191,7 @@ export const ChoiceField: React.FC<ChoiceFieldProps> = ({
           type="button"
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => onChange('')}
-          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-sm leading-none px-1"
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-sm leading-none px-1"
           aria-label="Clear"
           tabIndex={-1}
         >
@@ -205,12 +205,12 @@ export const ChoiceField: React.FC<ChoiceFieldProps> = ({
           className="absolute z-50 left-0 right-0 mt-1 max-h-64 overflow-y-auto bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-md shadow-lg py-1 text-sm"
         >
           {entries.length === 0 && (
-            <li className="px-3 py-2 text-gray-400">No match{allowCustom ? '' : ' in the list'}</li>
+            <li className="px-3 py-2 text-gray-500 dark:text-gray-400">No match{allowCustom ? '' : ' in the list'}</li>
           )}
           {entries.map((entry, i) => {
             if (entry.kind === 'header') {
               return (
-                <li key={`h-${entry.text}-${i}`} className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                <li key={`h-${entry.text}-${i}`} className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
                   {entry.text}
                 </li>
               );
@@ -228,14 +228,14 @@ export const ChoiceField: React.FC<ChoiceFieldProps> = ({
                 onClick={() => choose(entry)}
                 className={`px-3 py-1.5 cursor-pointer ${isActive ? 'bg-gray-100 dark:bg-zinc-800' : ''} ${
                   entry.kind === 'option' && entry.text === value ? 'font-semibold text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-200'
-                } ${entry.kind === 'clear' ? 'text-gray-400 dark:text-gray-500 italic' : ''}`}
+                } ${entry.kind === 'clear' ? 'text-gray-500 dark:text-gray-400 italic' : ''}`}
               >
                 {entry.kind === 'custom' ? <>Use “{entry.text}”</> : entry.text}
               </li>
             );
           })}
           {hidden > 0 && (
-            <li className="px-3 py-2 text-[11px] text-gray-400">{hidden} more — keep typing to narrow down</li>
+            <li className="px-3 py-2 text-[11px] text-gray-500 dark:text-gray-400">{hidden} more — keep typing to narrow down</li>
           )}
         </ul>
       )}
@@ -302,7 +302,7 @@ export const ChipsField: React.FC<ChipsFieldProps> = ({
       {own.length > 0 && <div className="flex flex-wrap gap-2">{own.map((o) => chip(o, true))}</div>}
       {allGroups.map((g) => (
         <div key={g.label || 'all'}>
-          {g.label && <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">{g.label}</div>}
+          {g.label && <div className="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1.5">{g.label}</div>}
           <div className="flex flex-wrap gap-2">{g.options.map((o) => chip(o, isOn(o)))}</div>
         </div>
       ))}

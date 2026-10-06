@@ -3,9 +3,9 @@
 13 phases in total. Phases 1–5, 7–9 and 12 are done, and Phase 6 is mostly done. **Phase 13 (the
 phone apps ready for the stores) is built. What's left of it is yours: the launch checklist in
 [docs/store/README.md](docs/store/README.md).** Phase 10 (launch readiness) is under way: parts 1 to
-4 are done (checks and a linter on every push, a faster first load, admin alerts, one switch for
+5 are done (checks and a linter on every push, a faster first load, admin alerts, one switch for
 MatchGPT+, tidier access rules, the whole journey tested, the README, MatchGPT+ sold only in the
-apps, the website as a home page with the admin panel).
+apps, the website as a home page with the admin panel, an accessibility check).
 AI search (Gemini) is built and live; it switches on once you add the `GEMINI_API_KEY` secret (Phase 9).
 MatchGPT+ is sold only in the apps, through Google Play and the App Store (Phase 13); Razorpay was
 dropped on 2026-10-05 (Phase 11).
@@ -23,7 +23,7 @@ Items left unfinished in earlier phases were moved into later ones, so each open
 | 7 | Make the backend safe and rebuildable | **Done** (3 small owner follow-ups) |
 | 8 | Finish half-built features | **Done** (owner checks listed) |
 | 9 | Smarter search that scales | **Done** (add the Gemini key to switch AI on) |
-| 10 | Launch readiness → public launch | **In progress** (parts 1–4 done 2026-10-05) |
+| 10 | Launch readiness → public launch | **In progress** (parts 1–5 done 2026-10-06) |
 | 11 | Payments (MatchGPT+ via Razorpay) | Dropped 2026-10-05: MatchGPT+ is sold only in the apps (Phase 13) |
 | 12 | Profile details for India (community, family, horoscope) | **Done** |
 | 13 | The phone apps, ready for Google Play and the App Store | **Built**; your launch checklist: [docs/store/README.md](docs/store/README.md) |
@@ -353,6 +353,22 @@ MatchGPT in the apps, and the website (https://shaadi-gpt.vercel.app) no longer 
 - [ ] **Owner, once the apps are live:** set `VITE_PLAY_STORE_URL` and `VITE_APP_STORE_URL` in Vercel and
   redeploy (docs/store/README.md, step 9).
 
+Part 5 done 2026-10-06: **an accessibility check at phone width.** axe-core checked 34 screens (the
+website and the app, light and dark) for the WCAG 2.1 AA rules; it found 3 kinds of serious problems,
+all fixed:
+
+- [x] **Faint text.** Secondary text (light grey on white) was below the contrast people with low vision
+  need (2.5:1, AA asks for 4.5:1). It's a shade darker now in light mode, all over the app; dark mode
+  is as it was.
+- [x] **Buttons without a name** for screen readers: the phone menu's close button and the
+  notifications switch (now a switch that says whether it's on). The Likes You sort list has a label.
+- [x] Each page has its main content marked, so screen readers can jump to it.
+- [x] `tests/e2e/accessibility.mjs` runs the check again (34 screens). What's left is minor (the order
+  of some headings).
+- [x] **Claude Code can use the app**: `.mcp.json` adds mobile-mcp, so Claude can tap through the app on
+  an emulator or a connected phone (README, "Phone apps"). It needs a computer that can run an
+  emulator, or a phone: the cloud container these changes are made in can't run Android fast enough.
+
 **Still to do**
 
 - [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.
@@ -371,7 +387,7 @@ MatchGPT in the apps, and the website (https://shaadi-gpt.vercel.app) no longer 
   - "signed-in users can run SECURITY DEFINER functions": each of those functions checks who is
     asking;
   - "RLS enabled, no policy" on the tables only the server uses.
-- [ ] Legal review of Terms and Privacy; a mobile and accessibility check.
+- [ ] Legal review of Terms and Privacy. (The mobile and accessibility check is done: Phase 10, part 5.)
 
 ## Phase 11 — Payments (MatchGPT+ via Razorpay) — dropped 2026-10-05
 Built 2026-09-27 for the website, but never switched on. On 2026-10-05 you decided MatchGPT+ is sold

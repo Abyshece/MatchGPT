@@ -47,7 +47,7 @@ const SupportPage: React.FC = () => {
             <details key={t.q} className="group py-3">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-gray-900 dark:text-white [&::-webkit-details-marker]:hidden">
                 {t.q}
-                <span aria-hidden="true" className="text-gray-400 transition-transform group-open:rotate-45">+</span>
+                <span aria-hidden="true" className="text-gray-500 dark:text-gray-400 transition-transform group-open:rotate-45">+</span>
               </summary>
               <p className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-300">{t.a}</p>
             </details>

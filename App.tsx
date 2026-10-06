@@ -308,7 +308,7 @@ export default App;
 const FullScreenLoader: React.FC<{ label: string }> = ({ label }) => (
   <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-[#191919] gap-3">
     <div className="w-8 h-8 border-3 border-gray-200 dark:border-zinc-700 border-t-black dark:border-t-white rounded-full animate-spin" />
-    <div className="text-gray-400 text-sm">{label}</div>
+    <div className="text-gray-500 dark:text-gray-400 text-sm">{label}</div>
   </div>
 );
 
@@ -343,7 +343,7 @@ const ProfileErrorScreen: React.FC<{
         <div className="w-12 h-12 mx-auto mb-4 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center text-2xl">⚠️</div>
         <h1 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Couldn't load your profile</h1>
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{error}</p>
-        {hint && <p className="text-xs text-gray-500 dark:text-gray-500 mb-4 italic">{hint}</p>}
+        {hint && <p className="text-xs text-gray-500 dark:text-gray-400 mb-4 italic">{hint}</p>}
         <div className="flex gap-2 mt-5">
           <button
             onClick={onSignOut}
@@ -359,7 +359,7 @@ const ProfileErrorScreen: React.FC<{
             {retrying ? 'Retrying…' : 'Try again'}
           </button>
         </div>
-        <p className="text-[11px] text-gray-400 mt-4">Open DevTools → Console for more detail.</p>
+        <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-4">Open DevTools → Console for more detail.</p>
       </div>
     </div>
   );

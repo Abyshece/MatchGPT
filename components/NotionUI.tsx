@@ -35,7 +35,7 @@ export const Toggle: React.FC<{ title: string; children: React.ReactNode; defaul
         onClick={() => setIsOpen(!isOpen)} 
         className="flex items-center gap-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 px-2 py-1 rounded w-full text-left transition-colors select-none group"
       >
-        <span className={`transform transition-transform text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300 ${isOpen ? 'rotate-90' : 'rotate-0'}`}>
+        <span className={`transform transition-transform text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 ${isOpen ? 'rotate-90' : 'rotate-0'}`}>
            ▶
         </span>
         <span className="font-semibold text-sm">{title}</span>
@@ -134,7 +134,7 @@ export const PropertyRow: React.FC<PropertyRowProps> = React.memo(({
   return (
     <div className={`flex py-2 items-start border-b border-gray-50 dark:border-zinc-800/50 last:border-0 hover:bg-gray-50 dark:hover:bg-zinc-800/50 px-2 rounded-sm transition-colors group min-h-[40px] ${isHidden ? 'opacity-60 bg-gray-50/50 dark:bg-zinc-800/30' : ''}`}>
       <div className={`w-48 text-gray-500 dark:text-gray-400 text-sm flex items-center gap-2 pt-1.5`}>
-        {icon && <span className="text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors w-4 h-4">{icon}</span>}
+        {icon && <span className="text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors w-4 h-4">{icon}</span>}
         <span className="truncate">{label}</span>
         {isEmpty && !isEditing && (
            <div className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0 animate-pulse" title="This field is empty"></div>
@@ -186,14 +186,14 @@ export const PropertyRow: React.FC<PropertyRowProps> = React.memo(({
         ) : (
           <>
             <span className={`flex-1 flex gap-2 pt-1.5 ${inputType === 'textarea' ? 'whitespace-pre-wrap' : 'truncate items-center'}`}>
-              {(displayValue || value) || <span className="text-gray-300 dark:text-gray-600 italic text-xs">Empty</span>}
+              {(displayValue || value) || <span className="text-gray-500 dark:text-gray-400 italic text-xs">Empty</span>}
               {isHidden && <span className="text-[10px] bg-gray-200 dark:bg-zinc-700 text-gray-500 dark:text-gray-300 px-1.5 rounded self-center">Hidden</span>}
             </span>
             <div className={`flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity pt-1`}>
               {isEditable && (
                 <button 
                   onClick={onEdit}
-                  className="text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 p-1 transition-colors"
+                  className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 p-1 transition-colors"
                   title="Edit"
                 >
                     <IconEdit />
@@ -202,7 +202,7 @@ export const PropertyRow: React.FC<PropertyRowProps> = React.memo(({
               {onToggleVisibility && (
                  <button 
                   onClick={onToggleVisibility}
-                  className="text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 p-1 transition-colors"
+                  className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 p-1 transition-colors"
                   title={isHidden ? "Show on profile" : "Hide from profile"}
                 >
                     {isHidden ? <IconEyeOff /> : <IconEye />}
@@ -234,7 +234,7 @@ export const SelectField = ({ label, value, options, onChange }: { label: string
 // Helper for Profile Sections
 export const InfoSection = ({ title, badge, children }: { title: string, badge?: string, children?: React.ReactNode }) => (
     <div className="mb-8">
-        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 border-b border-gray-100 dark:border-zinc-800 pb-1 flex items-center gap-2">
+        <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3 border-b border-gray-100 dark:border-zinc-800 pb-1 flex items-center gap-2">
           {title}
           {badge && <span className="normal-case tracking-normal text-[10px] font-bold bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 px-1.5 py-0.5 rounded">{badge}</span>}
         </h4>

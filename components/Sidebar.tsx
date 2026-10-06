@@ -143,6 +143,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
         <button
           onClick={() => setIsOpen(false)}
+          aria-label="Close menu"
           className="md:hidden absolute right-4 top-1/2 -translate-y-1/2 mt-1.5 text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white p-1 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded"
         >
           <IconX />
@@ -168,7 +169,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       <div className="mt-auto pt-4 pb-4 px-3 border-t border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#191919]">
         <button
           onClick={toggleCollapse}
-          className="hidden md:flex w-full items-center justify-center p-2 mb-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+          className="hidden md:flex w-full items-center justify-center p-2 mb-4 text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
           title={isCollapsed ? 'Expand' : 'Collapse'}
         >
           {isCollapsed ? <IconChevronRight /> : <IconChevronLeft />}
@@ -233,12 +234,12 @@ const Sidebar: React.FC<SidebarProps> = ({
           {!isCollapsed && (
             <div className="flex-1 min-w-0">
               <div className="text-sm font-bold text-gray-900 dark:text-gray-100 truncate">{profile?.name || 'You'}</div>
-              <div className="text-xs text-gray-400 truncate">{profile?.email || ''}</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{profile?.email || ''}</div>
             </div>
           )}
           <button
             onClick={signOut}
-            className={`flex items-center justify-center rounded-lg transition-colors text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 ${isCollapsed ? 'p-2 w-full' : 'p-2'}`}
+            className={`flex items-center justify-center rounded-lg transition-colors text-gray-500 dark:text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 ${isCollapsed ? 'p-2 w-full' : 'p-2'}`}
             title="Sign out"
           >
             <IconLogOut />

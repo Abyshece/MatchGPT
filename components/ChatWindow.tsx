@@ -323,7 +323,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             className={`w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full ${
               isPro
                 ? 'bg-pink-50 dark:bg-pink-900/30 text-pink-500 hover:bg-pink-100 dark:hover:bg-pink-900/50'
-                : 'bg-gray-100 dark:bg-zinc-800 text-gray-400'
+                : 'bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-gray-400'
             }`}
           >
             <span className="text-lg">📅</span>
@@ -358,7 +358,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         </div>
         {/* A keyboard hint; phones have no Shift+Enter */}
         {!isNativeApp() && (
-          <p className="text-[10px] text-gray-400 mt-1.5 text-center">
+          <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1.5 text-center">
             Press Enter to send, Shift+Enter for newline
           </p>
         )}
@@ -468,7 +468,7 @@ const DateProposalBuilder: React.FC<DateProposalBuilderProps> = ({ onSend, onClo
       >
         <div className="p-5 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between">
           <h3 className="text-lg font-bold text-gray-900 dark:text-white">📅 Propose a date</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-black dark:hover:text-white">
+          <button onClick={onClose} className="text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white">
             <IconX />
           </button>
         </div>

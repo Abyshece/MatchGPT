@@ -122,7 +122,7 @@ const CookieBanner: React.FC<CookieBannerProps> = ({ onNavigateToPrivacy }) => {
               </h3>
               <button
                 onClick={() => setShowCustomize(false)}
-                className="text-gray-400 hover:text-black dark:hover:text-white"
+                className="text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white"
               >
                 <IconX />
               </button>

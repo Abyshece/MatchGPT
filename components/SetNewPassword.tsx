@@ -57,7 +57,7 @@ const SetNewPassword: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">New password</label>
+            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5">New password</label>
             <input
               type={showPassword ? 'text' : 'password'}
               value={password}
@@ -69,7 +69,7 @@ const SetNewPassword: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">Repeat new password</label>
+            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5">Repeat new password</label>
             <input
               type={showPassword ? 'text' : 'password'}
               value={confirm}
@@ -90,7 +90,7 @@ const SetNewPassword: React.FC = () => {
           <button
             type="button"
             onClick={finishPasswordRecovery}
-            className="w-full text-center text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            className="w-full text-center text-xs text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
           >
             Skip, keep my current password
           </button>

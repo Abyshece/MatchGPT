@@ -292,14 +292,14 @@ const ProfileView: React.FC = () => {
       );
     }
     return (
-      <div className="flex items-center gap-1.5 px-3 py-1 bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-zinc-700 text-xs font-bold rounded-md uppercase tracking-widest">
+      <div className="flex items-center gap-1.5 px-3 py-1 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-zinc-700 text-xs font-bold rounded-md uppercase tracking-widest">
         FREE
       </div>
     );
   };
 
   if (!profile) {
-    return <div className="p-12 text-center text-gray-400">Loading…</div>;
+    return <div className="p-12 text-center text-gray-500 dark:text-gray-400">Loading…</div>;
   }
 
   return (
@@ -377,7 +377,7 @@ const ProfileView: React.FC = () => {
                     autoFocus
                   />
                   <div className="flex items-center justify-between bg-gray-50 dark:bg-zinc-800 px-3 py-2 border-t border-gray-100 dark:border-zinc-700">
-                    <span className="text-xs text-gray-400 italic">{savingField === 'description' ? 'Saving…' : 'Press Save to update'}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 italic">{savingField === 'description' ? 'Saving…' : 'Press Save to update'}</span>
                     <div className="flex gap-2">
                       <button onClick={() => setIsEditingSummary(false)} disabled={savingField === 'description'} className="text-xs font-medium text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-white px-3 py-1.5 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors">Cancel</button>
                       <button onClick={handleSaveSummary} disabled={savingField === 'description'} className="text-xs font-bold bg-black dark:bg-white text-white dark:text-black px-4 py-1.5 rounded shadow-sm hover:opacity-90 transition-opacity disabled:opacity-60">Save</button>
@@ -390,7 +390,7 @@ const ProfileView: React.FC = () => {
                   onClick={() => { setSummaryEditValue(profile.description || ''); setIsEditingSummary(true); }}
                 >
                   <p className="text-sm leading-7 text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                    {profile.description || <span className="text-gray-400 italic">No summary yet. Click to add one.</span>}
+                    {profile.description || <span className="text-gray-500 dark:text-gray-400 italic">No summary yet. Click to add one.</span>}
                   </p>
                   <div className="absolute top-2 right-2 opacity-0 group-hover/summary:opacity-100 transition-all duration-200">
                     <button className="flex items-center gap-1.5 bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-zinc-700 shadow-sm px-2 py-1 rounded text-xs font-medium hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors">
@@ -607,7 +607,7 @@ const ProfileView: React.FC = () => {
 
             {/* Verification status */}
             <div className="pt-6 border-t border-gray-100 dark:border-zinc-800">
-              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Verifications</h4>
+              <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3">Verifications</h4>
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-zinc-800 p-2 rounded">
                   <span className="flex items-center gap-2"><IconShield /> Identity</span>
@@ -636,7 +636,7 @@ const ProfileView: React.FC = () => {
           <div>
             <div className="flex items-center justify-between border-b border-gray-200 dark:border-zinc-800 pb-2 mb-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Photos</h2>
-              <span className="text-xs text-gray-400 font-medium">{photos.length}/12</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">{photos.length}/12</span>
             </div>
 
             <div className="grid grid-cols-2 gap-3 mb-6">
@@ -656,7 +656,7 @@ const ProfileView: React.FC = () => {
               ))}
 
               {photos.length < 12 && (
-                <label className="aspect-[3/4] rounded-lg overflow-hidden border-2 border-dashed border-gray-300 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors cursor-pointer flex flex-col items-center justify-center gap-2 text-gray-400">
+                <label className="aspect-[3/4] rounded-lg overflow-hidden border-2 border-dashed border-gray-300 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors cursor-pointer flex flex-col items-center justify-center gap-2 text-gray-500 dark:text-gray-400">
                   {photoUploading ? (
                     <>
                       <div className="w-5 h-5 border-2 border-gray-300 border-t-black dark:border-zinc-600 dark:border-t-white rounded-full animate-spin" />
@@ -673,7 +673,7 @@ const ProfileView: React.FC = () => {
               )}
             </div>
 
-            <p className="text-[11px] text-gray-400 mb-4">
+            <p className="text-[11px] text-gray-500 dark:text-gray-400 mb-4">
               Hover any photo to replace or remove it. Up to 12 photos allowed.
             </p>
 
