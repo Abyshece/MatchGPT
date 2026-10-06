@@ -14,6 +14,8 @@ import {
   SUB_CASTES, educationLevelForDegree, type OptionGroup,
 } from '../../lib/matrimonyOptions';
 import { SECT_LABEL } from '../../lib/profileDisplay';
+import { ABOUT_ME_MIN } from '../../lib/profileRewards';
+import { DAILY_LIMITS } from '../../lib/profileService';
 
 // ============================================================================
 // Step 3: Profile Details
@@ -46,6 +48,7 @@ type FieldDef = {
   placeholder?: string;
   hint?: string;
   when?: (v: Values) => boolean;  // only asked when this is true
+  required?: boolean;      // every member gives it (lib/profileRewards.ts)
 };
 
 const hasSiblings = (n: string | undefined) => !!n && n !== '0';
@@ -53,11 +56,11 @@ const hasSiblings = (n: string | undefined) => !!n && n !== '0';
 const PAGES: Page[] = [
   {
     title: 'Religion & community',
-    subtitle: 'What families often ask first. Every answer is optional, and you can hide any of them later.',
+    subtitle: 'What families often ask first. Religion and mother tongue are needed; the rest is optional, and you can hide any answer later.',
     emoji: '🙏',
     fields: [
-      { key: 'religion', label: 'Religion', type: 'select', options: RELIGIONS },
-      { key: 'mother_tongue', label: 'Mother tongue', type: 'select', groups: MOTHER_TONGUES },
+      { key: 'religion', label: 'Religion', type: 'select', options: RELIGIONS, required: true },
+      { key: 'mother_tongue', label: 'Mother tongue', type: 'select', groups: MOTHER_TONGUES, required: true },
       { key: 'sect', label: (v) => SECT_LABEL[v.religion] ?? 'Sect', type: 'select',
         options: (v) => SECTS[v.religion] ?? [], when: (v) => !!SECTS[v.religion] },
       { key: 'caste', label: (v) => (CASTES[v.religion] ? 'Caste' : 'Caste / community'), type: 'select',
@@ -75,16 +78,16 @@ const PAGES: Page[] = [
   },
   {
     title: 'Education & career',
-    subtitle: 'What you studied and what you do.',
+    subtitle: 'What you studied and what you do. Your highest qualification and occupation are needed.',
     emoji: '🎓',
     fields: [
-      { key: 'education_level', label: 'Highest qualification', type: 'select', options: EDUCATION_LEVELS },
+      { key: 'education_level', label: 'Highest qualification', type: 'select', options: EDUCATION_LEVELS, required: true },
       { key: 'degree', label: 'Degree', type: 'select', groups: DEGREES, allowCustom: true,
         placeholder: 'e.g. B.Tech, MBBS, MBA' },
       { key: 'university', label: 'College / university', type: 'text', placeholder: 'e.g. IIT Bombay' },
       { key: 'employed_in', label: 'Employed in', type: 'select', options: EMPLOYED_IN },
       { key: 'occupation', label: 'Occupation', type: 'select', groups: OCCUPATIONS, allowCustom: true,
-        placeholder: 'e.g. Software Professional, Doctor' },
+        placeholder: 'e.g. Software Professional, Doctor', required: true },
       { key: 'job_title', label: 'Job title', type: 'text', placeholder: 'e.g. Product Manager' },
       { key: 'work', label: 'Company / workplace', type: 'text', placeholder: 'e.g. Infosys' },
       { key: 'annual_income', label: 'Annual income', type: 'select', groups: ANNUAL_INCOME,
@@ -164,7 +167,8 @@ const PAGES: Page[] = [
       { key: 'conflict_resolution', label: 'When there\'s a disagreement, I…', type: 'select', options: ['Calm discussion', 'Needs space', 'Direct & assertive', 'Avoidant'] },
       { key: 'financial_approach', label: 'Money', type: 'select', options: ['Saver', 'Spender', 'Balanced', 'Investor'] },
       { key: 'politics', label: 'Politics', type: 'select', options: ['Liberal', 'Moderate', 'Conservative', 'Apolitical', 'Other'] },
-      { key: 'description', label: 'About me', type: 'textarea', placeholder: 'A few sentences in your own voice. Optional but helpful.' },
+      { key: 'description', label: 'About me', type: 'textarea', required: true,
+        placeholder: `A few sentences in your own voice (at least ${ABOUT_ME_MIN} characters).` },
     ],
   },
 ];
@@ -249,8 +253,19 @@ const StepProfileDetails: React.FC<StepProfileDetailsProps> = ({ onComplete, onB
     return true;
   };
 
+  // The page's required answers (lib/profileRewards.ts)
+  const missingOnPage = () => shownFields.filter((f) => f.required && (
+    f.key === 'description' ? (values[f.key] ?? '').trim().length < ABOUT_ME_MIN : !(values[f.key] ?? '').trim()));
+
   const handleNext = async () => {
     setError(null);
+    const missing = missingOnPage();
+    if (missing.length) {
+      setError(missing.length === 1 && missing[0].key === 'description'
+        ? `Please write at least ${ABOUT_ME_MIN} characters about yourself.`
+        : `Please answer: ${missing.map((f) => labelOf(f, context)).join(', ')}.`);
+      return;
+    }
     const ok = await saveCurrentPage();
     if (!ok) return;
     if (isLast) {
@@ -334,7 +349,11 @@ const StepProfileDetails: React.FC<StepProfileDetailsProps> = ({ onComplete, onB
           <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">Step 3 of 3</div>
           <div className="text-5xl mb-4">{page.emoji}</div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">{page.title}</h1>
-          <p className="text-gray-500 dark:text-gray-400 mb-8">{page.subtitle}</p>
+          <p className="text-gray-500 dark:text-gray-400 mb-4">{page.subtitle}</p>
+          <p className="mb-8 inline-flex items-start gap-2 rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 px-3 py-2 text-xs text-amber-900 dark:text-amber-200" data-testid="reward-hint">
+            <span aria-hidden="true">🎁</span>
+            <span>Each profile section you fill in adds one free AI search a day: up to {DAILY_LIMITS.FREE.searches + 6} a day instead of {DAILY_LIMITS.FREE.searches}.</span>
+          </p>
 
           {error && (
             <div className="mb-4 px-3 py-2 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 text-xs font-medium text-red-700 dark:text-red-300">
@@ -347,6 +366,8 @@ const StepProfileDetails: React.FC<StepProfileDetailsProps> = ({ onComplete, onB
               <div key={field.key}>
                 <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5">
                   {labelOf(field, context)}
+                  {field.required && <span className="ml-1 text-rose-600 dark:text-rose-400" aria-hidden="true">*</span>}
+                  {field.required && <span className="sr-only"> (required)</span>}
                 </label>
                 {field.type === 'text' && (
                   <input
@@ -376,6 +397,11 @@ const StepProfileDetails: React.FC<StepProfileDetailsProps> = ({ onComplete, onB
                     className="w-full p-3 border border-gray-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-gray-900 dark:text-white outline-none focus:border-black dark:focus:border-white focus:ring-1 focus:ring-black dark:focus:ring-white transition-all resize-y"
                   />
                 )}
+                {field.key === 'description' && (
+                  <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1 text-right">
+                    {(values.description ?? '').trim().length} / {ABOUT_ME_MIN} characters at least
+                  </p>
+                )}
                 {field.type === 'select' && (
                   <ChoiceField
                     value={values[field.key] || ''}
@@ -383,7 +409,7 @@ const StepProfileDetails: React.FC<StepProfileDetailsProps> = ({ onComplete, onB
                     options={optionsOf(field, context)}
                     groups={field.groups}
                     allowCustom={field.allowCustom}
-                    placeholder={field.placeholder ?? 'Skip / prefer not to say'}
+                    placeholder={field.placeholder ?? (field.required ? 'Select' : 'Skip / prefer not to say')}
                     ariaLabel={labelOf(field, context)}
                   />
                 )}
@@ -401,9 +427,11 @@ const StepProfileDetails: React.FC<StepProfileDetailsProps> = ({ onComplete, onB
           </div>
 
           <div className="mt-8 pt-6 border-t border-gray-100 dark:border-zinc-800 flex items-center justify-between gap-4">
-            <button onClick={handleSkip} className="text-sm font-medium text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors">
-              Skip for now
-            </button>
+            {shownFields.some((f) => f.required) ? <span /> : (
+              <button onClick={handleSkip} className="text-sm font-medium text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors">
+                Skip for now
+              </button>
+            )}
 
             <Button onClick={handleNext} disabled={isSaving} className="h-11 px-6 text-sm font-bold shadow-md">
               {isSaving

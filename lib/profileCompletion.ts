@@ -57,10 +57,3 @@ export function profileCompletion(profile: UserProfile, photoCount: number) {
     estimatedMinutes: Math.max(1, Math.ceil((total - done) / 5)),
   };
 }
-
-// The India details added in Phase 12. Someone who has none of these yet is
-// invited to add them.
-export function hasIndiaDetails(profile: UserProfile): boolean {
-  return (['maritalStatus', 'motherTongue', 'familyType', 'dateOfBirth', 'city'] as (keyof UserProfile)[])
-    .some((f) => answered(profile[f]));
-}

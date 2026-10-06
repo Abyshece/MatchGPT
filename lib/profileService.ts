@@ -13,7 +13,9 @@ import type { ProfileRow } from './database.types';
 import type { UserProfile, UserSettings } from '../types';
 
 export const DAILY_LIMITS = {
-  FREE: { searches: 3, likes: 15 },  // both enforced by the server too
+  // Both enforced by the server too. Free searches go up by one a day for
+  // each profile section completed (profile.searchBonus, lib/profileRewards.ts)
+  FREE: { searches: 3, likes: 15 },
   PRO:  { searches: Infinity, likes: Infinity },
 } as const;
 
@@ -95,6 +97,8 @@ export async function toggleHiddenField(
 export interface SearchAllowance {
   allowed: boolean;
   remaining: number;
+  limit: number;      // searches a day: 3 plus the profile sections completed
+  bonus: number;      // of which earned by completing profile sections
   isPro: boolean;
   // hours until reset (for display)
   resetInHours: number;
@@ -104,10 +108,11 @@ export function computeSearchAllowance(profile: UserProfile): SearchAllowance {
   // The daily limit follows the subscription alone: "Shaadi24+ for everyone"
   // (useAuth().hasPro) opens Shaadi24+'s features, not unlimited searches.
   if (profile.subscriptionTier === 'PRO') {
-    return { allowed: true, remaining: Infinity, isPro: true, resetInHours: 0 };
+    return { allowed: true, remaining: Infinity, limit: Infinity, bonus: 0, isPro: true, resetInHours: 0 };
   }
 
-  const limit = DAILY_LIMITS.FREE.searches;
+  const bonus = profile.searchBonus ?? 0;
+  const limit = DAILY_LIMITS.FREE.searches + bonus;
   const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD UTC
   const lastDate = profile.lastSearchDate?.slice(0, 10);
   const used = lastDate === today ? (profile.dailySearchCount ?? 0) : 0;
@@ -121,6 +126,8 @@ export function computeSearchAllowance(profile: UserProfile): SearchAllowance {
   return {
     allowed: remaining > 0,
     remaining,
+    limit,
+    bonus,
     isPro: false,
     resetInHours,
   };

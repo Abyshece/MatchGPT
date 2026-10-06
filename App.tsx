@@ -10,6 +10,7 @@ import { isAppPreview } from './lib/appPreview';
 import { startStoreSync, stopStoreSync } from './lib/storePurchases';
 import { onNotificationWhileOpen, startNativePush, stopNativePush } from './lib/nativePush';
 import { setErrorScreen } from './lib/errorReports';
+import { missingRequired } from './lib/profileRewards';
 
 // Screens a first visit doesn't need load when they're shown, so the first
 // download is small; the signed-in app starts loading as soon as there's a
@@ -22,6 +23,7 @@ const EmailVerification = lazyScreen(() => import('./components/EmailVerificatio
 const SetNewPassword = lazyScreen(() => import('./components/SetNewPassword'));
 const TermsView = lazyScreen(() => import('./components/TermsView'));
 const PrivacyView = lazyScreen(() => import('./components/PrivacyView'));
+const RequiredDetails = lazyScreen(() => import('./components/RequiredDetails'));
 
 // ============================================================================
 // App (Phase 6 Batch 3)
@@ -61,9 +63,11 @@ const AppRouter: React.FC<{
   setLegalPage: (p: LegalPage) => void;
 }> = ({ legalPage, setLegalPage }) => {
   const {
-    session, profileRow, loading, profileLoading, profileError, profileMissing,
+    session, profile, profileRow, loading, profileLoading, profileError, profileMissing,
     retryLoadProfile, healMissingProfile, signOut, refreshProfile, passwordRecovery,
   } = useAuth();
+  // Answers that became required after this member joined (lib/profileRewards.ts)
+  const missingDetails = profile && profileRow?.onboarding_complete ? missingRequired(profile).length > 0 : false;
   const { showToast } = useToast();
   const [pendingSignupEmail, setPendingSignupEmail] = useState<string | null>(null);
 
@@ -187,6 +191,7 @@ const AppRouter: React.FC<{
       : !profileRow ? 'loading profile'
       : !profileRow.terms_accepted_at ? 'consent'
       : !profileRow.onboarding_complete ? 'onboarding'
+      : missingDetails ? 'required details'
       : null);
   useEffect(() => {
     if (screen) setErrorScreen(screen);
@@ -260,7 +265,12 @@ const AppRouter: React.FC<{
     return <OnboardingShell onComplete={() => { /* AuthContext refreshes */ }} />;
   }
 
-  // 9. Main app
+  // 9. Answers that became required after they joined
+  if (missingDetails) {
+    return <RequiredDetails />;
+  }
+
+  // 10. Main app
   return (
     <Dashboard
       isDarkMode={isDarkMode}

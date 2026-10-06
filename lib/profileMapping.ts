@@ -215,6 +215,7 @@ export function rowToProfile(row: ProfileRow): UserProfile {
   profile.verificationStatus = row.verification_status as UserProfile['verificationStatus'];
   profile.accountCreated = new Date(row.account_created).getTime();
   profile.dailySearchCount = row.daily_search_count;
+  profile.searchBonus = row.search_bonus ?? 0;
   profile.lastSearchDate = row.last_search_date;
   profile.dailyLikeCount = row.daily_like_count;
   profile.lastLikeDate = row.last_like_date;

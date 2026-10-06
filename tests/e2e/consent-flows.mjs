@@ -4,14 +4,18 @@
 //     the same way the app receives a Google sign-in. Expect: consent screen → step 1
 //     with the name filled in.
 //  C. An existing, fully set-up account that never accepted the Terms (like the live
-//     accounts): expect the consent screen once, then straight to the main app.
+//     accounts): expect the consent screen once, then straight to the main app
+//     (its required answers are filled in first: fixtures.mjs).
 import { chromium } from 'playwright';
+import { execSync } from 'node:child_process';
 import fs from 'node:fs';
+import { REQUIRED_DETAILS } from './fixtures.mjs';
 
 const BASE = process.env.BASE_URL || 'http://localhost:3000';
 const API = process.env.SUPABASE_URL || 'http://127.0.0.1:54321';
 const SERVICE = process.env.SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU';  // local CLI default
 const SEED_EMAIL = process.argv[2] || 'seed_aanyasharma_22@shaadigpt.dev';
+const DB = process.env.DB_CONTAINER || 'supabase_db_Shaadi24';  // `docker ps` shows the name
 const OUT = new URL('./.shots/shots-consent/', import.meta.url).pathname;
 fs.mkdirSync(OUT, { recursive: true });
 const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
@@ -84,6 +88,9 @@ await scenario('C Existing account without Terms', async (page, shot) => {
     body: JSON.stringify({ terms_accepted_at: null, privacy_accepted_at: null }),
   });
   if (!reset.ok) throw new Error(`resetting the account's Terms: ${reset.status} ${await reset.text()}`);
+  // The answers every member gives, so the Terms are all it's asked for
+  execSync(`docker exec -i ${DB} psql -U postgres -At -v ON_ERROR_STOP=1`,
+    { input: `update profiles set ${REQUIRED_DETAILS} where email = '${SEED_EMAIL}';` });
   await page.goto(BASE);
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.getByRole('button', { name: /Continue with Email/ }).click();

@@ -100,7 +100,7 @@ try {
     await selectAfter('Looking for').selectOption('Marriage');
     await selectAfter('Marital status').selectOption('Divorced');
     await selectAfter('Children (optional)').selectOption('No');     // asked because not "Never Married"
-    await selectAfter('Height (optional)').selectOption(`5' 8" (173 cm)`);
+    await selectAfter('Height').selectOption(`5' 8" (173 cm)`);
     if ((await page.getByRole('combobox', { name: 'Country' }).inputValue()) !== 'India') throw new Error('country should start at India');
     await pick('State', 'guj', 'Gujarat');
     await pick('City', 'sur', 'Surat');
@@ -130,6 +130,10 @@ try {
   await step('onboarding step 3: details (6 pages)', async () => {
     // Religion & community
     await page.getByRole('heading', { name: 'Religion & community' }).waitFor();
+    if (!(await page.getByTestId('reward-hint').isVisible())) throw new Error('no hint about the free searches');
+    if (await page.getByRole('button', { name: /Skip for now/ }).count()) throw new Error('a page with required answers can be skipped');
+    await page.getByRole('button', { name: /Next/ }).click();  // religion and mother tongue are required
+    if (!(await page.getByText('Please answer: Religion, Mother tongue.').isVisible())) throw new Error('missing required answers not named');
     await page.getByLabel('Religion', { exact: true }).selectOption('Hindu');
     await pick('Mother tongue', 'gujar', 'Gujarati');
     await pick('Caste', 'pat', 'Patel');
@@ -172,6 +176,9 @@ try {
     await next('Relationship & you');
     if (await page.getByText('Relationship type', { exact: true }).count()) throw new Error('"Relationship type" is still asked');
     await page.getByPlaceholder(/A few sentences/).fill('Testing the sign-up flow.');
+    await page.getByRole('button', { name: /Finish/ }).click();  // under 30 characters
+    if (!(await page.getByText('Please write at least 30 characters about yourself.').isVisible())) throw new Error('a short About me was taken');
+    await page.getByPlaceholder(/A few sentences/).fill('Testing the sign-up flow from start to end.');
     await shot('details-last-page');
     await page.getByRole('button', { name: /Finish/ }).click();
   });

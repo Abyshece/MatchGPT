@@ -28,8 +28,8 @@ export function helpTopics(platform: HelpPlatform): HelpTopic[] {
   return [
     {
       q: 'Is Shaadi24 free?',
-      a: <>Yes. A free account can make a profile, search 3 times a day, send 15 likes a day, see 5 Standouts a
-        day, match and chat. Shaadi24+ adds unlimited searches and likes, Super Likes, everyone who has liked you,
+      a: <>Yes. A free account can make a profile, search 3 times a day (up to 9 with a complete profile), send
+        15 likes a day, see 5 Standouts a day, match and chat. Shaadi24+ adds unlimited searches and likes, Super Likes, everyone who has liked you,
         more search filters (religion, mother tongue, community, Manglik, height, diet, education and more), the
         full compatibility report and date proposals in chat.</>,
     },
@@ -38,6 +38,13 @@ export function helpTopics(platform: HelpPlatform): HelpTopic[] {
       a: <>Describe the person you hope to meet in your own words, for example "a vegetarian doctor in Pune who
         wants children" or "Tamil, settled abroad, open to moving back". Shaadi24 turns it into filters and puts
         the people you fit best first. The filters work on their own too.</>,
+    },
+    {
+      q: 'How do I get more free searches?',
+      a: <>Fill in your profile. My Profile has six sections (religion and community, education and career,
+        family, lifestyle, appearance, and plans and personality), and each one you complete adds a free search a
+        day: up to 9 a day instead of 3. A section counts once about 7 in 10 of its questions are answered, and My
+        Profile shows what's left in each. Shaadi24+ has no daily limit.</>,
     },
     {
       q: 'What is the compatibility score?',
