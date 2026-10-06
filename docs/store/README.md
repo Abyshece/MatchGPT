@@ -118,6 +118,10 @@ upload key can be replaced through Google Play support, but it takes days.
   (`PrivacyInfo.xcprivacy`) is in the app.
 - [ ] Choose "Any iOS Device (arm64)" at the top, then Product → Archive → Distribute App → App Store
   Connect → Upload. The build appears in App Store Connect → TestFlight after processing (10–30 minutes).
+- Or, without a Mac: add the secrets listed at the top of `.github/workflows/testflight.yml`, then
+  GitHub → Actions → iPhone TestFlight → Run workflow. It also uploads a new build whenever the app
+  changes on `main`. Its build numbers are the date and time, higher than package.json's, so keep
+  uploading from there once you've started.
 
 The iPhone app is for iPhones only: iPads run it as an iPhone app, and the App Store asks for no iPad
 screenshots. (For a real iPad app later: Xcode → App target → General → Supported Destinations → iPad,

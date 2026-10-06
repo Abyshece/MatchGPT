@@ -1,0 +1,178 @@
+# The iPhone app to TestFlight, built on GitHub's Macs (free for this public
+# repository), so no Mac is needed: install TestFlight on the iPhone and the
+# builds arrive there.
+#
+#   1. Builds the app with the live backend and archives it, unsigned.
+#   2. Signs it for the App Store with Apple's cloud-managed distribution
+#      certificate, through an App Store Connect API key: no certificate or
+#      profile files to look after. The entitlements (notifications, Sign in
+#      with Apple) are checked before anything is uploaded.
+#   3. Uploads it. It shows in App Store Connect → TestFlight 10–30 minutes later.
+#
+# Runs by hand (Actions → iPhone TestFlight → Run workflow) and when the app
+# changes on main. Needs these repository secrets (Settings → Secrets and
+# variables → Actions); without them it only checks that the archive builds:
+#   APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_KEY_ID and
+#   APP_STORE_CONNECT_KEY (the .p8 file's text): App Store Connect → Users and
+#     Access → Integrations → App Store Connect API, a Team Key with Admin access
+#   APPLE_TEAM_ID: developer.apple.com → Account → Membership details
+#   VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY: as in .env.production.local
+#   VITE_GOOGLE_IOS_CLIENT_ID (optional): Google sign-in on iPhones
+# Build numbers are the date and time (261006.1530), so each upload is higher
+# than the last; uploads from Xcode with package.json's build number would be
+# lower, so keep uploading from here.
+name: iPhone TestFlight
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'components/**'
+      - 'lib/**'
+      - 'App.tsx'
+      - 'index.tsx'
+      - 'index.css'
+      - 'index.html'
+      - 'types.ts'
+      - 'constants.tsx'
+      - 'public/**'
+      - 'ios/**'
+      - 'capacitor.config.ts'
+      - 'vite.config.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/testflight.yml'
+  pull_request:
+    paths:
+      - 'ios/**'
+      - '.github/workflows/testflight.yml'
+
+defaults:
+  run:
+    shell: bash
+
+# One upload at a time; a newer one waits rather than stopping one half-way
+concurrency:
+  group: testflight-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  testflight:
+    name: Build, sign and upload to TestFlight
+    runs-on: macos-26
+    timeout-minutes: 60
+    env:
+      ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+      ASC_KEY: ${{ secrets.APP_STORE_CONNECT_KEY }}
+      TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+      VITE_GOOGLE_IOS_CLIENT_ID: ${{ secrets.VITE_GOOGLE_IOS_CLIENT_ID }}
+      ARCHIVE: build/MatchGPT.xcarchive
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Upload, or only check the build?
+        id: mode
+        run: |
+          missing=""
+          for name in ASC_ISSUER_ID ASC_KEY_ID ASC_KEY TEAM_ID VITE_SUPABASE_URL VITE_SUPABASE_ANON_KEY; do
+            [ -n "${!name}" ] || missing="$missing $name"
+          done
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            echo "Pull request: checking the build only (uploads come from main)"
+            echo "upload=false" >> "$GITHUB_OUTPUT"
+          elif [ -n "$missing" ]; then
+            echo "::warning::Checking the build only. Missing secrets:$missing (see the top of .github/workflows/testflight.yml)"
+            echo "upload=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "upload=true" >> "$GITHUB_OUTPUT"
+          fi
+          # The date and time: always higher than the last upload
+          echo "build=$(date -u +%y%m%d).$(date -u +%H%M)" >> "$GITHUB_OUTPUT"
+
+      - name: Build the app and copy it into ios/
+        run: |
+          if [ -z "$VITE_SUPABASE_URL" ] || [ -z "$VITE_SUPABASE_ANON_KEY" ]; then
+            export VITE_SUPABASE_URL=https://not-set.supabase.co VITE_SUPABASE_ANON_KEY=not-set
+          fi
+          npm run build:ios
+
+      - name: Archive (unsigned)
+        run: |
+          xcodebuild -version
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
+            -destination 'generic/platform=iOS' -archivePath "$ARCHIVE" \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY= \
+            CURRENT_PROJECT_VERSION=${{ steps.mode.outputs.build }} \
+            -quiet archive
+
+      # Signing at export takes the entitlements from the archived app's
+      # signature, and an unsigned app has none: a placeholder signature
+      # carries them (inner code first, as codesign requires)
+      - name: Give the archived app its entitlements
+        run: |
+          APP="$ARCHIVE/Products/Applications/App.app"
+          if [ -d "$APP/Frameworks" ]; then
+            find "$APP/Frameworks" -maxdepth 1 \( -name '*.framework' -o -name '*.dylib' \) -print0 \
+              | xargs -0 -I{} codesign --force --sign - {}
+          fi
+          codesign --force --sign - --entitlements ios/App/App/App.entitlements "$APP"
+          codesign -d --entitlements - "$APP"
+
+      - name: Export, signed for the App Store
+        if: steps.mode.outputs.upload == 'true'
+        run: |
+          printf '%s\n' "$ASC_KEY" > "$RUNNER_TEMP/AuthKey.p8"
+          for destination in export upload; do
+            /usr/libexec/PlistBuddy -c "Add :method string app-store-connect" \
+              -c "Add :destination string $destination" -c "Add :signingStyle string automatic" \
+              -c "Add :teamID string $TEAM_ID" -c "Add :manageAppVersionAndBuildNumber bool false" \
+              -c "Add :uploadSymbols bool true" "build/ExportOptions-$destination.plist"
+          done
+          xcodebuild -exportArchive -archivePath "$ARCHIVE" -exportPath build/export \
+            -exportOptionsPlist build/ExportOptions-export.plist -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/AuthKey.p8" \
+            -authenticationKeyID "$ASC_KEY_ID" -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+
+      - name: Check the signed app's entitlements
+        if: steps.mode.outputs.upload == 'true'
+        run: |
+          mkdir -p build/check && unzip -q -o build/export/*.ipa -d build/check
+          codesign -d --entitlements - --xml build/check/Payload/App.app > build/entitlements.plist
+          plutil -p build/entitlements.plist
+          entry() { /usr/libexec/PlistBuddy -c "Print :$1" build/entitlements.plist 2>/dev/null; }
+          [ "$(entry aps-environment)" = production ] \
+            || { echo "::error::Notifications aren't set up for the App Store (aps-environment isn't production)"; exit 1; }
+          entry com.apple.developer.applesignin >/dev/null \
+            || { echo "::error::The signed app is missing Sign in with Apple"; exit 1; }
+
+      - name: Upload to App Store Connect
+        if: steps.mode.outputs.upload == 'true'
+        run: |
+          xcodebuild -exportArchive -archivePath "$ARCHIVE" -exportPath build/upload \
+            -exportOptionsPlist build/ExportOptions-upload.plist -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/AuthKey.p8" \
+            -authenticationKeyID "$ASC_KEY_ID" -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+
+      - name: Summary
+        if: always()
+        run: |
+          rm -f "$RUNNER_TEMP/AuthKey.p8"
+          {
+            echo "### iPhone TestFlight"
+            if [ "${{ steps.mode.outputs.upload }}" = true ] && [ "${{ job.status }}" = success ]; then
+              echo "Build **${{ steps.mode.outputs.build }}** is uploaded. It shows in App Store Connect → TestFlight in 10–30 minutes, then in the TestFlight app."
+            elif [ "${{ steps.mode.outputs.upload }}" = true ]; then
+              echo "Build ${{ steps.mode.outputs.build }} wasn't uploaded: see the step that failed."
+            else
+              echo "Checked that the app archives; nothing uploaded (a pull request, or the secrets aren't set)."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -187,6 +187,13 @@ For a build that can sign in, first add two repository secrets (GitHub → Setti
 variables → Actions): `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`, the same values as in
 `.env.production.local`.
 
+**TestFlight without a Mac.** `.github/workflows/testflight.yml` builds the iPhone app on GitHub's Macs,
+signs it with Apple's cloud-managed certificate through an App Store Connect API key, checks its
+entitlements and uploads it to TestFlight: by hand (Actions → iPhone TestFlight → Run workflow) and
+whenever the app changes on `main`. It needs the secrets listed at the top of the workflow (an App Store
+Connect API key with Admin access, the team ID and the two above); without them it only checks that the
+archive builds. Each build is numbered by its date and time.
+
 **Claude Code can use the app too.** `.mcp.json` adds [mobile-mcp](https://github.com/mobile-next/mobile-mcp)
 to Claude Code in this folder (it asks before turning it on). With an Android emulator or iPhone simulator
 running, or a phone connected (Android: USB debugging on), Claude can install the test app, tap through
