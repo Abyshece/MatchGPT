@@ -79,7 +79,7 @@ try {
 
   log('2. The answer that completes Family');
   await family.click();
-  const row = (label) => page.locator('div.group', { has: page.locator(`span.truncate:text-is("${label}")`) }).first();
+  const row = (label) => page.locator(`div.group[data-label="${label}"]`).first();
   const r = row('Family lives in');
   await r.scrollIntoViewIfNeeded();
   await r.hover();

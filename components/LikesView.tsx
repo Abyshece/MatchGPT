@@ -64,13 +64,13 @@ const LikesView: React.FC<{ onNavigateToMatches?: (matchId: string) => void }> =
   return (
     <div className="h-full overflow-y-auto">
       <div className="max-w-6xl mx-auto py-8 px-6 lg:px-12">
-        <div className="flex justify-between items-center mb-8 border-b border-gray-100 dark:border-zinc-800 pb-4">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
+        <div className="flex flex-wrap justify-between items-center gap-x-4 gap-y-2 mb-8 border-b border-gray-100 dark:border-zinc-800 pb-4">
+          <h1 className="min-w-0 text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
             Likes You {!loading && `(${likes.length})`}
           </h1>
           {isPro && (
             <div className="flex items-center gap-2">
-              <label htmlFor="likes-sort" className="text-sm text-gray-500 dark:text-gray-400">Sort by:</label>
+              <label htmlFor="likes-sort" className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">Sort by:</label>
               <select
                 id="likes-sort"
                 value={sortBy}

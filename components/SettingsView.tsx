@@ -163,17 +163,19 @@ const SettingsView: React.FC<SettingsViewProps> = ({
 
         <div className="space-y-8">
           <InfoSection title="Account">
-            <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-4 mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gray-100 dark:bg-zinc-800 rounded-full flex items-center justify-center text-gray-500">
+            {/* The name and email take what room there is (a long email is cut
+                short); the button keeps its size */}
+            <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-4 mb-4 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                <div className="w-12 h-12 flex-none bg-gray-100 dark:bg-zinc-800 rounded-full flex items-center justify-center text-gray-500">
                   <IconUser />
                 </div>
-                <div>
-                  <h3 className="font-bold text-gray-900 dark:text-white">{profile.name}</h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{profile.email}</p>
+                <div className="min-w-0">
+                  <h3 className="font-bold text-gray-900 dark:text-white truncate">{profile.name}</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate" title={profile.email}>{profile.email}</p>
                 </div>
               </div>
-              <Button variant="secondary" className="text-xs h-8" onClick={() => onNavigate?.('profile')}>Edit Profile</Button>
+              <Button variant="secondary" className="flex-none text-xs h-8 whitespace-nowrap" onClick={() => onNavigate?.('profile')}>Edit Profile</Button>
             </div>
           </InfoSection>
 

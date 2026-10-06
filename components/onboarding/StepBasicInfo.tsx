@@ -154,7 +154,7 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ onComplete }) => {
           <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">Others only see the age, never the date.</p>
         </Field>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4 items-end">
           <Field label="Gender">
             <Select value={gender} onChange={setGender} options={GENDERS} placeholder="Select" />
           </Field>
@@ -176,7 +176,7 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ onComplete }) => {
         </Field>
 
         {askChildren && (
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 items-end">
             <Field label="Children (optional)">
               <Select value={children} onChange={setChildren} options={CHILDREN} placeholder="Select" />
             </Field>
@@ -245,8 +245,9 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ onComplete }) => {
           />
         </Field>
 
-        <div className="pt-4">
-          <Button onClick={() => {}} className="w-full h-12 justify-center text-base font-semibold" disabled={isSaving}>
+        {/* Like the other steps: the button on the right */}
+        <div className="pt-6 border-t border-gray-100 dark:border-zinc-800 flex items-center justify-end">
+          <Button onClick={() => {}} className="flex-none h-11 px-6 justify-center text-sm font-bold shadow-md" disabled={isSaving}>
             {isSaving ? 'Saving…' : 'Continue'} <IconChevronRight />
           </Button>
         </div>
@@ -282,12 +283,21 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ onComplete }) => {
   );
 };
 
-const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
-  <div>
-    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5">{label}</label>
-    {children}
-  </div>
-);
+// "(optional)" is set small and in lower case, so a label fits on one line
+// beside its neighbour and paired fields line up
+const OPTIONAL = ' (optional)';
+const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => {
+  const optional = label.endsWith(OPTIONAL);
+  return (
+    <div>
+      <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5">
+        {optional ? label.slice(0, -OPTIONAL.length) : label}
+        {optional && <>{' '}<span className="normal-case tracking-normal font-medium">(optional)</span></>}
+      </label>
+      {children}
+    </div>
+  );
+};
 
 const Select: React.FC<{
   value: string;

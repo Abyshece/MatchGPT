@@ -350,7 +350,7 @@ const StepProfileDetails: React.FC<StepProfileDetailsProps> = ({ onComplete, onB
           <div className="text-5xl mb-4">{page.emoji}</div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">{page.title}</h1>
           <p className="text-gray-500 dark:text-gray-400 mb-4">{page.subtitle}</p>
-          <p className="mb-8 inline-flex items-start gap-2 rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 px-3 py-2 text-xs text-amber-900 dark:text-amber-200" data-testid="reward-hint">
+          <p className="mb-8 flex items-start gap-2 rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 px-3 py-2 text-xs text-amber-900 dark:text-amber-200" data-testid="reward-hint">
             <span aria-hidden="true">🎁</span>
             <span>Each profile section you fill in adds one free AI search a day: up to {DAILY_LIMITS.FREE.searches + 6} a day instead of {DAILY_LIMITS.FREE.searches}.</span>
           </p>
@@ -426,14 +426,22 @@ const StepProfileDetails: React.FC<StepProfileDetailsProps> = ({ onComplete, onB
             ))}
           </div>
 
+          {/* Skip and how much is filled in on the left, Next on the right */}
           <div className="mt-8 pt-6 border-t border-gray-100 dark:border-zinc-800 flex items-center justify-between gap-4">
-            {shownFields.some((f) => f.required) ? <span /> : (
-              <button onClick={handleSkip} className="text-sm font-medium text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors">
-                Skip for now
-              </button>
-            )}
+            <div className="min-w-0 flex flex-col items-start gap-1">
+              {!shownFields.some((f) => f.required) && (
+                <button onClick={handleSkip} className="text-sm font-medium text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors">
+                  Skip for now
+                </button>
+              )}
+              {filledOnPage > 0 && (
+                <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                  You've filled {filledOnPage} of {shownFields.length} on this page.
+                </p>
+              )}
+            </div>
 
-            <Button onClick={handleNext} disabled={isSaving} className="h-11 px-6 text-sm font-bold shadow-md">
+            <Button onClick={handleNext} disabled={isSaving} className="flex-none h-11 px-6 text-sm font-bold shadow-md">
               {isSaving
                 ? 'Saving…'
                 : isLast
@@ -442,12 +450,6 @@ const StepProfileDetails: React.FC<StepProfileDetailsProps> = ({ onComplete, onB
               }
             </Button>
           </div>
-
-          {filledOnPage > 0 && (
-            <p className="mt-4 text-center text-[11px] text-gray-500 dark:text-gray-400">
-              You've filled {filledOnPage} of {shownFields.length} on this page.
-            </p>
-          )}
         </div>
       </div>
     </div>

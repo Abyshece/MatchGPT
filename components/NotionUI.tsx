@@ -87,7 +87,7 @@ export const PageHeader: React.FC<{ icon?: string; coverImage?: string; title: R
     )}
     <div className="relative px-2">
       {icon && <div className={`text-6xl mb-4 relative z-10 ${coverImage ? '-mt-16' : ''}`}>{icon}</div>}
-      <h1 className="text-4xl font-bold text-gray-800 dark:text-gray-100 tracking-tight">{title}</h1>
+      <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 dark:text-gray-100 tracking-tight">{title}</h1>
       <div className="h-[1px] bg-gray-200 dark:bg-zinc-800 mt-4 w-full"></div>
     </div>
   </div>
@@ -132,32 +132,46 @@ export const PropertyRow: React.FC<PropertyRowProps> = React.memo(({
   const isEmpty = value === null || value === undefined || value === '';
 
   return (
-    <div className={`flex py-2 items-start border-b border-gray-50 dark:border-zinc-800/50 last:border-0 hover:bg-gray-50 dark:hover:bg-zinc-800/50 px-2 rounded-sm transition-colors group min-h-[40px] ${isHidden ? 'opacity-60 bg-gray-50/50 dark:bg-zinc-800/30' : ''}`}>
-      <div className={`w-48 text-gray-500 dark:text-gray-400 text-sm flex items-center gap-2 pt-1.5`}>
+    // The label takes 2/5 of a phone's width (a fixed column on wider screens);
+    // values wrap rather than being cut off, and the edit buttons always show
+    // on touch screens, which have no hover
+    <div
+      data-label={label}
+      className={`flex gap-3 py-2 items-start border-b border-gray-50 dark:border-zinc-800/50 last:border-0 hover:bg-gray-50 dark:hover:bg-zinc-800/50 px-2 rounded-sm transition-colors group min-h-[40px] ${isHidden ? 'opacity-60 bg-gray-50/50 dark:bg-zinc-800/30' : ''}`}
+    >
+      <div className={`w-2/5 sm:w-48 flex-none min-w-0 text-gray-500 dark:text-gray-400 text-sm flex items-center gap-2 pt-1.5`}>
         {icon && <span className="text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors w-4 h-4">{icon}</span>}
-        <span className="truncate">{label}</span>
-        {isEmpty && !isEditing && (
-           <div className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0 animate-pulse" title="This field is empty"></div>
-        )}
+        <span className="min-w-0 break-words">
+          {isEmpty && !isEditing ? (
+            // The dot stays with the label's last word when the label wraps
+            <>
+              {label.includes(' ') && `${label.slice(0, label.lastIndexOf(' '))} `}
+              <span className="whitespace-nowrap">
+                {label.slice(label.lastIndexOf(' ') + 1)}
+                <span className="inline-block align-middle ml-1.5 w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" title="This field is empty" />
+              </span>
+            </>
+          ) : label}
+        </span>
       </div>
-      
-      <div className="flex-1 text-gray-800 dark:text-gray-200 text-sm font-medium flex items-center justify-between min-w-0">
+
+      <div className="flex-1 text-gray-800 dark:text-gray-200 text-sm font-medium flex items-start justify-between gap-2 min-w-0">
         {isEditing ? (
-          <div className="flex items-start gap-2 w-full">
+          <div className="flex items-start gap-2 w-full min-w-0">
             {editor ? (
                 <div className="flex-1 min-w-0">{editor}</div>
             ) : inputType === 'textarea' ? (
                 <textarea
                   value={editValue}
                   onChange={(e) => onEditChange && onEditChange(e.target.value)}
-                  className="flex-1 bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white outline-none text-gray-900 dark:text-gray-100 min-h-[80px]"
+                  className="flex-1 min-w-0 bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white outline-none text-gray-900 dark:text-gray-100 min-h-[80px]"
                   autoFocus
                 />
             ) : inputType === 'select' ? (
                 <select
                   value={editValue}
                   onChange={(e) => onEditChange && onEditChange(e.target.value)}
-                  className="flex-1 bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white outline-none text-gray-900 dark:text-gray-100"
+                  className="flex-1 min-w-0 bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white outline-none text-gray-900 dark:text-gray-100"
                   autoFocus
                 >
                     <option value="" disabled>Select option</option>
@@ -170,11 +184,11 @@ export const PropertyRow: React.FC<PropertyRowProps> = React.memo(({
                   type={inputType}
                   value={editValue}
                   onChange={(e) => onEditChange && onEditChange(e.target.value)}
-                  className="flex-1 bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white outline-none text-gray-900 dark:text-gray-100"
+                  className="flex-1 min-w-0 bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white outline-none text-gray-900 dark:text-gray-100"
                   autoFocus
               />
             )}
-            <div className="flex items-center gap-1 pt-1">
+            <div className="flex-none flex items-center gap-1 pt-1">
               <button onClick={onSave} aria-label="Save" title="Save" className="p-1 hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 dark:text-green-400 rounded">
                   <IconCheck />
               </button>
@@ -185,11 +199,11 @@ export const PropertyRow: React.FC<PropertyRowProps> = React.memo(({
           </div>
         ) : (
           <>
-            <span className={`flex-1 flex gap-2 pt-1.5 ${inputType === 'textarea' ? 'whitespace-pre-wrap' : 'truncate items-center'}`}>
-              {(displayValue || value) || <span className="text-gray-500 dark:text-gray-400 italic text-xs">Empty</span>}
-              {isHidden && <span className="text-[10px] bg-gray-200 dark:bg-zinc-700 text-gray-500 dark:text-gray-300 px-1.5 rounded self-center">Hidden</span>}
+            <span className={`flex-1 min-w-0 flex flex-wrap items-center gap-x-2 gap-y-1 pt-1.5 break-words ${inputType === 'textarea' ? 'whitespace-pre-wrap' : ''}`}>
+              <span className="min-w-0 break-words">{(displayValue || value) || <span className="text-gray-500 dark:text-gray-400 italic text-xs">Empty</span>}</span>
+              {isHidden && <span className="text-[10px] bg-gray-200 dark:bg-zinc-700 text-gray-500 dark:text-gray-300 px-1.5 rounded">Hidden</span>}
             </span>
-            <div className={`flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity pt-1`}>
+            <div className={`flex-none flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity pt-1`}>
               {isEditable && (
                 <button 
                   onClick={onEdit}
@@ -245,7 +259,7 @@ export const InfoSection = ({ title, badge, badgeTone = 'new', id, children }: {
   title: string, badge?: string, badgeTone?: keyof typeof BADGE_TONE, id?: string, children?: React.ReactNode,
 }) => (
     <div className="mb-8 scroll-mt-4" id={id}>
-        <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3 border-b border-gray-100 dark:border-zinc-800 pb-1 flex items-center justify-between gap-2">
+        <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3 border-b border-gray-100 dark:border-zinc-800 pb-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
           <span>{title}</span>
           {badge && <span className={`normal-case tracking-normal text-[10px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap ${BADGE_TONE[badgeTone]}`}>{badge}</span>}
         </h4>

@@ -26,7 +26,11 @@ const check = (ok, what) => { log(ok ? '  ok  ' : '  FAIL', what); if (!ok) fail
 
 const me = sql(`select id from profiles where email = '${EMAIL}';`);
 const [otherId, otherName] = sql(`select id || '|' || name from profiles where id <> '${me}' and onboarding_complete
-  and name in (select name from profiles group by name having count(*) = 1) limit 1;`).split('|');
+  and name in (select name from profiles group by name having count(*) = 1)
+  and not exists (select 1 from blocks b where (b.blocker_id = '${me}' and b.blocked_id = profiles.id)
+                                          or (b.blocker_id = profiles.id and b.blocked_id = '${me}'))  -- Matches hides them
+  and not coalesce(is_banned, false)
+  order by name limit 1;`).split('|');
 sql(`delete from likes where liker_id = '${me}';
      delete from matches where '${me}' in (user_a_id, user_b_id);
      insert into matches (user_a_id, user_b_id)  -- stored as the smaller id first

@@ -104,7 +104,7 @@ try {
   check(true, 'My Profile opens');
 
   // A profile row, found by its label
-  const row = (label) => pa.locator('div.group', { has: pa.locator(`span.truncate:text-is("${label}")`) }).first();
+  const row = (label) => pa.locator(`div.group[data-label="${label}"]`).first();
   const edit = async (label, fill) => {
     const r = row(label);
     await r.scrollIntoViewIfNeeded();

@@ -225,33 +225,36 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
       {/* Profile completion banner — full-width, dismissible. Encourages users to
           finish their profile because a 100% profile leads to more accurate matches. */}
       {showCompletionBanner && (
-        <div className="bg-rose-50 dark:bg-rose-900/20 border-b border-rose-200 dark:border-rose-900/30 px-4 py-3 relative animate-fade-in">
-          <div className="max-w-6xl mx-auto flex items-center justify-center gap-3 flex-wrap pr-8">
-            <div className="w-5 h-5 bg-rose-100 dark:bg-rose-800 text-rose-600 dark:text-rose-300 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0">
+        <div className="bg-rose-50 dark:bg-rose-900/20 border-b border-rose-200 dark:border-rose-900/30 px-4 py-3 animate-fade-in">
+          {/* One row on wider screens; on a phone the button goes under the text, in line with it */}
+          <div className="max-w-6xl mx-auto flex items-start sm:items-center gap-3">
+            <div className="mt-0.5 sm:mt-0 w-5 h-5 bg-rose-100 dark:bg-rose-800 text-rose-600 dark:text-rose-300 rounded-full flex items-center justify-center font-bold text-xs flex-none" aria-hidden="true">
               !
             </div>
-            <span className="text-sm text-rose-800 dark:text-rose-200 font-medium">
-              Your profile is only <strong>{completionPercentage}%</strong> complete (~{estimatedMinutes} min to finish).
-              {(profile?.searchBonus ?? 0) < MAX_SECTIONS
-                ? ' Each section you complete adds a free AI search a day.'
-                : ' A complete profile leads to more accurate matches.'}
-            </span>
+            <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+              <p className="flex-1 min-w-0 text-sm text-rose-800 dark:text-rose-200 font-medium">
+                Your profile is only <strong>{completionPercentage}%</strong> complete (~{estimatedMinutes} min to finish).
+                {(profile?.searchBonus ?? 0) < MAX_SECTIONS
+                  ? ' Each section you complete adds a free AI search a day.'
+                  : ' A complete profile leads to more accurate matches.'}
+              </p>
+              <button
+                onClick={() => {
+                  if (onNavigateToProfile) onNavigateToProfile();
+                }}
+                className="self-start sm:self-auto flex-none text-xs bg-rose-600 hover:bg-rose-700 text-white px-4 py-1.5 rounded-full font-bold transition-colors shadow-sm whitespace-nowrap"
+              >
+                Complete now →
+              </button>
+            </div>
             <button
-              onClick={() => {
-                if (onNavigateToProfile) onNavigateToProfile();
-              }}
-              className="text-xs bg-rose-600 hover:bg-rose-700 text-white px-4 py-1.5 rounded-full font-bold transition-colors shadow-sm whitespace-nowrap"
+              onClick={() => setBannerDismissed(true)}
+              className="flex-none -mr-1 p-1 text-rose-400 hover:text-rose-700 dark:hover:text-rose-200 rounded-full transition-colors"
+              aria-label="Dismiss banner"
             >
-              Complete Now →
+              <div className="transform scale-75"><IconX /></div>
             </button>
           </div>
-          <button
-            onClick={() => setBannerDismissed(true)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-rose-400 hover:text-rose-700 dark:hover:text-rose-200 rounded-full transition-colors"
-            aria-label="Dismiss banner"
-          >
-            <div className="transform scale-75"><IconX /></div>
-          </button>
         </div>
       )}
 
@@ -270,8 +273,8 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
             </p>
           </div>
         ) : (
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">Find Your Match</h1>
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">Find your match</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Describe who you're looking for. Our algorithm scores every profile across 70+ attributes.
             </p>

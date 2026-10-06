@@ -132,13 +132,15 @@ const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ onAuditUpdate }) => {
                     {u.is_verified && <Badge color="blue">Verified</Badge>}
                     {u.subscription_tier === 'PRO' && <Badge color="yellow">Pro</Badge>}
                   </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {u.email} {u.location ? `· ${u.location}` : ''}
+                  <div className="text-xs text-gray-500 dark:text-gray-400 break-words">
+                    {[u.email, u.location].filter(Boolean).join(' · ')}
                   </div>
-                  <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-1 flex gap-3 flex-wrap">
-                    <span>Joined {new Date(u.account_created).toLocaleDateString()}</span>
-                    <span>· {u.daily_search_count} searches today</span>
-                    <span>· {u.daily_like_count} likes today</span>
+                  <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">
+                    {[
+                      `Joined ${new Date(u.account_created).toLocaleDateString()}`,
+                      `${u.daily_search_count} searches today`,
+                      `${u.daily_like_count} likes today`,
+                    ].join(' · ')}
                   </div>
                   {u.ban_reason && (
                     <div className="text-[11px] text-red-600 dark:text-red-400 mt-1 italic">
