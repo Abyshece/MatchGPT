@@ -10,11 +10,19 @@
 # project, the plugins or this workflow change. The app reaches the live
 # backend when the repository has the secrets VITE_SUPABASE_URL and
 # VITE_SUPABASE_ANON_KEY (Settings → Secrets and variables → Actions; the
-# values in .env.production.local). Without them it opens, but can't sign in.
+# values in .env.production.local), or when a run by hand is given them.
+# Without them it opens, but can't sign in.
 name: iPhone app
 
 on:
   workflow_dispatch:
+    inputs:
+      supabase_url:
+        description: Supabase URL for this build (blank = the repository secret)
+        required: false
+      supabase_anon_key:
+        description: Supabase anon key for this build, which is public (blank = the repository secret)
+        required: false
   pull_request:
     paths:
       - 'ios/**'
@@ -41,14 +49,19 @@ defaults:
   run:
     shell: bash
 
+# A newer push replaces a run still going
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   simulator:
     name: Build and screenshots (iPhone simulator)
     runs-on: macos-26
     timeout-minutes: 60
     env:
-      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+      VITE_SUPABASE_URL: ${{ inputs.supabase_url || secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ inputs.supabase_anon_key || secrets.VITE_SUPABASE_ANON_KEY }}
       MAESTRO_VERSION: 2.11.0
     steps:
       - uses: actions/checkout@v4
@@ -90,6 +103,7 @@ jobs:
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
 
       - name: Screenshots
+        timeout-minutes: 30
         run: scripts/ios-screenshots.sh build/Build/Products/Debug-iphonesimulator/App.app screenshots
 
       - uses: actions/upload-artifact@v7
