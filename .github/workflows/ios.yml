@@ -1,0 +1,124 @@
+# The iPhone app, built and opened on GitHub's Macs (free for this public
+# repository), so it can be checked and seen without a Mac:
+#   - the iPhone project must build (Xcode 26, which Capacitor 8 needs);
+#   - screenshots on an iPhone Pro Max simulator, light and dark (artifact
+#     "iPhone-screenshots"; the screens are in tests/ios/screenshots.yaml);
+#   - the simulator build, MatchGPT-iPhone-simulator.zip, which
+#     https://appetize.io/upload turns into an iPhone in the browser, on any
+#     computer.
+# Runs by hand (Actions → iPhone app → Run workflow) and when the iPhone
+# project, the plugins or this workflow change. The app reaches the live
+# backend when the repository has the secrets VITE_SUPABASE_URL and
+# VITE_SUPABASE_ANON_KEY (Settings → Secrets and variables → Actions; the
+# values in .env.production.local), or when a run by hand is given them.
+# Without them it opens, but can't sign in.
+name: iPhone app
+
+on:
+  workflow_dispatch:
+    inputs:
+      supabase_url:
+        description: Supabase URL for this build (blank = the repository secret)
+        required: false
+      supabase_anon_key:
+        description: Supabase anon key for this build, which is public (blank = the repository secret)
+        required: false
+  pull_request:
+    paths:
+      - 'ios/**'
+      - 'capacitor.config.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'scripts/ios-*'
+      - 'scripts/app-version.mjs'
+      - 'tests/ios/**'
+      - '.github/workflows/ios.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'ios/**'
+      - 'capacitor.config.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'scripts/ios-*'
+      - 'scripts/app-version.mjs'
+      - 'tests/ios/**'
+      - '.github/workflows/ios.yml'
+
+defaults:
+  run:
+    shell: bash
+
+# A newer push replaces a run still going
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  simulator:
+    name: Build and screenshots (iPhone simulator)
+    runs-on: macos-26
+    timeout-minutes: 60
+    env:
+      VITE_SUPABASE_URL: ${{ inputs.supabase_url || secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ inputs.supabase_anon_key || secrets.VITE_SUPABASE_ANON_KEY }}
+      MAESTRO_VERSION: 2.11.0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - run: npm ci
+
+      - name: Build the app and copy it into ios/
+        run: |
+          if [ -z "$VITE_SUPABASE_URL" ] || [ -z "$VITE_SUPABASE_ANON_KEY" ]; then
+            echo "::warning::No VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY secrets: the app opens, but can't sign in"
+            export VITE_SUPABASE_URL=https://not-set.supabase.co VITE_SUPABASE_ANON_KEY=not-set
+          fi
+          npm run build:ios
+
+      - name: Build for the iPhone simulator
+        run: |
+          xcodebuild -version
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build ARCHS=arm64 ONLY_ACTIVE_ARCH=NO CODE_SIGNING_ALLOWED=NO \
+            -quiet build
+          ditto -c -k --keepParent build/Build/Products/Debug-iphonesimulator/App.app MatchGPT-iPhone-simulator.zip
+
+      - uses: actions/upload-artifact@v7
+        with:
+          path: MatchGPT-iPhone-simulator.zip
+          archive: false
+
+      - name: Install Maestro (taps through the app)
+        run: |
+          curl -fsSL https://get.maestro.mobile.dev | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Screenshots
+        timeout-minutes: 30
+        run: scripts/ios-screenshots.sh build/Build/Products/Debug-iphonesimulator/App.app screenshots
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: iPhone-screenshots
+          path: screenshots/
+          if-no-files-found: ignore
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### The iPhone app"
+            echo "- **iPhone-screenshots**: what the app looks like on $(cat screenshots/device.txt 2>/dev/null || echo 'an iPhone simulator'), light and dark."
+            echo "- **MatchGPT-iPhone-simulator.zip**: upload it at https://appetize.io/upload to use the app in a browser."
+            [ -n "$VITE_SUPABASE_URL" ] || echo "- Built without the backend secrets, so it can't sign in (see the top of .github/workflows/ios.yml)."
+          } >> "$GITHUB_STEP_SUMMARY"

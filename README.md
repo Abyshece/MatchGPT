@@ -162,8 +162,8 @@ installs the SDK.
 2. `cd android && ./gradlew assembleDebug`, or open `android/` in Android Studio and press Run. The
    test app is saved as `android/app/build/outputs/apk/debug/app-debug.apk`.
 
-**iPhone** needs a Mac with Xcode (free in the Mac App Store) and Node.js 22. The project uses Swift
-Package Manager, so there's no CocoaPods step.
+**iPhone** needs a Mac with Xcode 26 or newer (free in the Mac App Store; it runs on macOS 15.6 or
+newer) and Node.js 22. The project uses Swift Package Manager, so there's no CocoaPods step.
 
 1. `npm run build:ios` builds the app and copies it into `ios/`.
 2. `npx cap open ios` opens it in Xcode. Pick an iPhone simulator at the top and press Run (▶). To run
@@ -173,6 +173,19 @@ Package Manager, so there's no CocoaPods step.
    3. Turn on Developer Mode on the phone (Settings → Privacy & Security).
 
 After any code change, run the build command again before Run.
+
+**No Mac?** GitHub builds the iPhone app on its own Macs (`.github/workflows/ios.yml`, free for this
+public repository). It runs when the iPhone project changes, or by hand: GitHub → Actions → iPhone app →
+Run workflow. When it's done, the run's page has:
+
+- **iPhone-screenshots**: the app on an iPhone Pro Max simulator, in light and dark mode
+  (`scripts/ios-screenshots.sh`, which taps through `tests/ios/screenshots.yaml` with Maestro).
+- **MatchGPT-iPhone-simulator.zip**: upload it at https://appetize.io/upload (a free account has 30
+  minutes a month) to use the iPhone app in your browser, on any computer.
+
+For a build that can sign in, first add two repository secrets (GitHub → Settings → Secrets and
+variables → Actions): `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`, the same values as in
+`.env.production.local`.
 
 **Claude Code can use the app too.** `.mcp.json` adds [mobile-mcp](https://github.com/mobile-next/mobile-mcp)
 to Claude Code in this folder (it asks before turning it on). With an Android emulator or iPhone simulator

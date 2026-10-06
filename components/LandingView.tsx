@@ -102,7 +102,7 @@ const LandingView: React.FC<LandingViewProps> = ({ onSignupInitiated, onShowLega
                   handleSearchAttempt();
                 }
               }}
-              placeholder="Say something like I'm looking for someone who loves coffee, hikes and works in finance."
+              placeholder="Describe your ideal match…"
               rows={1}
               style={{ minHeight: '44px' }}
               className="w-full max-h-40 bg-transparent border-0 focus:ring-0 resize-none py-3 px-2 text-gray-700 dark:text-gray-200 placeholder:text-gray-400 dark:placeholder:text-gray-500 placeholder:text-sm focus:outline-none leading-relaxed text-sm overflow-hidden"
