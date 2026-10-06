@@ -5,7 +5,7 @@ appId: com.shaadi24.app
 - launchApp:
     clearState: true
 - extendedWaitUntil:
-    visible: "Find your meaningful match"
+    visible: "Find your life partner"
     timeout: 60000
 - takeScreenshot: ${LOOK}-1-welcome
 - tapOn: "Sign in"

@@ -9,7 +9,7 @@
 import { chromium } from 'playwright';
 import { execFileSync, execSync } from 'node:child_process';
 import fs from 'node:fs';
-import { REQUIRED_DETAILS } from './fixtures.mjs';
+import { CONSENTED, REQUIRED_DETAILS } from './fixtures.mjs';
 
 const DB = process.env.DB_CONTAINER || 'supabase_db_Shaadi24';
 const API = process.env.SUPABASE_URL || 'http://127.0.0.1:54321';
@@ -62,7 +62,7 @@ sql(`update profiles p set
      update profiles set name = '${HER_NAME}', gender = 'Female', interested_in = 'Men', city = '${PLACE}', state = 'Kerala',
        country = 'India', onboarding_complete = true, is_verified = true, terms_accepted_at = now(), privacy_accepted_at = now()
      where id = '${her}';
-     update profiles set ${REQUIRED_DETAILS} where id = '${her}';`);
+     update profiles set ${REQUIRED_DETAILS}, ${CONSENTED} where id = '${her}';`);
 check(sql(`select location from profiles where id = '${her}';`).startsWith(PLACE), `she lives in ${PLACE}`);
 
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });

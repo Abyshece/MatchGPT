@@ -8,8 +8,9 @@ import { ChoiceField, DateOfBirthField, ageFromDateOfBirth } from './ProfileInpu
 import { ABOUT_ME_MIN, REQUIRED_LABELS, missingRequired, type RequiredKey } from '../lib/profileRewards';
 import {
   CITIES_BY_STATE, COUNTRIES, EDUCATION_LEVELS, GENDERS, HEIGHTS, INDIAN_STATES, INTERESTED_IN, MARITAL_STATUS,
-  MOTHER_TONGUES, OCCUPATIONS, PROFILE_CREATED_FOR, RELATIONSHIP_INTENTS, RELIGIONS,
+  MOTHER_TONGUES, OCCUPATIONS, PROFILE_CREATED_FOR, RELIGIONS,
 } from '../lib/matrimonyOptions';
+import { belowMarriageAge, tooYoungMessage } from '../lib/legalAge';
 
 // ============================================================================
 // RequiredDetails: members who joined before an answer became required give it
@@ -19,7 +20,7 @@ import {
 
 const COLUMN: Record<RequiredKey, string> = {
   profileCreatedFor: 'profile_created_for', name: 'name', dateOfBirth: 'date_of_birth', gender: 'gender',
-  interestedIn: 'interested_in', datingIntention: 'dating_intention', maritalStatus: 'marital_status',
+  interestedIn: 'interested_in', maritalStatus: 'marital_status',
   height: 'height', country: 'country', state: 'state', city: 'city', religion: 'religion',
   motherTongue: 'mother_tongue', educationLevel: 'education_level', occupation: 'occupation',
   description: 'description',
@@ -78,12 +79,18 @@ const RequiredDetails: React.FC = () => {
         : `Please answer: ${missing.join(', ')}.`);
       return;
     }
-    if (update.date_of_birth) {
-      const age = ageFromDateOfBirth(update.date_of_birth);
-      if (age === null || age < 18 || age > 99) {
-        setError('You must be at least 18 to use Shaadi24.');
-        return;
-      }
+    // The legal age to marry depends on the gender: 18 for women, 21 for men
+    const dateOfBirth = update.date_of_birth || profile.dateOfBirth;
+    const age = dateOfBirth ? ageFromDateOfBirth(dateOfBirth) : profile.age;
+    const gender = update.gender || profile.gender;
+    const forSomeoneElse = (update.profile_created_for || profile.profileCreatedFor || 'Myself') !== 'Myself';
+    if (update.date_of_birth && (age === null || age > 99)) {
+      setError('Please check the date of birth.');
+      return;
+    }
+    if (belowMarriageAge(gender, age)) {
+      setError(tooYoungMessage(gender, forSomeoneElse));
+      return;
     }
     if (!session?.user.id) return;
     setSaving(true);
@@ -133,7 +140,6 @@ const RequiredDetails: React.FC = () => {
       'Others only see the age, never the date.'),
     gender: () => choice('gender', { options: GENDERS }),
     interestedIn: () => choice('interestedIn', { options: INTERESTED_IN }),
-    datingIntention: () => choice('datingIntention', { options: RELATIONSHIP_INTENTS }),
     maritalStatus: () => choice('maritalStatus', { options: MARITAL_STATUS }),
     height: () => choice('height', { options: HEIGHTS }),
     religion: () => choice('religion', { options: RELIGIONS }),

@@ -3,6 +3,7 @@ import { useAuth } from '../../lib/AuthContext';
 import { useIsAdmin } from '../../lib/useIsAdmin';
 import { deleteAccount } from '../../lib/deleteAccountService';
 import StoreBadges from '../StoreBadges';
+import { LEGAL } from '../../lib/legalInfo';
 
 // ============================================================================
 // SiteHome: the website's home page
@@ -22,8 +23,8 @@ const FEATURES = [
   },
   {
     icon: '✅',
-    title: 'Real people, verified',
-    text: 'Profiles are verified through their social links, and every report is reviewed within 24 hours.',
+    title: 'Verified badges, and reports that count',
+    text: 'Members can get a Verified badge by linking their social profiles, which our team checks, and every report is reviewed within 24 hours.',
   },
   {
     icon: '👪',
@@ -158,6 +159,11 @@ const SiteHome: React.FC = () => {
           </p>
           <StoreBadges className="mt-8 justify-center" />
           <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">Free to join, on Android and iPhone.</p>
+          {/* The declaration the Government's advisory for matrimonial websites asks for */}
+          <p className="mt-6 text-xs text-gray-600 dark:text-gray-400" data-testid="matrimony-only">
+            Shaadi24 is for marriage only. It is not a dating website, and it must not be used for posting obscene
+            material. For women of 18 and men of 21 or older.
+          </p>
         </section>
 
         <section aria-label="What Shaadi24 does" className="max-w-4xl mx-auto px-5 pb-16 grid gap-4 sm:grid-cols-2">
@@ -176,9 +182,12 @@ const SiteHome: React.FC = () => {
           <a className={footerLink} href="/support">Help &amp; Support</a>
           <a className={footerLink} href="/privacy">Privacy Policy</a>
           <a className={footerLink} href="/terms">Terms of Service</a>
+          <a className={footerLink} href="/grievances">Grievances</a>
+          <a className={footerLink} href="/safety">Safety</a>
+          <a className={footerLink} href="/refunds">Refunds</a>
           <a className={footerLink} href="/delete-account">Delete your account</a>
           <a className={footerLink} href="/admin">Admin</a>
-          <span>© 2026 Shaadi24</span>
+          <span>© 2026 {LEGAL.operator}</span>
         </nav>
       </footer>
     </div>

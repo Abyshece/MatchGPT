@@ -5,6 +5,7 @@ import { listLikesReceived } from '../lib/likesService';
 import { listMatches } from '../lib/matchesService';
 import VerificationRequestModal from './VerificationRequestModal';
 import UpgradeModal from './UpgradeModal';
+import { openLegalPage, type LegalPageName } from '../lib/legalInfo';
 import {
   IconSearch, IconHistory, IconHeart, IconMessageCircle, IconStar, IconUser,
   IconX, IconZap, IconLogOut, IconSettings, IconChevronLeft, IconChevronRight,
@@ -113,6 +114,14 @@ const Sidebar: React.FC<SidebarProps> = ({
       return () => clearTimeout(id);
     }
   }, [activeTab, refreshCounters]);
+
+  // The legal pages open over the app (App.tsx follows the address). The
+  // Grievance page is one step from the home screen, as the IT Rules 2021 ask
+  // of "prominently" published grievance details (rule 3(2)(a), Explanation)
+  const openLegal = (page: LegalPageName) => {
+    setIsOpen(false);
+    openLegalPage(page);
+  };
 
   const item = (id: Tab, label: string, icon: React.ReactNode, count?: number) => (
     <SidebarItem
@@ -245,6 +254,17 @@ const Sidebar: React.FC<SidebarProps> = ({
             <IconLogOut />
           </button>
         </div>
+
+        {!isCollapsed && (
+          <nav aria-label="Rules and complaints" className="mt-3 px-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-500 dark:text-gray-400">
+            {([['terms', 'Terms'], ['privacy', 'Privacy'], ['safety', 'Safety'], ['grievances', 'Complaints']] as [LegalPageName, string][]).map(([page, label]) => (
+              <button key={page} type="button" onClick={() => openLegal(page)} data-testid={`sidebar-${page}`}
+                className="hover:text-gray-800 dark:hover:text-gray-200 hover:underline">
+                {label}
+              </button>
+            ))}
+          </nav>
+        )}
       </div>
 
       {/* Opened from the boxes above (both render into <body>) */}

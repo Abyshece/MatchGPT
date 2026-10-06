@@ -81,7 +81,7 @@ try {
   let { ctx, page } = await open();
   const text = await page.locator('main').innerText();
   check(/Settings → Delete Account/.test(text), 'says how to do it in the app');
-  check(/What's deleted:/.test(text) && /What's kept:/.test(text) && /up to 7 years/.test(text) && /within 30 days/.test(text),
+  check(/What's deleted:/.test(text) && /What's kept:/.test(text) && /for one year/.test(text) && /up to 8 years/.test(text) && /within 30 days/.test(text),
     'says what\'s deleted and what\'s kept');
   check(/apps\.apple\.com\/account\/subscriptions/.test(text), 'says App Store subscriptions are cancelled by the person');
   const width = await page.evaluate(() => document.documentElement.scrollWidth);

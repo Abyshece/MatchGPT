@@ -11,6 +11,9 @@ import { startStoreSync, stopStoreSync } from './lib/storePurchases';
 import { onNotificationWhileOpen, startNativePush, stopNativePush } from './lib/nativePush';
 import { setErrorScreen } from './lib/errorReports';
 import { missingRequired } from './lib/profileRewards';
+import { LEGAL_PAGES, type LegalPageName } from './lib/legalInfo';
+import { needsConsent } from './lib/consentService';
+import { belowMarriageAge } from './lib/legalAge';
 
 // Screens a first visit doesn't need load when they're shown, so the first
 // download is small; the signed-in app starts loading as soon as there's a
@@ -23,7 +26,11 @@ const EmailVerification = lazyScreen(() => import('./components/EmailVerificatio
 const SetNewPassword = lazyScreen(() => import('./components/SetNewPassword'));
 const TermsView = lazyScreen(() => import('./components/TermsView'));
 const PrivacyView = lazyScreen(() => import('./components/PrivacyView'));
+const GrievancesView = lazyScreen(() => import('./components/GrievancesView'));
+const SafetyView = lazyScreen(() => import('./components/SafetyView'));
+const RefundsView = lazyScreen(() => import('./components/RefundsView'));
 const RequiredDetails = lazyScreen(() => import('./components/RequiredDetails'));
+const UnderAgeScreen = lazyScreen(() => import('./components/UnderAgeScreen'));
 
 // ============================================================================
 // App (Phase 6 Batch 3)
@@ -38,15 +45,16 @@ const RequiredDetails = lazyScreen(() => import('./components/RequiredDetails'))
 // The toggle in the sidebar cycles light → dark → system and persists.
 // ============================================================================
 
-type LegalPage = 'terms' | 'privacy' | null;
+type LegalPage = LegalPageName | null;
 type ThemeMode = 'system' | 'light' | 'dark';
 
-// Terms and Privacy have addresses of their own on the website, /terms and
-// /privacy (the stores link to them); #terms and #privacy work everywhere
-const LEGAL_PATH = /^\/(terms|privacy)\/?$/;
+// The legal pages have addresses of their own on the website (/terms,
+// /privacy, /grievances, /safety, /refunds; the stores link to some); #terms,
+// #privacy and so on work everywhere
+const LEGAL_PATH = /^\/(terms|privacy|grievances|safety|refunds)\/?$/;
 function legalPageInUrl(): LegalPage {
   const page = window.location.hash.replace('#', '') || LEGAL_PATH.exec(window.location.pathname)?.[1];
-  return page === 'terms' || page === 'privacy' ? page : null;
+  return (LEGAL_PAGES as readonly string[]).includes(page ?? '') ? page as LegalPageName : null;
 }
 
 // Compute the actual boolean "is dark mode active right now" from a theme mode.
@@ -68,6 +76,8 @@ const AppRouter: React.FC<{
   } = useAuth();
   // Answers that became required after this member joined (lib/profileRewards.ts)
   const missingDetails = profile && profileRow?.onboarding_complete ? missingRequired(profile).length > 0 : false;
+  // Younger than the legal age to marry in India (lib/legalAge.ts)
+  const tooYoung = profile && profileRow?.onboarding_complete ? belowMarriageAge(profile.gender, profile.age) : false;
   const { showToast } = useToast();
   const [pendingSignupEmail, setPendingSignupEmail] = useState<string | null>(null);
 
@@ -189,8 +199,9 @@ const AppRouter: React.FC<{
       : profileError && !profileLoading ? 'profile error'
       : profileMissing && !profileLoading ? 'profile missing'
       : !profileRow ? 'loading profile'
-      : !profileRow.terms_accepted_at ? 'consent'
+      : needsConsent(profileRow) ? 'consent'
       : !profileRow.onboarding_complete ? 'onboarding'
+      : tooYoung ? 'under age'
       : missingDetails ? 'required details'
       : null);
   useEffect(() => {
@@ -204,6 +215,9 @@ const AppRouter: React.FC<{
   if (legalPage === 'privacy') {
     return <PrivacyView onBack={() => setLegalPage(null)} />;
   }
+  if (legalPage === 'grievances') return <GrievancesView onBack={() => setLegalPage(null)} />;
+  if (legalPage === 'safety') return <SafetyView onBack={() => setLegalPage(null)} />;
+  if (legalPage === 'refunds') return <RefundsView onBack={() => setLegalPage(null)} />;
 
   // 1. Top-level bootstrap loading
   if (loading) {
@@ -255,8 +269,9 @@ const AppRouter: React.FC<{
     return <FullScreenLoader label="Loading your profile…" />;
   }
 
-  // 7. Terms and Privacy not accepted yet (Google sign-ups, older accounts)
-  if (!profileRow.terms_accepted_at) {
+  // 7. The current Terms and Privacy Policy not accepted yet (new members, and
+  // everyone after they change)
+  if (needsConsent(profileRow)) {
     return <StepConsent onShowLegal={(page) => setLegalPage(page)} />;
   }
 
@@ -265,12 +280,17 @@ const AppRouter: React.FC<{
     return <OnboardingShell onComplete={() => { /* AuthContext refreshes */ }} />;
   }
 
-  // 9. Answers that became required after they joined
+  // 9. Younger than the legal age to marry in India: no further
+  if (tooYoung) {
+    return <UnderAgeScreen />;
+  }
+
+  // 10. Answers that became required after they joined
   if (missingDetails) {
     return <RequiredDetails />;
   }
 
-  // 10. Main app
+  // 11. Main app
   return (
     <Dashboard
       isDarkMode={isDarkMode}

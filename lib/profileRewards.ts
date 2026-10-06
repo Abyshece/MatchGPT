@@ -18,7 +18,7 @@ import type { UserProfile } from '../types';
 export const ABOUT_ME_MIN = 30;
 
 export type RequiredKey =
-  | 'profileCreatedFor' | 'name' | 'dateOfBirth' | 'gender' | 'interestedIn' | 'datingIntention'
+  | 'profileCreatedFor' | 'name' | 'dateOfBirth' | 'gender' | 'interestedIn'
   | 'maritalStatus' | 'height' | 'country' | 'state' | 'city' | 'religion' | 'motherTongue'
   | 'educationLevel' | 'occupation' | 'description';
 
@@ -28,7 +28,6 @@ export const REQUIRED_LABELS: Record<RequiredKey, string> = {
   dateOfBirth: 'Date of birth',
   gender: 'Gender',
   interestedIn: 'Interested in',
-  datingIntention: 'Looking for',
   maritalStatus: 'Marital status',
   height: 'Height',
   country: 'Country',
@@ -46,7 +45,7 @@ const given = (v: unknown) => typeof v === 'string' ? v.trim() !== '' && v !== '
 /** The required answers this profile doesn't have yet, in the order they're asked. */
 export function missingRequired(profile: UserProfile): RequiredKey[] {
   const keys: RequiredKey[] = [
-    'profileCreatedFor', 'name', 'dateOfBirth', 'gender', 'interestedIn', 'datingIntention', 'maritalStatus',
+    'profileCreatedFor', 'name', 'dateOfBirth', 'gender', 'interestedIn', 'maritalStatus',
     'height', 'country', 'state', 'city', 'religion', 'motherTongue', 'educationLevel', 'occupation', 'description',
   ];
   return keys.filter((key) => {

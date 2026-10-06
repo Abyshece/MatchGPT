@@ -15,6 +15,7 @@ import type { MatchCandidate } from '../types';
 import type { AdminTab } from './admin/AdminView';
 import { firstCelebration } from '../lib/matchCelebration';
 import { setErrorScreen } from '../lib/errorReports';
+import RulesReminder from './RulesReminder';
 
 // ============================================================================
 // Dashboard (Phase 6 Batch 3 — code-splitting)
@@ -131,9 +132,10 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
     } else if (data.event_type === 'super_like' || data.deep_link === '/likes') {
       setPendingMatchOpenId(null);
       setActiveTab('likes');
-    } else if (data.event_type === 'admin_report' || data.event_type === 'admin_verification') {
+    } else if (data.event_type === 'admin_report' || data.event_type === 'admin_verification' || data.event_type === 'admin_grievance') {
       setPendingMatchOpenId(null);
-      setAdminOpen((o) => ({ tab: data.admin_tab === 'verifications' ? 'verifications' : 'reports', key: o.key + 1 }));
+      const tab = data.admin_tab === 'verifications' ? 'verifications' : data.admin_tab === 'grievances' ? 'grievances' : 'reports';
+      setAdminOpen((o) => ({ tab, key: o.key + 1 }));
       setActiveTab('admin');
     }
   }, []);
@@ -191,6 +193,8 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
 
   return (
     <div className="flex h-screen bg-white dark:bg-[#191919] overflow-hidden relative font-sans">
+      {/* The reminder of the rules, every three months (IT Rules 2021, rule 3(1)(c)) */}
+      <RulesReminder />
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 popup-backdrop z-[60] md:hidden animate-fade-in"

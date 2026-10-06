@@ -22,6 +22,7 @@ import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
+import { agreeToTerms } from './fixtures.mjs';
 
 const SUPABASE = process.env.SUPABASE_URL || 'http://127.0.0.1:54321';
 const ANON = process.env.ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
@@ -217,8 +218,7 @@ try {
   check(sentRight(phone, 'google'), 'Supabase got the sheet\'s ID token and the nonce behind its hash');
   check(called(phone, 'logout').some((c) => c.options?.provider === 'google'), 'Google\'s own sign-in is cleared afterwards');
   await page.screenshot({ path: `${OUT}2-android-consent.png` });
-  await page.locator('input[type=checkbox]').first().check();
-  await page.getByRole('button', { name: /Continue/ }).click();
+  await agreeToTerms(page);
   const nameField = page.getByPlaceholder("As you'd like it shown");
   check(await appears(nameField, 15000) && (await nameField.inputValue()) === 'Aarav Mehta', 'the profile form starts from the Google name');
   await ctx.close();
@@ -280,8 +280,7 @@ try {
   const keptToken = await until(() => sql(`select count(*) from apple_sign_in_tokens where user_id = '${priya.id}';`) === '1', 10000);
   check(keptToken && phone.appleSignInCalls.length === 1 && phone.appleSignInCalls[0].includes(phone.appleCode),
     'Apple\'s one-time code went to the server, which kept the token for deleting the account');
-  await page.locator('input[type=checkbox]').first().check();
-  await page.getByRole('button', { name: /Continue/ }).click();
+  await agreeToTerms(page);
   const iosName = page.getByPlaceholder("As you'd like it shown");
   check(await appears(iosName, 15000) && (await iosName.inputValue()) === 'Priya Sharma', 'the profile form starts from the name Apple gave');
   await page.screenshot({ path: `${OUT}5-ios-profile-name.png` });

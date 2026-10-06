@@ -127,9 +127,11 @@ const DeleteAccountPage: React.FC = () => {
           <p><strong className="text-gray-900 dark:text-white">What's deleted:</strong> your account and profile, photos, likes, matches,
             messages, searches, verification requests, the phones and browsers that get your notifications, and your
             Sign in with Apple link to Shaadi24. People you matched with lose your conversations. This can't be undone.</p>
-          <p><strong className="text-gray-900 dark:text-white">What's kept:</strong> a record that the account was deleted (its email
-            and when), and the records of payments that the law requires us to keep (up to 7 years). Everything else is
-            gone within 30 days, backups included.</p>
+          <p><strong className="text-gray-900 dark:text-white">What's kept:</strong> only what Indian law requires, kept apart and
+            used only to answer lawful requests: a record of the account (name, email, date of birth, gender, city, when
+            it was made and deleted, and the internet addresses used) for one year, records of payments for up to 8
+            years, and the consents given for up to 3 years. Everything else is deleted at once, and from our backups
+            within 30 days. <a className="underline" href="/privacy">Privacy Policy</a>, section 6.</p>
           <p><strong className="text-gray-900 dark:text-white">Shaadi24+:</strong> a Google Play subscription stops renewing. An App
             Store subscription only you can cancel: on your iPhone,
             Settings → your name → Subscriptions, or <a className="underline" href="https://apps.apple.com/account/subscriptions" target="_blank" rel="noreferrer">apps.apple.com/account/subscriptions</a>.</p>

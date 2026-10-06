@@ -329,8 +329,9 @@ password, and OAuth (Google; Apple on iPhones).
 
 | Data type | Collected | Shared | Required or optional | Purposes |
 |---|---|---|---|---|
-| Personal info → Name | Yes | No | Required | App functionality, Account management |
-| Personal info → Email address | Yes | No | Required | App functionality, Account management |
+| Personal info → Name | Yes | No | Required | App functionality, Account management, Fraud prevention, security, and compliance |
+| Personal info → Email address | Yes | No | Required | App functionality, Account management, Fraud prevention, security, and compliance |
+| Personal info → Phone number (only if given with a complaint to the Grievance Officer) | Yes | No | Optional | Fraud prevention, security, and compliance |
 | Personal info → User IDs (the account's; Google's or Apple's at sign-in) | Yes | No | Required | App functionality, Account management |
 | Personal info → Race and ethnicity (community, caste, ethnicity) | Yes | No | Optional | App functionality |
 | Personal info → Political or religious beliefs | Yes | No | Optional | App functionality |
@@ -350,7 +351,10 @@ password, and OAuth (Google; Apple on iPhones).
 | App info and performance → Diagnostics (with an error: the screen, app version, phone and system) | Yes | No | Required | App functionality |
 
 Not collected: precise location, contacts, calendar, files, audio, web browsing, payment details (Google
-Play takes the payment; Shaadi24 never sees cards or UPI). Error reports (`lib/errorReports.ts`) carry no
+Play takes the payment; Shaadi24 never sees cards or UPI). Internet (IP) addresses are kept with each
+consent and complaint, and in the record kept for a year after an account is deleted, because Indian law
+asks for them (`docs/legal/README.md`); they're never used to work out where someone is, so neither
+store's form has a type for them, and the Privacy Policy names them. Error reports (`lib/errorReports.ts`) carry no
 account, name or address, and the app blanks out emails, phone numbers and ids before sending one; they
 are still "collected", as Google counts anything that leaves the phone.
 
@@ -372,6 +376,7 @@ third-party partners use data for tracking?" **No.**
 |---|---|---|
 | Contact Info | Name | the profile's name |
 | Contact Info | Email Address | the account's email |
+| Contact Info | Phone Number | only if someone gives it with a complaint (optional) |
 | User Content | Photos or Videos | profile photos |
 | User Content | Emails or Text Messages | chat messages between matches |
 | User Content | Other User Content | About me and the profile's answers |

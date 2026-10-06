@@ -426,7 +426,7 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
                 >
                   Privacy Policy
                 </button>
-                . I confirm I am 18 years or older.
+                . I am of the legal age to marry in India (18 for women, 21 for men).
               </span>
             </label>
 

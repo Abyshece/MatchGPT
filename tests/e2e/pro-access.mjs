@@ -213,7 +213,7 @@ try {
   await page.reload();
   await page.getByTestId('find-match-box').waitFor({ timeout: 20000 });
   const locked = await lockedFilters();
-  check(locked === 13, `switch off: the 13 Shaadi24+ filters are locked (${locked})`);
+  check(locked === 12, `switch off: the 12 Shaadi24+ filters are locked (${locked})`);
   await page.getByRole('button', { name: /Likes You/ }).first().click();
   check(await appears(page.getByText('Upgrade to See')), 'switch off: Likes You asks to upgrade');
   check(!(await page.getByText(nameB).first().isVisible().catch(() => false)), `and doesn't show ${nameB}`);

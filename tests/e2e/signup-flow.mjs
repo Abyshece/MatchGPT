@@ -1,10 +1,12 @@
-// New-user journey against the local stack: email sign-up → onboarding (3 steps,
-// with the India details) → dashboard → search → sign out → sign back in.
+// New-user journey against the local stack: email sign-up → the consent screen
+// (the declarations Indian law asks for) → onboarding (3 steps, with the India
+// details) → dashboard → search → sign out → sign back in.
 // Usage: node signup-flow.mjs [email]
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import zlib from 'node:zlib';
+import { agreeToTerms } from './fixtures.mjs';
 
 const BASE = process.env.BASE_URL || 'http://localhost:3000';
 const DB = process.env.DB_CONTAINER || 'supabase_db_Shaadi24';  // `docker ps` shows the name
@@ -74,9 +76,18 @@ try {
     await page.locator('input[type=checkbox]').first().check();
     await shot('signup-form');
     await page.locator('form').getByRole('button', { name: /Create Account/ }).click();
+    // The Terms were ticked on the form: the consent screen asks only the rest
+    await page.getByText('Before you start').waitFor({ timeout: 15000 });
+    await shot('consent-screen');
+    if (!(await page.getByTestId('consent-terms-done').isVisible())) throw new Error('the Terms accepted on the form are asked again');
+    if (await page.getByTestId('consent-terms').count()) throw new Error('a Terms box although they were accepted on the form');
+    await agreeToTerms(page);
     await page.getByText('Tell us about yourself').waitFor({ timeout: 15000 });
     await shot('onboarding-step1');
-    if (await page.getByText('Before you start').isVisible()) throw new Error('email sign-up was asked for Terms consent again');
+    const recorded = sql(`select count(*) || '/' || count(c.ip_address) from consent_records c join profiles p on p.id = c.user_id
+      where p.email = '${email}' and c.event_type in ('terms_accepted', 'privacy_accepted', 'matrimony_declaration',
+        'legal_age_declaration', 'sensitive_data_consent')`);
+    if (recorded !== '5/5') throw new Error(`consents recorded (and with the address): ${recorded}`);
   });
 
   // A label's own select (the form's labels sit right before their input)
@@ -92,13 +103,17 @@ try {
   await step('onboarding step 1: basic info', async () => {
     if ((await selectAfter('This profile is for').inputValue()) !== 'Myself') throw new Error('"This profile is for" should start at Myself');
     await page.getByPlaceholder("As you'd like it shown").fill('Test Newuser');
+    if (await page.locator('xpath=//label[normalize-space(.)="Looking for"]').count()) throw new Error('asked what he is looking for (marriage only)');
     await page.getByLabel('Day').selectOption('15');
     await page.getByLabel('Month').selectOption({ label: 'Jan' });
-    await page.getByLabel('Year').selectOption('1997');
+    // A man of 20 is under the legal age to marry in India
+    await page.getByLabel('Year').selectOption(String(new Date().getFullYear() - 20));
     await selectAfter('Gender').selectOption('Male');
     await selectAfter('Pronouns (optional)').selectOption('He/Him');
     await selectAfter('Interested in').selectOption('Women');
-    await selectAfter('Looking for').selectOption('Marriage');
+    await page.getByRole('button', { name: /Continue/ }).click();
+    if (!(await page.getByText(/must be at least 21 to use Shaadi24/).isVisible())) throw new Error('a man of 20 was not stopped');
+    await page.getByLabel('Year').selectOption('1997');
     await selectAfter('Marital status').selectOption('Divorced');
     await selectAfter('Children (optional)').selectOption('No');     // asked because not "Never Married"
     await selectAfter('Height').selectOption(`5' 8" (173 cm)`);

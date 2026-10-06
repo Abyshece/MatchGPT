@@ -308,7 +308,7 @@ try {
   await page.screenshot({ path: `${OUT}ios-2-settings.png` });
 
   await page.getByRole('button', { name: 'Delete Account' }).click();
-  await page.getByText('I need a break from dating').click();
+  await page.getByText('I need a break', { exact: true }).click();
   await page.getByRole('button', { name: 'Continue' }).click();
   const note = page.getByTestId('delete-subscription-note');
   await note.waitFor({ timeout: 10000 });

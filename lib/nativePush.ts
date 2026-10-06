@@ -100,7 +100,7 @@ async function ensureChannels(): Promise<void> {
 export async function ensureAdminChannel(): Promise<void> {
   if (platform() !== 'android') return;
   await FirebaseMessaging.createChannel({
-    id: 'admin', name: 'Admin alerts', description: 'New reports and verification requests to review',
+    id: 'admin', name: 'Admin alerts', description: 'New reports, complaints and verification requests to review',
     importance: Importance.High, lights: true, vibration: true,
   }).catch(() => {});
 }

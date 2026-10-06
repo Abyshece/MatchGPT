@@ -72,7 +72,8 @@ try {
     log(`== The website (${scheme})`);
     const ctx = await phone(scheme);
     const page = await ctx.newPage();
-    for (const [path, name] of [['/', 'home'], ['/support', 'support'], ['/delete-account', 'delete account'], ['/terms', 'terms'], ['/admin', 'admin sign-in']]) {
+    for (const [path, name] of [['/', 'home'], ['/support', 'support'], ['/delete-account', 'delete account'], ['/terms', 'terms'],
+      ['/privacy', 'privacy'], ['/grievances', 'grievances'], ['/safety', 'safety'], ['/refunds', 'refunds'], ['/admin', 'admin sign-in']]) {
       await page.goto(`${WEBSITE}${path}`);
       await page.locator('h1').first().waitFor({ timeout: 15000 });
       await audit(page, `website ${name} (${scheme})`);
@@ -84,6 +85,10 @@ try {
     await page.getByText('Admin Panel').waitFor({ timeout: 20000 });
     await page.waitForTimeout(1500);
     await audit(page, `admin panel (${scheme})`);
+    await page.getByRole('button', { name: /^complaints$/i }).click();
+    await page.getByTestId('admin-grievances').waitFor({ timeout: 15000 });
+    await page.waitForTimeout(1000);
+    await audit(page, `admin complaints (${scheme})`);
     await page.getByRole('button', { name: /^errors$/i }).click();
     await page.getByTestId('admin-error').first().waitFor({ timeout: 15000 });
     await page.getByTestId('admin-error').first().getByRole('button').first().click();

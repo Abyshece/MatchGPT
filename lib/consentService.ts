@@ -9,15 +9,25 @@
 
 import { supabase } from './supabase';
 
-// Bump these whenever the legal documents change. The user will be re-prompted.
-export const TERMS_VERSION = 'terms-v5-2026-10-06';
-export const PRIVACY_VERSION = 'privacy-v11-2026-10-06';
+// Bump these whenever the legal documents change: every member is asked to
+// accept the new versions before they continue (needsConsent(); App.tsx).
+export const TERMS_VERSION = 'terms-v6-2026-10-06';
+export const PRIVACY_VERSION = 'privacy-v12-2026-10-06';
 
 export type ConsentEventType =
   | 'terms_accepted'
   | 'privacy_accepted'
   | 'cookies_updated'
-  | 'marketing_consent';
+  | 'marketing_consent'
+  // The declarations and the consent the consent screen asks for (StepConsent):
+  // looking to marry and giving true details (the 2016 advisory for matrimonial
+  // websites), of the legal age to marry, and the sensitive details (SPDI Rules
+  // 2011, rule 5; DPDP Act, section 6)
+  | 'matrimony_declaration'
+  | 'legal_age_declaration'
+  | 'sensitive_data_consent'
+  // A profile made for someone else: they know about it and want it (StepBasicInfo)
+  | 'profile_for_other_consent';
 
 export type CookieCategories = {
   essential: boolean;  // always true — can't be disabled
@@ -137,10 +147,13 @@ export async function recordSignupConsent(
   email: string,
   marketingOptIn: boolean
 ): Promise<{ error: string | null }> {
-  // Three records: terms, privacy, marketing
+  // One record for each document, declaration and consent
   const events: RecordConsentInput[] = [
     { userId, email, eventType: 'terms_accepted', consented: true, documentVersion: TERMS_VERSION },
     { userId, email, eventType: 'privacy_accepted', consented: true, documentVersion: PRIVACY_VERSION },
+    { userId, email, eventType: 'matrimony_declaration', consented: true, documentVersion: TERMS_VERSION },
+    { userId, email, eventType: 'legal_age_declaration', consented: true, documentVersion: TERMS_VERSION },
+    { userId, email, eventType: 'sensitive_data_consent', consented: true, documentVersion: PRIVACY_VERSION },
     { userId, email, eventType: 'marketing_consent', consented: marketingOptIn },
   ];
 
@@ -149,12 +162,17 @@ export async function recordSignupConsent(
     if (error) return { error };
   }
 
-  // Also write to the profile row for quick lookup
+  // Also on the profile: which versions were accepted, and the rules were just
+  // read (the reminder every three months starts from now)
+  const now = new Date().toISOString();
   const { error } = await supabase
     .from('profiles')
     .update({
-      terms_accepted_at: new Date().toISOString(),
-      privacy_accepted_at: new Date().toISOString(),
+      terms_accepted_at: now,
+      privacy_accepted_at: now,
+      terms_version: TERMS_VERSION,
+      privacy_version: PRIVACY_VERSION,
+      rules_reminded_at: now,
       marketing_consent: marketingOptIn,
     })
     .eq('id', userId);
@@ -162,27 +180,40 @@ export async function recordSignupConsent(
   return { error: error?.message ?? null };
 }
 
-// ----------------------------------------------------------------------------
-// Check whether the current user needs to re-consent (versions changed)
-// ----------------------------------------------------------------------------
+/** Turns emails with tips and news on or off, and records it. */
+export async function setMarketingConsent(
+  userId: string,
+  email: string,
+  on: boolean
+): Promise<{ error: string | null }> {
+  const { error } = await supabase.from('profiles').update({ marketing_consent: on }).eq('id', userId);
+  if (error) return { error: error.message };
+  return recordConsent({ userId, email, eventType: 'marketing_consent', consented: on });
+}
 
-export async function needsReConsent(userId: string): Promise<{
-  terms: boolean;
-  privacy: boolean;
-}> {
-  const { data } = await supabase
-    .from('profiles')
-    .select('terms_accepted_at, privacy_accepted_at')
-    .eq('id', userId)
-    .maybeSingle();
+/** Whether the member has yet to accept the current Terms and Privacy Policy. */
+export function needsConsent(row: {
+  terms_accepted_at: string | null;
+  terms_version?: string | null;
+  privacy_version?: string | null;
+}): boolean {
+  return !row.terms_accepted_at || row.terms_version !== TERMS_VERSION || row.privacy_version !== PRIVACY_VERSION;
+}
 
-  if (!data) return { terms: true, privacy: true };
+// The IT Rules 2021 (rule 3(1)(c), as amended 10 Feb 2026) ask that members be
+// reminded of the rules at least once every three months (RulesReminder)
+export const RULES_REMINDER_DAYS = 90;
 
-  // Check if user accepted the current version
-  // (For simplicity, we treat any prior acceptance as current — version bumps
-  //  would require app-level re-consent flow, deferred to a future iteration.)
-  return {
-    terms: !data.terms_accepted_at,
-    privacy: !data.privacy_accepted_at,
-  };
+/** Whether it's time to remind the member of the rules. */
+export function needsRulesReminder(remindedAt: string | null | undefined, now = Date.now()): boolean {
+  if (!remindedAt) return true;
+  return now - new Date(remindedAt).getTime() >= RULES_REMINDER_DAYS * 24 * 60 * 60 * 1000;
+}
+
+/** Records that the member has been reminded of the rules. */
+export async function markRulesReminded(userId: string): Promise<{ error: string | null }> {
+  const { error } = await supabase.from('profiles')
+    .update({ rules_reminded_at: new Date().toISOString() })
+    .eq('id', userId);
+  return { error: error?.message ?? null };
 }

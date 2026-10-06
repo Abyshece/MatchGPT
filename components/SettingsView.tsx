@@ -11,6 +11,8 @@ import { getMySubscription, type Subscription } from '../lib/billingService';
 import { manageStoreSubscription, storeManageHint, storePlatform } from '../lib/storePurchases';
 import { downloadMyData } from '../lib/myDataService';
 import { SUPPORT_EMAIL } from './helpTopics';
+import { openLegalPage as openLegal, type LegalPageName } from '../lib/legalInfo';
+import { setMarketingConsent } from '../lib/consentService';
 import {
   IconMoon, IconSun, IconUser, IconLogOut, IconChevronRight, IconTrash, IconX,
 } from '../constants';
@@ -27,7 +29,7 @@ interface SettingsViewProps {
 const DELETE_REASONS = [
   'I met someone on Shaadi24',
   `I'm not happy with the matches`,
-  'I need a break from dating',
+  'I need a break',
   'Privacy concerns',
   'Other',
 ];
@@ -115,10 +117,11 @@ const SettingsView: React.FC<SettingsViewProps> = ({
     }
   };
 
-  // Terms and Privacy open as pages of their own (App.tsx follows the address)
-  const openLegal = (page: 'terms' | 'privacy') => {
-    window.location.hash = '';
-    window.location.hash = page;
+  const toggleMarketing = async (on: boolean) => {
+    if (!session) return;
+    const { error } = await setMarketingConsent(session.user.id, session.user.email ?? '', on);
+    if (error) showToast(`Couldn't save: ${error}`, 'error');
+    else await refreshProfile();
   };
 
   const handleDeleteClick = () => {
@@ -218,6 +221,13 @@ const SettingsView: React.FC<SettingsViewProps> = ({
               checked={settings.pushNotifs}
               onChange={(v) => updateOne('pushNotifs', v)}
             />
+            {/* Withdrawing consent as easily as it was given (DPDP Act, section 6(4)) */}
+            <SettingsToggle
+              label="Tips and news by email"
+              description="Occasional emails about Shaadi24. Turn off any time."
+              checked={profileRow?.marketing_consent ?? false}
+              onChange={toggleMarketing}
+            />
           </InfoSection>
 
           <InfoSection title="Appearance">
@@ -283,6 +293,20 @@ const SettingsView: React.FC<SettingsViewProps> = ({
               <span>Privacy Policy</span>
               <IconChevronRight />
             </button>
+            {([
+              ['grievances', 'Make a complaint (Grievance Officer)'],
+              ['safety', 'Community Guidelines and Safety'],
+              ['refunds', 'Refunds and cancellations'],
+            ] as [LegalPageName, string][]).map(([page, label]) => (
+              <button
+                key={page}
+                onClick={() => openLegal(page)}
+                className="w-full flex items-center justify-between py-3 px-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800/30 rounded text-left"
+              >
+                <span>{label}</span>
+                <IconChevronRight />
+              </button>
+            ))}
           </InfoSection>
 
           <div className="pt-8 border-t border-gray-100 dark:border-zinc-800 mt-8">
@@ -356,7 +380,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 p-4 rounded-lg text-sm text-red-800 dark:text-red-200">
                   <p className="font-bold mb-1">⚠ Warning: This action cannot be undone.</p>
                   <p className="text-xs leading-relaxed">
-                    Your account, profile, photos, matches, messages, likes, and all other data will be permanently deleted.
+                    Your account, profile, photos, matches, messages, likes, and all other data will be permanently deleted,
+                    except the few records Indian law requires us to keep for a limited time (Privacy Policy, section 6).
                     Anyone who matched with you will lose access to your conversations.
                     You will need to sign up again from scratch if you want to use Shaadi24 in the future.
                   </p>

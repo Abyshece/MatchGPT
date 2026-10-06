@@ -1,4 +1,5 @@
 import React, { Suspense, useEffect, useState } from 'react';
+import type { LegalPageName } from '../lib/legalInfo';
 import { lazyScreen } from '../lib/lazyScreen';
 
 // The sign-in popup loads when it opens, and quietly before that, once the
@@ -20,17 +21,16 @@ const PENDING_PROMPT_KEY = 'shaadigpt_pending_prompt';
 
 const EXAMPLE_PROMPTS = [
   'Find a match near me',
-  'Show me all online matches',
-  'Find coffee lovers',
-  'Hiking partners',
-  'Find an ambitious introvert',
+  'Marathi-speaking engineer in Pune',
+  'Never married, vegetarian, under 30',
+  'Family-oriented doctor in Delhi',
+  'Settled abroad, open to relocating',
   'Most compatible matches',
-  'Looking for friends',
 ];
 
 interface LandingViewProps {
   onSignupInitiated: (email: string) => void;
-  onShowLegal: (page: 'terms' | 'privacy') => void;
+  onShowLegal: (page: LegalPageName) => void;
 }
 
 const LandingView: React.FC<LandingViewProps> = ({ onSignupInitiated, onShowLegal }) => {
@@ -79,10 +79,10 @@ const LandingView: React.FC<LandingViewProps> = ({ onSignupInitiated, onShowLega
           <div className="text-center mb-10 animate-fade-in">
             <div className="text-6xl mb-4">✨</div>
             <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">
-              Find your meaningful match
+              Find your life partner
             </h1>
             <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
-              Search by personality, interests, or vibe.
+              Search by community, profession, family values or anything you're looking for.
             </p>
           </div>
 
@@ -139,20 +139,27 @@ const LandingView: React.FC<LandingViewProps> = ({ onSignupInitiated, onShowLega
           </div>
 
           {/* Trust line */}
-          <p className="text-[11px] text-gray-500 dark:text-gray-400 text-center mt-12">
-            Verified profiles · Built for serious relationships · Real people
+          {/* The declaration the Government's advisory for matrimonial websites asks for */}
+          <p className="text-[11px] text-gray-500 dark:text-gray-400 text-center mt-12" data-testid="matrimony-only">
+            For marriage only, not dating · For women of 18 and men of 21 or older · Report and block anyone
           </p>
         </div>
       </main>
 
       {/* Footer */}
       <footer className="border-t border-gray-100 dark:border-zinc-800 py-4 px-6">
-        <div className="max-w-2xl mx-auto flex items-center justify-center gap-5 text-xs text-gray-500 dark:text-gray-400">
+        <div className="max-w-2xl mx-auto flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-gray-500 dark:text-gray-400">
           <button onClick={() => onShowLegal('terms')} className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
             Terms
           </button>
           <button onClick={() => onShowLegal('privacy')} className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
             Privacy
+          </button>
+          <button onClick={() => onShowLegal('safety')} className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+            Safety
+          </button>
+          <button onClick={() => onShowLegal('grievances')} className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+            Grievances
           </button>
           <span>© 2026 Shaadi24</span>
         </div>

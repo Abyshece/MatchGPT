@@ -14,18 +14,31 @@ export type ReportReason =
   | 'spam'
   | 'fake_profile'
   | 'inappropriate_content'
+  | 'intimate_images'
   | 'harassment'
+  | 'dowry'
   | 'underage'
   | 'other';
 
 export const REPORT_REASONS: { value: ReportReason; label: string }[] = [
-  { value: 'spam', label: 'Spam or scam' },
-  { value: 'fake_profile', label: 'Fake or impersonation' },
+  { value: 'spam', label: 'Spam, scam or asking for money' },
+  { value: 'fake_profile', label: 'Fake profile, impersonation or lying (for example, already married)' },
   { value: 'inappropriate_content', label: 'Inappropriate photos or content' },
+  { value: 'intimate_images', label: 'Shares or threatens to share intimate or morphed photos' },
   { value: 'harassment', label: 'Harassment or threats' },
+  { value: 'dowry', label: 'Asks for or offers dowry' },
   { value: 'underage', label: 'Underage user' },
   { value: 'other', label: 'Other' },
 ];
+
+// How soon a report must be acted on, in hours (Admin → Reports): the IT Rules
+// 2021 give 2 hours for intimate images and impersonation (rule 3(2)(b)), 36
+// for other unlawful content (rule 3(2)(a)) and 7 days for the rest
+export const REPORT_DEADLINE_HOURS: Record<string, number> = {
+  intimate_images: 2, fake_profile: 2,
+  inappropriate_content: 36, harassment: 36, dowry: 36, underage: 36, spam: 36,
+  other: 168,
+};
 
 // ----------------------------------------------------------------------------
 // blockUser — insert into blocks. Also unmatches if currently matched.

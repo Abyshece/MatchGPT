@@ -51,7 +51,7 @@ try {
   const refused = page.getByTestId('app-preview-refused');
   check(await appears(refused) && /Sign in to the admin panel first/.test(await refused.innerText()), 'refused, signed out');
   check(await refused.getByRole('link', { name: 'Go to the admin panel' }).getAttribute('href') === '/admin', 'with the way to the admin panel');
-  check(await page.getByText('Find your meaningful match').count() === 0, "no members' app");
+  check(await page.getByText('Find your life partner').count() === 0, "no members' app");
 
   log('2. A member signed in on the website');
   await page.goto(`${BASE}/admin`);
@@ -76,7 +76,7 @@ try {
   check(await appears(frameEl), 'the phone frame');
   check(await frameEl.getAttribute('width') === '393' && await frameEl.getAttribute('height') === '852', 'an iPhone 16 screen (393 × 852)');
   const app = page.frameLocator('[data-testid=app-preview-frame]');
-  check(await appears(app.getByText('Find your meaningful match'), 20000), "the members' welcome screen in it");
+  check(await appears(app.getByText('Find your life partner'), 20000), "the members' welcome screen in it");
   await app.getByRole('button', { name: 'Sign in' }).first().click();
   check(await appears(app.getByTestId('preview-sign-in-note')), 'sign-in: the note about Google and Apple');
   check(await app.getByText('Continue with Google').count() === 0, 'no Google button in the preview');

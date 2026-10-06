@@ -74,8 +74,18 @@ export function helpTopics(platform: HelpPlatform): HelpTopic[] {
       q: 'How do I report or block someone?',
       a: <>On their profile or in your chat with them, tap <strong>⋯</strong>, then <strong>Report</strong> or
         <strong> Block user</strong>. Blocking ends the match and hides you from each other; Settings → Blocked
-        people undoes it. We review every report within 24 hours, remove content that breaks our Terms and
-        remove the people who post it.</>,
+        people undoes it. We review every report within 24 hours (intimate photos or someone pretending to be you
+        within 2 hours), remove content that breaks our Terms and remove the people who post it.</>,
+    },
+    {
+      q: 'How do I make a complaint?',
+      a: <>Our Grievance Officer handles complaints about anything on Shaadi24: a fake profile, abuse, a dowry
+        demand, your data or a payment. Use the form on the{' '}
+        {onWebsite
+          ? <a className={link} href="/grievances">Grievance Redressal page</a>
+          : <>Grievance Redressal page (Settings → <strong>Make a complaint</strong>)</>}
+        , member or not. You get a ticket number at once and an answer within the times Indian law sets: 2 hours
+        for intimate photos or impersonation, 36 hours for other unlawful content, 7 days for the rest.</>,
     },
     {
       q: 'How do I stay safe?',

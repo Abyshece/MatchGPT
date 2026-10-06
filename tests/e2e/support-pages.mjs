@@ -85,7 +85,7 @@ try {
   check(await contact.locator('a[href="mailto:privacy@shaadi24.com"]').count() === 1, 'the privacy address');
   check(/review every report within 24 hours/.test(await contact.innerText()), 'how reports are handled');
   const questions = page.locator('details');
-  check(await questions.count() === 15, `15 questions (${await questions.count()})`);
+  check(await questions.count() === 16, `16 questions (${await questions.count()})`);
   check(!(await page.getByText(/search 3 times a day/).isVisible()), 'answers start closed');
   await page.getByText('Is Shaadi24 free?').click();
   check(await appears(page.getByText(/search 3 times a day \(up to 9 with a complete profile\), send/)), 'a question opens to its answer');
@@ -113,12 +113,12 @@ try {
 
   log('== /privacy and /terms');
   ({ ctx, page } = await open('/privacy'));
-  check(await appears(page.getByRole('heading', { name: 'Privacy Policy' }), 15000) && await appears(page.getByText(/Document version: privacy-v/)),
+  check(await appears(page.getByRole('heading', { name: 'Privacy Policy' }), 15000) && await appears(page.getByText(/Version privacy-v/)),
     '/privacy opens the Privacy Policy');
   await page.getByRole('button', { name: 'Back' }).click();
   check(await appears(page.getByRole('button', { name: 'Sign in' }).first()) && path(page) === '/', `Back goes to the home page (${path(page)})`);
   await page.goto(`${BASE}/terms/`);
-  check(await appears(page.getByRole('heading', { name: 'Terms of Service' }), 15000) && await appears(page.getByText(/Document version: terms-v/)),
+  check(await appears(page.getByRole('heading', { name: 'Terms of Service' }), 15000) && await appears(page.getByText(/Version terms-v/)),
     '/terms opens the Terms (with or without a slash at the end)');
   await page.getByRole('button', { name: 'Back' }).click();
   check(await appears(page.getByRole('button', { name: 'Sign in' }).first()) && path(page) === '/', 'and back home');

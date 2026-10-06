@@ -314,15 +314,6 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             />
           </FilterRow>
 
-          {/* Dating intention — Pro */}
-          <FilterRow label="Looking for" locked={!isPro} onUpgrade={onUpgrade}>
-            <Select
-              value={filters.datingIntention}
-              onChange={(v) => update('datingIntention', v || undefined)}
-              options={anyOf(['Marriage', 'Long-term relationship', 'Long-term, open to short', 'Casual / Dating', 'Friendship'])}
-            />
-          </FilterRow>
-
           {/* Children — Pro */}
           <FilterRow label="Has children" locked={!isPro} onUpgrade={onUpgrade}>
             <Select
