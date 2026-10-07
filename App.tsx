@@ -35,14 +35,12 @@ const UnderAgeScreen = lazyScreen(() => import('./components/UnderAgeScreen'));
 // ============================================================================
 // App (Phase 6 Batch 3)
 //
-// Adds dark-mode persistence: theme is stored in profiles.settings_theme as
-// 'system' | 'light' | 'dark', applied on every load.
-//
-// Resolution order for the *effective* theme:
-//   1. If authed AND profile has settings_theme = 'dark' or 'light' → use it
-//   2. Else: OS preference via prefers-color-scheme media query
-//
-// The toggle in the sidebar cycles light → dark → system and persists.
+// Light or dark follows the device (the phone, or the computer for the
+// website) until a member picks Light or Dark in Settings → Appearance, kept in
+// profiles.settings_theme ('system', 'light' or 'dark'). Signed out, the app
+// always follows the device: a pick belongs to an account. While signed in,
+// the pick is also kept on the device, so the app opens in it before the
+// profile has loaded.
 // ============================================================================
 
 type LegalPage = LegalPageName | null;
@@ -57,13 +55,28 @@ function legalPageInUrl(): LegalPage {
   return (LEGAL_PAGES as readonly string[]).includes(page ?? '') ? page as LegalPageName : null;
 }
 
-// Compute the actual boolean "is dark mode active right now" from a theme mode.
-function resolveIsDark(mode: ThemeMode): boolean {
-  if (mode === 'dark') return true;
-  if (mode === 'light') return false;
-  // mode === 'system' → ask the OS
-  if (typeof window === 'undefined') return false;
-  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
+const THEME_KEY = 'shaadigpt_theme_mode';
+
+const deviceIsDark = () => window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
+
+// Whether the device is in dark mode now: it can change while the app is open
+// (Control Centre, or at sunset), and phones don't always tell an app in the
+// background, so it's checked again on coming back to the app too
+function useDeviceDark(): boolean {
+  const [dark, setDark] = useState(deviceIsDark);
+  useEffect(() => {
+    const mq = window.matchMedia?.('(prefers-color-scheme: dark)');
+    const update = () => setDark(deviceIsDark());
+    mq?.addEventListener('change', update);
+    document.addEventListener('visibilitychange', update);
+    window.addEventListener('focus', update);
+    return () => {
+      mq?.removeEventListener('change', update);
+      document.removeEventListener('visibilitychange', update);
+      window.removeEventListener('focus', update);
+    };
+  }, []);
+  return dark;
 }
 
 const AppRouter: React.FC<{
@@ -131,27 +144,25 @@ const AppRouter: React.FC<{
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ---- Theme state ----
-  // Initialise from localStorage as a fast path (so the screen doesn't flash light
-  // briefly on a hard refresh), then sync from profile once it loads.
+  // ---- Theme ----
+  // Opens in the pick kept on this device (only while signed in), then
+  // follows the account once its profile has loaded, or the device once it's
+  // clear nobody is signed in
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
-    if (typeof window === 'undefined') return 'system';
-    const cached = (localStorage.getItem('shaadigpt_theme_mode') as ThemeMode | null);
-    return cached === 'light' || cached === 'dark' || cached === 'system' ? cached : 'system';
+    const cached = localStorage.getItem(THEME_KEY);
+    return cached === 'light' || cached === 'dark' ? cached : 'system';
   });
+  const deviceDark = useDeviceDark();
 
-  // When profile loads, sync its theme into state (overriding the cached value)
   useEffect(() => {
-    // We access settings_theme via the raw row because the typed UserSettings
-    // includes it (see profileMapping.ts patch).
-    const rowTheme = (profileRow as { settings_theme?: string } | null)?.settings_theme;
-    if (rowTheme === 'light' || rowTheme === 'dark' || rowTheme === 'system') {
-      setThemeMode(rowTheme);
-      localStorage.setItem('shaadigpt_theme_mode', rowTheme);
-    }
-  }, [profileRow]);
+    if (loading) return;
+    const saved = session ? profileRow?.settings_theme : 'system';
+    if (saved !== 'light' && saved !== 'dark' && saved !== 'system') return;  // the profile is still loading
+    setThemeMode(saved);
+    localStorage.setItem(THEME_KEY, saved);
+  }, [loading, session, profileRow]);
 
-  const isDarkMode = resolveIsDark(themeMode);
+  const isDarkMode = themeMode === 'dark' || (themeMode === 'system' && deviceDark);
 
   // Apply the dark class to <html> whenever isDarkMode flips (and, in the
   // Android app, colour the status and gesture bars to match)
@@ -160,22 +171,10 @@ const AppRouter: React.FC<{
     setNativeTheme(isDarkMode);
   }, [isDarkMode]);
 
-  // Listen for OS preference changes (only matters when mode is 'system')
-  useEffect(() => {
-    if (themeMode !== 'system') return;
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const handler = () => {
-      // Force a re-render by toggling — resolveIsDark will re-read the media query
-      setThemeMode('system');
-    };
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, [themeMode]);
-
-  // ---- Theme toggle / setter that persists to DB ----
+  // A pick in Settings → Appearance: shown at once, kept on the account
   const setTheme = async (newMode: ThemeMode) => {
     setThemeMode(newMode);
-    localStorage.setItem('shaadigpt_theme_mode', newMode);
+    localStorage.setItem(THEME_KEY, newMode);
     if (session?.user.id) {
       await supabase
         .from('profiles')
@@ -185,11 +184,8 @@ const AppRouter: React.FC<{
     }
   };
 
-  // ---- Legacy "toggle" handler — cycles light → dark → system ----
-  const handleToggleDarkMode = () => {
-    const next: ThemeMode = themeMode === 'light' ? 'dark' : themeMode === 'dark' ? 'system' : 'light';
-    setTheme(next);
-  };
+  // Switches to whichever of light and dark isn't showing
+  const handleToggleDarkMode = () => setTheme(isDarkMode ? 'light' : 'dark');
 
   // The screen shown, for error reports (Dashboard names its tabs itself)
   const screen = legalPage
