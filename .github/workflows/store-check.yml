@@ -1,0 +1,33 @@
+# Shaadi24+ in App Store Connect: whether the subscriptions the iPhone app
+# sells (shaadi24_plus_monthly and shaadi24_plus_yearly) are there and ready
+# for the app to show, with their state, India price, names and review
+# screenshot (scripts/store-check.mjs). Until they are, the app says
+# Shaadi24+ is "Coming soon". Run it by hand after changing them (Actions →
+# App Store check → Run workflow); the result is in the run's summary.
+# Uses the TestFlight upload's API key (APP_STORE_CONNECT_* secrets).
+name: App Store check
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/store-check.mjs'
+      - '.github/workflows/store-check.yml'
+
+jobs:
+  check:
+    name: Shaadi24+ subscriptions in App Store Connect
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Read the subscriptions from App Store Connect
+        run: node scripts/store-check.mjs
+        env:
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_KEY: ${{ secrets.APP_STORE_CONNECT_KEY }}
+          BUNDLE_ID: com.shaadi24.app
