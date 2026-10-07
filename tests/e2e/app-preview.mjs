@@ -76,7 +76,7 @@ try {
   check(await appears(frameEl), 'the phone frame');
   check(await frameEl.getAttribute('width') === '393' && await frameEl.getAttribute('height') === '852', 'an iPhone 16 screen (393 × 852)');
   const app = page.frameLocator('[data-testid=app-preview-frame]');
-  check(await appears(app.getByText('Find your life partner'), 20000), "the members' welcome screen in it");
+  check(await appears(app.getByTestId('welcome'), 20000), "the members' welcome screen in it");
   await app.getByRole('button', { name: 'Sign in' }).first().click();
   check(await appears(app.getByTestId('preview-sign-in-note')), 'sign-in: the note about Google and Apple');
   check(await app.getByText('Continue with Google').count() === 0, 'no Google button in the preview');

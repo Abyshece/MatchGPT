@@ -101,13 +101,11 @@ try {
       && document.querySelector('meta[name="viewport"]').content.includes('viewport-fit=cover')), 'knows it\'s an iPhone; page runs edge to edge');
     check(await page.evaluate(() => /maximum-scale=1\.0, user-scalable=no/.test(document.querySelector('meta[name="viewport"]').content)),
       'the app doesn\'t zoom (an iPhone would zoom in on a tapped text box)');
-    clear(await rect(page, 'header'), 'the start screen\'s top bar');
+    clear(await rect(page, '[data-testid="welcome"] h1'), 'the welcome screen\'s name');
+    clear(await rect(page, 'footer'), 'its buttons and links at the bottom');
+    check(await page.evaluate(() => document.scrollingElement.scrollHeight <= innerHeight + 1), 'the welcome screen fits without scrolling');
     await page.screenshot({ path: `${OUT}1-start.png` });
-    await page.evaluate(() => scrollTo(0, document.scrollingElement.scrollHeight));
-    await page.waitForTimeout(300);
-    clear(await rect(page, 'footer'), 'its footer, scrolled to the end');
-    await page.evaluate(() => scrollTo(0, 0));
-    await page.getByRole('button', { name: 'Sign in' }).click();
+    await page.getByRole('button', { name: 'Sign in or create account' }).click();
     await page.getByRole('button', { name: /Continue with Email/ }).waitFor();
     await page.waitForTimeout(400);
     check(await page.getByText('Continue with Google').count() === 0, 'email-only sign-in while Apple and Google are off in Supabase');

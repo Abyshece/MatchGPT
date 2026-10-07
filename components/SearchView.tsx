@@ -105,9 +105,8 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
   // due to useCallback deps, but the ref always points to the current one).
   const autoRunSearchRef = useRef<((p: string) => void) | null>(null);
 
-  // On mount: if the user landed here via the landing-page flow OR clicked a
-  // saved search in History, they have a prompt (and optionally filters)
-  // stashed in sessionStorage. Read, pre-fill, and auto-run.
+  // On mount: if the user clicked a saved search in History, its prompt (and
+  // optionally filters) is stashed in sessionStorage. Read, pre-fill, and auto-run.
   useEffect(() => {
     if (pendingPromptConsumed.current) return;
     const pending = sessionStorage.getItem('shaadigpt_pending_prompt');

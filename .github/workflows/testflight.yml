@@ -193,4 +193,16 @@ jobs:
             else
               echo "Checked that the app archives; nothing uploaded (a pull request, or the secrets aren't set)."
             fi
+            # What the optional secrets put in this build
+            echo
+            if [ -n "$VITE_GOOGLE_IOS_CLIENT_ID" ]; then
+              echo "- Continue with Google: in this build"
+            else
+              echo "- Continue with Google: not in this build (the VITE_GOOGLE_IOS_CLIENT_ID secret isn't set)"
+            fi
+            if [ -n "$FIREBASE_IOS_CONFIG" ]; then
+              echo "- Notifications: in this build"
+            else
+              echo "- Notifications: not in this build (the FIREBASE_IOS_CONFIG secret isn't set)"
+            fi
           } >> "$GITHUB_STEP_SUMMARY"

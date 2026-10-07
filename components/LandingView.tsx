@@ -1,32 +1,25 @@
 import React, { Suspense, useEffect, useState } from 'react';
 import type { LegalPageName } from '../lib/legalInfo';
 import { lazyScreen } from '../lib/lazyScreen';
+import { isNativeApp } from '../lib/nativeApp';
+import NativeSignInButtons from './NativeSignInButtons';
 
 // The sign-in popup loads when it opens, and quietly before that, once the
-// page has drawn, so it's there when someone taps Sign in
+// page has drawn, so it's there when someone taps to sign in
 const loadAuth = () => import('./Auth');
 const Auth = lazyScreen(loadAuth);
 
 // ============================================================================
 // LandingView
 //
-// Public-facing landing page shown to logged-out users. The prompt input is
-// the focal hero element. When the user types something and clicks Search,
-// we save their prompt to sessionStorage and pop the Auth modal. After they
-// sign up / sign in, the SearchView auto-loads with their prompt pre-filled
-// and runs the search immediately.
+// The app's welcome screen, for someone signed out: Shaadi24 and what it does
+// in the middle, the ways in at the bottom. In the phone apps those are Apple
+// (iPhones) and Google, through the phone's own sign-in sheets, then email,
+// which opens the sign-in popup (Auth) to sign in or create an account. The
+// website shows this screen only in the app preview and local development
+// (lib/website.ts). There's no looking around first: members' profiles are
+// for members.
 // ============================================================================
-
-const PENDING_PROMPT_KEY = 'shaadigpt_pending_prompt';
-
-const EXAMPLE_PROMPTS = [
-  'Find a match near me',
-  'Marathi-speaking engineer in Pune',
-  'Never married, vegetarian, under 30',
-  'Family-oriented doctor in Delhi',
-  'Settled abroad, open to relocating',
-  'Most compatible matches',
-];
 
 interface LandingViewProps {
   onSignupInitiated: (email: string) => void;
@@ -34,153 +27,75 @@ interface LandingViewProps {
 }
 
 const LandingView: React.FC<LandingViewProps> = ({ onSignupInitiated, onShowLegal }) => {
-  const [prompt, setPrompt] = useState('');
   const [showAuth, setShowAuth] = useState(false);
+  // Apple's or Google's sign-in not working, in words for the person
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => { loadAuth().catch(() => { /* loaded again when opened */ }); }, 800);
     return () => clearTimeout(t);
   }, []);
 
-  const handleSearchAttempt = () => {
-    // Save the prompt so SearchView can pick it up post-auth
-    if (prompt.trim()) {
-      sessionStorage.setItem(PENDING_PROMPT_KEY, prompt.trim());
-    }
-    setShowAuth(true);
-  };
-
-  const handleExampleClick = (ex: string) => {
-    setPrompt(ex);
-    // Don't auto-trigger auth — let the user click Search themselves
-  };
+  const legalLink = (page: LegalPageName, label: string) => (
+    <button onClick={() => onShowLegal(page)} className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+      {label}
+    </button>
+  );
 
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-[#191919]">
-      {/* Top bar — minimal */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-zinc-800">
-        <div className="flex items-center gap-2.5 select-none">
-          <span className="text-2xl">💍</span>
-          <span className="text-lg font-bold text-gray-900 dark:text-gray-100 tracking-tight">Shaadi24</span>
+    <div className="min-h-screen flex flex-col bg-white dark:bg-[#191919]" data-testid="welcome">
+      <main className="flex-1 flex flex-col">
+        {/* The name sits at the same height whichever buttons the phone offers
+            (they appear once Supabase has said which are on) */}
+        <div className="flex-1 flex flex-col items-center px-8 pt-[18vh] pb-10 text-center select-none animate-fade-in">
+          <div className="text-5xl mb-4" aria-hidden="true">💍</div>
+          <h1 className="text-[40px] leading-none font-bold tracking-tight text-gray-900 dark:text-white">Shaadi24</h1>
+          <p className="mt-4 max-w-[19rem] text-[17px] leading-snug text-gray-500 dark:text-gray-400 text-balance">
+            Find your life partner by personality, not just biodata.
+          </p>
         </div>
-        <button
-          onClick={() => setShowAuth(true)}
-          className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
-        >
-          Sign in
-        </button>
-      </header>
 
-      {/* Hero — mirrors the signed-in SearchView dashboard exactly so guests
-          see the experience they'll get after signing up. */}
-      <main className="flex-1 flex flex-col items-center justify-center px-6 py-12">
-        <div className="w-full max-w-3xl">
-          {/* Sparkle + headline */}
-          <div className="text-center mb-10 animate-fade-in">
-            <div className="text-6xl mb-4">✨</div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">
-              Find your life partner
-            </h1>
-            <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
-              Search by community, profession, family values or anything you're looking for.
+        <div className="w-full max-w-md mx-auto px-5">
+          {error && (
+            <p role="alert" className="mb-3 px-4 py-2.5 rounded-2xl bg-red-50 dark:bg-red-900/20 text-[13px] leading-snug font-medium text-center text-red-700 dark:text-red-300">
+              {error}
             </p>
-          </div>
-
-          {/* Pill-shaped prompt input — matches SearchView */}
-          <div className="w-full relative flex items-center gap-2 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-[32px] p-1.5 mb-3 shadow-[0_2px_12px_rgba(0,0,0,0.08)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.4)] focus-within:shadow-[0_4px_16px_rgba(0,0,0,0.12)] transition-shadow">
-            <div className="ml-1 w-9 h-9 flex-none flex items-center justify-center text-gray-500 dark:text-gray-400">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-              </svg>
-            </div>
-            <textarea
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSearchAttempt();
-                }
-              }}
-              placeholder="Describe your ideal match…"
-              rows={1}
-              style={{ minHeight: '44px' }}
-              className="w-full max-h-40 bg-transparent border-0 focus:ring-0 resize-none py-3 px-2 text-gray-700 dark:text-gray-200 placeholder:text-gray-400 dark:placeholder:text-gray-500 placeholder:text-sm focus:outline-none leading-relaxed text-sm overflow-hidden"
-            />
+          )}
+          <div className="flex flex-col gap-3">
+            {isNativeApp() && <NativeSignInButtons onSignedIn={() => { /* the session shows the app */ }} onError={setError} />}
             <button
-              onClick={handleSearchAttempt}
-              className="mr-1 w-9 h-9 flex-none flex items-center justify-center rounded-full bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 shadow-sm transition-colors"
-              aria-label="Search"
-              title="Search"
+              onClick={() => { setError(null); setShowAuth(true); }}
+              className="flex items-center justify-center w-full h-[52px] px-5 rounded-full border border-gray-300 dark:border-zinc-600 text-base font-semibold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 active:bg-gray-100 dark:active:bg-zinc-800 transition-colors"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="22" y1="2" x2="11" y2="13" />
-                <polygon points="22 2 15 22 11 13 2 9 22 2" />
-              </svg>
+              Sign in or create account
             </button>
           </div>
-
-          {/* Trending Near You — matches SearchView */}
-          <div className="mt-8 animate-fade-in">
-            <p className="text-center text-[11px] uppercase font-bold text-gray-500 dark:text-gray-400 tracking-widest mb-4">
-              Trending near you
-            </p>
-            <div className="flex flex-wrap justify-center gap-3">
-              {EXAMPLE_PROMPTS.map((ex) => (
-                <button
-                  key={ex}
-                  onClick={() => handleExampleClick(ex)}
-                  className="px-5 py-2 rounded-full bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-sm font-medium text-gray-600 dark:text-gray-300 hover:border-gray-400 dark:hover:border-zinc-500 hover:text-gray-900 dark:hover:text-white hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
-                >
-                  {ex}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Trust line */}
           {/* The declaration the Government's advisory for matrimonial websites asks for */}
-          <p className="text-[11px] text-gray-500 dark:text-gray-400 text-center mt-12" data-testid="matrimony-only">
-            For marriage only, not dating · For women of 18 and men of 21 or older · Report and block anyone
+          <p className="mt-5 text-[11px] leading-relaxed text-center text-gray-500 dark:text-gray-400" data-testid="matrimony-only">
+            Shaadi24 is for marriage only: no dating, no obscene material. Women 18+, men 21+.
           </p>
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-100 dark:border-zinc-800 py-4 px-6">
-        <div className="max-w-2xl mx-auto flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-gray-500 dark:text-gray-400">
-          <button onClick={() => onShowLegal('terms')} className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-            Terms
-          </button>
-          <button onClick={() => onShowLegal('privacy')} className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-            Privacy
-          </button>
-          <button onClick={() => onShowLegal('safety')} className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-            Safety
-          </button>
-          <button onClick={() => onShowLegal('grievances')} className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-            Grievances
-          </button>
-          <span>© 2026 Shaadi24</span>
-        </div>
+      <footer className="w-full max-w-md mx-auto px-5 pt-2 pb-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-gray-500 dark:text-gray-400">
+        {legalLink('terms', 'Terms')}
+        {legalLink('privacy', 'Privacy')}
+        {legalLink('safety', 'Safety')}
+        {legalLink('grievances', 'Grievances')}
       </footer>
 
-      {/* Auth modal — given onClose, Auth draws its own popup and backdrop.
-          When signup is initiated, the email flows up to App which unmounts
-          LandingView and renders EmailVerification. We don't handle that here. */}
+      {/* Given onClose, Auth draws its own popup and backdrop. A sign-up that
+          needs the emailed code goes up to App, which shows EmailVerification;
+          a sign-in's session replaces this screen with the app. */}
       {showAuth && (
         <Suspense fallback={null}>
           <Auth
             onClose={() => setShowAuth(false)}
             onSignupInitiated={(email) => {
-              setShowAuth(false);          // Close our modal; App will show EmailVerification
+              setShowAuth(false);
               onSignupInitiated(email);
             }}
-            onSignInSuccess={() => {
-              // Auth context picks up the session, App.tsx unmounts LandingView,
-              // and SearchView reads the pending prompt from sessionStorage on mount
-              setShowAuth(false);
-            }}
+            onSignInSuccess={() => setShowAuth(false)}
             onShowLegal={onShowLegal}
           />
         </Suspense>

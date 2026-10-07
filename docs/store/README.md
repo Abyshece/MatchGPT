@@ -430,12 +430,12 @@ content; alcohol, tobacco or drug references: infrequent/mild; user-generated co
 Shaadi24 is a matrimony app for adults (18+) in India and Indians abroad: members describe the partner they're looking for in their own words, see compatible profiles, like, match and chat.
 
 DEMO ACCOUNT (verified, with a match and a chat)
-On the first screen tap "Sign in", then "Continue with Email", and use the email and password above.
+On the first screen tap "Sign in or create account", then "Continue with Email", and use the email and password above.
 
 IN-APP PURCHASES
 Shaadi24+ is an auto-renewable subscription (group "Shaadi24+": shaadi24_plus_monthly and shaadi24_plus_yearly). Open it from the menu ("Get Shaadi24+") or Settings → Shaadi24+, which also has Restore purchases and Manage subscription. Our server checks every purchase with the App Store. The app offers no other way to pay.
 
-SIGN IN WITH APPLE is on the sign-in screen, above Google.
+SIGN IN WITH APPLE is on the first screen, above Google.
 
 ACCOUNT DELETION: Settings → Delete Account deletes the account and its data at once (and ends Sign in with Apple for the app). If an App Store subscription is still renewing, the app says so first and opens Subscriptions.
 
