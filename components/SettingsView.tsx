@@ -18,6 +18,13 @@ import {
 } from '../constants';
 import type { UserSettings } from '../types';
 
+// Settings → Appearance: Automatic (the phone's mode) first, the default
+const THEME_CHOICES = [
+  { mode: 'system', label: 'Automatic', icon: '📱' },
+  { mode: 'light', label: 'Light', icon: '☀️' },
+  { mode: 'dark', label: 'Dark', icon: '🌙' },
+] as const;
+
 interface SettingsViewProps {
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
@@ -236,30 +243,31 @@ const SettingsView: React.FC<SettingsViewProps> = ({
                 {isDarkMode ? <IconMoon /> : <IconSun />} Theme
               </h4>
               <div className="grid grid-cols-3 gap-2">
-                {(['light', 'dark', 'system'] as const).map((mode) => {
+                {THEME_CHOICES.map(({ mode, label, icon }) => {
                   const isSelected = themeMode === mode;
                   return (
                     <button
                       key={mode}
+                      aria-pressed={isSelected}
                       onClick={() => onSetTheme?.(mode) ?? onToggleDarkMode()}
-                      className={`py-2.5 px-2 rounded-lg border text-xs font-medium capitalize transition-colors ${
+                      className={`py-2.5 px-2 rounded-lg border text-xs font-medium transition-colors ${
                         isSelected
                           ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700'
                           : 'bg-white dark:bg-zinc-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600'
                       }`}
                     >
                       <div className="flex flex-col items-center gap-1">
-                        <span className="text-lg">
-                          {mode === 'light' ? '☀️' : mode === 'dark' ? '🌙' : '💻'}
-                        </span>
-                        <span>{mode}</span>
+                        <span className="text-lg" aria-hidden="true">{icon}</span>
+                        <span>{label}</span>
                       </div>
                     </button>
                   );
                 })}
               </div>
               <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-2 px-1">
-                {themeMode === 'system' ? 'Follows your device setting.' : `Always ${themeMode}, on every device.`}
+                {themeMode === 'system'
+                  ? "Follows your phone's light or dark mode."
+                  : `Always ${themeMode}, whatever your phone uses. Choose Automatic to follow it again.`}
               </p>
             </div>
           </InfoSection>

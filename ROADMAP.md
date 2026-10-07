@@ -581,6 +581,18 @@ no way to change it, and the member could still change it through the API.
   Migration `20261007213718_admin_correct_date_of_birth` is applied live. It adds
   `admin_find_users()` beside `admin_search_users()` instead of replacing it, so nothing is dropped.
 
+Part 14 done 2026-10-07: **light or dark follows the phone.** On a phone in light mode the app could
+open dark, and switch only after a tap.
+
+- [x] Signed out (the welcome and sign-in screens), the app always follows the phone. Before, it kept
+  whatever the last account had picked, on the phone.
+- [x] When the phone switches between light and dark, the app switches at once. Before, it waited for
+  the next tap.
+- [x] Signed in, it follows the phone until the member picks Light or Dark in Settings → Appearance,
+  where **Automatic** (the phone's mode) now comes first. A pick is kept on the account.
+- [x] Checked: a new browser test (`tests/e2e/theme.mjs`, 21 checks; the old code fails its first
+  ones), the Android, iPhone, Settings and accessibility tests.
+
 **Still to do**
 
 - [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.

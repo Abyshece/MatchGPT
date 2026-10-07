@@ -178,11 +178,11 @@ try {
   await page.waitForTimeout(400);
   await back(page);
   check(await popups(page) === 0, 'back closes "Delete Account"');
-  await page.getByRole('button', { name: /🌙\s*dark/i }).click();
+  await page.getByRole('button', { name: 'Dark', exact: true }).click();
   await page.waitForTimeout(600);
   check((await calls(page, 'AppWindow', 'setTheme')).at(-1)?.options?.dark === true, 'choosing Dark turns the bars dark');
   await page.screenshot({ path: `${OUT}4-settings-dark.png` });
-  await page.getByRole('button', { name: /💻\s*system/i }).click();
+  await page.getByRole('button', { name: 'Automatic', exact: true }).click();
   await back(page);
   check(await box.isVisible() && await minimized(page) === 0, 'back from Settings goes to Find Match');
 
