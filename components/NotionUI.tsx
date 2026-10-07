@@ -111,6 +111,7 @@ interface PropertyRowProps {
   onToggleVisibility?: () => void;
   editor?: React.ReactNode;       // replaces the built-in input while editing
   displayValue?: string;          // shown instead of value when not editing
+  editorNote?: React.ReactNode;   // under the input while editing (a hint, a draft button)
 }
 
 export const PropertyRow: React.FC<PropertyRowProps> = React.memo(({ 
@@ -128,8 +129,11 @@ export const PropertyRow: React.FC<PropertyRowProps> = React.memo(({
   onToggleVisibility,
   editor,
   displayValue,
+  editorNote,
 }) => {
   const isEmpty = value === null || value === undefined || value === '';
+  // A long answer being written gets the whole width on a phone, under its label
+  const stacked = isEditing && inputType === 'textarea';
 
   return (
     // The label takes 2/5 of a phone's width (a fixed column on wider screens);
@@ -137,9 +141,9 @@ export const PropertyRow: React.FC<PropertyRowProps> = React.memo(({
     // on touch screens, which have no hover
     <div
       data-label={label}
-      className={`flex gap-3 py-2 items-start border-b border-gray-50 dark:border-zinc-800/50 last:border-0 hover:bg-gray-50 dark:hover:bg-zinc-800/50 px-2 rounded-sm transition-colors group min-h-[40px] ${isHidden ? 'opacity-60 bg-gray-50/50 dark:bg-zinc-800/30' : ''}`}
+      className={`flex gap-3 py-2 ${stacked ? 'flex-col sm:flex-row items-stretch sm:items-start' : 'items-start'} border-b border-gray-50 dark:border-zinc-800/50 last:border-0 hover:bg-gray-50 dark:hover:bg-zinc-800/50 px-2 rounded-sm transition-colors group min-h-[40px] ${isHidden ? 'opacity-60 bg-gray-50/50 dark:bg-zinc-800/30' : ''}`}
     >
-      <div className={`w-2/5 sm:w-48 flex-none min-w-0 text-gray-500 dark:text-gray-400 text-sm flex items-center gap-2 pt-1.5`}>
+      <div className={`${stacked ? 'w-full' : 'w-2/5'} sm:w-48 flex-none min-w-0 text-gray-500 dark:text-gray-400 text-sm flex items-center gap-2 pt-1.5`}>
         {icon && <span className="text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors w-4 h-4">{icon}</span>}
         <span className="min-w-0 break-words">
           {isEmpty && !isEditing ? (
@@ -158,20 +162,21 @@ export const PropertyRow: React.FC<PropertyRowProps> = React.memo(({
       <div className="flex-1 text-gray-800 dark:text-gray-200 text-sm font-medium flex items-start justify-between gap-2 min-w-0">
         {isEditing ? (
           <div className="flex items-start gap-2 w-full min-w-0">
+            <div className="flex-1 min-w-0 flex flex-col gap-1.5">
             {editor ? (
-                <div className="flex-1 min-w-0">{editor}</div>
+                <div className="min-w-0">{editor}</div>
             ) : inputType === 'textarea' ? (
                 <textarea
                   value={editValue}
                   onChange={(e) => onEditChange && onEditChange(e.target.value)}
-                  className="flex-1 min-w-0 bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white outline-none text-gray-900 dark:text-gray-100 min-h-[80px]"
+                  className="w-full min-w-0 bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white outline-none text-gray-900 dark:text-gray-100 min-h-[80px]"
                   autoFocus
                 />
             ) : inputType === 'select' ? (
                 <select
                   value={editValue}
                   onChange={(e) => onEditChange && onEditChange(e.target.value)}
-                  className="flex-1 min-w-0 bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white outline-none text-gray-900 dark:text-gray-100"
+                  className="w-full min-w-0 bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white outline-none text-gray-900 dark:text-gray-100"
                   autoFocus
                 >
                     <option value="" disabled>Select option</option>
@@ -184,10 +189,12 @@ export const PropertyRow: React.FC<PropertyRowProps> = React.memo(({
                   type={inputType}
                   value={editValue}
                   onChange={(e) => onEditChange && onEditChange(e.target.value)}
-                  className="flex-1 min-w-0 bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white outline-none text-gray-900 dark:text-gray-100"
+                  className="w-full min-w-0 bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white outline-none text-gray-900 dark:text-gray-100"
                   autoFocus
               />
             )}
+            {editorNote}
+            </div>
             <div className="flex-none flex items-center gap-1 pt-1">
               <button onClick={onSave} aria-label="Save" title="Save" className="p-1 hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 dark:text-green-400 rounded">
                   <IconCheck />

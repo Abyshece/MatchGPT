@@ -45,14 +45,18 @@ in the apps, through Google Play and the App Store.
   | `delete-account` | Deletes an account and everything kept about it, stopping its Google Play renewal first; keeps only the registration record Indian law asks for, for a year |
   | `apple-sign-in` | Keeps the Sign in with Apple token, so deleting the account also ends it at Apple |
 
-- **The profile.** Every member gives 15 answers before using the app: who the profile is for, name,
-  date of birth, gender, who they're interested in, marital status, height, where they live, religion, mother tongue, highest qualification, occupation and at least 30
-  characters about themselves (`lib/profileRewards.ts`; members who joined earlier are asked for what's
-  missing, `components/RequiredDetails.tsx`). The other answers come in six sections (religion and
-  community, education and career, family, lifestyle, appearance, plans and personality). Each section a
-  member completes, with about 7 in 10 of its answers given, adds one free AI search a day, so free
-  accounts get 3 to 9. The database counts them (`profile_sections()`, `profiles.search_bonus`) and the
-  server's daily limit uses the count (`consume_search()`); My Profile shows where each section stands.
+- **The profile.** Sign-up takes about two minutes and asks only what families judge a match on
+  first: who the profile is for, name, date of birth, gender, who they're interested in, marital
+  status, height, where they live, religion, mother tongue, highest qualification, occupation and one
+  photo (`components/onboarding/`; the required answers are in `lib/profileRewards.ts`, and members who
+  joined earlier are asked for what's missing, `components/RequiredDetails.tsx`). Everything else is
+  optional, in six sections of My Profile (about you, religion and community, education and career,
+  family, lifestyle, plans and values). Questions from the dating app Shaadi24 started from that don't
+  fit India were dropped: the research is in [docs/research/profile-questions.md](docs/research/profile-questions.md).
+  Each section a member completes, with about 7 in 10 of its answers given, adds one free AI search a
+  day, so free accounts get 3 to 9; a pop-up after sign-up says so, with about how long each section
+  takes. The database counts them (`profile_sections()`, `profiles.search_bonus`) and the server's
+  daily limit uses the count (`consume_search()`); My Profile shows where each section stands.
 - **Shaadi24+.** Sold only in the apps, through Google Play and the App Store; the website says where
   to get the apps. One switch, "Shaadi24+ for everyone" in Admin → Dashboard, gives every member its
   features while it's on; only the daily limits (3 to 9 AI searches, 15 likes) stay for free accounts. The

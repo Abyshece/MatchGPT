@@ -810,6 +810,7 @@ export type Database = {
           privacy_accepted_at: string | null
           privacy_version: string | null
           profile_created_for: string | null
+          profile_nudged_at: string | null
           pronouns: string | null
           race: string | null
           rashi: string | null
@@ -979,6 +980,7 @@ export type Database = {
           privacy_accepted_at?: string | null
           privacy_version?: string | null
           profile_created_for?: string | null
+          profile_nudged_at?: string | null
           pronouns?: string | null
           race?: string | null
           rashi?: string | null
@@ -1148,6 +1150,7 @@ export type Database = {
           privacy_accepted_at?: string | null
           privacy_version?: string | null
           profile_created_for?: string | null
+          profile_nudged_at?: string | null
           pronouns?: string | null
           race?: string | null
           rashi?: string | null

@@ -57,7 +57,6 @@ function countActiveFilters(f: FilterOptions): number {
   if (f.children) n++;
   if (f.drinking) n++;
   if (f.smoking) n++;
-  if (f.politics) n++;
   if (f.motherTongue) n++;
   if (f.caste) n++;
   if (f.maritalStatus) n++;
@@ -66,7 +65,6 @@ function countActiveFilters(f: FilterOptions): number {
   if (f.country) n++;
   if (f.state) n++;
   if (f.heightRange) n++;
-  if (f.ethnicity) n++;
   if (f.isVerified) n++;
   if (f.isPremium) n++;
   if (f.hasInstagram) n++;

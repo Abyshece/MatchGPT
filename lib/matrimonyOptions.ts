@@ -66,6 +66,8 @@ export const MOTHER_TONGUES: OptionGroup[] = [
 ];
 
 export const PREFER_NOT_TO_SAY = 'Prefer not to say';
+// For the answers many members need to ask at home about (gotra, horoscope)
+export const DONT_KNOW = "Don't know";
 
 // Who someone is and is looking for: the words the matching expects
 export const GENDERS = ['Female', 'Male', 'Non-binary', 'Prefer to self-describe'];
@@ -413,7 +415,9 @@ export const SECTS: Record<string, string[]> = {
   ],
 };
 export const GOTRA_RELIGIONS = ['Hindu', 'Jain', 'Sikh'];
+export const GOTRA_HINT = "Usually the gotra of your father's family. Not sure? Ask a parent, or choose “Don't know”.";
 export const GOTRAS = [
+  DONT_KNOW,
   'Aatharvas', 'Agasthi', 'Ahabhunasa', 'Alampayana', 'Angiras', 'Arrishinimi', 'Athreyasa', 'Atri',
   'Attarishi', 'Aukshanas', 'Aushanas', 'Babrahvya', 'Badarayana', 'Baijvayas', 'Bashan', 'Bharadwaj',
   'Bhargava', 'Bhasyan', 'Bhrigu', 'Birthare', 'Bodhaaynas', 'Chandratri', 'Chikithasa', 'Chyavanasa',
@@ -442,7 +446,9 @@ export const OPEN_TO_OTHER_COMMUNITIES = ['Yes, caste no bar', 'Prefer my own co
 
 // ---- horoscope -------------------------------------------------------------
 
-export const MANGLIK = ['Manglik', 'Non Manglik', 'Angshik (partial Manglik)', "Don't know"];
+export const MANGLIK = ['Manglik', 'Non Manglik', 'Angshik (partial Manglik)', DONT_KNOW];
+// Rashi, nakshatra and manglik come from the kundli, which many members haven't seen
+export const HOROSCOPE_HINT = "It's in your kundli (birth chart). Not sure? Ask a parent, or choose “Don't know”.";
 export const RASHI = [
   'Mesh (Aries)', 'Vrishabh (Taurus)', 'Mithun (Gemini)', 'Kark (Cancer)', 'Simha (Leo)', 'Kanya (Virgo)',
   'Tula (Libra)', 'Vrishchik (Scorpio)', 'Dhanu (Sagittarius)', 'Makar (Capricorn)', 'Kumbh (Aquarius)',
@@ -872,6 +878,8 @@ export const SETTLING_ABROAD = [
 
 export const FAMILY_TYPE = ['Joint family', 'Nuclear family', 'Other'];
 export const FAMILY_STATUS = ['Middle class', 'Upper middle class', 'Rich / Affluent'];
+export const FAMILY_STATUS_HINT = 'Middle class: a steady income and a careful budget. Upper middle class: comfortable, with savings. '
+  + 'Rich / Affluent: wealthy, with property or a large business.';
 export const FAMILY_VALUES = ['Orthodox', 'Conservative', 'Moderate', 'Liberal'];
 export const FATHER_OCCUPATION = [
   'Businessman / Entrepreneur', 'Private Employee', 'Govt. / PSU Employee', 'Armed Forces Employee',
@@ -885,6 +893,9 @@ export const SIBLING_COUNTS = ['0', '1', '2', '3', '3+'];
 export const LIVING_WITH_FAMILY = ['Yes', 'No', 'Not applicable'];
 
 // ---- lifestyle and interests ----------------------------------------------------
+
+// The words India's matrimony sites use; never a search filter
+export const BODY_TYPES = ['Slim', 'Average', 'Athletic', 'Heavy', PREFER_NOT_TO_SAY];
 
 export const DIETS = ['Vegetarian', 'Non-vegetarian', 'Eggetarian', 'Vegan', 'Jain', 'Halal', 'Kosher', 'Gluten-free',
   'Pescatarian', 'No restrictions'];

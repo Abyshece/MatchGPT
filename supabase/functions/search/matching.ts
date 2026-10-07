@@ -18,12 +18,16 @@
 //   4. The top N, with only the fields the profile screen shows
 //
 // Weights: relationship goals 20 (intent, timeline, children, marital history,
-// horoscope), lifestyle 15, values 15 (religion, community, politics, money),
-// location and background 15 (city, mother tongue, languages, ethnicity,
-// settling abroad), age 10, personality 10, physical 5, education and family 5.
+// horoscope), lifestyle 15, values 15 (religion, community, money), location
+// and background 15 (city, mother tongue, languages, settling abroad), age 10,
+// personality 10 (introvert or extrovert, disagreements), physical 5,
+// education and family 5.
 //
-// The cannabis, other-drugs and relationship-type answers are no longer asked
-// (Phase 12), so nothing here reads them.
+// Answers that are no longer asked (NOT_ASKED: the cannabis, other-drugs and
+// relationship-type answers since Phase 12; politics, ethnicity, zodiac, love
+// language, looks and the rest since the short sign-up, research in
+// docs/research/profile-questions.md) are left out of every profile here, so
+// nothing reads them.
 // ============================================================================
 
 export type Row = Record<string, unknown> & { id: string };
@@ -46,14 +50,12 @@ export interface FilterOptions {
   hasInstagram?: boolean;
   neighborhood?: string;
   ageRange?: [number, number];
-  ethnicity?: string;
   religion?: string;
   datingIntention?: string;
   children?: string;           // 'No' or 'Yes'
   familyPlans?: string;
   smoking?: string;
   drinking?: string;
-  politics?: string;
   educationLevel?: string;
   motherTongue?: string;       // 'Hindi' also finds the regional kinds of Hindi
   caste?: string;
@@ -87,13 +89,13 @@ export interface MatchCandidate {
 // about other people is sent to the browser.
 const SHOWN_FIELDS = [
   'jobTitle', 'work', 'workStyle', 'university', 'educationLevel', 'hometown',
-  'height', 'ethnicity', 'religion', 'politics', 'zodiac', 'languages',
+  'height', 'bodyType', 'religion', 'languages',
   'datingIntention', 'marriageTimeline', 'children', 'familyPlans',
-  'loveLanguage', 'drinking', 'smoking', 'gymRoutine',
-  'dietaryPreferences', 'sleepSchedule', 'livingPreference', 'canCook',
-  'socialBattery', 'attachmentStyle', 'conflictResolution', 'financialApproach',
-  'hobbies', 'travelStyle', 'musicGenre', 'sportsInterest', 'readingInterest',
-  'nextTravelDestination', 'linkedin', 'instagram',
+  'drinking', 'smoking', 'gymRoutine',
+  'dietaryPreferences', 'sleepSchedule', 'canCook',
+  'socialBattery', 'conflictResolution', 'financialApproach', 'futurePlans', 'pets',
+  'hobbies', 'travelStyle', 'lovesTravel', 'sportsInterest', 'readingInterest',
+  'linkedin', 'instagram',
   // Phase 12 (the date of birth is never read from the database for search)
   'profileCreatedFor', 'maritalStatus', 'childrenCount', 'disability', 'motherTongue', 'caste', 'subCaste',
   'sect', 'openToOtherCommunities', 'gotra', 'manglik', 'rashi', 'nakshatra', 'birthTime', 'birthPlace',
@@ -113,11 +115,26 @@ function isFilledIn(value: unknown): boolean {
   return value !== null && value !== undefined && value !== '' && value !== 'Not specified';
 }
 
-// The searcher's own profile, everything included.
+// Answers no longer asked. What members gave before stays in their data (and
+// in "Download my data"), but isn't shown, searched or scored.
+const NOT_ASKED = new Set([
+  'marijuana', 'drugs', 'relationshipType',
+  'politics', 'ethnicity', 'race', 'interracialMarriage', 'nationalityCount', 'sexuality', 'sexStyle',
+  'zodiac', 'loveLanguage', 'attachmentStyle', 'livingPreference', 'dreamHouseType',
+  'hairColor', 'hairType', 'eyeColor', 'wearsGlasses', 'wearsLenses', 'hasTattoos', 'facialHair', 'bodyHair',
+  'clothingStyle', 'dressesWell', 'makeupRoutine', 'wearsJewelry', 'hygiene',
+  'therapyHistory', 'familyHealthHistory', 'criminalRecord', 'covidVaccine',
+  'financialSplitting', 'isOrganised', 'snoring', 'phoneType', 'drivesCar', 'hasDriversLicense',
+  'shoppingPreference', 'bakingInterest', 'childhoodDescription', 'musicGenre', 'nextTravelDestination',
+  'favoriteDrink',
+]);
+
+// The searcher's own profile, everything still asked included.
 export function ownProfile(row: Row): Profile {
   const p: Profile = {};
   for (const [key, value] of Object.entries(row)) {
-    if (isFilledIn(value)) p[toCamel(key)] = value;
+    const field = toCamel(key);
+    if (isFilledIn(value) && !NOT_ASKED.has(field)) p[field] = value;
   }
   return p;
 }
@@ -219,8 +236,8 @@ function nearby(a: Profile, b: Profile): boolean {
 
 const BOOLEAN_FILTERS = ['isOnline', 'recentlyActive', 'isVerified', 'isPremium', 'hasLinkedin', 'hasInstagram'] as const;
 const TEXT_FILTERS = [
-  'neighborhood', 'ethnicity', 'religion', 'datingIntention', 'children', 'familyPlans', 'smoking', 'drinking',
-  'politics', 'educationLevel', 'motherTongue', 'caste', 'maritalStatus', 'manglik', 'dietaryPreferences',
+  'neighborhood', 'religion', 'datingIntention', 'children', 'familyPlans', 'smoking', 'drinking',
+  'educationLevel', 'motherTongue', 'caste', 'maritalStatus', 'manglik', 'dietaryPreferences',
   'country', 'state',
 ] as const;
 
@@ -406,15 +423,13 @@ const INTENT_LIST: Intent[] = [
   { words: ['travel', 'traveling', 'travelling', 'traveler', 'traveller', 'wanderlust', 'explorer', 'backpacking', 'backpacker'],
     alsoText: true,
     answer: (p) => {
-      if (['Yes, frequently', 'Yes'].includes(p.lovesTravel) || p.nextTravelDestination) return true;
+      if (['Yes, frequently', 'Yes'].includes(p.lovesTravel)) return true;
       return ['I prefer staying home', 'No'].includes(p.lovesTravel) ? false : undefined;
     } },
   { words: ['introvert', 'introverted', 'homebody', 'quiet', 'shy'], alsoText: true,
     answer: fieldAnswer('socialBattery', ['Introvert', 'Homebody'], ['Extrovert', 'Social Butterfly']) },
   { words: ['extrovert', 'extroverted', 'outgoing', 'social', 'sociable', 'social butterfly'], alsoText: true,
     answer: fieldAnswer('socialBattery', ['Extrovert', 'Social Butterfly'], ['Introvert', 'Homebody']) },
-  { words: ['tattoo', 'tattooed', 'inked'],
-    answer: fieldAnswer('hasTattoos', ['Yes', 'A few small ones'], ['No']) },
   // Phase 12
   { words: ['never married', 'unmarried', 'first marriage'],
     answer: (p) => (p.maritalStatus ? p.maritalStatus === 'Never Married' : undefined) },
@@ -649,12 +664,10 @@ export function parsePrompt(prompt: string): ParsedPrompt {
 // out ("No pets" would match "pets"); the intents above read those fields.
 const TEXT_FIELDS = [
   'name', 'description', 'hobbies', 'jobTitle', 'work', 'workStyle', 'university', 'educationLevel',
-  'location', 'hometown', 'religion', 'politics', 'ethnicity', 'languages', 'zodiac',
-  'bodyType', 'hairColor', 'eyeColor', 'clothingStyle',
+  'location', 'hometown', 'religion', 'languages', 'bodyType',
   'datingIntention', 'marriageTimeline',
-  'dietaryPreferences', 'sleepSchedule', 'livingPreference', 'travelStyle', 'musicGenre',
-  'nextTravelDestination', 'favoriteDrink', 'futurePlans', 'dreamHouseType',
-  'loveLanguage', 'socialBattery', 'attachmentStyle', 'conflictResolution', 'financialApproach',
+  'dietaryPreferences', 'sleepSchedule', 'travelStyle', 'futurePlans',
+  'socialBattery', 'conflictResolution', 'financialApproach',
   'motherTongue', 'caste', 'subCaste', 'sect', 'gotra', 'degree', 'occupation', 'employedIn',
   'city', 'state', 'country', 'familyLocation', 'aboutFamily',
 ];
@@ -711,16 +724,15 @@ export interface SearchPlan {
 
 // Profile answers Gemini may choose from: the ones people in the pool have.
 export const AI_FIELDS: Record<string, string> = {
-  religion: 'Religion', politics: 'Politics', dating_intention: 'Looking for',
+  religion: 'Religion', dating_intention: 'Looking for',
   marriage_timeline: 'Marriage', family_plans: 'Kids',
   children: 'Has kids', education_level: 'Education', work_style: 'Work',
   drinking: 'Drinks', smoking: 'Smokes',
   dietary_preferences: 'Diet', gym_routine: 'Exercise', sleep_schedule: 'Sleep',
-  can_cook: 'Cooks', pets: 'Pets', living_preference: 'Lives', social_battery: 'Personality',
-  love_language: 'Love language', attachment_style: 'Attachment', conflict_resolution: 'Conflict style',
+  can_cook: 'Cooks', pets: 'Pets', social_battery: 'Personality', conflict_resolution: 'Conflict style',
   financial_approach: 'Money', family_closeness: 'Family', travel_style: 'Travel',
   loves_travel: 'Loves travel', reading_interest: 'Reading', sports_interest: 'Sports',
-  has_tattoos: 'Tattoos', body_type: 'Body type', ethnicity: 'Ethnicity', zodiac: 'Zodiac',
+  body_type: 'Body type',
   // Phase 12
   marital_status: 'Marital status', mother_tongue: 'Mother tongue', caste: 'Caste', sub_caste: 'Sub-caste',
   sect: 'Sect', gotra: 'Gotra', open_to_other_communities: 'Other communities', manglik: 'Manglik',
@@ -872,7 +884,7 @@ function passesFilters(
 
   // Exact-value filters: the person must show that answer.
   const exact: (keyof FilterOptions)[] = [
-    'ethnicity', 'religion', 'datingIntention', 'familyPlans', 'educationLevel', 'politics', 'smoking',
+    'religion', 'datingIntention', 'familyPlans', 'educationLevel', 'smoking',
     'drinking', 'maritalStatus', 'manglik', 'dietaryPreferences',
   ];
   for (const key of exact) {
@@ -1039,30 +1051,23 @@ function scoreLifestyle(s: Profile, c: Profile): Dimension {
     score += 2;
   }
 
-  // Exercise (2)
+  // Exercise (3)
   if (s.gymRoutine && c.gymRoutine) {
     if (s.gymRoutine === c.gymRoutine) {
-      score += 2;
+      score += 3;
       if (c.gymRoutine === 'Daily' || c.gymRoutine === '3-4 times a week') {
         items.push({ icon: '💪', text: 'Both stay active', color: 'green' });
       }
     } else if (closeExerciseLevels(s.gymRoutine, c.gymRoutine)) {
-      score += 1;
+      score += 1.5;
     }
   } else {
-    score += 1;
+    score += 1.5;
   }
 
-  // Sleep schedule (1)
-  if (s.sleepSchedule && c.sleepSchedule && s.sleepSchedule === c.sleepSchedule) score += 1;
-  else score += 0.5;
-
-  // Living preference (2)
-  if (s.livingPreference && c.livingPreference) {
-    if (s.livingPreference === c.livingPreference) score += 2;
-  } else {
-    score += 1;
-  }
+  // Sleep schedule (2)
+  if (s.sleepSchedule && c.sleepSchedule && s.sleepSchedule === c.sleepSchedule) score += 2;
+  else score += 1;
 
   return { score: Math.min(15, score), items };
 }
@@ -1081,36 +1086,36 @@ function closeExerciseLevels(a: string, b: string): boolean {
   return ai !== -1 && bi !== -1 && Math.abs(ai - bi) <= 1;
 }
 
-// Values (max 15) — religion, community, politics, money
+// Values (max 15) — religion, community, money
 function scoreValues(s: Profile, c: Profile): Dimension {
   let score = 0;
   const items: CompatibilityItem[] = [];
 
-  // Religion (5)
+  // Religion (6)
   if (s.religion && c.religion) {
     if (s.religion === c.religion) {
-      score += 5;
+      score += 6;
       items.push({ icon: '🕉️', text: `Both ${c.religion}`, color: 'green' });
     } else if (['Spiritual', 'Agnostic', 'Atheist', 'No religion', 'Other'].some((r) => r === s.religion || r === c.religion)) {
-      score += 2.5;
+      score += 3;
     } else {
       items.push({ icon: '⚠️', text: `Different religions (${s.religion} vs ${c.religion})`, color: 'amber' });
     }
   } else {
-    score += 2.5;
+    score += 3;
   }
 
-  // Community (3): only counts when someone prefers their own community;
+  // Community (4): only counts when someone prefers their own community;
   // "caste no bar" on both sides, or not saying, is neutral
   const prefersOwn = (p: Profile) => ['Prefer my own community', 'Only my own community'].includes(p.openToOtherCommunities);
   const onlyOwn = (p: Profile) => p.openToOtherCommunities === 'Only my own community';
   const known = (caste: unknown) => typeof caste === 'string' && caste !== 'Prefer not to say' && caste !== 'Other';
   if (!prefersOwn(s) && !prefersOwn(c)) {
-    score += s.openToOtherCommunities === 'Yes, caste no bar' && c.openToOtherCommunities === 'Yes, caste no bar' ? 3 : 2;
+    score += s.openToOtherCommunities === 'Yes, caste no bar' && c.openToOtherCommunities === 'Yes, caste no bar' ? 4 : 3;
   } else if (!known(s.caste) || !known(c.caste)) {
-    score += 1.5;
+    score += 2;
   } else if (String(s.caste).toLowerCase() === String(c.caste).toLowerCase()) {
-    score += 3;
+    score += 4;
     items.push({ icon: '🤝', text: 'Same community', color: 'green' });
   } else {
     items.push({
@@ -1120,27 +1125,10 @@ function scoreValues(s: Profile, c: Profile): Dimension {
     });
   }
 
-  // Politics (3)
-  if (s.politics && c.politics) {
-    if (s.politics === c.politics) {
-      score += 3;
-      items.push({ icon: '🗳️', text: `Both ${c.politics.toLowerCase()}`, color: 'green' });
-    } else if (['Moderate', 'Apolitical'].some((x) => x === s.politics || x === c.politics)) {
-      score += 1.5;
-    } else if (
-      (s.politics === 'Liberal' && c.politics === 'Conservative') ||
-      (s.politics === 'Conservative' && c.politics === 'Liberal')
-    ) {
-      items.push({ icon: '⚠️', text: 'Different political views', color: 'red' });
-    }
-  } else {
-    score += 1.5;
-  }
-
-  // Money (4)
+  // Money (5)
   if (s.financialApproach && c.financialApproach) {
     if (s.financialApproach === c.financialApproach) {
-      score += 4;
+      score += 5;
       items.push({ icon: '💰', text: `Same money mindset: ${c.financialApproach.toLowerCase()}`, color: 'green' });
     } else if (
       (s.financialApproach === 'Saver' && c.financialApproach === 'Spender') ||
@@ -1148,10 +1136,10 @@ function scoreValues(s: Profile, c: Profile): Dimension {
     ) {
       items.push({ icon: '⚠️', text: 'Different financial styles', color: 'amber' });
     } else {
-      score += 2;
+      score += 2.5;
     }
   } else {
-    score += 2;
+    score += 2.5;
   }
 
   return { score: Math.min(15, score), items };
@@ -1179,17 +1167,17 @@ function scoreLocationBackground(s: Profile, c: Profile): Dimension {
     score += 2.5;
   }
 
-  // Mother tongue (3): the same one, or two kinds of Hindi
+  // Mother tongue (4): the same one, or two kinds of Hindi
   if (s.motherTongue && c.motherTongue) {
     const hindi = (m: string) => m.startsWith('Hindi');
     if (s.motherTongue === c.motherTongue) {
-      score += 3;
+      score += 4;
       items.push({ icon: '🗣️', text: `Both speak ${c.motherTongue} at home`, color: 'green' });
     } else if (hindi(s.motherTongue) && hindi(c.motherTongue)) {
-      score += 2.5;
+      score += 3;
     }
   } else {
-    score += 1.5;
+    score += 2;
   }
 
   // Shared languages (2)
@@ -1207,37 +1195,18 @@ function scoreLocationBackground(s: Profile, c: Profile): Dimension {
     score += 1;
   }
 
-  // Ethnicity and openness to an interracial marriage (2)
-  if (s.ethnicity && c.ethnicity) {
-    if (s.ethnicity === c.ethnicity) {
-      score += 2;
-    } else if (s.interracialMarriage === 'Yes' || c.interracialMarriage === 'Yes') {
-      score += 1.5;
-      items.push({ icon: '🌏', text: 'Open to interracial relationship', color: 'green' });
-    } else if (
-      ['No', 'Prefer same race'].includes(s.interracialMarriage) ||
-      ['No', 'Prefer same race'].includes(c.interracialMarriage)
-    ) {
-      items.push({ icon: '⚠️', text: 'One side prefers same ethnicity', color: 'red' });
-    } else {
-      score += 0.5;
-    }
-  } else {
-    score += 1;
-  }
-
-  // Settling abroad (2)
+  // Settling abroad (3)
   const abroad = (p: Profile) => (p.settlingAbroad === 'Interested in settling abroad' ? true
     : p.settlingAbroad === 'Not interested in settling abroad' ? false : undefined);
   if (abroad(s) !== undefined && abroad(c) !== undefined) {
     if (abroad(s) === abroad(c)) {
-      score += 2;
+      score += 3;
       if (abroad(c)) items.push({ icon: '🌍', text: 'Both open to settling abroad', color: 'green' });
     } else {
       items.push({ icon: '⚠️', text: 'Different plans about settling abroad', color: 'amber' });
     }
   } else {
-    score += 1;
+    score += 1.5;
   }
 
   return { score: Math.min(15, score), items };
@@ -1272,54 +1241,27 @@ function scorePersonality(s: Profile, c: Profile): Dimension {
   let score = 0;
   const items: CompatibilityItem[] = [];
 
-  // Social battery (3)
+  // Introvert or extrovert (5)
   if (s.socialBattery && c.socialBattery) {
-    if (s.socialBattery === c.socialBattery) score += 3;
-    else if (socialBatteriesCompatible(s.socialBattery, c.socialBattery)) score += 2;
+    if (s.socialBattery === c.socialBattery) score += 5;
+    else if (socialBatteriesCompatible(s.socialBattery, c.socialBattery)) score += 3.5;
+    else score += 1;
   } else {
-    score += 1.5;
+    score += 2.5;
   }
 
-  // Attachment style (3)
-  if (s.attachmentStyle && c.attachmentStyle) {
-    if (s.attachmentStyle === 'Secure' && c.attachmentStyle === 'Secure') {
-      score += 3;
-      items.push({ icon: '💖', text: 'Both have secure attachment', color: 'green' });
-    } else if (s.attachmentStyle === c.attachmentStyle) {
-      score += 2;
-    } else if (
-      (s.attachmentStyle === 'Anxious' && c.attachmentStyle === 'Avoidant') ||
-      (s.attachmentStyle === 'Avoidant' && c.attachmentStyle === 'Anxious')
-    ) {
-      items.push({ icon: '⚠️', text: 'Anxious-avoidant attachment pairing', color: 'red' });
-    } else {
-      score += 1;
-    }
-  } else {
-    score += 1.5;
-  }
-
-  // Conflict style (2)
+  // Disagreements (5)
   if (s.conflictResolution && c.conflictResolution) {
-    if (s.conflictResolution === c.conflictResolution) score += 2;
-    else if (
+    if (s.conflictResolution === c.conflictResolution) {
+      score += 5;
+      if (c.conflictResolution === 'Calm discussion') items.push({ icon: '🕊️', text: 'Both talk disagreements through calmly', color: 'green' });
+    } else if (
       (s.conflictResolution === 'Calm discussion' && c.conflictResolution === 'Direct & assertive') ||
       (s.conflictResolution === 'Direct & assertive' && c.conflictResolution === 'Calm discussion')
-    ) score += 1;
+    ) score += 2.5;
+    else score += 1;
   } else {
-    score += 1;
-  }
-
-  // Love language (2)
-  if (s.loveLanguage && c.loveLanguage) {
-    if (s.loveLanguage === c.loveLanguage) {
-      score += 2;
-      items.push({ icon: '💝', text: `Same love language: ${c.loveLanguage}`, color: 'green' });
-    } else {
-      score += 0.5;
-    }
-  } else {
-    score += 1;
+    score += 2.5;
   }
 
   return { score: Math.min(10, score), items };

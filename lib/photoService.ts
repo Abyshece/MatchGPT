@@ -56,6 +56,18 @@ export async function uploadPhoto(
 }
 
 // ----------------------------------------------------------------------------
+// Delete a photo's file from Storage, once the profile no longer points at it
+// (best effort, like the deletes below)
+// ----------------------------------------------------------------------------
+
+export async function deletePhotoFile(url: string): Promise<void> {
+  const path = pathFromPublicUrl(url);
+  if (path) {
+    await supabase.storage.from(BUCKET).remove([path]).catch(() => {});
+  }
+}
+
+// ----------------------------------------------------------------------------
 // Replace an existing photo: upload new file, then delete the old one + update profile
 // ----------------------------------------------------------------------------
 

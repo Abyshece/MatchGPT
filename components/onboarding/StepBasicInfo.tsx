@@ -4,6 +4,7 @@ import { IconChevronRight } from '../../constants';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../lib/AuthContext';
 import { ChoiceField, DateOfBirthField, ageFromDateOfBirth } from '../ProfileInputs';
+import { Field, FormInputStyles, Select } from './formParts';
 import {
   CHILDREN, CHILDREN_COUNT, CITIES_BY_STATE, COUNTRIES, GENDERS, HEIGHTS, INDIAN_STATES, INTERESTED_IN, MARITAL_STATUS,
   PROFILE_CREATED_FOR,
@@ -15,30 +16,34 @@ interface StepBasicInfoProps {
   onComplete: () => void;
 }
 
-const PRONOUNS = ['She/Her', 'He/Him', 'They/Them', 'Other'];
 // A profile made for a son is a man's profile, and so on
 const GENDER_FOR: Record<string, string> = { Son: 'Male', Brother: 'Male', Daughter: 'Female', Sister: 'Female' };
+// Who someone is most likely looking for, filled in from the gender (it can be changed)
+const LIKELY_INTEREST: Record<string, string> = { Male: 'Women', Female: 'Men' };
 
 const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ onComplete }) => {
-  const { session, refreshProfile } = useAuth();
-  const [createdFor, setCreatedFor] = useState('Myself');
+  const { session, profileRow, refreshProfile } = useAuth();
+  // Coming back from step 2 shows what was saved
+  const saved = profileRow;
+  const [createdFor, setCreatedFor] = useState(saved?.profile_created_for ?? 'Myself');
   // Google sign-ups arrive with a name; start from it.
   const [name, setName] = useState<string>(() => {
+    if (saved?.name) return saved.name;
     const meta = session?.user.user_metadata ?? {};
     return String(meta.full_name ?? meta.name ?? '');
   });
-  const [dateOfBirth, setDateOfBirth] = useState('');
-  const [gender, setGender] = useState('');
-  const [pronouns, setPronouns] = useState('');
-  const [interestedIn, setInterestedIn] = useState('');
-  const [maritalStatus, setMaritalStatus] = useState('');
-  const [children, setChildren] = useState('');
-  const [childrenCount, setChildrenCount] = useState('');
-  const [height, setHeight] = useState('');
-  const [country, setCountry] = useState('India');
-  const [state, setState] = useState('');
-  const [city, setCity] = useState('');
-  const [hometown, setHometown] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState(saved?.date_of_birth ?? '');
+  const [gender, setGender] = useState(saved?.gender ?? '');
+  const [interestedIn, setInterestedIn] = useState(saved?.interested_in ?? '');
+  // Picked from the gender until they choose it themselves
+  const [interestChosen, setInterestChosen] = useState(!!saved?.interested_in);
+  const [maritalStatus, setMaritalStatus] = useState(saved?.marital_status ?? '');
+  const [children, setChildren] = useState(saved?.children ?? '');
+  const [childrenCount, setChildrenCount] = useState(saved?.children_count ?? '');
+  const [height, setHeight] = useState(saved?.height ?? '');
+  const [country, setCountry] = useState(saved?.country || 'India');
+  const [state, setState] = useState(saved?.state ?? '');
+  const [city, setCity] = useState(saved?.city ?? '');
   const [theyAgreed, setTheyAgreed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -47,9 +52,13 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ onComplete }) => {
   const inIndia = country === 'India';
   const askChildren = !!maritalStatus && maritalStatus !== 'Never Married';
 
+  const chooseGender = (v: string) => {
+    setGender(v);
+    if (!interestChosen) setInterestedIn(LIKELY_INTEREST[v] ?? '');
+  };
   const chooseCreatedFor = (v: string) => {
     setCreatedFor(v);
-    if (GENDER_FOR[v]) setGender(GENDER_FOR[v]);
+    if (GENDER_FOR[v]) chooseGender(GENDER_FOR[v]);
   };
 
   const validate = (): string | null => {
@@ -93,7 +102,6 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ onComplete }) => {
         name: name.trim(),
         date_of_birth: dateOfBirth,
         gender,
-        pronouns: pronouns || null,
         interested_in: interestedIn,
         dating_intention: 'Marriage', // for marriage only (the database insists too)
         marital_status: maritalStatus,
@@ -103,7 +111,6 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ onComplete }) => {
         country,
         state: state.trim() || null,
         city: city.trim(),
-        hometown: hometown.trim() || null,
         email_verified: true, // they got here, so the email is verified
       })
       .eq('id', session.user.id);
@@ -133,7 +140,7 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ onComplete }) => {
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">
           {forSomeoneElse ? 'Tell us about them' : 'Tell us about yourself'}
         </h1>
-        <p className="text-gray-500 dark:text-gray-400">The basics. We'll get to the fun stuff after.</p>
+        <p className="text-gray-500 dark:text-gray-400">Just the basics: about two minutes for all three steps. The rest can wait for your profile.</p>
       </div>
 
       {error && (
@@ -169,16 +176,12 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ onComplete }) => {
 
         <div className="grid grid-cols-2 gap-4 items-end">
           <Field label="Gender">
-            <Select value={gender} onChange={setGender} options={GENDERS} placeholder="Select" />
+            <Select value={gender} onChange={chooseGender} options={GENDERS} placeholder="Select" />
           </Field>
-          <Field label="Pronouns (optional)">
-            <Select value={pronouns} onChange={setPronouns} options={PRONOUNS} placeholder="Select" />
+          <Field label="Interested in">
+            <Select value={interestedIn} onChange={(v) => { setInterestedIn(v); setInterestChosen(true); }} options={INTERESTED_IN} placeholder="Select" />
           </Field>
         </div>
-
-        <Field label="Interested in">
-          <Select value={interestedIn} onChange={setInterestedIn} options={INTERESTED_IN} placeholder="Select" />
-        </Field>
 
         <Field label="Marital status">
           <Select value={maritalStatus} onChange={setMaritalStatus} options={MARITAL_STATUS} placeholder="Select" />
@@ -243,16 +246,6 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ onComplete }) => {
           </div>
         </Field>
 
-        <Field label="Grew up in (optional)">
-          <input
-            type="text"
-            value={hometown}
-            onChange={(e) => setHometown(e.target.value)}
-            placeholder="Hometown"
-            className="form-input"
-            maxLength={100}
-          />
-        </Field>
 
         {forSomeoneElse && (
           <label className="flex items-start gap-3 p-3 rounded-lg border border-gray-200 dark:border-zinc-700 cursor-pointer" data-testid="for-other-consent">
@@ -274,66 +267,9 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ onComplete }) => {
         </div>
       </form>
 
-      <style>{`
-        .form-input {
-          width: 100%;
-          height: 2.75rem;
-          padding: 0 0.75rem;
-          border: 1px solid rgb(209 213 219);
-          border-radius: 0.375rem;
-          background: white;
-          font-size: 0.95rem;
-          outline: none;
-          transition: all 150ms;
-        }
-        .form-input:focus {
-          border-color: black;
-          box-shadow: 0 0 0 1px black;
-        }
-        .dark .form-input {
-          background: rgb(24 24 27);
-          border-color: rgb(63 63 70);
-          color: white;
-        }
-        .dark .form-input:focus {
-          border-color: white;
-          box-shadow: 0 0 0 1px white;
-        }
-      `}</style>
+      <FormInputStyles />
     </div>
   );
 };
-
-// "(optional)" is set small and in lower case, so a label fits on one line
-// beside its neighbour and paired fields line up
-const OPTIONAL = ' (optional)';
-const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => {
-  const optional = label.endsWith(OPTIONAL);
-  return (
-    <div>
-      <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5">
-        {optional ? label.slice(0, -OPTIONAL.length) : label}
-        {optional && <>{' '}<span className="normal-case tracking-normal font-medium">(optional)</span></>}
-      </label>
-      {children}
-    </div>
-  );
-};
-
-const Select: React.FC<{
-  value: string;
-  onChange: (v: string) => void;
-  options: string[];
-  placeholder?: string;
-}> = ({ value, onChange, options, placeholder }) => (
-  <select
-    value={value}
-    onChange={(e) => onChange(e.target.value)}
-    className="form-input cursor-pointer"
-  >
-    <option value="" disabled>{placeholder || 'Select'}</option>
-    {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-  </select>
-);
 
 export default StepBasicInfo;

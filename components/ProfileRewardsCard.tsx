@@ -1,7 +1,7 @@
 import React from 'react';
 import { IconCheck } from '../constants';
 import { DAILY_LIMITS } from '../lib/profileService';
-import { unansweredLabels, type ProfileSections } from '../lib/profileRewards';
+import { sectionMinutes, unansweredLabels, type ProfileSections } from '../lib/profileRewards';
 
 // ============================================================================
 // ProfileRewardsCard: top of My Profile. Each profile section completed adds
@@ -77,7 +77,7 @@ const ProfileRewardsCard: React.FC<{
                     <span className="flex items-start justify-between gap-2">
                       <span className="min-w-0 text-sm font-semibold text-gray-900 dark:text-white group-hover:underline">{s.title}</span>
                       <span className={`flex-none pt-px text-xs font-medium whitespace-nowrap ${s.complete ? 'text-green-700 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
-                        {s.complete ? '+1 search a day' : `${left} more ${left === 1 ? 'answer' : 'answers'}`}
+                        {s.complete ? '+1 search a day' : `${left} more ${left === 1 ? 'answer' : 'answers'} · ~${sectionMinutes(s)} min`}
                       </span>
                     </span>
                     <span className="mt-1.5 block h-1.5 rounded-full bg-gray-100 dark:bg-zinc-800 overflow-hidden">

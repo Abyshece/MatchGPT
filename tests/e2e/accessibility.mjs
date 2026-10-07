@@ -7,7 +7,7 @@
 //   - website: home, Help & Support, Delete account, Terms, admin sign-in,
 //     the admin panel, its Errors tab (with an error open) and its App Preview tab
 //   - app: the landing and sign-in screens; signed in (an onboarded account,
-//     password TestPass!2026): Find Match with results, filters, a profile,
+//     password TestPass!2026): the free-searches pop-up, Find Match with results, filters, a profile,
 //     Likes You, Matches and a chat, Standouts, My Profile, Settings,
 //     Shaadi24+, the phone menu
 // Usage: node accessibility.mjs <admin email> <member email>   (DB_CONTAINER as the other tests)
@@ -102,8 +102,9 @@ try {
 
   for (const scheme of ['light', 'dark']) {
     log(`== The members' app (${scheme})`);
-    // Searches left today, so the search shows results rather than the limit
-    sql(`update profiles set daily_search_count = 0, is_paused = false where email = '${MEMBER}';`);
+    // Searches left today, so the search shows results rather than the limit;
+    // the free-searches pop-up due, so it's checked too
+    sql(`update profiles set daily_search_count = 0, is_paused = false, profile_nudged_at = null where email = '${MEMBER}';`);
     const ctx = await phone(scheme);
     await ctx.addInitScript(() => localStorage.setItem('shaadigpt_cookie_consent_shown', '1'));
     const page = await ctx.newPage();
@@ -119,6 +120,13 @@ try {
     await page.locator('form').getByRole('button', { name: /Log In/i }).click();
     const box = page.getByTestId('find-match-box');
     await box.waitFor({ timeout: 20000 });
+    const nudge = page.getByTestId('profile-rewards-popup');
+    if (await nudge.waitFor({ timeout: 10000 }).then(() => true, () => false)) {
+      await audit(page, `free-searches pop-up (${scheme})`);
+      await nudge.getByTestId('nudge-later').click();
+    } else {
+      log('  (no free-searches pop-up: the profile is complete)');
+    }
     await audit(page, `find match (${scheme})`);
     await box.fill('someone kind who loves books');
     await box.press('Enter');
@@ -147,6 +155,7 @@ try {
   log('FAIL (stopped):', e.message.split('\n').slice(0, 2).join(' / '));
   await current?.screenshot({ path: `${OUT}STOPPED.png` }).catch(() => {});
 } finally {
+  sql(`update profiles set profile_nudged_at = now() where email = '${MEMBER}';`);
   await browser.close();
   log('== Every problem found, by rule');
   for (const [key, v] of [...seen.entries()].sort()) {

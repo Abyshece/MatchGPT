@@ -41,10 +41,11 @@ export function helpTopics(platform: HelpPlatform): HelpTopic[] {
     },
     {
       q: 'How do I get more free searches?',
-      a: <>Fill in your profile. My Profile has six sections (religion and community, education and career,
-        family, lifestyle, appearance, and plans and personality), and each one you complete adds a free search a
-        day: up to 9 a day instead of 3. A section counts once about 7 in 10 of its questions are answered, and My
-        Profile shows what's left in each. Shaadi24+ has no daily limit.</>,
+      a: <>Fill in your profile. Sign-up asks only the basics (about two minutes); My Profile has six more
+        sections (about you, religion and community, education and career, family, lifestyle, and plans and
+        values), and each one you complete adds a free search a day: up to 9 a day instead of 3. A section counts
+        once about 7 in 10 of its questions are answered, and My Profile shows what's left in each and about how
+        long it takes, usually a minute or two. Shaadi24+ has no daily limit.</>,
     },
     {
       q: 'What is the compatibility score?',

@@ -35,7 +35,7 @@ const tierB = sql(`select subscription_tier from profiles where id = '${B}';`);
 const NAME_A = 'Meera Testcase';
 sql(`update profiles set ${INDIA_COLUMNS.map((c) => `${c} = null`).join(', ')}, name = '${NAME_A}', gender = 'Female',
        interested_in = 'Men', location = 'Mumbai, MH', height = null, religion = null, dietary_preferences = null, languages = null,
-       description = 'Loves music.',
+       description = 'Loves music.', politics = 'Liberal', zodiac = 'Leo', love_language = 'Quality time', ethnicity = 'Indian',
        hidden_fields = '{}', is_paused = false, settings_incognito = false, onboarding_complete = true where id = '${A}';
      update profiles set gender = 'Male', interested_in = 'Women', is_verified = true, subscription_tier = 'PRO',
        daily_search_count = 0, is_paused = false where id = '${B}';
@@ -68,8 +68,9 @@ try {
   check(await appears(gate), 'the app asks for the missing required details first');
   const asked = (await gate.innerText()).toUpperCase();
   check(['PROFILE CREATED FOR', 'DATE OF BIRTH', 'MARITAL STATUS', 'HEIGHT', 'RELIGION', 'MOTHER TONGUE', 'OCCUPATION',
-    'ABOUT ME', 'LIVES IN'].every((w) => asked.includes(w)), 'it asks what is missing');
+    'LIVES IN'].every((w) => asked.includes(w)), 'it asks what is missing');
   check(!asked.includes('HIGHEST QUALIFICATION') && !asked.includes('LOOKING FOR'), 'and not what the profile has');
+  check(!asked.includes('ABOUT ME'), 'About me is optional now (My Profile), not a required detail');
   await gate.getByRole('button', { name: /Save and continue/ }).click();
   check(await appears(gate.getByText(/^Please answer: /)), 'nothing is saved until everything is answered');
   await pa.screenshot({ path: `${OUT}1-required-details.png`, fullPage: true });
@@ -87,13 +88,9 @@ try {
   await gate.getByLabel('Religion').selectOption('Hindu');
   await pickIn('Mother tongue', 'tam', 'Tamil');
   await pickIn('Occupation', 'software prof', 'Software Professional');
-  await gate.getByLabel('About me').fill('Short.');
   await pickIn('Country', 'India', 'India');
   await pickIn('State', 'tamil', 'Tamil Nadu');
   await pickIn('City', 'chen', 'Chennai');
-  await gate.getByRole('button', { name: /Save and continue/ }).click();
-  check(await appears(gate.getByText('Please write at least 30 characters about yourself.')), 'About me needs 30 characters');
-  await gate.getByLabel('About me').fill('A Chennai girl who loves music, books and long walks.');
   await gate.getByRole('button', { name: /Save and continue/ }).click();
   check(await appears(pa.getByTestId('find-match-box'), 20000), 'saved: on to Find Match');
   check(sql(`select concat_ws(' | ', profile_created_for, marital_status, religion, mother_tongue, occupation, city)
@@ -210,6 +207,7 @@ try {
   }
   check(!modal.includes('Brahmin') && !modal.includes('1996'), 'shows neither the hidden caste nor the date of birth');
   check(!/Marijuana|Other drugs|Relationship type/.test(modal), 'no cannabis, other drugs or relationship type');
+  check(!/Zodiac|Politics|Love language|Attachment|Ethnicity/.test(modal), 'none of the questions dropped by the short sign-up');
   await pb.keyboard.press('Escape');
 
   log('5. typed search: heights and India words');

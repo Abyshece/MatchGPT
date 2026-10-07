@@ -3,11 +3,12 @@
 13 phases in total. Phases 1–5, 7–9 and 12 are done, and Phase 6 is mostly done. **Phase 13 (the
 phone apps ready for the stores) is built. What's left of it is yours: the launch checklist in
 [docs/store/README.md](docs/store/README.md).** Phase 10 (launch readiness) is under way: parts 1 to
-10 are done (checks and a linter on every push, a faster first load, admin alerts, one switch for
+12 are done (checks and a linter on every push, a faster first load, admin alerts, one switch for
 Shaadi24+, tidier access rules, the whole journey tested, the README, Shaadi24+ sold only in the
 apps, the website as a home page with the admin panel, an accessibility check, error reports in
 Admin → Errors, the new name, Shaadi24, the members' app inside the admin panel, required
-answers with free searches for filling in the profile, and an alignment pass over every screen). The iPhone app goes to TestFlight from GitHub's Macs.
+answers with free searches for filling in the profile, an alignment pass over every screen, the
+legal pages, and a two-minute sign-up with the rest in My Profile). The iPhone app goes to TestFlight from GitHub's Macs.
 AI search (Gemini) is built and live; it switches on once you add the `GEMINI_API_KEY` secret (Phase 9).
 Shaadi24+ is sold only in the apps, through Google Play and the App Store (Phase 13); Razorpay was
 dropped on 2026-10-05 (Phase 11).
@@ -25,7 +26,7 @@ Items left unfinished in earlier phases were moved into later ones, so each open
 | 7 | Make the backend safe and rebuildable | **Done** (3 small owner follow-ups) |
 | 8 | Finish half-built features | **Done** (owner checks listed) |
 | 9 | Smarter search that scales | **Done** (add the Gemini key to switch AI on) |
-| 10 | Launch readiness → public launch | **In progress** (parts 1–10 done 2026-10-06) |
+| 10 | Launch readiness → public launch | **In progress** (parts 1–12 done 2026-10-07) |
 | 11 | Payments (Shaadi24+ via Razorpay) | Dropped 2026-10-05: Shaadi24+ is sold only in the apps (Phase 13) |
 | 12 | Profile details for India (community, family, horoscope) | **Done** |
 | 13 | The phone apps, ready for Google Play and the App Store | **Built**; your launch checklist: [docs/store/README.md](docs/store/README.md) |
@@ -532,6 +533,37 @@ with what's left for you and a lawyer: [docs/legal/README.md](docs/legal/README.
   here waits for a confirmation it can't get, so it isn't live yet. Paste the file into Supabase → SQL
   Editor and run it. Nothing is due to be deleted before April 2027 (a ban's records are kept 180
   days), so there's time, but do it before launch.
+
+Part 12 done 2026-10-07: **a two-minute sign-up, with the rest in My Profile.** Sign-up asked about 70
+questions on 8 pages, a written About me and 4 photos before anyone saw a match. Every question was
+checked against how Indian families screen matches and what people are comfortable sharing; the
+research, with sources: [docs/research/profile-questions.md](docs/research/profile-questions.md).
+
+- [x] **Sign-up is three short steps**: the basics (who the profile is for, name, date of birth, gender,
+  interested in, filled in from the gender, marital status, height, where they live), background
+  (religion, mother tongue, highest qualification, occupation) and one clear photo, with five more
+  slots that suggest what families like to see (full-length, traditional, everyday, at work, a hobby).
+  Photos are saved as they're added, and going back keeps every answer.
+- [x] **A pop-up after sign-up**: "Unlock more free searches" lists each section of My Profile not done
+  yet, the free search it adds and about how long it takes (a minute or two each), with "Complete my
+  profile" (straight to that section) and "Later". It comes back every three days until the profile is
+  complete. "Earn free AI searches" in My Profile shows the minutes too.
+- [x] **My Profile's sections now fit India**: About you (About me, where you grew up, body type) comes
+  first, in place of Appearance; Plans & values replaces Plans & personality. About me is optional now,
+  with "Write a draft for me", which turns the member's answers into a few sentences to edit (About my
+  family has one too). Gotra, Manglik, rashi and nakshatra get "Don't know" and a hint where to find
+  them, and family status a line on what each choice means.
+- [x] **Dropped**: complexion and weight were never asked; glasses and contact lenses, hair, eyes,
+  tattoos, style, makeup, politics, ethnicity and race, sexuality, sun sign, love language, attachment
+  style, dream home, "sex style", therapy and health history, criminal record, COVID vaccine and the
+  dating-app filler (phone, car, shopping…) are gone from the profile, the profile others see, the
+  search, its scores and the AI. Answers already given stay in members' data ("Download my data") but
+  aren't shown, searched or scored; the scores' points moved to the questions still asked.
+- [x] Checked: 2 new search unit tests (60 in all), a new database check (136 in all), the sign-up browser
+  test rewritten for the three steps, the pop-up and the About me draft, the India-profile, content-filter
+  and reset tests updated, the full browser run (28 suites) and the accessibility check (50 screens, the
+  pop-up among them) passed. Migration `20261007173707_short_sign_up` is applied live; the `search`
+  function goes live with the merge.
 
 **Still to do**
 

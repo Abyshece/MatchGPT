@@ -11,14 +11,16 @@ import {
   IconCheck, IconUpload, IconEdit, IconX, IconZap, IconShield, IconClock,
 } from '../constants';
 import { profileCompletion } from '../lib/profileCompletion';
+import { draftAboutFamily, draftAboutMe, hasFamilyDetails } from '../lib/aboutDrafts';
 import { ABOUT_ME_MIN, REQUIRED_LABELS, fetchProfileSections, type ProfileSections, type SectionId } from '../lib/profileRewards';
 import { DAILY_LIMITS } from '../lib/profileService';
 import ProfileRewardsCard from './ProfileRewardsCard';
 import { SECT_LABEL, formatBirthTime, formatChildren, formatSiblings } from '../lib/profileDisplay';
 import {
-  ANNUAL_INCOME, CASTES, CHILDREN, CHILDREN_COUNT, CITIES_BY_STATE, COUNTRIES, DEGREES, DIETS, DISABILITY,
-  EDUCATION_LEVELS, EMPLOYED_IN, FAMILY_STATUS, FAMILY_TYPE, FAMILY_VALUES, FATHER_OCCUPATION, GENDERS, GOTRA_RELIGIONS,
-  GOTRAS, HEIGHTS, HOBBY_GROUPS, HOROSCOPE_MATCH, INDIAN_STATES, INTERESTED_IN, LANGUAGES_SPOKEN, LIVING_WITH_FAMILY, MANGLIK,
+  ANNUAL_INCOME, BODY_TYPES, CASTES, CHILDREN, CHILDREN_COUNT, CITIES_BY_STATE, COUNTRIES, DEGREES, DIETS, DISABILITY,
+  EDUCATION_LEVELS, EMPLOYED_IN, FAMILY_STATUS, FAMILY_STATUS_HINT, FAMILY_TYPE, FAMILY_VALUES, FATHER_OCCUPATION, GENDERS,
+  GOTRA_HINT, GOTRA_RELIGIONS, GOTRAS, HEIGHTS, HOBBY_GROUPS, HOROSCOPE_HINT, HOROSCOPE_MATCH, INDIAN_STATES, INTERESTED_IN,
+  LANGUAGES_SPOKEN, LIVING_WITH_FAMILY, MANGLIK,
   MARITAL_STATUS, MOTHER_OCCUPATION, MOTHER_TONGUES, NAKSHATRA, OCCUPATIONS, OPEN_TO_OTHER_COMMUNITIES,
   PREFER_NOT_TO_SAY, PROFILE_CREATED_FOR, RASHI, RELIGIONS, RESIDENTIAL_STATUS, SECTS, SETTLING_ABROAD,
   SIBLING_COUNTS, SUB_CASTES, educationLevelForDegree, type OptionGroup,
@@ -69,7 +71,8 @@ function dependentChanges(profile: UserProfile, field: keyof UserProfile, value:
 // Every edit hits Supabase via profileService.
 // ============================================================================
 
-const ProfileView: React.FC = () => {
+// initialSection: opened at that section (the free-searches pop-up)
+const ProfileView: React.FC<{ initialSection?: SectionId }> = ({ initialSection }) => {
   const { profile, profileRow, refreshProfile, session } = useAuth();
   const { showToast } = useToast();
 
@@ -98,6 +101,14 @@ const ProfileView: React.FC = () => {
     fetchProfileSections().then((s) => { if (live && s) setSections(s); });
     return () => { live = false; };
   }, [savedAt]);
+
+  // Opened at a section: go to it once the page has drawn
+  useEffect(() => {
+    if (!initialSection) return;
+    const timer = setTimeout(() => document.getElementById(`section-${initialSection}`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+    return () => clearTimeout(timer);
+  }, [initialSection]);
 
   // A section just completed: say what it earned
   const bonus = profile?.searchBonus ?? 0;
@@ -201,8 +212,10 @@ const ProfileView: React.FC = () => {
 
   const handleSaveSummary = async () => {
     if (!session?.user.id) return;
-    if (summaryEditValue.trim().length < ABOUT_ME_MIN) {
-      showToast(`Please write at least ${ABOUT_ME_MIN} characters about yourself.`, 'error');
+    // Optional, but a few sentences when it's given
+    const length = summaryEditValue.trim().length;
+    if (length > 0 && length < ABOUT_ME_MIN) {
+      showToast(`Please write at least ${ABOUT_ME_MIN} characters, or leave it empty.`, 'error');
       return;
     }
     setSavingField('description');
@@ -212,7 +225,7 @@ const ProfileView: React.FC = () => {
       showToast(`Couldn't save: ${result.error}`, 'error');
       return;
     }
-    showToast('About Me updated', 'success');
+    showToast(length ? 'About me saved' : 'About me removed', 'success');
     setIsEditingSummary(false);
     await refreshProfile();
   };
@@ -269,13 +282,20 @@ const ProfileView: React.FC = () => {
     icon?: React.ReactNode,
     inputType: 'text' | 'number' | 'textarea' | 'select' = 'text',
     options: string[] = [],
-    extra: { editor?: React.ReactNode; display?: string; editable?: boolean } = {},
+    extra: { editor?: React.ReactNode; display?: string; editable?: boolean; hint?: string; draft?: () => string } = {},
   ) => {
     if (!profile) return null;
     // Some answers are shown or hidden together: country, state and city with
     // the location, the date of birth with the age
     const visibilityKey = VISIBILITY_KEY[field] ?? field;
     const isHidden = (profile.hiddenFields ?? []).includes(visibilityKey);
+    // Help for answers people get stuck on: where to find it, or a first draft
+    const editorNote = (extra.hint || extra.draft) ? (
+      <>
+        {extra.hint && <p className="text-[11px] leading-snug text-gray-500 dark:text-gray-400 font-normal">{extra.hint}</p>}
+        {extra.draft && <DraftButton onClick={() => setEditValue(extra.draft!())} replacing={String(editValue ?? '').trim() !== ''} />}
+      </>
+    ) : undefined;
     return (
       <PropertyRow
         key={field}
@@ -295,6 +315,7 @@ const ProfileView: React.FC = () => {
         options={options}
         isHidden={isHidden}
         onToggleVisibility={() => handleToggleVisibility(visibilityKey)}
+        editorNote={editorNote}
       />
     );
   };
@@ -305,8 +326,10 @@ const ProfileView: React.FC = () => {
     label: string,
     list: { options?: string[]; groups?: OptionGroup[]; allowCustom?: boolean },
     display?: string,
+    hint?: string,
   ) => renderRow(field, label, undefined, 'select', [], {
     display,
+    hint,
     editor: (
       <ChoiceField
         value={String(editValue ?? '')}
@@ -378,48 +401,6 @@ const ProfileView: React.FC = () => {
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Information</h2>
             </div>
 
-            {/* About Me */}
-            <div className="mb-8 group">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xl" aria-hidden="true">✨</span>
-                <h3 className="font-bold text-gray-900 dark:text-white text-sm">About Me</h3>
-                <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300">Required</span>
-              </div>
-
-              {isEditingSummary ? (
-                <div className="bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg shadow-sm overflow-hidden ring-2 ring-blue-50 dark:ring-blue-900/10">
-                  <textarea
-                    value={summaryEditValue}
-                    onChange={(e) => setSummaryEditValue(e.target.value)}
-                    className="w-full p-4 text-sm leading-relaxed text-gray-800 dark:text-gray-200 bg-transparent outline-none resize-none min-h-[140px] font-sans"
-                    placeholder="Write a few sentences about yourself…"
-                    autoFocus
-                  />
-                  <div className="flex items-center justify-between bg-gray-50 dark:bg-zinc-800 px-3 py-2 border-t border-gray-100 dark:border-zinc-700">
-                    <span className="text-xs text-gray-500 dark:text-gray-400">{savingField === 'description' ? 'Saving…' : `${summaryEditValue.trim().length} characters (at least ${ABOUT_ME_MIN})`}</span>
-                    <div className="flex gap-2">
-                      <button onClick={() => setIsEditingSummary(false)} disabled={savingField === 'description'} className="text-xs font-medium text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-white px-3 py-1.5 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors">Cancel</button>
-                      <button onClick={handleSaveSummary} disabled={savingField === 'description'} className="text-xs font-bold bg-black dark:bg-white text-white dark:text-black px-4 py-1.5 rounded shadow-sm hover:opacity-90 transition-opacity disabled:opacity-60">Save</button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div
-                  className="relative p-5 rounded-lg border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/30 hover:bg-white dark:hover:bg-zinc-900 hover:border-gray-300 dark:hover:border-zinc-600 transition-all cursor-text group/summary"
-                  onClick={() => { setSummaryEditValue(profile.description || ''); setIsEditingSummary(true); }}
-                >
-                  <p className="text-sm leading-7 text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                    {profile.description || <span className="text-gray-500 dark:text-gray-400 italic">No summary yet. Click to add one.</span>}
-                  </p>
-                  <div className="absolute top-2 right-2 opacity-0 group-hover/summary:opacity-100 transition-all duration-200">
-                    <button className="flex items-center gap-1.5 bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-zinc-700 shadow-sm px-2 py-1 rounded text-xs font-medium hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors">
-                      <IconEdit /> Edit
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
             {/* === REQUIRED === */}
             <InfoSection title="Required details" id="section-required" badge="Every member gives these" badgeTone="required">
               {renderRow('profileCreatedFor', 'Profile created for', undefined, 'select', PROFILE_CREATED_FOR)}
@@ -449,6 +430,69 @@ const ProfileView: React.FC = () => {
               {renderChoice('occupation', 'Occupation', { groups: OCCUPATIONS, allowCustom: true })}
             </InfoSection>
 
+            {/* === ABOUT YOU (a reward section): About me first, what people read first === */}
+            <InfoSection title="About you" id="section-about" {...rewardBadge('about')}>
+              <div className="py-2 px-2" data-testid="about-me">
+                <div className="text-gray-500 dark:text-gray-400 text-sm mb-1.5">About me</div>
+                {isEditingSummary ? (
+                  <div className="bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg shadow-sm overflow-hidden ring-2 ring-blue-50 dark:ring-blue-900/10">
+                    <textarea
+                      value={summaryEditValue}
+                      onChange={(e) => setSummaryEditValue(e.target.value)}
+                      className="w-full p-4 text-sm leading-relaxed text-gray-800 dark:text-gray-200 bg-transparent outline-none resize-none min-h-[140px] font-sans"
+                      placeholder="A few sentences about you, your work, your family and what you're looking for…"
+                      aria-label="About me"
+                      autoFocus
+                    />
+                    <div className="flex flex-wrap items-center justify-between gap-2 bg-gray-50 dark:bg-zinc-800 px-3 py-2 border-t border-gray-100 dark:border-zinc-700">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <DraftButton onClick={() => setSummaryEditValue(draftAboutMe(profile))} replacing={summaryEditValue.trim() !== ''} />
+                        <span className="text-xs text-gray-500 dark:text-gray-400">{savingField === 'description' ? 'Saving…' : `${summaryEditValue.trim().length} characters (at least ${ABOUT_ME_MIN})`}</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => setIsEditingSummary(false)} disabled={savingField === 'description'} className="text-xs font-medium text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-white px-3 py-1.5 rounded hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors">Cancel</button>
+                        <button onClick={handleSaveSummary} disabled={savingField === 'description'} className="text-xs font-bold bg-black dark:bg-white text-white dark:text-black px-4 py-1.5 rounded shadow-sm hover:opacity-90 transition-opacity disabled:opacity-60">Save</button>
+                      </div>
+                    </div>
+                  </div>
+                ) : profile.description ? (
+                  <div
+                    className="relative p-4 rounded-lg border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/30 hover:bg-white dark:hover:bg-zinc-900 hover:border-gray-300 dark:hover:border-zinc-600 transition-all cursor-text group/summary"
+                    onClick={() => { setSummaryEditValue(profile.description || ''); setIsEditingSummary(true); }}
+                  >
+                    <p className="text-sm leading-7 text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{profile.description}</p>
+                    <div className="absolute top-2 right-2 opacity-0 group-hover/summary:opacity-100 [@media(hover:none)]:opacity-100 transition-all duration-200">
+                      <button className="flex items-center gap-1.5 bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-zinc-700 shadow-sm px-2 py-1 rounded text-xs font-medium hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors">
+                        <IconEdit /> Edit
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-lg border border-dashed border-gray-300 dark:border-zinc-700 flex flex-col gap-3">
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      A few sentences in your own words: what you do, your family, what you enjoy and who you hope to meet.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={() => { setSummaryEditValue(draftAboutMe(profile)); setIsEditingSummary(true); }}
+                        className="text-xs font-bold bg-black dark:bg-white text-white dark:text-black px-3 py-1.5 rounded-full hover:opacity-90 transition-opacity"
+                      >
+                        ✨ Write a draft for me
+                      </button>
+                      <button
+                        onClick={() => { setSummaryEditValue(''); setIsEditingSummary(true); }}
+                        className="text-xs font-medium border border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-gray-200 px-3 py-1.5 rounded-full hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors"
+                      >
+                        Write it myself
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              {renderRow('hometown', 'Grew up in')}
+              {renderRow('bodyType', 'Body type', undefined, 'select', BODY_TYPES, { hint: 'Optional, and never used to filter anyone out.' })}
+            </InfoSection>
+
             {/* === RELIGION & COMMUNITY (a reward section) === */}
             <InfoSection title="Religion & community" id="section-community" {...rewardBadge('community')}>
               {SECTS[profile.religion] && renderChoice('sect', SECT_LABEL[profile.religion], { options: SECTS[profile.religion] })}
@@ -456,14 +500,14 @@ const ProfileView: React.FC = () => {
                 options: [PREFER_NOT_TO_SAY, ...(CASTES[profile.religion] ?? [])], allowCustom: true,
               })}
               {renderChoice('subCaste', 'Sub-caste', { options: SUB_CASTES[profile.caste ?? ''] ?? [], allowCustom: true })}
-              {GOTRA_RELIGIONS.includes(profile.religion) && renderChoice('gotra', 'Gotra', { options: GOTRAS, allowCustom: true })}
+              {GOTRA_RELIGIONS.includes(profile.religion) && renderChoice('gotra', 'Gotra', { options: GOTRAS, allowCustom: true }, undefined, GOTRA_HINT)}
               {renderRow('openToOtherCommunities', 'Other communities', undefined, 'select', OPEN_TO_OTHER_COMMUNITIES)}
               {renderChips('languages', 'Languages', { options: LANGUAGES_SPOKEN })}
               {HOROSCOPE_RELIGIONS.includes(profile.religion) && (
                 <>
-                  {renderRow('manglik', 'Manglik', undefined, 'select', MANGLIK)}
-                  {renderRow('rashi', 'Rashi (moon sign)', undefined, 'select', RASHI)}
-                  {renderChoice('nakshatra', 'Nakshatra', { options: NAKSHATRA })}
+                  {renderRow('manglik', 'Manglik', undefined, 'select', MANGLIK, { hint: HOROSCOPE_HINT })}
+                  {renderRow('rashi', 'Rashi (moon sign)', undefined, 'select', RASHI, { hint: HOROSCOPE_HINT })}
+                  {renderChoice('nakshatra', 'Nakshatra', { options: NAKSHATRA }, undefined, HOROSCOPE_HINT)}
                   {renderRow('birthTime', 'Time of birth', undefined, 'text', [], {
                     display: formatBirthTime(profile.birthTime),
                     editor: (
@@ -497,7 +541,7 @@ const ProfileView: React.FC = () => {
             {/* === FAMILY (a reward section) === */}
             <InfoSection title="Family" id="section-family" {...rewardBadge('family')}>
               {renderRow('familyType', 'Family type', undefined, 'select', FAMILY_TYPE)}
-              {renderRow('familyStatus', 'Family status', undefined, 'select', FAMILY_STATUS)}
+              {renderRow('familyStatus', 'Family status', undefined, 'select', FAMILY_STATUS, { hint: FAMILY_STATUS_HINT })}
               {renderRow('familyValues', 'Family values', undefined, 'select', FAMILY_VALUES)}
               {renderRow('fatherOccupation', "Father's occupation", undefined, 'select', FATHER_OCCUPATION)}
               {renderRow('motherOccupation', "Mother's occupation", undefined, 'select', MOTHER_OCCUPATION)}
@@ -512,7 +556,10 @@ const ProfileView: React.FC = () => {
               {renderRow('familyLocation', 'Family lives in')}
               {renderRow('livingWithFamily', 'Lives with family', undefined, 'select', LIVING_WITH_FAMILY)}
               {renderRow('familyCloseness', 'Closeness to family', undefined, 'select', ['Very close', 'Close', 'Moderate', `We're not close`])}
-              {renderRow('aboutFamily', 'About my family', undefined, 'textarea')}
+              {renderRow('aboutFamily', 'About my family', undefined, 'textarea', [], {
+                draft: () => draftAboutFamily(profile),
+                hint: hasFamilyDetails(profile) ? undefined : 'Answer a few of the family questions above first, and the draft will say more.',
+              })}
             </InfoSection>
 
             {/* === LIFESTYLE (a reward section) === */}
@@ -530,69 +577,22 @@ const ProfileView: React.FC = () => {
               {renderRow('travelStyle', 'Travel style', undefined, 'select', ['Budget/Backpacking', 'Standard', 'Luxury', 'Adventure', 'Relaxing', 'Cultural'])}
             </InfoSection>
 
-            {/* === APPEARANCE (a reward section) === */}
-            <InfoSection title="Appearance" id="section-appearance" {...rewardBadge('appearance')}>
-              {renderRow('bodyType', 'Body type', undefined, 'select', ['Slim', 'Athletic', 'Average', 'Curvy', 'Plus Size', 'Muscular'])}
-              {renderRow('hairColor', 'Hair colour', undefined, 'select', ['Black', 'Brown', 'Blonde', 'Red', 'Gray', 'White', 'Dyed/Other'])}
-              {renderRow('hairType', 'Hair type', undefined, 'select', ['Straight', 'Wavy', 'Curly', 'Coily', 'Bald'])}
-              {renderRow('eyeColor', 'Eye colour', undefined, 'select', ['Brown', 'Blue', 'Green', 'Hazel', 'Gray', 'Amber', 'Other'])}
-              {renderRow('wearsGlasses', 'Wears glasses?', undefined, 'select', ['Yes', 'No', 'Sometimes'])}
-              {renderRow('hasTattoos', 'Tattoos?', undefined, 'select', ['Yes', 'No', 'A few small ones'])}
-              {renderRow('clothingStyle', 'Style', undefined, 'select', ['Casual', 'Formal', 'Streetwear', 'Vintage', 'Minimalist', 'Sporty', 'Bohemian', 'Preppy'])}
-            </InfoSection>
-
-            {/* === PLANS & PERSONALITY (a reward section) === */}
-            <InfoSection title="Plans & personality" id="section-plans" {...rewardBadge('plans')}>
+            {/* === PLANS & VALUES (a reward section) === */}
+            <InfoSection title="Plans & values" id="section-plans" {...rewardBadge('plans')}>
               {renderRow('marriageTimeline', 'Marriage timeline', undefined, 'select', ['ASAP', 'Within 6 months', 'Within 1 year', '1-2 years', '3-5 years', '5+ years', 'Not sure yet'])}
               {renderRow('familyPlans', 'Wants children?', undefined, 'select', ['Wants children', 'Open to children', 'Does not want children', 'Already have, want more', 'Already have, no more'])}
               {renderRow('settlingAbroad', 'Settling abroad', undefined, 'select', SETTLING_ABROAD)}
-              {renderRow('loveLanguage', 'Love language', undefined, 'select', ['Words of Affirmation', 'Acts of Service', 'Receiving Gifts', 'Quality Time', 'Physical Touch'])}
-              {renderRow('socialBattery', 'Social battery', undefined, 'select', ['Introvert', 'Ambivert', 'Extrovert', 'Social Butterfly', 'Homebody'])}
-              {renderRow('attachmentStyle', 'Attachment style', undefined, 'select', ['Secure', 'Anxious', 'Avoidant', 'Disorganized', `Don't know`])}
-              {renderRow('conflictResolution', 'Conflict style', undefined, 'select', ['Calm discussion', 'Needs space', 'Direct & assertive', 'Avoidant'])}
+              {renderRow('socialBattery', 'Introvert or extrovert?', undefined, 'select', ['Introvert', 'Ambivert', 'Extrovert', 'Social Butterfly', 'Homebody'])}
+              {renderRow('conflictResolution', 'When we disagree, I…', undefined, 'select', ['Calm discussion', 'Needs space', 'Direct & assertive', 'Avoidant'])}
               {renderRow('financialApproach', 'Money', undefined, 'select', ['Saver', 'Spender', 'Balanced', 'Investor'])}
-              {renderRow('futurePlans', '5-year vision', undefined, 'textarea')}
-              {renderRow('dreamHouseType', 'Dream home', undefined, 'select', ['Apartment in the city', 'Suburban house', 'Rural farm/cottage', 'Beach house', 'Travel & live nomadically', 'Off-grid'])}
+              {renderRow('futurePlans', 'The next five years', undefined, 'textarea')}
               {renderRow('pets', 'Pets', undefined, 'select', ['Has pets', 'No pets', 'Wants pets', 'Allergic'])}
             </InfoSection>
 
             {/* === MORE ABOUT YOU (optional, not counted) === */}
             <InfoSection title="More about you">
-              {renderRow('hometown', 'Grew up in')}
               {renderRow('disability', 'Disability', undefined, 'select', DISABILITY)}
               {renderRow('pronouns', 'Pronouns', undefined, 'select', ['He/Him', 'She/Her', 'They/Them', 'He/They', 'She/They', 'Other'])}
-              {renderRow('sexuality', 'Sexuality', undefined, 'select', ['Straight', 'Gay', 'Lesbian', 'Bisexual', 'Pansexual', 'Asexual', 'Queer', 'Other', 'Prefer not to say'])}
-              {renderRow('ethnicity', 'Ethnicity')}
-              {renderRow('race', 'Race', undefined, 'select', ['Asian', 'Black/African', 'Hispanic/Latino', 'Middle Eastern', 'Native American', 'Pacific Islander', 'South Asian', 'White/Caucasian', 'Mixed', 'Other'])}
-              {renderRow('nationalityCount', 'Number of nationalities', undefined, 'number')}
-              {renderRow('zodiac', 'Zodiac (sun sign)', undefined, 'select', ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'])}
-              {renderRow('politics', 'Politics', undefined, 'select', ['Liberal', 'Moderate', 'Conservative', 'Apolitical', 'Other'])}
-              {renderRow('facialHair', 'Facial hair', undefined, 'select', ['Clean shaven', 'Stubble', 'Beard', 'Moustache', 'Goatee', `Doesn't apply`])}
-              {renderRow('makeupRoutine', 'Makeup', undefined, 'select', ['None', 'Minimal', 'Daily', 'Special occasions only', `Doesn't apply`])}
-              {renderRow('dressesWell', 'Dresses well?', undefined, 'select', ['Yes', 'Sometimes', `I don't focus on it`])}
-              {renderRow('wearsLenses', 'Wears contact lenses?', undefined, 'select', ['Yes', 'No', 'Sometimes'])}
-              {renderRow('wearsJewelry', 'Wears jewelry?', undefined, 'select', ['Always', 'Sometimes', 'Rarely', 'Never'])}
-              {renderRow('bodyHair', 'Body hair', undefined, 'select', ['Natural', 'Trimmed', 'Removed', 'Prefer not to say'])}
-              {renderRow('hygiene', 'Hygiene', undefined, 'select', ['Very meticulous', 'Standard daily routine', 'Easygoing'])}
-              {renderRow('covidVaccine', 'COVID vaccine', undefined, 'select', ['Vaccinated', 'Not vaccinated', 'Prefer not to say'])}
-              {renderRow('bakingInterest', 'Baking', undefined, 'select', ['Love it', 'Occasionally', `Don't bake`])}
-              {renderRow('favoriteDrink', 'Favourite drink')}
-              {renderRow('shoppingPreference', 'Shopping', undefined, 'select', ['In-store', 'Online', 'Both', `I don't enjoy shopping`])}
-              {renderRow('isOrganised', 'Organisation', undefined, 'select', ['Very organised', 'Somewhat', 'Messy but functional', 'Chaotic'])}
-              {renderRow('snoring', 'Snoring', undefined, 'select', ['Never', 'Sometimes', 'Often', `I don't know`])}
-              {renderRow('drivesCar', 'Drives a car?', undefined, 'select', ['Yes', 'No', 'Sometimes'])}
-              {renderRow('hasDriversLicense', `Driver's licence`, undefined, 'select', ['Yes', 'No', 'Learner permit'])}
-              {renderRow('livingPreference', 'Living situation', undefined, 'select', ['Lives alone', 'With roommates', 'With family', 'With partner', 'Other'])}
-              {renderRow('phoneType', 'Phone', undefined, 'select', ['iPhone', 'Android', `Don't care`])}
-              {renderRow('nextTravelDestination', 'Next destination')}
-              {renderRow('musicGenre', 'Favourite music genre')}
-              {renderRow('therapyHistory', 'Therapy', undefined, 'select', ['Currently', 'In the past', 'Open to it', 'Not for me'])}
-              {renderRow('childhoodDescription', 'Childhood', undefined, 'textarea')}
-              {renderRow('familyHealthHistory', 'Family health history', undefined, 'textarea')}
-              {renderRow('criminalRecord', 'Criminal record', undefined, 'select', ['No', 'Minor offense', 'Yes — happy to explain'])}
-              {renderRow('interracialMarriage', 'Open to interracial marriage?', undefined, 'select', ['Yes', 'No', 'Prefer same race'])}
-              {renderRow('financialSplitting', 'Approach to splitting bills', undefined, 'select', ['50/50', 'Proportional to income', `One partner pays`, `It depends`])}
-              {renderRow('sexStyle', 'Sex style', undefined, 'select', ['Adventurous', 'Romantic', 'Vanilla', 'Reserved', 'Open to explore', 'Prefer not to say'])}
             </InfoSection>
 
             {/* === SOCIAL === */}
@@ -686,5 +686,17 @@ const ProfileView: React.FC = () => {
     </div>
   );
 };
+
+// "Write a draft for me" (lib/aboutDrafts.ts): a start from the member's own
+// answers, to edit before saving
+const DraftButton: React.FC<{ onClick: () => void; replacing: boolean }> = ({ onClick, replacing }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="self-start text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+  >
+    ✨ {replacing ? 'Start again from a draft' : 'Write a draft for me'}
+  </button>
+);
 
 export default ProfileView;

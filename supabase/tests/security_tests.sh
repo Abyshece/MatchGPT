@@ -560,5 +560,15 @@ check ALLOWED "N80 the daily job deletes what's past its time, and only that" se
   "holds=1 grievances=1 deletions=1"
 check BLOCKED "N81 member runs the daily deletion job" authenticated "$USER_X" "x@example.com" \
   "select public.run_legal_retention();" "permission denied"
+check ALLOWED "N82 the short sign-up's sections: About you first, About me from 30 characters, dropped answers don't count" authenticated "$USER_X" "x@example.com" \
+  "update public.profiles set description = 'Short one.', hometown = 'Nagpur', body_type = 'Prefer not to say',
+     love_language = 'Quality time', attachment_style = 'Secure', politics = 'Liberal', hair_color = 'Black' where id = '$USER_X';
+   select 'short=' || (select s ->> 'answered' from jsonb_array_elements(public.my_profile_sections() -> 'sections') s where s ->> 'id' = 'about')
+     || ' plans=' || (select s ->> 'answered' from jsonb_array_elements(public.my_profile_sections() -> 'sections') s where s ->> 'id' = 'plans');
+   update public.profiles set description = 'I teach maths at a school in Pune and love to cook.' where id = '$USER_X';
+   select 'long=' || (select (s ->> 'answered') || ' complete=' || (s ->> 'complete') from jsonb_array_elements(public.my_profile_sections() -> 'sections') s
+                       where s ->> 'id' = 'about')
+     || ' ids=' || (select string_agg(s ->> 'id', ',') from jsonb_array_elements(public.my_profile_sections() -> 'sections') s);" "short=2 plans=0
+long=3 complete=true ids=about,community,career,family,lifestyle,plans"
 echo
 if [[ $fails -eq 0 ]]; then echo "All checks passed."; else echo "$fails check(s) FAILED."; exit 1; fi

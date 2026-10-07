@@ -268,6 +268,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                 ['maritalStatus', 'Marital status'],
                 ['children', 'Children', formatChildren(c.children, answer('childrenCount'))],
                 ['height', 'Height'],
+                ['bodyType', 'Body type'],
                 ['dietaryPreferences', 'Diet'],
                 ['hometown', 'Grew up in'],
                 ['residentialStatus', 'Residential status'],
@@ -284,7 +285,6 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                 ['subCaste', 'Sub-caste'],
                 ['gotra', 'Gotra'],
                 ['openToOtherCommunities', 'Other communities'],
-                ['ethnicity', 'Ethnicity'],
               ]} />
 
               <Section answer={answer} title="Horoscope" rows={[
@@ -294,7 +294,6 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                 ['birthTime', 'Time of birth', formatBirthTime(c.birthTime)],
                 ['birthPlace', 'Place of birth'],
                 ['horoscopeMatch', 'Horoscope match'],
-                ['zodiac', 'Zodiac'],
               ]} />
 
               <Section answer={answer} title="Education & Career" rows={[
@@ -328,7 +327,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                 ['datingIntention', 'Intent'],
                 ['marriageTimeline', 'Marriage timeline'],
                 ['familyPlans', 'Family plans'],
-                ['loveLanguage', 'Love language'],
+                ['futurePlans', 'The next five years'],
               ]} />
 
               <Section answer={answer} title="Lifestyle" rows={[
@@ -336,25 +335,22 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                 ['smoking', 'Smoking'],
                 ['gymRoutine', 'Exercise'],
                 ['sleepSchedule', 'Sleep'],
-                ['livingPreference', 'Living'],
                 ['canCook', 'Cooking'],
+                ['pets', 'Pets'],
               ]} />
 
               <Section answer={answer} title="Personality" rows={[
-                ['socialBattery', 'Social battery'],
-                ['attachmentStyle', 'Attachment'],
-                ['conflictResolution', 'Conflict style'],
+                ['socialBattery', 'Introvert or extrovert'],
+                ['conflictResolution', 'When we disagree'],
                 ['financialApproach', 'Money'],
-                ['politics', 'Politics'],
               ]} />
 
               <Section answer={answer} title="More Interests" rows={[
                 ['hobbies', 'Hobbies'],
-                ['travelStyle', 'Travel'],
-                ['musicGenre', 'Music'],
+                ['lovesTravel', 'Loves travel'],
+                ['travelStyle', 'Travel style'],
                 ['sportsInterest', 'Sports'],
                 ['readingInterest', 'Reading'],
-                ['nextTravelDestination', 'Next trip'],
               ]} />
             </div>
           </div>

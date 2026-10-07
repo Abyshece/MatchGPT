@@ -1,24 +1,31 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { PageHeader, Card, Button } from '../NotionUI';
 import { IconUpload, IconCheck, IconChevronRight, IconChevronLeft, IconX } from '../../constants';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../lib/AuthContext';
 import { BACK, useBackHandler } from '../../lib/nativeApp';
+import { deletePhotoFile, uploadPhoto } from '../../lib/photoService';
 
-// Categorized photo slots — same idea as the original PhotoUpload component,
-// but wired up to upload to Supabase Storage instead of using URL.createObjectURL.
+// ============================================================================
+// Step 3 of sign-up: photos. One clear photo of the face is enough to start;
+// the other slots suggest what families like to see (a full-length photo, one
+// in traditional clothes…), and more can be added later in My Profile (up to
+// 12). Each photo is saved as soon as it's uploaded, so nothing is lost if
+// the app closes.
+// ============================================================================
+
 const PHOTO_SLOTS = [
-  { id: 'p1', category: 'The Basics', description: 'Front-Face Selfie',  tip: 'Good lighting, natural smile.' },
-  { id: 'p2', category: 'Lifestyle',  description: 'Adventurous Photo',  tip: 'Hiking, traveling, doing something active.' },
-  { id: 'p3', category: 'Empathy',    description: 'With an Animal',     tip: 'Shows kindness — pet or friendly encounter.' },
-  { id: 'p4', category: 'Style',      description: 'Best Outfit',         tip: 'Full body. Wear something you feel good in.' },
-  { id: 'p5', category: 'Social',     description: 'With Friends',        tip: 'You should be easy to identify in the photo.' },
-  { id: 'p6', category: 'Career',     description: 'Work Context',        tip: 'Workplace, on site, or professional attire.' },
+  { id: 'p1', category: 'Main photo',  description: 'Clear face photo',       tip: 'Facing the camera, in good light. No sunglasses.' },
+  { id: 'p2', category: 'Full length', description: 'Full-length photo',      tip: 'Standing, head to toe.' },
+  { id: 'p3', category: 'Traditional', description: 'Traditional or festive', tip: 'At a festival or a wedding, in traditional clothes.' },
+  { id: 'p4', category: 'Everyday',    description: 'Everyday you',           tip: 'A relaxed, natural photo.' },
+  { id: 'p5', category: 'Career',      description: 'At work or study',       tip: 'At work, on campus, or in work clothes.' },
+  { id: 'p6', category: 'Interests',   description: 'Doing what you love',    tip: 'A hobby, a sport or a trip.' },
 ];
+const MIN_PHOTOS = 1;
 
 interface UploadedPhoto {
   slotId: string;
-  storagePath: string;  // path inside the photos bucket
   publicUrl: string;
   previewUrl: string;
 }
@@ -29,107 +36,100 @@ interface StepPhotosProps {
 }
 
 const StepPhotos: React.FC<StepPhotosProps> = ({ onComplete, onBack }) => {
-  const { session, refreshProfile } = useAuth();
-  const [photos, setPhotos] = useState<Record<string, UploadedPhoto>>({});
+  const { session, profileRow, refreshProfile } = useAuth();
+  const saved = profileRow?.photo_urls ?? [];
+  // Photos already saved (coming back to this step) fill the slots in order;
+  // any beyond the six (added in My Profile) are kept as they are
+  const [photos, setPhotos] = useState<Record<string, UploadedPhoto>>(() => Object.fromEntries(
+    saved.slice(0, PHOTO_SLOTS.length).map((url, i) => [PHOTO_SLOTS[i].id, {
+      slotId: PHOTO_SLOTS[i].id, publicUrl: url, previewUrl: url,
+    }]),
+  ));
+  const extraUrls = useRef(saved.slice(PHOTO_SLOTS.length));
+  const latest = useRef(photos);
   const [uploadingSlot, setUploadingSlot] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const uploadedCount = Object.keys(photos).length;
-  const minRequired = 4;
-  const canContinue = uploadedCount >= minRequired;
+  const canContinue = uploadedCount >= MIN_PHOTOS && !uploadingSlot;
+  const forSomeoneElse = (profileRow?.profile_created_for ?? 'Myself') !== 'Myself';
 
-  // Android back button: back to step 1
-  useBackHandler(BACK.PAGE, () => { onBack(); return true; });
+  // Android back button: back to step 2
+  useBackHandler(BACK.PAGE, () => { if (!isSaving) onBack(); return true; });
+
+  // The profile's photos, in slot order (the face photo first)
+  const save = async (next: Record<string, UploadedPhoto>) => {
+    if (!session?.user.id) return 'Not signed in.';
+    const urls = [
+      ...PHOTO_SLOTS.map((s) => next[s.id]?.publicUrl).filter((u): u is string => Boolean(u)),
+      ...extraUrls.current,
+    ];
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ photo_urls: urls })
+      .eq('id', session.user.id);
+    return updateError?.message ?? null;
+  };
+
+  const change = async (next: Record<string, UploadedPhoto>) => {
+    latest.current = next;
+    setPhotos(next);
+    const saveError = await save(next);
+    if (saveError) setError(saveError);
+    return !saveError;
+  };
 
   const handleFileChange = async (slotId: string, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const input = e.target;
+    const file = input.files?.[0];
+    // reset the input so choosing the same file again fires onChange again
+    input.value = '';
     if (!file) return;
     if (!session?.user.id) { setError('Not signed in.'); return; }
 
-    if (file.size > 8 * 1024 * 1024) {
-      setError('Photo must be under 8MB.');
-      return;
-    }
-    if (!file.type.startsWith('image/')) {
-      setError('That doesn\'t look like an image file.');
-      return;
-    }
-
     setError(null);
     setUploadingSlot(slotId);
-
-    // Storage path: <user_id>/<slotId>_<timestamp>.<ext>
-    // Folder = user id so RLS policy lets the user write here.
-    const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-    const path = `${session.user.id}/${slotId}_${Date.now()}.${ext}`;
-
-    // If this slot was already uploaded, delete the old file first
-    const previous = photos[slotId];
-    if (previous) {
-      await supabase.storage.from('photos').remove([previous.storagePath]);
-    }
-
-    const { error: uploadError } = await supabase.storage
-      .from('photos')
-      .upload(path, file, { upsert: false, contentType: file.type });
-
-    if (uploadError) {
-      setError(uploadError.message);
+    // Stored as <user id>/<slot>_<time>.<ext>: the folder named for the user
+    // is what lets them write there
+    const upload = await uploadPhoto(session.user.id, file, slotId);
+    if (upload.error || !upload.url) {
+      setError(upload.error ?? 'The photo could not be uploaded.');
       setUploadingSlot(null);
       return;
     }
 
-    const { data: urlData } = supabase.storage.from('photos').getPublicUrl(path);
-    const publicUrl = urlData.publicUrl;
-
-    setPhotos(prev => ({
-      ...prev,
-      [slotId]: {
-        slotId,
-        storagePath: path,
-        publicUrl,
-        previewUrl: URL.createObjectURL(file),
-      },
-    }));
+    const previous = latest.current[slotId];
+    const saveOk = await change({
+      ...latest.current,
+      [slotId]: { slotId, publicUrl: upload.url, previewUrl: URL.createObjectURL(file) },
+    });
     setUploadingSlot(null);
-
-    // reset the input so re-selecting the same file fires onChange again
-    e.target.value = '';
+    // The photo it replaced, once the profile no longer points at it
+    if (saveOk && previous) await deletePhotoFile(previous.publicUrl);
   };
 
   const handleRemove = async (slotId: string) => {
-    const photo = photos[slotId];
+    const photo = latest.current[slotId];
     if (!photo) return;
-    await supabase.storage.from('photos').remove([photo.storagePath]);
-    setPhotos(prev => {
-      const next = { ...prev };
-      delete next[slotId];
-      return next;
-    });
+    setError(null);
+    const next = { ...latest.current };
+    delete next[slotId];
+    const saveOk = await change(next);
+    if (saveOk) await deletePhotoFile(photo.publicUrl);
   };
 
   const handleContinue = async () => {
-    if (!session?.user.id) { setError('Not signed in.'); return; }
     if (!canContinue) return;
-
-    // Save the public URLs in profile order. The first slot (selfie) goes first.
-    const orderedUrls = PHOTO_SLOTS
-      .map(s => photos[s.id]?.publicUrl)
-      .filter((u): u is string => Boolean(u));
-
     setIsSaving(true);
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({ photo_urls: orderedUrls })
-      .eq('id', session.user.id);
-    setIsSaving(false);
-
-    if (updateError) {
-      setError(updateError.message);
+    const saveError = await save(latest.current);
+    if (saveError) {
+      setIsSaving(false);
+      setError(saveError);
       return;
     }
     await refreshProfile();
+    setIsSaving(false);
     onComplete();
   };
 
@@ -137,9 +137,11 @@ const StepPhotos: React.FC<StepPhotosProps> = ({ onComplete, onBack }) => {
     <div className="min-h-screen flex flex-col bg-white dark:bg-[#191919] animate-fade-in">
       <div className="flex-none flex items-center p-4 border-b border-gray-100 dark:border-zinc-800 bg-white dark:bg-[#191919] z-20">
         <button
+          type="button"
           onClick={onBack}
           className="mr-3 p-2 -ml-2 text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
           title="Back"
+          aria-label="Back"
         >
           <IconChevronLeft />
         </button>
@@ -149,10 +151,12 @@ const StepPhotos: React.FC<StepPhotosProps> = ({ onComplete, onBack }) => {
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-5xl mx-auto py-6 px-4 h-full flex flex-col">
           <div className="flex-none mb-4">
-            <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">Step 2 of 3</div>
-            <PageHeader title="Add your photos" />
+            <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">Step 3 of 3</div>
+            <PageHeader title={forSomeoneElse ? 'Add their photos' : 'Add your photos'} />
             <div className="text-gray-600 dark:text-gray-300 text-sm -mt-6">
-              Upload at least <strong>{minRequired} photos</strong>. Each slot has a category to help your matches see different sides of you.
+              One clear photo of {forSomeoneElse ? 'their' : 'your'} face is enough to start.
+              More help families get to know {forSomeoneElse ? 'them' : 'you'}: add them now or later in My Profile.
+              {' '}Only {forSomeoneElse ? 'them' : 'you'} in each photo, please.
             </div>
           </div>
 
@@ -183,9 +187,11 @@ const StepPhotos: React.FC<StepPhotosProps> = ({ onComplete, onBack }) => {
                       <>
                         <img src={photo.previewUrl} alt={slot.description} className="w-full h-full object-cover" />
                         <button
+                          type="button"
                           onClick={() => handleRemove(slot.id)}
                           className="absolute top-1 right-1 p-1 bg-black/60 hover:bg-black/80 text-white rounded"
                           title="Remove"
+                          aria-label={`Remove ${slot.description.toLowerCase()}`}
                         >
                           <div className="transform scale-75"><IconX /></div>
                         </button>
@@ -207,6 +213,8 @@ const StepPhotos: React.FC<StepPhotosProps> = ({ onComplete, onBack }) => {
                         type="file"
                         accept="image/*"
                         className="absolute inset-0 opacity-0 cursor-pointer"
+                        aria-label={`Upload ${slot.description.toLowerCase()}`}
+                        disabled={!!uploadingSlot}
                         onChange={(e) => handleFileChange(slot.id, e)}
                       />
                     )}
@@ -218,8 +226,8 @@ const StepPhotos: React.FC<StepPhotosProps> = ({ onComplete, onBack }) => {
 
           <div className="mt-6 pt-6 border-t border-gray-100 dark:border-zinc-800 flex justify-between items-center gap-4 flex-none pb-6">
             <div className="min-w-0 text-sm text-gray-500 dark:text-gray-400">
-              {uploadedCount}/{PHOTO_SLOTS.length} uploaded
-              {!canContinue && <span className="ml-2 text-amber-600 dark:text-amber-400">— need {minRequired - uploadedCount} more</span>}
+              {uploadedCount}/{PHOTO_SLOTS.length} added
+              {uploadedCount < MIN_PHOTOS && <span className="ml-2 text-amber-600 dark:text-amber-400">— add a face photo to continue</span>}
             </div>
             <Button onClick={handleContinue} disabled={!canContinue || isSaving} className="flex-none h-11 px-6 text-sm font-bold shadow-md">
               {isSaving ? 'Saving…' : 'Continue'} <IconChevronRight />

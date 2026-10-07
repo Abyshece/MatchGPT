@@ -1,14 +1,16 @@
 // ============================================================================
 // Required details, and free searches for filling in the profile
 //
-// Required: what every member gives before using the app (asked at sign-up;
+// Required: what every member gives before using the app, kept to what
+// families judge a match on first (asked at sign-up in about two minutes;
 // members who joined before are asked for what's missing, RequiredDetails).
 //
-// Sections: the optional answers come in six sections, and each one a member
-// completes (about 70% of its answers given) adds one free AI search a day:
-// 3 a day plus up to 6. The database decides (profile_sections() in
-// supabase/migrations/…_phase10_profile_sections.sql) and keeps the count in
-// profiles.search_bonus; this file reads it for My Profile.
+// Sections: everything else is optional and comes in six sections in My
+// Profile, and each one a member completes (about 70% of its answers given)
+// adds one free AI search a day: 3 a day plus up to 6. The database decides
+// (profile_sections(), latest in supabase/migrations/…_short_sign_up.sql) and
+// keeps the count in profiles.search_bonus; this file reads it for My Profile
+// and the pop-up that offers it (ProfileRewardsPopup).
 // ============================================================================
 
 import { supabase } from './supabase';
@@ -20,7 +22,7 @@ export const ABOUT_ME_MIN = 30;
 export type RequiredKey =
   | 'profileCreatedFor' | 'name' | 'dateOfBirth' | 'gender' | 'interestedIn'
   | 'maritalStatus' | 'height' | 'country' | 'state' | 'city' | 'religion' | 'motherTongue'
-  | 'educationLevel' | 'occupation' | 'description';
+  | 'educationLevel' | 'occupation';
 
 export const REQUIRED_LABELS: Record<RequiredKey, string> = {
   profileCreatedFor: 'Profile created for',
@@ -37,7 +39,6 @@ export const REQUIRED_LABELS: Record<RequiredKey, string> = {
   motherTongue: 'Mother tongue',
   educationLevel: 'Highest qualification',
   occupation: 'Occupation',
-  description: 'About me',
 };
 
 const given = (v: unknown) => typeof v === 'string' ? v.trim() !== '' && v !== 'Not specified' : v !== undefined && v !== null;
@@ -46,18 +47,17 @@ const given = (v: unknown) => typeof v === 'string' ? v.trim() !== '' && v !== '
 export function missingRequired(profile: UserProfile): RequiredKey[] {
   const keys: RequiredKey[] = [
     'profileCreatedFor', 'name', 'dateOfBirth', 'gender', 'interestedIn', 'maritalStatus',
-    'height', 'country', 'state', 'city', 'religion', 'motherTongue', 'educationLevel', 'occupation', 'description',
+    'height', 'country', 'state', 'city', 'religion', 'motherTongue', 'educationLevel', 'occupation',
   ];
   return keys.filter((key) => {
     if (key === 'state') return (profile.country ?? '') === 'India' && !given(profile.state);
-    if (key === 'description') return (profile.description ?? '').trim().length < ABOUT_ME_MIN;
     return !given(profile[key]);
   });
 }
 
 // ---- Sections -------------------------------------------------------------------------------
 
-export type SectionId = 'community' | 'career' | 'family' | 'lifestyle' | 'appearance' | 'plans';
+export type SectionId = 'community' | 'career' | 'family' | 'lifestyle' | 'about' | 'plans';
 
 export interface ProfileSection {
   id: SectionId;
@@ -98,14 +98,53 @@ export const SECTION_FIELD_LABELS: Record<string, string> = {
   dietary_preferences: 'Diet', drinking: 'Drinking', smoking: 'Smoking', gym_routine: 'Exercise',
   sleep_schedule: 'Sleep schedule', can_cook: 'Cooking', hobbies: 'Hobbies', reading_interest: 'Reading',
   sports_interest: 'Sports', loves_travel: 'Travel', travel_style: 'Travel style',
-  body_type: 'Body type', hair_color: 'Hair colour', hair_type: 'Hair type', eye_color: 'Eye colour',
-  wears_glasses: 'Glasses', has_tattoos: 'Tattoos', clothing_style: 'Style',
+  description: 'About me', hometown: 'Grew up in', body_type: 'Body type',
   marriage_timeline: 'Marriage timeline', family_plans: 'Children', settling_abroad: 'Settling abroad',
-  love_language: 'Love language', social_battery: 'Social battery', attachment_style: 'Attachment style',
-  conflict_resolution: 'Conflict style', financial_approach: 'Money', future_plans: '5-year vision',
-  dream_house_type: 'Dream home', pets: 'Pets',
+  social_battery: 'Introvert or extrovert', conflict_resolution: 'Disagreements', financial_approach: 'Money',
+  future_plans: 'Next five years', pets: 'Pets',
 };
+
+// Answers you type take longer than a tap: rough seconds each, for the time
+// a section takes (sectionMinutes)
+const TYPED_SECONDS: Record<string, number> = {
+  description: 120, about_family: 75, future_plans: 60,
+  university: 15, job_title: 15, work: 15, family_location: 15, birth_place: 15, hometown: 15, birth_time: 15,
+};
+const TAP_SECONDS = 8;
+
+/** About how long the answers still needed to complete a section take, in whole minutes (0 when it's complete). */
+export function sectionMinutes(section: ProfileSection): number {
+  const left = Math.max(0, section.needed - section.answered);
+  if (!left) return 0;
+  // The quickest answers first: what someone in a hurry would give
+  const seconds = section.fields.filter((f) => !f.answered)
+    .map((f) => TYPED_SECONDS[f.key] ?? TAP_SECONDS)
+    .sort((a, b) => a - b)
+    .slice(0, left)
+    .reduce((sum, s) => sum + s, 0);
+  return Math.max(1, Math.ceil(seconds / 60));
+}
 
 /** The answers still to give in a section, by name. */
 export const unansweredLabels = (section: ProfileSection): string[] =>
   section.fields.filter((f) => !f.answered).map((f) => SECTION_FIELD_LABELS[f.key] ?? f.key);
+
+// ---- The pop-up that offers them (ProfileRewardsPopup) ----------------------------------------
+// Shown on the first visit after sign-up, then at most every few days until
+// every section is complete. When it last showed is kept with the profile
+// (profiles.profile_nudged_at), so it doesn't come back on another device.
+
+const NUDGE_EVERY_DAYS = 3;
+const nudgedThisVisit = new Set<string>();   // until the profile is read again
+
+/** Whether it's time to show the pop-up again. */
+export function profileNudgeDue(userId: string, nudgedAt: string | null | undefined, now = Date.now()): boolean {
+  if (nudgedThisVisit.has(userId)) return false;
+  return !nudgedAt || now - Date.parse(nudgedAt) >= NUDGE_EVERY_DAYS * 24 * 60 * 60 * 1000;
+}
+
+/** The pop-up showed: not again for a few days. */
+export async function markProfileNudged(userId: string): Promise<void> {
+  nudgedThisVisit.add(userId);
+  await supabase.from('profiles').update({ profile_nudged_at: new Date().toISOString() }).eq('id', userId);
+}
