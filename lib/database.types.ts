@@ -1752,6 +1752,31 @@ export type Database = {
         Args: { decision: string; notes: string; request_id: string }
         Returns: undefined
       }
+      admin_correct_date_of_birth: {
+        Args: { new_date_of_birth: string; note: string; target_id: string }
+        Returns: undefined
+      }
+      admin_find_users: {
+        Args: { p_limit?: number; p_query?: string }
+        Returns: {
+          account_created: string
+          age: number
+          ban_reason: string
+          banned_at: string
+          daily_like_count: number
+          daily_search_count: number
+          date_of_birth: string
+          email: string
+          gender: string
+          id: string
+          is_banned: boolean
+          is_paused: boolean
+          is_verified: boolean
+          location: string
+          name: string
+          subscription_tier: string
+        }[]
+      }
       admin_search_users: {
         Args: { p_limit?: number; p_query?: string }
         Returns: {

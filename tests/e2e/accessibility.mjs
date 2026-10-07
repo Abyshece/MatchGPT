@@ -5,7 +5,8 @@
 // VITE_MEMBERS_ON_WEB=true), in light and dark. Each screen must have no
 // serious or critical problems; moderate and minor ones are listed.
 //   - website: home, Help & Support, Delete account, Terms, admin sign-in,
-//     the admin panel, its Errors tab (with an error open) and its App Preview tab
+//     the admin panel, its Complaints and Users tabs, the date-of-birth pop-up,
+//     its Errors tab (with an error open) and its App Preview tab
 //   - app: the landing and sign-in screens; signed in (an onboarded account,
 //     password TestPass!2026): the free-searches pop-up, Find Match with results, filters, a profile,
 //     Likes You, Matches and a chat, Standouts, My Profile, Settings,
@@ -89,6 +90,13 @@ try {
     await page.getByTestId('admin-grievances').waitFor({ timeout: 15000 });
     await page.waitForTimeout(1000);
     await audit(page, `admin complaints (${scheme})`);
+    await page.getByRole('button', { name: /^users$/i }).click();
+    await page.getByRole('button', { name: 'Date of birth' }).first().waitFor({ timeout: 15000 });
+    await audit(page, `admin users (${scheme})`);
+    await page.getByRole('button', { name: 'Date of birth' }).first().click();
+    await page.getByRole('dialog').waitFor({ timeout: 5000 });
+    await audit(page, `admin date of birth (${scheme})`);
+    await page.getByRole('dialog').getByRole('button', { name: 'Cancel' }).click();
     await page.getByRole('button', { name: /^errors$/i }).click();
     await page.getByTestId('admin-error').first().waitFor({ timeout: 15000 });
     await page.getByTestId('admin-error').first().getByRole('button').first().click();
