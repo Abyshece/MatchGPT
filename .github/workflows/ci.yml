@@ -22,6 +22,8 @@ jobs:
       - run: npx tsc --noEmit
       - run: npm run lint
       - run: npm run build
+      # The build scripts' own tests (scripts/*.test.mjs)
+      - run: node --test scripts/*.test.mjs
 
   functions:
     name: Server unit tests

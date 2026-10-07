@@ -846,6 +846,11 @@ Migrations `20261004170828_phase13_rls_performance` and `20261004174515_phase13_
 - [x] Each TestFlight run's summary says whether Continue with Google and notifications are in that
   build; the iPhone simulator screenshots show Google once `VITE_GOOGLE_IOS_CLIENT_ID` is set
 - [x] The "Offline" label on match cards is readable in dark mode
+- [x] TestFlight builds reach the testers by themselves: after the upload, the workflow waits for Apple
+  to process the build, then adds it to the internal tester groups without automatic distribution,
+  with the change as "What to Test" (`scripts/testflight-testers.mjs`, tested against a stand-in for
+  Apple's API in CI)
+- [x] The iPhone simulator screenshots wait longer for Maestro on slow GitHub Macs (all six screens again)
 
 ---
 

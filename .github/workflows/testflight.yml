@@ -7,7 +7,10 @@
 #      certificate, through an App Store Connect API key: no certificate or
 #      profile files to look after. The entitlements (notifications, Sign in
 #      with Apple) are checked before anything is uploaded.
-#   3. Uploads it. It shows in App Store Connect → TestFlight 10–30 minutes later.
+#   3. Uploads it. Apple then processes it, which takes 10–30 minutes.
+#   4. Waits for that, then gives the build to the internal tester groups that
+#      don't get every build by themselves, with the commit as "What to Test"
+#      (scripts/testflight-testers.mjs, on a Linux machine).
 #
 # Runs by hand (Actions → iPhone TestFlight → Run workflow) and when the app
 # changes on main. Needs these repository secrets (Settings → Secrets and
@@ -56,16 +59,19 @@ defaults:
   run:
     shell: bash
 
-# One upload at a time; a newer one waits rather than stopping one half-way
-concurrency:
-  group: testflight-${{ github.ref }}
-  cancel-in-progress: false
-
 jobs:
   testflight:
     name: Build, sign and upload to TestFlight
     runs-on: macos-26
     timeout-minutes: 60
+    # One upload at a time; a newer one waits rather than stopping one half-way
+    # (the wait for Apple below doesn't hold the next one up)
+    concurrency:
+      group: testflight-${{ github.ref }}
+      cancel-in-progress: false
+    outputs:
+      upload: ${{ steps.mode.outputs.upload }}
+      build: ${{ steps.mode.outputs.build }}
     env:
       ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
       ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
@@ -206,3 +212,27 @@ jobs:
               echo "- Notifications: not in this build (the FIREBASE_IOS_CONFIG secret isn't set)"
             fi
           } >> "$GITHUB_STEP_SUMMARY"
+
+  # Apple processes every upload before TestFlight offers it. An internal
+  # group made without "automatic distribution" then only gets the build once
+  # it's added by hand: this waits for Apple and adds it.
+  testers:
+    name: Give the build to the testers
+    needs: testflight
+    if: needs.testflight.outputs.upload == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Wait for Apple, then add the build to the tester groups
+        run: node scripts/testflight-testers.mjs
+        env:
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_KEY: ${{ secrets.APP_STORE_CONNECT_KEY }}
+          BUNDLE_ID: com.shaadi24.app
+          BUILD: ${{ needs.testflight.outputs.build }}
+          WHATS_NEW: ${{ github.event.head_commit.message }}
