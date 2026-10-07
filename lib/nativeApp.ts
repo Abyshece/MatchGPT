@@ -112,14 +112,17 @@ export function setNativeTheme(dark: boolean): void {
 export function startNativeApp(): void {
   if (!isNativeApp()) return;
   document.documentElement.classList.add('native-app');
-  if (Capacitor.getPlatform() === 'ios') {
-    // The page fills an iPhone's screen, under the notch (or Dynamic Island)
-    // and the home bar. viewport-fit=cover makes the browser report their
-    // sizes as env(safe-area-inset-*), which index.css keeps content clear of.
-    document.querySelector('meta[name="viewport"]')
-      ?.setAttribute('content', 'width=device-width, initial-scale=1.0, viewport-fit=cover');
-    document.documentElement.classList.add('native-ios');
-  }
+  const ios = Capacitor.getPlatform() === 'ios';
+  // An app doesn't zoom: without a maximum scale, an iPhone zooms in on every
+  // text box with type under 16px (sign-in, search, chat) and stays zoomed,
+  // and a pinch zooms the whole app. The website never runs this, so it keeps
+  // zooming for anyone who needs larger text.
+  // On iPhones the page also fills the screen, under the notch (or Dynamic
+  // Island) and the home bar: viewport-fit=cover makes the browser report
+  // their sizes as env(safe-area-inset-*), which index.css keeps content clear of.
+  document.querySelector('meta[name="viewport"]')?.setAttribute('content',
+    `width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no${ios ? ', viewport-fit=cover' : ''}`);
+  if (ios) document.documentElement.classList.add('native-ios');
   App.addListener('backButton', () => { void onBackButton(); });
   // Android can repaint the bars itself (the phone switching to dark mode,
   // say); put the app's colours back when it returns to the front.
