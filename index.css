@@ -65,3 +65,7 @@ html.native-ios .max-h-\[95vh\] {
     @apply bg-white/25 backdrop-blur-[6px] dark:bg-black/25;
   }
 }
+
+/* A scroll area without a visible scrollbar (the Find Match start screen) */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
