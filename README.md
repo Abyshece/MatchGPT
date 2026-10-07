@@ -170,7 +170,8 @@ alerts for new reports and verification requests, on Android in a channel of the
   (`components/LandingView.tsx`). Each shows once its provider is on in Supabase (Authentication →
   Sign In / Providers).
 - Android uses the Google client Supabase already has. iPhones need their own client,
-  `VITE_GOOGLE_IOS_CLIENT_ID` in `.env.production.local`. The iOS build adds its URL scheme to
+  `VITE_GOOGLE_IOS_CLIENT_ID` in `.env.production.local`, and ask Google for a token made out to the
+  web client, so Supabase accepts it as it does Android's. The iOS build adds its URL scheme to
   `Info.plist` itself (`scripts/ios-google-sign-in.mjs`).
 - Email sign-in always works, and "Forgot password" emails a code to type into the app.
 

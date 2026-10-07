@@ -15,7 +15,8 @@
 //    token kept for deleting the account; closing Apple's sheet; Apple off in
 //    Supabase; Apple off in Supabase → no buttons; with an iOS client ID
 //    (BASE_IOS_GOOGLE, a build with VITE_GOOGLE_IOS_CLIENT_ID): Apple then
-//    Google, and Google's sign-in uses the iOS client
+//    Google, and Google's sign-in uses the iOS client and asks for a token
+//    made out to the web client (the one Supabase checks)
 //  The website: none of these buttons
 //  They're on the welcome screen (LandingView); its email button opens the
 //  sign-in popup, which doesn't repeat them
@@ -324,6 +325,8 @@ try {
   const both = called(phone, 'initialize')[0]?.options || {};
   check(both.google?.iOSClientId === IOS_CLIENT_ID && both.apple && !both.google?.webClientId,
     `the plugin is set up with the iOS client and Apple (${JSON.stringify(both)})`);
+  check(both.google?.iOSServerClientId === WEB_CLIENT_ID,
+    'Google\'s token is made out to the web client, the one Supabase checks');
   check(sentRight(phone, 'google'), 'Supabase got the ID token and nonce');
   await ctx.close();
 

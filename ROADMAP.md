@@ -771,7 +771,7 @@ Migration `20261004105040_phase13_sign_in_with_apple` (applied live); new functi
 - [x] No Facebook SDK or advertising ID in either app (the plugin leaves the unused providers out)
 - [x] Privacy Policy `privacy-v7-2026-10-04`: what Google and Apple tell us at sign-in, Apple's private
   relay addresses, the Apple token; "Download my data" says since when one is kept (not the token)
-- [x] Tests: `tests/e2e/app-social-signin.mjs` (30 checks, both phones), `tests/e2e/apple-sign-in.mjs`
+- [x] Tests: `tests/e2e/app-social-signin.mjs` (33 checks, both phones), `tests/e2e/apple-sign-in.mjs`
   (27 checks, server, with an Apple stand-in in `store-standin.cjs`), 3 unit tests
   (`_shared/appleSignIn_test.ts`), and the Android, iPhone and store tests again
 - [ ] **Owner, Google** (Google Cloud, the project of the web client Supabase already uses,
@@ -787,7 +787,9 @@ Migration `20261004105040_phase13_sign_in_with_apple` (applied live); new functi
      ID in `.env.production.local` as `VITE_GOOGLE_IOS_CLIENT_ID=…`, and in Supabase → Authentication →
      Sign In / Providers → Google → Client IDs add it after the web client:
      `1095396009529-7cqo7gfh8s160u4qrk6i6an6726r7lde.apps.googleusercontent.com,<iOS client ID>`.
-     `npm run build:ios` then adds its URL scheme to the app by itself
+     `npm run build:ios` then adds its URL scheme to the app by itself. Since 2026-10-07 the iPhone
+     app asks Google for a token made out to the web client, so it signs in even without the iOS
+     client in that list (TestFlight builds before then need it there)
 - [ ] **Owner, Apple**:
   1. Apple Developer → Identifiers → `com.shaadi24.app` → tick **Sign in with Apple** (Xcode's
      automatic signing does this too: the project already has the entitlement)
