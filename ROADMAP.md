@@ -562,8 +562,8 @@ research, with sources: [docs/research/profile-questions.md](docs/research/profi
 - [x] Checked: 2 new search unit tests (60 in all), a new database check (136 in all), the sign-up browser
   test rewritten for the three steps, the pop-up and the About me draft, the India-profile, content-filter
   and reset tests updated, the full browser run (28 suites) and the accessibility check (50 screens, the
-  pop-up among them) passed. Migration `20261007173707_short_sign_up` is applied live; the `search`
-  function goes live with the merge.
+  pop-up among them) passed. Migration `20261007173707_short_sign_up` is applied live and `search` is
+  redeployed.
 
 **Still to do**
 
