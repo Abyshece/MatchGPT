@@ -123,7 +123,7 @@ typed answer 15, About me two minutes).
 | Section | Questions | About |
 |---|---|---|
 | About you | About me, where you grew up, body type ("Prefer not to say" counts) | 3 min |
-| Religion & community | Caste, sub-caste, sect, gotra, other communities, languages; Manglik, rashi, nakshatra, time and place of birth and horoscope match for Hindu, Jain, Sikh and Buddhist members | 2 min |
+| Religion & community | Caste, sub-caste, sect, gotra, other communities, languages; Manglik, rashi, nakshatra, time and place of birth and horoscope match for Hindu, Jain, Sikh and Buddhist members | 1 min |
 | Education & career | Degree, college, employed in, job title, workplace, work style, annual income | 1 min |
 | Family | Family type, status and values, parents' work, brothers and sisters, where the family lives, living with them, closeness, about my family | 2 min |
 | Lifestyle | Diet, drinking, smoking, exercise, sleep, cooking, hobbies, reading, sports, travel | 2 min |
