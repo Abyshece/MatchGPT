@@ -11,7 +11,8 @@
 # backend when the repository has the secrets VITE_SUPABASE_URL and
 # VITE_SUPABASE_ANON_KEY (Settings → Secrets and variables → Actions; the
 # values in .env.production.local), or when a run by hand is given them.
-# Without them it opens, but can't sign in.
+# Without them it opens, but can't sign in. With VITE_GOOGLE_IOS_CLIENT_ID too,
+# the welcome screen offers Google (next to Apple, once Supabase has Apple on).
 name: iPhone app
 
 on:
@@ -62,6 +63,8 @@ jobs:
     env:
       VITE_SUPABASE_URL: ${{ inputs.supabase_url || secrets.VITE_SUPABASE_URL }}
       VITE_SUPABASE_ANON_KEY: ${{ inputs.supabase_anon_key || secrets.VITE_SUPABASE_ANON_KEY }}
+      # Optional, as for TestFlight: "Continue with Google" on the welcome screen
+      VITE_GOOGLE_IOS_CLIENT_ID: ${{ secrets.VITE_GOOGLE_IOS_CLIENT_ID }}
       MAESTRO_VERSION: 2.11.0
     steps:
       - uses: actions/checkout@v4
@@ -121,4 +124,5 @@ jobs:
             echo "- **iPhone-screenshots**: what the app looks like on $(cat screenshots/device.txt 2>/dev/null || echo 'an iPhone simulator'), light and dark."
             echo "- **Shaadi24-iPhone-simulator.zip**: upload it at https://appetize.io/upload to use the app in a browser."
             [ -n "$VITE_SUPABASE_URL" ] || echo "- Built without the backend secrets, so it can't sign in (see the top of .github/workflows/ios.yml)."
+            [ -n "$VITE_GOOGLE_IOS_CLIENT_ID" ] || echo "- Built without the VITE_GOOGLE_IOS_CLIENT_ID secret, so it doesn't offer Google sign-in."
           } >> "$GITHUB_STEP_SUMMARY"

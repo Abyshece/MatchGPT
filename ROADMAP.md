@@ -832,6 +832,21 @@ Migrations `20261004170828_phase13_rls_performance` and `20261004174515_phase13_
 - [ ] **Owner: the launch checklist** in [docs/store/README.md](docs/store/README.md), from step 1. It
   gathers every owner step of this phase in order (the ones above in this section included)
 
+### The apps' welcome screen (done 2026-10-07)
+
+- [x] A first screen like ChatGPT's: Shaadi24 and "Find your life partner by personality, not just
+  biodata." in the middle; at the bottom, big rounded buttons: Continue with Apple (iPhones), Continue
+  with Google, and Sign in or create account (email, in the popup as before); under them, that
+  Shaadi24 is for marriage only, and Terms, Privacy, Safety and Grievances. The search box and example
+  searches are gone from it: nothing can be searched before signing in, and it fits an iPhone without
+  scrolling
+- [x] Apple and Google moved from the sign-in popup to the welcome screen, one tap away; the popup is
+  for email
+- [x] The apps no longer zoom in on a tapped text box (2026-10-07)
+- [x] Each TestFlight run's summary says whether Continue with Google and notifications are in that
+  build; the iPhone simulator screenshots show Google once `VITE_GOOGLE_IOS_CLIENT_ID` is set
+- [x] The "Offline" label on match cards is readable in dark mode
+
 ---
 
 ## Phase 12 — Profile details for India (done 2026-09-28)

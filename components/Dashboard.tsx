@@ -259,7 +259,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
               <HistoryView
                 onOpenInSearch={(saved) => {
                   // Stash both prompt + filters; SearchView reads them on mount
-                  // and auto-runs the search (same channel used by landing flow).
+                  // and auto-runs the search.
                   sessionStorage.setItem('shaadigpt_pending_prompt', saved.prompt);
                   sessionStorage.setItem('shaadigpt_pending_filters', JSON.stringify(saved.filters));
                   // Bump the key to force a fresh SearchView mount so its useEffect fires

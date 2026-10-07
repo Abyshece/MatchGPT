@@ -61,7 +61,6 @@ try {
   for (const scheme of ['light', 'dark']) {
     const page = await newPage({ width: 1440, height: 900 }, scheme);
     await page.goto(BASE);
-    await page.locator('textarea').fill('Someone kind who loves travel');
     await page.getByRole('button', { name: 'Sign in' }).click();
     await page.getByRole('button', { name: /Continue with Email/ }).waitFor();
     await checkBackdrop(page, `signin-${scheme}`, scheme);

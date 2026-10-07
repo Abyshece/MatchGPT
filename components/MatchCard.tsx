@@ -114,7 +114,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
               <span className="text-green-700 dark:text-green-500">Online</span>
             </>
           ) : (
-            <span className="text-gray-500">Offline</span>
+            <span className="text-gray-600 dark:text-gray-400">Offline</span>
           )}
         </div>
 

@@ -4,7 +4,6 @@ import { supabase } from '../lib/supabase';
 import { TERMS_VERSION, PRIVACY_VERSION } from '../lib/consentService';
 import { GOOGLE_CLIENT_ID } from '../lib/googleSignIn';
 import GoogleSignInButton from './GoogleSignInButton';
-import NativeSignInButtons from './NativeSignInButtons';
 import { isNativeApp } from '../lib/nativeApp';
 import { APP_PREVIEW_PATH, isAppPreview } from '../lib/appPreview';
 
@@ -212,7 +211,7 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
           <div className="text-4xl mb-2">💍</div>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white leading-tight mb-0.5">Shaadi24</h1>
           <p className="text-gray-500 dark:text-gray-400 text-[10px] font-medium uppercase tracking-wide">
-            {mode === 'SIGNUP' ? 'Create your account' : mode === 'FORGOT' || mode === 'RESET_CODE' ? 'Reset your password' : forAdmins ? 'Admin sign-in' : 'Welcome back'}
+            {mode === 'SIGNUP' ? 'Create your account' : mode === 'FORGOT' || mode === 'RESET_CODE' ? 'Reset your password' : forAdmins ? 'Admin sign-in' : mode === 'MENU' ? 'Welcome' : 'Welcome back'}
           </p>
           {forAdmins && (
             <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">For Shaadi24's team. Members sign in in the Shaadi24 app.</p>
@@ -232,14 +231,10 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
 
         {mode === 'MENU' && (
           <div className="flex flex-col gap-2.5">
-            {/* Google doesn't allow its sign-in page inside apps: the apps use
-                the phone's own sign-in sheets (Google, and Apple on iPhones) */}
-            {isNativeApp() ? (
-              <NativeSignInButtons
-                onSignedIn={onSignInSuccess}
-                onError={(message) => { setInfo(null); setError(message); }}
-              />
-            ) : isAppPreview() ? (
+            {/* Google doesn't allow its sign-in page inside apps: the apps
+                offer the phone's own sign-in sheets (Google, and Apple on
+                iPhones) on their welcome screen (LandingView), so here it's email */}
+            {isNativeApp() ? null : isAppPreview() ? (
               // Google's page won't open inside the admin panel, and would
               // come back signed in to the website rather than the preview
               <p data-testid="preview-sign-in-note" className="px-1 text-[11px] leading-relaxed text-center text-gray-500 dark:text-gray-400">

@@ -5,11 +5,16 @@ import { signInWith, socialProviders, SocialSignInError, type SocialProvider } f
 // ============================================================================
 // NativeSignInButtons
 //
-// "Continue with Apple" (iPhones) and "Continue with Google" in the phone
-// apps, through the phone's own sign-in sheets (lib/socialSignIn.ts). Shows
-// only the ones this phone offers; Apple's comes first, in black (white in
-// dark mode), as Apple's guidelines ask.
+// "Continue with Apple" (iPhones) and "Continue with Google" on the phone
+// apps' welcome screen (LandingView), through the phone's own sign-in sheets
+// (lib/socialSignIn.ts). Shows only the ones this phone offers; Apple's comes
+// first, in black (white in dark mode), as Apple's guidelines ask, and
+// Google's in Google's neutral grey (its dark theme in dark mode).
 // ============================================================================
+
+// Big, fully rounded buttons, the logo just before the words
+const PILL = 'flex items-center justify-center gap-2.5 w-full h-[52px] px-5 rounded-full text-base font-semibold transition disabled:opacity-50';
+const ICON = 'flex-none [&>svg]:w-[18px] [&>svg]:h-[18px]';
 
 interface NativeSignInButtonsProps {
   onSignedIn: () => void;
@@ -48,9 +53,9 @@ const NativeSignInButtons: React.FC<NativeSignInButtonsProps> = ({ onSignedIn, o
           onClick={() => go('apple')}
           disabled={busy !== null}
           data-testid="signin-apple"
-          className="relative flex items-center justify-center w-full h-10 px-4 rounded-lg bg-black text-white dark:bg-white dark:text-black hover:opacity-90 transition-opacity text-[13px] font-semibold disabled:opacity-50"
+          className={`${PILL} bg-black text-white dark:bg-white dark:text-black hover:opacity-90 active:opacity-80`}
         >
-          <span className="absolute left-4"><IconApple /></span>
+          <span className={ICON}><IconApple /></span>
           <span>{busy === 'apple' ? 'Signing you in…' : 'Continue with Apple'}</span>
         </button>
       )}
@@ -59,9 +64,9 @@ const NativeSignInButtons: React.FC<NativeSignInButtonsProps> = ({ onSignedIn, o
           onClick={() => go('google')}
           disabled={busy !== null}
           data-testid="signin-google"
-          className="relative flex items-center justify-center w-full h-10 px-4 border border-gray-300 dark:border-zinc-700 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors text-xs font-semibold text-gray-900 dark:text-gray-100 group disabled:opacity-50"
+          className={`${PILL} bg-[#f2f2f2] text-[#1f1f1f] dark:bg-[#131314] dark:text-[#e3e3e3] dark:border dark:border-[#8e918f] hover:bg-[#e8e8e8] dark:hover:bg-[#1f1f20] active:bg-[#e0e0e0] dark:active:bg-[#262627]`}
         >
-          <span className="absolute left-4 opacity-80 group-hover:opacity-100 transition-opacity"><IconGoogle /></span>
+          <span className={ICON}><IconGoogle /></span>
           <span>{busy === 'google' ? 'Signing you in…' : 'Continue with Google'}</span>
         </button>
       )}

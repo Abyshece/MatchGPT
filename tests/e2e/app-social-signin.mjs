@@ -17,6 +17,8 @@
 //    (BASE_IOS_GOOGLE, a build with VITE_GOOGLE_IOS_CLIENT_ID): Apple then
 //    Google, and Google's sign-in uses the iOS client
 //  The website: none of these buttons
+//  They're on the welcome screen (LandingView); its email button opens the
+//  sign-in popup, which doesn't repeat them
 // Usage: SERVICE_ROLE_KEY=… node app-social-signin.mjs <onboarded email>   (password TestPass!2026)
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
@@ -172,8 +174,7 @@ async function openApp(phone, base = BASE) {
   });
   page.on('request', (r) => { if (r.url().includes('/functions/v1/apple-sign-in')) phone.appleSignInCalls.push(r.postData() || ''); });
   await page.goto(base);
-  await page.getByRole('button', { name: 'Sign in' }).first().click();
-  await page.getByRole('button', { name: /Continue with Email/ }).waitFor({ timeout: 15000 });
+  await emailButton(page).waitFor({ timeout: 15000 });
   await page.waitForTimeout(600);  // the providers check
   return { ctx, page };
 }
@@ -187,6 +188,8 @@ const until = async (fn, ms = 6000) => {
     await new Promise((r) => setTimeout(r, 150));
   }
 };
+// On the welcome screen: the phone's sign-ins, then email (the sign-in popup)
+const emailButton = (page) => page.getByRole('button', { name: 'Sign in or create account' });
 const google = (page) => page.getByTestId('signin-google');
 const apple = (page) => page.getByTestId('signin-apple');
 const errorBox = (page) => page.locator('.text-red-700');
@@ -206,6 +209,7 @@ try {
   let phone = newPhone('android', { account: await newAccount('google_new', { full_name: 'Aarav Mehta', name: 'Aarav Mehta' }) });
   let { ctx, page } = await openApp(phone);
   check(await google(page).isVisible() && !(await apple(page).isVisible()), 'Android offers Google, not Apple');
+  check(await page.locator('.popup-backdrop').count() === 0, 'on the welcome screen itself, no popup to open first');
   await page.screenshot({ path: `${OUT}1-android-buttons.png` });
   await google(page).click();
   check(await appears(consent(page), 15000), 'a new Google account is signed in, and goes on to accept the Terms');
@@ -253,7 +257,7 @@ try {
   await ctx.close();
   phone = newPhone('android', { providers: { google: false, apple: false } });
   ({ ctx, page } = await openApp(phone));
-  check(!(await google(page).isVisible()) && await page.getByRole('button', { name: /Continue with Email/ }).isVisible(),
+  check(!(await google(page).isVisible()) && await emailButton(page).isVisible(),
     'Google off in Supabase → only email');
   await ctx.close();
 
@@ -311,6 +315,10 @@ try {
   const order = await page.locator('[data-testid^="signin-"]').evaluateAll((els) => els.map((e) => e.dataset.testid));
   check(order.join() === 'signin-apple,signin-google', `Apple first, then Google (${order.join(', ')})`);
   await page.screenshot({ path: `${OUT}6-ios-both.png` });
+  await emailButton(page).click();
+  await page.getByRole('button', { name: /Continue with Email/ }).waitFor();
+  check(await page.locator('.popup-backdrop [data-testid^="signin-"]').count() === 0, 'the email popup doesn\'t repeat them');
+  await page.getByRole('button', { name: 'Close' }).click();
   await google(page).click();
   check(await appears(home(page), 20000), 'Google on an iPhone signs the existing account in');
   const both = called(phone, 'initialize')[0]?.options || {};

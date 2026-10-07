@@ -224,11 +224,9 @@ const AppRouter: React.FC<{
     return <FullScreenLoader label="Loading…" />;
   }
 
-  // 2. Not signed in — show public landing page (search dashboard preview).
-  //    LandingView pops its own Auth modal when the user clicks Search or Sign In.
-  //    On signup initiation it bubbles the email up so we can show EmailVerification
-  //    in case 3 below. The user's prompt gets stashed in sessionStorage by
-  //    LandingView and picked up by SearchView after auth completes.
+  // 2. Not signed in — the welcome screen. Apple and Google sign in from it;
+  //    email opens its sign-in popup (Auth). A sign-up bubbles the email up so
+  //    we can show EmailVerification in case 3 below.
   if (!session && !pendingSignupEmail) {
     return (
       <LandingView
