@@ -556,11 +556,11 @@ with what's left for you and a lawyer: [docs/legal/README.md](docs/legal/README.
     Grievance Officer (IT Rules 2021, rule 3(2)). It only adds a complaint, within its limits (5 a day
     from one email address, 10 from one internet address);
   - "RLS enabled, no policy" on the tables only the server uses.
-- [ ] **Owner:** what [docs/legal/README.md](docs/legal/README.md) asks of you before launch: how you'll
-  run Shaadi24 from Germany (no Indian company is needed; a German UG is recommended, for Apple's
-  rules and limited liability), the operator's legal name and address, the Grievance Officer's name
-  and phone, working mailboxes, CERT-In, keeping logs for 180 days, the trade mark. Then a lawyer's
-  review (its "For the lawyer" list). (The mobile and accessibility check is done: Phase 10, part 5.)
+- [ ] **Owner:** what [docs/legal/README.md](docs/legal/README.md) asks of you before launch: registering
+  as a sole trader in Germany (chosen 7 October 2026; no Indian company is needed, and a UG only if Apple
+  asks for a company), the operator's full legal name and address, the Grievance Officer's name and
+  phone, working mailboxes, CERT-In, keeping logs for 180 days, the trade mark. Then a lawyer's review
+  (its "For the lawyer" list). (The mobile and accessibility check is done: Phase 10, part 5.)
 
 ## Phase 11 — Payments (Shaadi24+ via Razorpay) — dropped 2026-10-05
 Built 2026-09-27 for the website, but never switched on. On 2026-10-05 you decided Shaadi24+ is sold

@@ -100,8 +100,8 @@ GST registration, audits and annual filings. None of that is needed.
 | Each year | An income tax return | Annual accounts, corporation and trade tax: a Steuerberater |
 | A question for the Indian lawyer | — | Whether a foreign company selling online to India is a "foreign company" with a place of business in India "through electronic mode" (Companies Act 2013, section 2(42); Companies (Registration of Foreign Companies) Rules 2014, rule 2(1)(c)). If so, it would register in India and need a resident nodal officer (E-Commerce Rules, rule 4(1)). The definition is broad but rarely applied to small app makers; as an individual, it doesn't arise |
 
-Give the company a neutral name until the trade mark search on "Shaadi24" is done
-([Before launch](#before-launch-from-you), step 9).
+**Chosen on 7 October 2026: a sole trader.** A UG can follow if Apple asks for a company (5.1.1(ix)); give it
+a neutral name until the trade mark search on "Shaadi24" is done ([Before launch](#before-launch-from-you), step 9).
 
 **Germany and the EU, because the operator is there.**
 
@@ -109,26 +109,39 @@ Give the company a neutral name until the trade mark search on "Shaadi24" is don
 |---|---|---|
 | Registering the business | For a UG, the commercial register; a Gewerbeanmeldung either way; the tax office's questionnaire in ELSTER for a tax number; a VAT ID | You |
 | VAT (UStG) | A sale through a store is a supply to the store (Apple's is in Ireland), not to the member: the EU Court of Justice, *Xyrality* (C-101/24, 3 November 2025). No German VAT on those sales. The small-business limit (§ 19 UStG): €25,000 last year, €100,000 this year. Services bought from abroad (Supabase, Vercel, Google Cloud) may owe VAT under the reverse charge | You (Steuerberater) |
-| Income tax | The profits are taxed in Germany: income tax, or corporation and trade tax for a UG | You (Steuerberater) |
-| Digitale-Dienste-Gesetz, § 5 (the Impressum) | On the website and in the apps: the name, an address where papers can be served (a business-address service, not a PO box), email and phone; for a UG, its register entry and VAT ID | To add with the operator's details |
+| Income tax | The profits are taxed in Germany. A sole trader: income tax, together with any other income; trade tax only on profit above €24,500 a year, and mostly credited against the income tax. A UG: corporation and trade tax, about 30% | You (Steuerberater) |
+| Digitale-Dienste-Gesetz, § 5 (the Impressum) | On the website and in the apps: the name, an address where papers can be served (a business-address service, not a PO box), email and phone; the VAT ID, if there is one; for a UG, its register entry too | To add with the operator's details |
 | GDPR, Article 3(1) | Applies to the members' data because the operator is established in Germany, wherever the members live (EDPB Guidelines 3/2018) | Privacy Policy additions (the operator in Germany, the legal bases, transfers, the supervisory authority): to add with the Impressum |
 | GDPR Article 35; BDSG § 38 | Sensitive data at scale probably needs a data protection impact assessment, and in Germany that means appointing a data protection officer, whatever the size (external services are common) | You |
 | GDPR Articles 28 and 44–46 | Processing agreements with standard contractual clauses (Supabase, Vercel, Google) | You ([Before launch](#before-launch-from-you), step 6) |
 | EU Digital Services Act; EU consumer law | Only if the apps are offered in EU stores (for Indians living in Europe): trader details shown in the stores, EU consumer rights | Keep to India's stores at first |
 
-**Steps.**
+**Steps, as a sole trader.**
 
-1. Choose a UG (recommended) or a sole trader.
-2. A UG: the notary, a German business bank account, the commercial register, the Gewerbeanmeldung, then
-   the tax office. A sole trader: the Gewerbeanmeldung, then the tax office.
-3. For a UG, a D-U-N-S number (free, through Apple's lookup; it can take a week or two).
-4. The Apple Developer Program and the Google Play Console as an organization, paid out to the German
-   account.
-5. A business address, a phone number (a German one with WhatsApp Business) and the mailboxes. The owner
+1. With a job, the business can run alongside it (a Nebengewerbe): check the employment contract's rules
+   on side work.
+2. The Gewerbeanmeldung at the town's trade office (usually online, about €20–60), under the owner's full
+   name (with "Shaadi24" added if wanted). It informs the tax office, the IHK (no fee while the trade
+   profit is €5,200 a year or less) and the Berufsgenossenschaft (answer its letter within a week; with no
+   staff, its insurance is usually voluntary).
+3. An ELSTER account (its activation letter comes by post), then the tax office's questionnaire
+   (Fragebogen zur steuerlichen Erfassung) within a month: the tax number, the VAT ID, and the small-business
+   VAT exemption if it suits.
+4. A separate bank account for the business: the store payouts in, the bills out.
+5. Simple books (income minus expenses, the EÜR), with the records kept up to 10 years; a tax adviser for
+   the first year's returns.
+6. Business liability insurance, as the liability is personal (recommended, not required).
+7. Apple: the individual account, with the Paid Apps agreement, the business bank account, the W-8BEN tax
+   form and the Small Business Program (15%). If App Review refuses the app under 5.1.1(ix), found a UG
+   then and convert the account to an organization.
+8. Google Play: a personal account (no D-U-N-S number): a closed test with 12 testers for 14 days in a row
+   before production; once the app sells, Google Play shows the owner's address, so a business-address
+   service keeps the home address private.
+9. A business address, a phone number (a German one with WhatsApp Business) and the mailboxes. The owner
    as Grievance Officer, with the admin alerts on: India is 3½ hours ahead of Germany in summer and 4½ in
    winter, and the urgent complaints have 2 hours.
-6. The details go into `lib/legalInfo.ts`, with the Impressum and the GDPR additions, as one new version
-   of the documents, so members agree only once.
+10. The details go into `lib/legalInfo.ts`, with the Impressum and the GDPR additions, as one new version
+    of the documents, so members agree only once.
 
 ## Before launch: from you
 
@@ -137,20 +150,21 @@ before launch" where an address is missing.
 
 | What | Why | Where it shows |
 |---|---|---|
-| The **operator**: a German UG (recommended) or you as a German sole trader ([Running Shaadi24 from Germany](#running-shaadi24-from-germany)), and its **legal name** (now: "Abhishek", sole proprietor) | Consumer Protection (E-Commerce) Rules 2020, rule 4(2); IT Rules 3(2)(a); DPDP Rules, rule 3; the Impressum (§ 5 DDG) | Terms, Privacy, Grievances, website footer |
+| The **operator**: you, as a German sole trader (chosen 7 October 2026: [Running Shaadi24 from Germany](#running-shaadi24-from-germany)), under your **full legal name** as in your passport (now: "Abhishek") | Consumer Protection (E-Commerce) Rules 2020, rule 4(2); IT Rules 3(2)(a); DPDP Rules, rule 3; the Impressum (§ 5 DDG) | Terms, Privacy, Grievances, website footer |
 | The **address**, in Germany (a business-address service is fine; a PO box isn't) | E-Commerce Rules, rule 4(2)(b); § 5 DDG | Terms, Privacy, Grievances |
-| For a UG, its **commercial register entry** and **VAT ID**. No CIN or GSTIN: there's no Indian company, and the stores pay India's GST | E-Commerce Rules, rule 4(2); § 5 DDG | Terms, the Impressum |
+| Your **VAT ID** (USt-IdNr.), once the tax office gives it. No register number (a sole trader isn't in the commercial register), and no CIN or GSTIN: there's no Indian company, and the stores pay India's GST | E-Commerce Rules, rule 4(2); § 5 DDG | Terms, the Impressum |
 | The **Grievance Officer**: name and a phone number (now: "Abhishek", no phone). Can be you, in Germany, with a German number. Must be someone who can act within 2 hours, every day | IT Rules 3(2)(a): "the name of the Grievance Officer and his contact details"; E-Commerce Rules 4(4) | Grievances page, Terms, Privacy |
-| **Working mailboxes**: support@, privacy@ and grievance@shaadi24.com, read every day | Every page gives them; complaints by email are as valid as by the form | Everywhere |
+| **Working mailboxes**: support@, privacy@ and grievance@ on a domain you own, read every day (shaadi24.com belongs to someone else, so the pages' addresses change with your domain) | Every page gives them; complaints by email are as valid as by the form | Everywhere |
 | The **city whose courts** hear disputes (now: Bengaluru, Karnataka; the lawyer to confirm, with the operator in Germany) | Terms, section 14 | Terms |
 | The website's **own domain** when it moves from shaadi-gpt.vercel.app | Links in the apps and emails | `websiteUrl` |
 
 Then, outside the code:
 
-1. **Set up the business in Germany and the store accounts**, as in
-   [Running Shaadi24 from Germany](#running-shaadi24-from-germany): a UG (recommended), a D-U-N-S number,
-   the Apple and Google accounts as an organization, the Impressum, and the GDPR steps (a data protection
-   impact assessment and a data protection officer).
+1. **Register as a sole trader in Germany and set up the store accounts**, as in
+   [Running Shaadi24 from Germany](#running-shaadi24-from-germany): the Gewerbeanmeldung and the tax office,
+   the Apple account as an individual (a UG only if Apple asks for a company), a Google Play personal
+   account, the Impressum, and the GDPR steps (a data protection impact assessment and a data protection
+   officer).
 2. **Watch the complaints.** Admin → Complaints, and the phone alerts it sends. Intimate images and
    impersonation must be acted on within **2 hours** of a complaint, unlawful content within 36 hours,
    everything else within 7 days. Reply by email to each, then record what was done.
@@ -412,10 +426,10 @@ Please review:
    doesn't recognise same-sex marriages (Supriyo Chakraborty, 2023), and the Transgender Persons
    (Protection of Rights) Act, 2019.
 3. The retention periods (table above), and whether to delete inactive accounts after a time.
-4. The structure of the business: a German UG or a German sole trader
-   ([Running Shaadi24 from Germany](#running-shaadi24-from-germany)), given the duties above, the liability
-   that comes with them and Apple's guideline 5.1.1(ix); and, for a company, whether India's "foreign
-   company… through electronic mode" (Companies Act 2013, s.2(42)) reaches it.
+4. The structure of the business: a German sole trader, as chosen
+   ([Running Shaadi24 from Germany](#running-shaadi24-from-germany)), given the duties above and the
+   personal liability that comes with them; and, if a UG follows for Apple's guideline 5.1.1(ix), whether
+   India's "foreign company… through electronic mode" (Companies Act 2013, s.2(42)) reaches it.
 5. The Hindi summaries (a native speaker should read them), and whether any other language is needed for
    the states Shaadi24 targets first.
 6. The trade mark question.
