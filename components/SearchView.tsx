@@ -36,14 +36,17 @@ const DEFAULT_FILTERS: FilterOptions = {
   isPremium: false,
 };
 
+// Short, so two fit in a row on a phone and the start screen needs no
+// scrolling; each is understood like a longer one ("near me" and "online"
+// become filters)
 const EXAMPLE_PROMPTS = [
-  'Find a match near me',
-  'Marathi-speaking engineer in Pune',
-  'Never married, vegetarian, under 30',
-  'Show me all online matches',
-  'Family-oriented doctor in Delhi',
-  'Settled abroad, open to relocating',
-  'Most compatible matches',
+  'Matches near me',
+  'Marathi engineer in Pune',
+  'Never married, under 30',
+  'Online now',
+  'Doctor in Delhi',
+  'Settled abroad',
+  'Most compatible',
 ];
 
 function countActiveFilters(f: FilterOptions): number {
@@ -218,7 +221,9 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
   };
 
   return (
-    <div className="h-full overflow-y-auto">
+    // Before a search the start screen fits the phone: centred, no scrollbar
+    // (it only scrolls on the smallest screens); results scroll as usual
+    <div className={hasSearched ? 'h-full overflow-y-auto' : 'h-full overflow-y-auto no-scrollbar flex flex-col'} data-testid="search-view">
       {/* Profile completion banner — full-width, dismissible. Encourages users to
           finish their profile because a 100% profile leads to more accurate matches. */}
       {showCompletionBanner && (
@@ -255,17 +260,19 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
         </div>
       )}
 
-      <div className="max-w-6xl mx-auto py-8 px-6 lg:px-12">
+      <div className={hasSearched
+        ? 'max-w-6xl mx-auto py-8 px-6 lg:px-12'
+        : 'w-full max-w-6xl mx-auto flex-1 flex flex-col justify-center py-5 [@media(max-height:700px)]:py-3 sm:py-8 px-5 sm:px-6 lg:px-12'}>
         {isLockedOut && <VerificationBanner verification={verification} />}
 
         {/* Search header — sparkle hero on landing, simple title once searched */}
         {!hasSearched ? (
-          <div className="text-center mb-10 animate-fade-in">
-            <div className="text-6xl mb-4">✨</div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">
+          <div className="text-center mb-6 [@media(max-height:700px)]:mb-4 sm:mb-10 animate-fade-in">
+            <div className="text-4xl sm:text-6xl mb-2 sm:mb-4 [@media(max-height:700px)]:hidden" aria-hidden="true">✨</div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-1.5 sm:mb-2">
               Find your life partner
             </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm sm:max-w-none mx-auto">
               Search by community, profession, family values or anything you're looking for.
             </p>
           </div>
@@ -428,16 +435,16 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
 
         {/* Trending Near You — landing state only */}
         {!hasSearched && (
-          <div className="mt-8 mb-10 animate-fade-in">
-            <p className="text-center text-[11px] uppercase font-bold text-gray-500 dark:text-gray-400 tracking-widest mb-4">
+          <div className="mt-5 [@media(max-height:700px)]:mt-3 sm:mt-8 sm:mb-10 animate-fade-in" data-testid="example-prompts">
+            <p className="text-center text-[11px] uppercase font-bold text-gray-500 dark:text-gray-400 tracking-widest mb-3 [@media(max-height:700px)]:mb-2 sm:mb-4">
               Trending near you
             </p>
-            <div className="flex flex-wrap justify-center gap-3">
+            <div className="flex flex-wrap justify-center gap-2 [@media(max-height:700px)]:gap-1.5 sm:gap-3 max-w-md sm:max-w-2xl mx-auto">
               {EXAMPLE_PROMPTS.map((ex) => (
                 <button
                   key={ex}
                   onClick={() => handleExampleClick(ex)}
-                  className="px-5 py-2 rounded-full bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-sm font-medium text-gray-600 dark:text-gray-300 hover:border-gray-400 dark:hover:border-zinc-500 hover:text-gray-900 dark:hover:text-white hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm"
+                  className="px-3.5 sm:px-5 py-1.5 [@media(max-height:700px)]:py-1 sm:py-2 rounded-full bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-[13px] sm:text-sm font-medium text-gray-600 dark:text-gray-300 whitespace-nowrap hover:border-gray-400 dark:hover:border-zinc-500 hover:text-gray-900 dark:hover:text-white hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm"
                 >
                   {ex}
                 </button>

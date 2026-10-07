@@ -127,6 +127,9 @@ try {
   await page.waitForTimeout(600);
   clear(await rect(page, 'div.h-screen'), 'the app screen');
   check(await page.evaluate(() => document.scrollingElement.scrollHeight <= innerHeight + 1), 'the screen fits without the page itself scrolling');
+  const start = await page.getByTestId('search-view').evaluate((el) => ({ fits: el.scrollHeight <= el.clientHeight + 1,
+    rows: new Set([...el.querySelectorAll('[data-testid=example-prompts] button')].map((b) => Math.round(b.getBoundingClientRect().top))).size }));
+  check(start.fits && start.rows <= 4, `Find Match's start screen fits the iPhone, nothing to scroll (the suggestions in ${start.rows} rows)`);
   await page.screenshot({ path: `${OUT}3-find-match.png` });
 
   await prompt.fill('someone kind');

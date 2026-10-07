@@ -593,6 +593,16 @@ open dark, and switch only after a tap.
 - [x] Checked: a new browser test (`tests/e2e/theme.mjs`, 21 checks; the old code fails its first
   ones), the Android, iPhone, Settings and accessibility tests.
 
+Part 15 done 2026-10-07: **Find Match's start screen fits the phone.** It scrolled on an iPhone, with a
+scrollbar on the right: a large sparkle and title, then seven full-width suggestions, one per row.
+
+- [x] Smaller title and sparkle on phones (no sparkle on short screens), and shorter suggestions, two to a
+  row and centred ("Matches near me", "Online now"…; each is understood as the longer one was). Nothing
+  to scroll on an iPhone SE, 15 or 15 Pro Max or a 360-wide Android, with the profile banner showing;
+  results still scroll.
+- [x] The iPhone test checks the start screen fits; the Android, Settings, popup and accessibility tests
+  pass.
+
 **Still to do**
 
 - [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.
