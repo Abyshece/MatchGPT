@@ -99,6 +99,10 @@ try {
     await page.getByRole('button', { name: 'Sign in' }).waitFor({ timeout: 15000 });
     await page.waitForTimeout(1000);  // the cookie banner would show after half a second
     check(await page.evaluate(() => document.documentElement.classList.contains('native-app')), `${scheme}: knows it's the app`);
+    check(await page.evaluate(() => {
+      const viewport = document.querySelector('meta[name="viewport"]').content;
+      return /maximum-scale=1\.0, user-scalable=no/.test(viewport) && !viewport.includes('viewport-fit');
+    }), `${scheme}: the app doesn't zoom`);
     check((await calls(page, 'SplashScreen', 'hide')).length >= 1, `${scheme}: launch screen hidden once drawn`);
     const theme = (await calls(page, 'AppWindow', 'setTheme')).at(-1)?.options;
     check(scheme === 'dark' ? theme?.dark === true && theme?.color === '#191919' : theme?.dark === false && theme?.color === '#ffffff',

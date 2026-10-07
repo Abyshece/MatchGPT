@@ -99,6 +99,8 @@ try {
     if (scheme === 'dark') { await page.context().close(); continue; }
     check(await page.evaluate(() => document.documentElement.classList.contains('native-ios')
       && document.querySelector('meta[name="viewport"]').content.includes('viewport-fit=cover')), 'knows it\'s an iPhone; page runs edge to edge');
+    check(await page.evaluate(() => /maximum-scale=1\.0, user-scalable=no/.test(document.querySelector('meta[name="viewport"]').content)),
+      'the app doesn\'t zoom (an iPhone would zoom in on a tapped text box)');
     clear(await rect(page, 'header'), 'the start screen\'s top bar');
     await page.screenshot({ path: `${OUT}1-start.png` });
     await page.evaluate(() => scrollTo(0, document.scrollingElement.scrollHeight));
