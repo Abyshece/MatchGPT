@@ -88,6 +88,10 @@ check BLOCKED "A19 signed-in user replaces the push (VAPID) keys" authenticated 
   "select * from public.save_vapid_keys('pub', 'priv');" "permission denied"
 check BLOCKED "A20 non-admin lists every user (admin_search_users)" authenticated "$USER_X" "x@example.com" \
   "select count(*) from public.admin_search_users('', 50);" "Forbidden"
+check BLOCKED "A20b non-admin lists every user with dates of birth (admin_find_users)" authenticated "$USER_X" "x@example.com" \
+  "select count(*) from public.admin_find_users('', 50);" "Forbidden"
+check BLOCKED "A20c signed-out visitor lists every user (admin_find_users)" anon "" "" \
+  "select count(*) from public.admin_find_users('', 50);" "permission denied"
 check BLOCKED "A21 non-admin lists reports with names (admin_list_reports)" authenticated "$USER_X" "x@example.com" \
   "select count(*) from public.admin_list_reports(false);" "Forbidden"
 check ALLOWED "A22 search isn't given the last-active time of someone with Active Status off" service_role "" "" \
@@ -255,6 +259,12 @@ check ALLOWED "N19 admin lists every user" authenticated "$ADMIN" "owner@example
   "select 'users=' || count(*) from public.admin_search_users('', 50);" "users=23"
 check ALLOWED "N20 admin finds a user by email" authenticated "$ADMIN" "owner@example.com" \
   "select 'found=' || count(*) || ' ' || min(email) from public.admin_search_users('x@example', 50);" "found=1 x@example.com"
+check ALLOWED "N20b admin sees a member's date of birth, gender and whether they're hidden" authenticated "$ADMIN" "owner@example.com" \
+  "reset role; set local session_replication_role = replica;
+   update public.profiles set gender = 'Male', date_of_birth = '2006-02-02', age = 20, is_paused = true where id = '$USER_X';
+   set local session_replication_role = origin; set local role authenticated;
+   select 'users=' || (select count(*) from public.admin_find_users('', 50)) || ' ' || email || ' ' || date_of_birth || ' ' || gender || ' hidden=' || is_paused
+     from public.admin_find_users('x@example', 50);" "users=23 x@example.com 2006-02-02 Male hidden=true"
 check ALLOWED "N21 admin lists reports with both people's details" authenticated "$ADMIN" "owner@example.com" \
   "select 'reporter=' || reporter_email || ' reported=' || reported_email from public.admin_list_reports(true);" \
   "reporter=x@example.com reported=v@example.com"
@@ -570,5 +580,38 @@ check ALLOWED "N82 the short sign-up's sections: About you first, About me from 
                        where s ->> 'id' = 'about')
      || ' ids=' || (select string_agg(s ->> 'id', ',') from jsonb_array_elements(public.my_profile_sections() -> 'sections') s);" "short=2 plans=0
 long=3 complete=true ids=about,community,career,family,lifestyle,plans"
+check BLOCKED "N83 a man under 21 can't make himself older (only support can)" authenticated "$USER_X" "x@example.com" \
+  "reset role; set local session_replication_role = replica;
+   update public.profiles set gender = 'Male', date_of_birth = current_date - interval '20 years', age = 20, is_paused = true, paused_at = null where id = '$USER_X';
+   set local session_replication_role = origin; set local role authenticated;
+   update public.profiles set date_of_birth = ((now() at time zone 'Asia/Kolkata')::date - interval '25 years')::date where id = '$USER_X';" "Only Shaadi24 support"
+check BLOCKED "N84 a man under 21 can't change his gender to a woman's" authenticated "$USER_X" "x@example.com" \
+  "reset role; set local session_replication_role = replica;
+   update public.profiles set gender = 'Male', date_of_birth = current_date - interval '20 years', age = 20, is_paused = true, paused_at = null where id = '$USER_X';
+   set local session_replication_role = origin; set local role authenticated;
+   update public.profiles set gender = 'Female' where id = '$USER_X';" "Only Shaadi24 support"
+check BLOCKED "N85 member corrects a date of birth (admins only)" authenticated "$USER_X" "x@example.com" \
+  "select public.admin_correct_date_of_birth('$OTHER', '1995-01-01', 'Saw a passport');" "only admins"
+check ALLOWED "N86 admin corrects a date of birth: the profile is visible again, in the audit log" authenticated "$ADMIN" "owner@example.com" \
+  "reset role; set local session_replication_role = replica;
+   update public.profiles set gender = 'Male', date_of_birth = current_date - interval '20 years', age = 20, is_paused = true, paused_at = null where id = '$USER_X';
+   set local session_replication_role = origin; set local role authenticated;
+   select public.admin_correct_date_of_birth('$USER_X', ((now() at time zone 'Asia/Kolkata')::date - interval '25 years')::date, ' Saw a passport ');
+   reset role; select 'age=' || age || ' paused=' || is_paused || ' note=' || (select details ->> 'note' from public.admin_audit
+     where action = 'correct_date_of_birth' and target_user_id = '$USER_X') from public.profiles where id = '$USER_X';" "age=25 paused=false note=Saw a passport"
+check ALLOWED "N87 a member's own pause stays after a correction" authenticated "$ADMIN" "owner@example.com" \
+  "reset role; set local session_replication_role = replica;
+   update public.profiles set gender = 'Male', date_of_birth = current_date - interval '20 years', age = 20, is_paused = true, paused_at = null where id = '$USER_X';
+   set local session_replication_role = origin; set local role authenticated;
+   reset role; update public.profiles set paused_at = now() where id = '$USER_X'; set local role authenticated;
+   select public.admin_correct_date_of_birth('$USER_X', ((now() at time zone 'Asia/Kolkata')::date - interval '25 years')::date, 'Saw a passport');
+   reset role; select 'age=' || age || ' paused=' || is_paused from public.profiles where id = '$USER_X';" "age=25 paused=true"
+check BLOCKED "N88 admin can't correct a date of birth to one under the legal age" authenticated "$ADMIN" "owner@example.com" \
+  "reset role; set local session_replication_role = replica;
+   update public.profiles set gender = 'Male', date_of_birth = current_date - interval '20 years', age = 20, is_paused = true, paused_at = null where id = '$USER_X';
+   set local session_replication_role = origin; set local role authenticated;
+   select public.admin_correct_date_of_birth('$USER_X', (current_date - interval '20 years 1 day')::date, 'Saw a passport');" "legal ages to marry in India"
+check BLOCKED "N89 admin corrects a date of birth without saying how it was checked" authenticated "$ADMIN" "owner@example.com" \
+  "select public.admin_correct_date_of_birth('$USER_X', '1995-01-01', '  ');" "how the date of birth was checked"
 echo
 if [[ $fails -eq 0 ]]; then echo "All checks passed."; else echo "$fails check(s) FAILED."; exit 1; fi

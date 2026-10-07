@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useToast } from '../../lib/useToast';
 import {
-  searchUsers, banUser, unbanUser, verifyUser,
+  searchUsers, banUser, unbanUser, verifyUser, correctDateOfBirth,
 } from '../../lib/adminService';
 import type { AdminUserRow } from '../../lib/adminService';
+import { belowMarriageAge, minimumAge } from '../../lib/legalAge';
 
 // ============================================================================
 // AdminUsersTab
 //
 // Search the user base by name or email. Each result row shows account info
-// and actions: ban / unban / verify.
+// and actions: ban / unban / verify, and correcting the date of birth (for
+// members under the legal age who write in with an ID that shows otherwise).
 // ============================================================================
 
 interface AdminUsersTabProps {
@@ -23,6 +25,7 @@ const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ onAuditUpdate }) => {
   const [loading, setLoading] = useState(false);
   const [actioningId, setActioningId] = useState<string | null>(null);
   const [banModal, setBanModal] = useState<AdminUserRow | null>(null);
+  const [dobModal, setDobModal] = useState<AdminUserRow | null>(null);
 
   const search = useCallback(async (q: string) => {
     setLoading(true);
@@ -86,6 +89,19 @@ const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ onAuditUpdate }) => {
     search(query);
   };
 
+  // Returns the error, so the pop-up stays open to try again
+  const handleCorrectDob = async (user: AdminUserRow, dateOfBirth: string, note: string): Promise<string | null> => {
+    setActioningId(user.id);
+    const { error } = await correctDateOfBirth(user.id, dateOfBirth, note);
+    setActioningId(null);
+    if (error) return error;
+    setDobModal(null);
+    showToast(`Date of birth corrected for ${user.name ?? user.email}`, 'success');
+    onAuditUpdate();
+    search(query);
+    return null;
+  };
+
   return (
     <div>
       {/* Search input */}
@@ -131,16 +147,20 @@ const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ onAuditUpdate }) => {
                     {u.is_banned && <Badge color="red">Banned</Badge>}
                     {u.is_verified && <Badge color="blue">Verified</Badge>}
                     {u.subscription_tier === 'PRO' && <Badge color="yellow">Pro</Badge>}
+                    {belowMarriageAge(u.gender, u.age) && <Badge color="red">Under {minimumAge(u.gender)}</Badge>}
+                    {u.is_paused && <Badge color="gray">Hidden</Badge>}
                   </div>
                   <div className="text-xs text-gray-500 dark:text-gray-400 break-words">
                     {[u.email, u.location].filter(Boolean).join(' · ')}
                   </div>
                   <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">
                     {[
+                      u.gender,
+                      u.date_of_birth && `Born ${formatDate(u.date_of_birth)}`,
                       `Joined ${new Date(u.account_created).toLocaleDateString()}`,
                       `${u.daily_search_count} searches today`,
                       `${u.daily_like_count} likes today`,
-                    ].join(' · ')}
+                    ].filter(Boolean).join(' · ')}
                   </div>
                   {u.ban_reason && (
                     <div className="text-[11px] text-red-600 dark:text-red-400 mt-1 italic">
@@ -149,7 +169,14 @@ const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ onAuditUpdate }) => {
                   )}
                 </div>
 
-                <div className="flex gap-1.5 flex-shrink-0">
+                <div className="flex gap-1.5 flex-shrink-0 flex-wrap justify-end">
+                  <button
+                    onClick={() => setDobModal(u)}
+                    disabled={actioningId === u.id}
+                    className="px-2.5 py-1 text-[11px] font-bold border border-gray-300 dark:border-zinc-700 rounded text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-700 disabled:opacity-50"
+                  >
+                    Date of birth
+                  </button>
                   {!u.is_verified && (
                     <button
                       onClick={() => handleVerify(u)}
@@ -191,6 +218,15 @@ const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ onAuditUpdate }) => {
           onConfirm={(reason) => handleBan(banModal, reason)}
         />
       )}
+
+      {dobModal && (
+        <DateOfBirthModal
+          user={dobModal}
+          saving={actioningId === dobModal.id}
+          onCancel={() => setDobModal(null)}
+          onConfirm={(dateOfBirth, note) => handleCorrectDob(dobModal, dateOfBirth, note)}
+        />
+      )}
     </div>
   );
 };
@@ -199,8 +235,9 @@ const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ onAuditUpdate }) => {
 // Badge
 // ============================================================================
 
-const Badge: React.FC<{ color: 'red' | 'blue' | 'yellow' | 'green'; children: React.ReactNode }> = ({ color, children }) => {
+const Badge: React.FC<{ color: 'red' | 'blue' | 'yellow' | 'green' | 'gray'; children: React.ReactNode }> = ({ color, children }) => {
   const classes = {
+    gray: 'bg-gray-100 dark:bg-zinc-700 text-gray-700 dark:text-gray-300',
     red: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300',
     blue: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300',
     yellow: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300',
@@ -267,6 +304,101 @@ const BanModal: React.FC<{
             className="flex-1 py-2.5 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700 shadow-sm disabled:opacity-50"
           >
             Ban user
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// DateOfBirthModal
+// ============================================================================
+
+// "2006-02-02" → "2 Feb 2006" (the date as written, whatever the time zone)
+const formatDate = (date: string) =>
+  new Date(`${date}T00:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+
+const DateOfBirthModal: React.FC<{
+  user: AdminUserRow;
+  saving: boolean;
+  onCancel: () => void;
+  onConfirm: (dateOfBirth: string, note: string) => Promise<string | null>;
+}> = ({ user, saving, onCancel, onConfirm }) => {
+  const [dateOfBirth, setDateOfBirth] = useState(user.date_of_birth ?? '');
+  const [note, setNote] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const today = new Date().toISOString().slice(0, 10);
+  const changed = !!dateOfBirth && dateOfBirth !== user.date_of_birth;
+  const who = user.name ?? user.email;
+
+  const save = async () => {
+    setError(null);
+    setError(await onConfirm(dateOfBirth, note.trim()));
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[400] flex items-center justify-center p-4 popup-backdrop animate-fade-in"
+      onClick={onCancel}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="dob-title"
+        className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-200 dark:border-zinc-800 p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 id="dob-title" className="text-lg font-bold text-gray-900 dark:text-white">Correct {who}'s date of birth</h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          Now: {user.date_of_birth ? `${formatDate(user.date_of_birth)}${user.age != null ? ` (${user.age})` : ''}` : 'not given'}
+          {user.gender ? ` · ${user.gender}` : ''}
+        </p>
+        <p className="text-sm text-gray-600 dark:text-gray-300 mt-3 leading-relaxed">
+          Only after seeing an ID that shows the date of birth (Aadhaar, passport, PAN or driving licence).
+          Shaadi24 is for women of 18 and over and men of 21 and over, so a later date is refused. If the
+          profile was hidden only because of the age, it becomes visible again.
+        </p>
+
+        <label htmlFor="dob-date" className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mt-4 mb-2">
+          Date of birth on the ID
+        </label>
+        <input
+          id="dob-date"
+          type="date"
+          value={dateOfBirth}
+          max={today}
+          onChange={(e) => { setDateOfBirth(e.target.value); setError(null); }}
+          className="w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-lg p-2.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+        />
+
+        <label htmlFor="dob-note" className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mt-4 mb-2">
+          How you checked it (required, shown in the audit log)
+        </label>
+        <textarea
+          id="dob-note"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          rows={2}
+          placeholder="e.g. Passport photo sent to support, ticket SH24-…"
+          className="w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-lg p-2.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+        />
+
+        {error && <p role="alert" className="text-sm text-red-600 dark:text-red-400 mt-3">{error}</p>}
+
+        <div className="flex gap-2 mt-4">
+          <button
+            onClick={onCancel}
+            className="flex-1 py-2.5 border border-gray-300 dark:border-zinc-700 rounded-lg text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={save}
+            disabled={!changed || !note.trim() || saving}
+            className="flex-1 py-2.5 bg-black dark:bg-white text-white dark:text-black rounded-lg text-sm font-bold hover:bg-neutral-800 dark:hover:bg-gray-200 shadow-sm disabled:opacity-50"
+          >
+            {saving ? 'Saving…' : 'Save date of birth'}
           </button>
         </div>
       </div>

@@ -205,6 +205,9 @@ const ProForAllSwitch: React.FC<{ onChanged: () => void }> = ({ onChanged }) => 
 function auditAction(entry: AdminAuditRow): string {
   const details = entry.details && typeof entry.details === 'object' && !Array.isArray(entry.details) ? entry.details : null;
   if (entry.action === 'set_pro_for_all') return `turned Shaadi24+ for everyone ${details?.on ? 'on' : 'off'}`;
+  if (entry.action === 'correct_date_of_birth') {
+    return `corrected a date of birth${details?.from ? ` from ${details.from}` : ''} to ${details?.to ?? '?'}${details?.note ? ` (${details.note})` : ''}`;
+  }
   return entry.action.replace(/_/g, ' ');
 }
 

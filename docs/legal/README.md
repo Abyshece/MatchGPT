@@ -246,6 +246,9 @@ the end (the English text applies; any Eighth Schedule language on request).
   under it. Members of any other gender: 21.
 - Members already under the age (one live profile, on 6 October 2026) are hidden from everyone, stay
   hidden whatever they change, and see a screen that says why (`components/UnderAgeScreen.tsx`).
+- They can't change their own date of birth, age or gender. Only support can, in Admin → Users → Date of
+  birth (`admin_correct_date_of_birth()`), after seeing an ID that shows the date, with a note on how it
+  was checked in the audit log. A date under the legal age is refused there too.
 
 **Consent** (DPDP Act section 6; SPDI Rules rule 5; the 2016 advisory):
 

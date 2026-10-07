@@ -64,6 +64,9 @@ export interface AdminUserRow {
   account_created: string;  // ISO timestamp
   daily_search_count: number;
   daily_like_count: number;
+  date_of_birth: string | null;  // YYYY-MM-DD
+  gender: string | null;
+  is_paused: boolean;            // hidden from everyone (by the member, or by the legal-age rule)
 }
 
 export interface AdminAuditRow {
@@ -127,7 +130,7 @@ export async function updateReport(
 
 // Newest 50 accounts, or those whose name or email contains the query.
 export async function searchUsers(query: string): Promise<{ users: AdminUserRow[]; error: string | null }> {
-  const { data, error } = await supabase.rpc('admin_search_users', { p_query: query.trim(), p_limit: 50 });
+  const { data, error } = await supabase.rpc('admin_find_users', { p_query: query.trim(), p_limit: 50 });
   if (error) return { users: [], error: error.message };
   return { users: (data ?? []) as AdminUserRow[], error: null };
 }
@@ -155,6 +158,20 @@ export async function verifyUser(userId: string): Promise<{ error: string | null
   });
   if (error) return { error: error.message };
   return { error: null };
+}
+
+/**
+ * Corrects a member's date of birth, after seeing an ID that shows it (in the
+ * audit log, with the note). A date under the legal age to marry is refused;
+ * a profile hidden only because of the age becomes visible again.
+ */
+export async function correctDateOfBirth(userId: string, dateOfBirth: string, note: string): Promise<{ error: string | null }> {
+  const { error } = await supabase.rpc('admin_correct_date_of_birth', {
+    target_id: userId,
+    new_date_of_birth: dateOfBirth,
+    note,
+  });
+  return { error: error?.message ?? null };
 }
 
 // ----------------------------------------------------------------------------

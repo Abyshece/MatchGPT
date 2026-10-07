@@ -565,6 +565,22 @@ research, with sources: [docs/research/profile-questions.md](docs/research/profi
   pop-up among them) passed. Migration `20261007173707_short_sign_up` is applied live and `search` is
   redeployed.
 
+Part 13 done 2026-10-07: **support can correct a date of birth.** A member under the legal age sees
+"Shaadi24 is for 21 and over" and is asked to write to support if the date is wrong, but support had
+no way to change it, and the member could still change it through the API.
+
+- [x] **Admin → Users → Date of birth**: after seeing an ID that shows the date, an admin enters it with
+  a note on how it was checked, which goes in the audit log. A date under the legal age is refused. A
+  profile hidden only because of the age is visible again; one the member paused stays paused. Each
+  row now shows the gender, the date of birth and "Under 21" or "Hidden" where they apply.
+- [x] **Only support changes it**: an account under the legal age can no longer change its own date of
+  birth, typed age or gender, so typing an older year doesn't let someone in.
+- [x] Checked: 10 new database checks (146 in all) and the admin browser test extended (an under-age
+  member, a refused date, a corrected one, the audit note); the consent, India-profile and sign-up
+  tests pass, and the accessibility check now covers Admin → Users and the pop-up (54 screens).
+  Migration `20261007213718_admin_correct_date_of_birth` is applied live. It adds
+  `admin_find_users()` beside `admin_search_users()` instead of replacing it, so nothing is dropped.
+
 **Still to do**
 
 - [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.
