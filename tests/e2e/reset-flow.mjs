@@ -29,6 +29,7 @@ await fetch(`${API}/rest/v1/profiles?id=eq.${user.id}`, {
   body: JSON.stringify({ name: 'Reset Tester', gender: 'Female', interested_in: 'Men', onboarding_complete: true,
     terms_accepted_at: new Date().toISOString(), privacy_accepted_at: new Date().toISOString(),
     terms_version: TERMS_VERSION, privacy_version: PRIVACY_VERSION, rules_reminded_at: new Date().toISOString(),
+    profile_nudged_at: new Date().toISOString(),  // the free-searches pop-up shown already
     // the answers every member gives (lib/profileRewards.ts)
     profile_created_for: 'Myself', date_of_birth: '1995-06-15', marital_status: 'Never Married',
     height: `5' 5" (165 cm)`, country: 'India', state: 'Maharashtra', city: 'Mumbai', religion: 'Hindu',

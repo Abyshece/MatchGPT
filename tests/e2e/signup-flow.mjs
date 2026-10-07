@@ -1,6 +1,7 @@
 // New-user journey against the local stack: email sign-up → the consent screen
-// (the declarations Indian law asks for) → onboarding (3 steps, with the India
-// details) → dashboard → search → sign out → sign back in.
+// (the declarations Indian law asks for) → the three short sign-up steps (the
+// basics, background, one photo) → the free-searches pop-up → My Profile's
+// About me draft → dashboard → search → sign out → sign back in.
 // Usage: node signup-flow.mjs [email]
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
@@ -100,17 +101,21 @@ try {
     await page.getByRole('option', { name: option, exact: true }).click();
   };
 
-  await step('onboarding step 1: basic info', async () => {
+  await step('onboarding step 1: the basics', async () => {
     if ((await selectAfter('This profile is for').inputValue()) !== 'Myself') throw new Error('"This profile is for" should start at Myself');
+    if (!(await page.getByText('about two minutes for all three steps').isVisible())) throw new Error('step 1 does not say how long sign-up takes');
     await page.getByPlaceholder("As you'd like it shown").fill('Test Newuser');
     if (await page.locator('xpath=//label[normalize-space(.)="Looking for"]').count()) throw new Error('asked what he is looking for (marriage only)');
+    for (const gone of ['Pronouns (optional)', 'Grew up in (optional)']) {
+      if (await page.locator(`xpath=//label[normalize-space(.)="${gone}"]`).count()) throw new Error(`"${gone}" is still asked at sign-up`);
+    }
     await page.getByLabel('Day').selectOption('15');
     await page.getByLabel('Month').selectOption({ label: 'Jan' });
     // A man of 20 is under the legal age to marry in India
     await page.getByLabel('Year').selectOption(String(new Date().getFullYear() - 20));
     await selectAfter('Gender').selectOption('Male');
-    await selectAfter('Pronouns (optional)').selectOption('He/Him');
-    await selectAfter('Interested in').selectOption('Women');
+    // Filled in from the gender (and can be changed)
+    if ((await selectAfter('Interested in').inputValue()) !== 'Women') throw new Error('"Interested in" was not filled in from the gender');
     await page.getByRole('button', { name: /Continue/ }).click();
     if (!(await page.getByText(/must be at least 21 to use Shaadi24/).isVisible())) throw new Error('a man of 20 was not stopped');
     await page.getByLabel('Year').selectOption('1997');
@@ -120,94 +125,106 @@ try {
     if ((await page.getByRole('combobox', { name: 'Country' }).inputValue()) !== 'India') throw new Error('country should start at India');
     await pick('State', 'guj', 'Gujarat');
     await pick('City', 'sur', 'Surat');
-    await page.getByPlaceholder('Hometown').fill('Pune');
     await shot('onboarding-step1-filled');
     await page.getByRole('button', { name: /Continue/ }).click();
-    await page.getByText('Add your photos').waitFor({ timeout: 15000 });
+    await page.getByText('Step 2 of 3').waitFor({ timeout: 15000 });
+    await page.getByRole('heading', { name: 'Your background' }).waitFor();
     await shot('onboarding-step2');
   });
 
-  await step('onboarding step 2: four photos', async () => {
-    for (let i = 0; i < 4; i++) {
-      await page.locator('input[type=file]').first().setInputFiles(photos[i]);
-      await page.getByText(`${i + 1}/6 uploaded`).waitFor({ timeout: 15000 });
+  await step('onboarding step 2: background, and back to step 1', async () => {
+    await page.getByRole('button', { name: /Continue/ }).click();   // all four are needed
+    if (!(await page.getByText('Please choose the religion, mother tongue, highest qualification and occupation.').isVisible())) {
+      throw new Error('the missing answers were not named');
     }
-    await shot('photos-uploaded');
+    // Back keeps step 1's answers
+    await page.getByRole('button', { name: 'Back' }).click();
+    await page.getByText('Tell us about yourself').waitFor({ timeout: 15000 });
+    if ((await page.getByPlaceholder("As you'd like it shown").inputValue()) !== 'Test Newuser') throw new Error('step 1 forgot the name');
+    if ((await page.getByRole('combobox', { name: 'City' }).inputValue()) !== 'Surat') throw new Error('step 1 forgot the city');
     await page.getByRole('button', { name: /Continue/ }).click();
-    await page.getByText('Step 3 of 3').waitFor({ timeout: 15000 });
+    await page.getByRole('heading', { name: 'Your background' }).waitFor({ timeout: 15000 });
+    await selectAfter('Religion').selectOption('Hindu');
+    await pick('Mother tongue', 'gujar', 'Gujarati');
+    await selectAfter('Highest qualification').selectOption("Bachelor's");
+    await pick('Occupation', 'software prof', 'Software Professional');
+    await shot('onboarding-step2-filled');
+    await page.getByRole('button', { name: /Continue/ }).click();
+    await page.getByText('Add your photos').waitFor({ timeout: 15000 });
+    if (!(await page.getByText('Step 3 of 3').isVisible())) throw new Error('the photos are not step 3 of 3');
     await shot('onboarding-step3');
   });
 
-  const next = async (title) => {
-    await page.getByRole('button', { name: /Next/ }).click();
-    await page.getByRole('heading', { name: title }).waitFor();
-  };
-
-  await step('onboarding step 3: details (6 pages)', async () => {
-    // Religion & community
-    await page.getByRole('heading', { name: 'Religion & community' }).waitFor();
-    if (!(await page.getByTestId('reward-hint').isVisible())) throw new Error('no hint about the free searches');
-    if (await page.getByRole('button', { name: /Skip for now/ }).count()) throw new Error('a page with required answers can be skipped');
-    await page.getByRole('button', { name: /Next/ }).click();  // religion and mother tongue are required
-    if (!(await page.getByText('Please answer: Religion, Mother tongue.').isVisible())) throw new Error('missing required answers not named');
-    await page.getByLabel('Religion', { exact: true }).selectOption('Hindu');
-    await pick('Mother tongue', 'gujar', 'Gujarati');
-    await pick('Caste', 'pat', 'Patel');
-    await pick('Sub-caste', 'leva', 'Leva Patel');
-    if (!(await page.getByRole('combobox', { name: 'Gotra' }).isVisible())) throw new Error('gotra not asked for a Hindu');
-    if (await page.getByText('Denomination').isVisible()) throw new Error('denomination asked for a Hindu');
-    await page.getByLabel('Open to marrying outside your community?').selectOption('Yes, caste no bar');
-    for (const lang of ['English', 'Gujarati', 'Hindi']) await page.getByRole('button', { name: lang, exact: true }).click();
-    await shot('details-religion-community');
-
-    await next('Education & career');
-    await pick('Degree', 'btech', 'B.E/B.Tech (Bachelor of Engineering / Bachelor of Technology)');
-    if ((await page.getByLabel('Highest qualification').inputValue()) !== "Bachelor's") throw new Error('the degree did not fill in the qualification');
-    await pick('Occupation', 'software prof', 'Software Professional');
-    await page.getByPlaceholder('e.g. Product Manager').fill('Engineer');
-    await page.getByRole('combobox', { name: 'Annual income' }).click();
-    await page.getByRole('option', { name: '₹10–15 lakh', exact: true }).click();
-    if (await page.getByText('Residential status').isVisible()) throw new Error('residential status asked of someone in India');
-    await shot('details-education');
-
-    await next('Family');
-    await page.getByLabel('Family type').selectOption('Joint family');
-    await page.getByLabel('Brothers').selectOption('2');
-    await page.getByLabel('Of them married').first().selectOption('1');
-    await page.getByPlaceholder(/A few lines about your family/).fill('We run a textile shop in Surat.');
-    await shot('details-family');
-
-    await next('Horoscope');
-    await page.getByLabel('Manglik').selectOption('Non Manglik');
-    await page.locator('input[type=time]').fill('06:45');
-
-    await next('Lifestyle & appearance');
-    await page.getByLabel('Diet').selectOption('Vegetarian');
-    await page.getByRole('button', { name: 'Cricket', exact: true }).click();
-    for (const gone of ['Marijuana', 'Other drugs']) {
-      if (await page.getByText(gone, { exact: true }).count()) throw new Error(`"${gone}" is still asked`);
+  await step('onboarding step 3: one photo is enough, and it is kept going back', async () => {
+    if (!(await page.getByRole('button', { name: /Continue/ }).isDisabled())) throw new Error('Continue works without a photo');
+    for (const slot of ['Clear face photo', 'Full-length photo', 'Traditional or festive']) {
+      if (!(await page.getByText(slot, { exact: true }).isVisible())) throw new Error(`no "${slot}" slot`);
     }
-    await shot('details-lifestyle');
-
-    await next('Relationship & you');
-    if (await page.getByText('Relationship type', { exact: true }).count()) throw new Error('"Relationship type" is still asked');
-    await page.getByPlaceholder(/A few sentences/).fill('Testing the sign-up flow.');
-    await page.getByRole('button', { name: /Finish/ }).click();  // under 30 characters
-    if (!(await page.getByText('Please write at least 30 characters about yourself.').isVisible())) throw new Error('a short About me was taken');
-    await page.getByPlaceholder(/A few sentences/).fill('Testing the sign-up flow from start to end.');
-    await shot('details-last-page');
-    await page.getByRole('button', { name: /Finish/ }).click();
+    for (const gone of ['With an Animal', 'With Friends']) {
+      if (await page.getByText(gone, { exact: true }).count()) throw new Error(`"${gone}" is still a photo slot`);
+    }
+    await page.locator('input[type=file]').first().setInputFiles(photos[0]);
+    await page.getByText('1/6 added').waitFor({ timeout: 15000 });
+    // Saved at once
+    if (sql(`select coalesce(array_length(photo_urls, 1), 0) from profiles where email = '${email}';`) !== '1') throw new Error('the photo was not saved at once');
+    await page.getByRole('button', { name: 'Back' }).click();
+    await page.getByRole('heading', { name: 'Your background' }).waitFor({ timeout: 15000 });
+    if ((await page.getByRole('combobox', { name: 'Occupation' }).inputValue()) !== 'Software Professional') throw new Error('step 2 forgot the occupation');
+    await page.getByRole('button', { name: /Continue/ }).click();
+    await page.getByText('1/6 added').waitFor({ timeout: 15000 });
+    await shot('photos-uploaded');
+    await page.getByRole('button', { name: /Continue/ }).click();
   });
 
   await step('saved as chosen, with age, location and height worked out', async () => {
     await page.getByTestId('find-match-box').waitFor({ timeout: 20000 });
     const row = sql(`select concat_ws(' | ', age = extract(year from age(current_date, date '1997-01-15')), location, height_cm,
-        marital_status, children, mother_tongue, caste, sub_caste, education_level, occupation, brothers || '+' || brothers_married,
-        birth_time, manglik, dietary_preferences, hobbies, languages, profile_created_for, annual_income)
+        marital_status, children, interested_in, religion, mother_tongue, education_level, occupation, profile_created_for,
+        array_length(photo_urls, 1), onboarding_complete, coalesce(description, '-'))
       from profiles where email = '${email}';`);
-    const want = "t | Surat, Gujarat | 173 | Divorced | No | Gujarati | Patel | Leva Patel | Bachelor's | Software Professional | 2+1 | 06:45 | Non Manglik | Vegetarian | Cricket | English, Gujarati, Hindi | Myself | ₹10–15 lakh";
+    const want = "t | Surat, Gujarat | 173 | Divorced | No | Women | Hindu | Gujarati | Bachelor's | Software Professional | Myself | 1 | t | -";
     if (row !== want) throw new Error(`saved: ${row}\n  wanted: ${want}`);
     log('  saved:', row);
+  });
+
+  await step('the free-searches pop-up, then My Profile at About you', async () => {
+    const popup = page.getByTestId('profile-rewards-popup');
+    await popup.waitFor({ timeout: 15000 });
+    await shot('free-searches-popup');
+    for (const text of ['Unlock more free searches', 'Your profile is live!', 'up to 9 a day']) {
+      if (!(await popup.getByText(text).first().isVisible())) throw new Error(`the pop-up does not say "${text}"`);
+    }
+    for (const id of ['about', 'community', 'career', 'family', 'lifestyle', 'plans']) {
+      const row = popup.getByTestId(`nudge-${id}`);
+      if (!/\+1 search · ~\d+ min/.test(await row.innerText())) throw new Error(`section ${id}: ${await row.innerText()}`);
+    }
+    if (!/^All 6: about \d+ minutes\./.test(await popup.getByTestId('nudge-total').innerText())) throw new Error('no total time');
+    await popup.getByTestId('nudge-complete').click();
+    await page.locator('#section-about').waitFor({ timeout: 15000 });
+    await page.waitForTimeout(800);
+    const top = await page.locator('#section-about').evaluate((el) => el.getBoundingClientRect().top);
+    if (top < -5 || top > 400) throw new Error(`My Profile did not open at About you (top ${top})`);
+    await shot('my-profile-about-you');
+  });
+
+  await step('About me: a draft from the answers, edited and saved', async () => {
+    await page.getByRole('button', { name: /Write a draft for me/ }).first().click();
+    const box = page.getByLabel('About me', { exact: true });
+    const draft = await box.inputValue();
+    if (!draft.startsWith('I work as a software professional and live in Surat, Gujarat.')) throw new Error(`draft: ${draft}`);
+    await box.fill(`${draft} We are a close family.`);
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    await page.getByText('About me saved').waitFor({ timeout: 10000 });
+    const saved = sql(`select description from profiles where email = '${email}';`);
+    if (!saved.endsWith('We are a close family.')) throw new Error(`About me saved as: ${saved}`);
+    await shot('about-me-saved');
+  });
+
+  await step('the pop-up waits a few days after it has shown', async () => {
+    await page.reload();
+    await page.getByTestId('find-match-box').waitFor({ timeout: 20000 });
+    await page.waitForTimeout(2500);
+    if (await page.getByTestId('profile-rewards-popup').count()) throw new Error('the pop-up showed again straight away');
   });
 
   await step('reach the dashboard', async () => {

@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
 import type { TablesUpdate } from '../lib/database.types';
 import { ChoiceField, DateOfBirthField, ageFromDateOfBirth } from './ProfileInputs';
-import { ABOUT_ME_MIN, REQUIRED_LABELS, missingRequired, type RequiredKey } from '../lib/profileRewards';
+import { REQUIRED_LABELS, missingRequired, type RequiredKey } from '../lib/profileRewards';
 import {
   CITIES_BY_STATE, COUNTRIES, EDUCATION_LEVELS, GENDERS, HEIGHTS, INDIAN_STATES, INTERESTED_IN, MARITAL_STATUS,
   MOTHER_TONGUES, OCCUPATIONS, PROFILE_CREATED_FOR, RELIGIONS,
@@ -23,7 +23,6 @@ const COLUMN: Record<RequiredKey, string> = {
   interestedIn: 'interested_in', maritalStatus: 'marital_status',
   height: 'height', country: 'country', state: 'state', city: 'city', religion: 'religion',
   motherTongue: 'mother_tongue', educationLevel: 'education_level', occupation: 'occupation',
-  description: 'description',
 };
 
 const inputClass = 'w-full h-11 px-3 border border-gray-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-gray-900 dark:text-white outline-none focus:border-black dark:focus:border-white focus:ring-1 focus:ring-black dark:focus:ring-white transition-all';
@@ -62,7 +61,7 @@ const RequiredDetails: React.FC = () => {
     for (const key of asked) {
       if (key === 'state' && !inIndia) continue;
       const v = value(key).trim();
-      if (key === 'description' ? v.length < ABOUT_ME_MIN : !v) missing.push(REQUIRED_LABELS[key]);
+      if (!v) missing.push(REQUIRED_LABELS[key]);
       update[COLUMN[key]] = v;
     }
     if (askPlace) {
@@ -74,9 +73,7 @@ const RequiredDetails: React.FC = () => {
       }
     }
     if (missing.length) {
-      setError(missing.length === 1 && missing[0] === REQUIRED_LABELS.description
-        ? `Please write at least ${ABOUT_ME_MIN} characters about yourself.`
-        : `Please answer: ${missing.join(', ')}.`);
+      setError(`Please answer: ${missing.join(', ')}.`);
       return;
     }
     // The legal age to marry depends on the gender: 18 for women, 21 for men
@@ -146,22 +143,6 @@ const RequiredDetails: React.FC = () => {
     motherTongue: () => choice('motherTongue', { groups: MOTHER_TONGUES }),
     educationLevel: () => choice('educationLevel', { options: EDUCATION_LEVELS }),
     occupation: () => choice('occupation', { groups: OCCUPATIONS, allowCustom: true }),
-    description: () => field('description', (
-      <>
-        <textarea
-          value={value('description')}
-          onChange={(e) => set('description', e.target.value)}
-          rows={4}
-          maxLength={2000}
-          placeholder={`A few sentences in your own voice (at least ${ABOUT_ME_MIN} characters).`}
-          aria-label="About me"
-          className="w-full p-3 border border-gray-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-gray-900 dark:text-white outline-none focus:border-black dark:focus:border-white focus:ring-1 focus:ring-black dark:focus:ring-white transition-all resize-y"
-        />
-        <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1 text-right">
-          {value('description').trim().length} / {ABOUT_ME_MIN} characters at least
-        </p>
-      </>
-    )),
   };
 
   return (

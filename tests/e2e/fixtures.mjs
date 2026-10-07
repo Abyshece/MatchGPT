@@ -3,8 +3,8 @@ import { readFileSync } from 'node:fs';
 
 const REPO = process.env.REPO_ROOT || new URL('../..', import.meta.url).pathname;
 
-// The answers every member gives (lib/profileRewards.ts), for accounts the
-// tests make or reuse: a SQL "set" list that fills only what's missing, so an
+// The answers every member gives (lib/profileRewards.ts), and an About me, for
+// accounts the tests make or reuse: a SQL "set" list that fills only what's missing, so an
 // account skips the required-details screen. Use it in an
 // `update profiles set …` statement.
 export const REQUIRED_DETAILS = `
@@ -31,15 +31,17 @@ const consentSource = readFileSync(`${REPO}/lib/consentService.ts`, 'utf8');
 export const TERMS_VERSION = consentSource.match(/TERMS_VERSION = '([^']+)'/)[1];
 export const PRIVACY_VERSION = consentSource.match(/PRIVACY_VERSION = '([^']+)'/)[1];
 
-// For accounts the tests reuse: the current Terms and Privacy Policy accepted
-// and the rules just recalled (RulesReminder), so neither screen comes up. A
-// SQL "set" list, like REQUIRED_DETAILS.
+// For accounts the tests reuse: the current Terms and Privacy Policy accepted,
+// the rules just recalled (RulesReminder) and the free-searches pop-up just
+// shown (ProfileRewardsPopup), so none of them comes up. A SQL "set" list,
+// like REQUIRED_DETAILS.
 export const CONSENTED = `
   terms_accepted_at = coalesce(terms_accepted_at, now()),
   privacy_accepted_at = coalesce(privacy_accepted_at, now()),
   terms_version = '${TERMS_VERSION}',
   privacy_version = '${PRIVACY_VERSION}',
-  rules_reminded_at = now()`;
+  rules_reminded_at = now(),
+  profile_nudged_at = now()`;
 
 /** On the consent screen (StepConsent): ticks what a new member must agree to, and agrees. */
 export async function agreeToTerms(page, { timeout = 15000 } = {}) {

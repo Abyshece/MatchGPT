@@ -188,6 +188,33 @@ Deno.test('the questions no longer asked are not filters any more', () => {
   assertEquals(['marijuana', 'relationshipType', 'drugs'].filter((k) => k in c), []);
 });
 
+Deno.test('answers no longer asked since the short sign-up are not shown, filtered, searched or scored', () => {
+  const dropped = {
+    politics: 'Liberal', ethnicity: 'Indian', zodiac: 'Leo', love_language: 'Quality time', attachment_style: 'Secure',
+    living_preference: 'Apartment', has_tattoos: 'Yes', hair_color: 'Black', eye_color: 'Brown', wears_lenses: 'Yes',
+    interracial_marriage: 'No', music_genre: 'Jazz', next_travel_destination: 'Goa',
+  };
+  const searcher: Row = { ...me, ...dropped };
+  const pool = [person('gave', dropped), person('plain')];
+  const ranked = rankCandidates(searcher, pool, 'tattoo jazz leo', sanitizeFilters({ politics: 'Liberal', ethnicity: 'Indian' }), 50, NOW).candidates;
+  // Neither filtered nor ranked by them: the same score as someone who never answered
+  assertEquals(ranked.map((c) => c.id).sort(), ['gave', 'plain']);
+  assertEquals(ranked[0].compatibilityScore, ranked[1].compatibilityScore);
+  const gave = ranked.find((c) => c.id === 'gave')!;
+  assertEquals(['politics', 'ethnicity', 'zodiac', 'loveLanguage', 'attachmentStyle', 'hasTattoos', 'wearsLenses']
+    .filter((k) => k in gave), []);
+  assertEquals(gave.compatibilityReport.some((i) => /politic|ethnic|love language|attachment/i.test(i.text)), false);
+  // Gemini isn't offered them either
+  const catalog = buildCatalog([person('a', dropped)]);
+  assertEquals(['politics', 'ethnicity', 'zodiac', 'love_language', 'has_tattoos'].filter((k) => k in catalog), []);
+});
+
+Deno.test('body type, future plans and pets are shown on the profile screen', () => {
+  const [c] = rankCandidates(me, [person('x', { body_type: 'Athletic', future_plans: 'Start a business', pets: 'Dog' })],
+    '', {}, 50, NOW).candidates;
+  assertEquals([c.bodyType, c.futurePlans, c.pets], ['Athletic', 'Start a business', 'Dog']);
+});
+
 Deno.test('prompt: never married, divorced, Manglik, NRI', () => {
   const pool = [
     person('first', { marital_status: 'Never Married', manglik: 'Non Manglik', country: 'India' }),

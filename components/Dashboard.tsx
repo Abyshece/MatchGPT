@@ -16,6 +16,8 @@ import type { AdminTab } from './admin/AdminView';
 import { firstCelebration } from '../lib/matchCelebration';
 import { setErrorScreen } from '../lib/errorReports';
 import RulesReminder from './RulesReminder';
+import ProfileRewardsPopup from './ProfileRewardsPopup';
+import type { SectionId } from '../lib/profileRewards';
 
 // ============================================================================
 // Dashboard (Phase 6 Batch 3 — code-splitting)
@@ -72,6 +74,8 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
   const [adminOpen, setAdminOpen] = useState<{ tab?: AdminTab; key: number }>({ key: 0 });
   const isAdmin = useIsAdmin() === true;
   const [matchCelebration, setMatchCelebration] = useState<{ matchId: string; candidate: MatchCandidate } | null>(null);
+  // My Profile opened at a section (from the free-searches pop-up; a new key each time)
+  const [profileOpen, setProfileOpen] = useState<{ section?: SectionId; key: number }>({ key: 0 });
   // Bumping this forces SearchView to remount, clearing prompt + results.
   // Used by the pencil "new chat" icon in the topbar.
   const [searchResetKey, setSearchResetKey] = useState(0);
@@ -195,6 +199,11 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
     <div className="flex h-screen bg-white dark:bg-[#191919] overflow-hidden relative font-sans">
       {/* The reminder of the rules, every three months (IT Rules 2021, rule 3(1)(c)) */}
       <RulesReminder />
+      {/* What filling in the profile earns: after sign-up, then every few days until it's complete */}
+      <ProfileRewardsPopup onOpenSection={(section) => {
+        setProfileOpen((o) => ({ section, key: o.key + 1 }));
+        handleTabChange('profile');
+      }} />
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 popup-backdrop z-[60] md:hidden animate-fade-in"
@@ -271,7 +280,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
             {activeTab === 'likes' && <LikesView onNavigateToMatches={handleNavigateToMatches} />}
             {activeTab === 'matches' && <MatchesView initialMatchId={pendingMatchOpenId} />}
             {activeTab === 'standouts' && <StandoutsView onNavigateToMatches={handleNavigateToMatches} />}
-            {activeTab === 'profile' && <ProfileView />}
+            {activeTab === 'profile' && <ProfileView key={profileOpen.key} initialSection={profileOpen.section} />}
             {activeTab === 'settings' && (
               <SettingsView
                 isDarkMode={isDarkMode}

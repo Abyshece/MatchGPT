@@ -1,36 +1,32 @@
 // ============================================================================
 // Profile completion, shared by My Profile and the dashboard banner.
 //
-// Counts the answers that matter most for matching, plus up to 6 photos.
-// Horoscope, gotra and sect only count for the religions that use them.
+// Counts the answers Shaadi24 asks for (sign-up and the six sections of My
+// Profile), plus up to 6 photos. Horoscope, gotra and sect only count for the
+// religions that use them.
 // ============================================================================
 
 import type { UserProfile } from '../types';
 
 const ALWAYS: (keyof UserProfile)[] = [
-  // basics
-  'name', 'age', 'gender', 'pronouns', 'sexuality', 'interestedIn', 'profileCreatedFor', 'dateOfBirth',
-  'maritalStatus', 'height', 'languages',
-  // where they live
-  'country', 'city', 'hometown', 'settlingAbroad',
+  // asked at sign-up
+  'name', 'age', 'gender', 'interestedIn', 'profileCreatedFor', 'dateOfBirth', 'maritalStatus', 'height',
+  'country', 'city', 'religion', 'motherTongue', 'educationLevel', 'occupation',
   // religion and community
-  'religion', 'motherTongue', 'caste', 'openToOtherCommunities', 'ethnicity', 'race',
+  'caste', 'openToOtherCommunities', 'languages',
   // education and work
-  'educationLevel', 'degree', 'university', 'employedIn', 'occupation', 'jobTitle', 'work', 'workStyle',
-  'annualIncome',
+  'degree', 'university', 'employedIn', 'jobTitle', 'work', 'workStyle', 'annualIncome',
   // family
   'familyType', 'familyStatus', 'familyValues', 'fatherOccupation', 'motherOccupation', 'brothers', 'sisters',
-  'livingWithFamily', 'familyCloseness',
-  // appearance and lifestyle
-  'bodyType', 'hairColor', 'hairType', 'eyeColor', 'facialHair', 'clothingStyle', 'wearsGlasses', 'hasTattoos',
-  'drinking', 'smoking', 'dietaryPreferences', 'gymRoutine', 'canCook', 'hobbies', 'sportsInterest',
-  'readingInterest', 'lovesTravel', 'travelStyle', 'livingPreference', 'sleepSchedule', 'covidVaccine', 'phoneType',
-  // relationship and personality
-  'datingIntention', 'marriageTimeline', 'children', 'familyPlans', 'pets', 'description', 'loveLanguage',
-  'attachmentStyle', 'socialBattery', 'conflictResolution', 'financialApproach', 'politics', 'zodiac',
-  'futurePlans', 'dreamHouseType',
-  // socials
-  'linkedin', 'instagram',
+  'familyLocation', 'livingWithFamily', 'familyCloseness', 'aboutFamily',
+  // lifestyle
+  'dietaryPreferences', 'drinking', 'smoking', 'gymRoutine', 'canCook', 'hobbies', 'sleepSchedule',
+  'readingInterest', 'sportsInterest', 'lovesTravel', 'travelStyle',
+  // about you
+  'description', 'hometown', 'bodyType',
+  // plans and values
+  'marriageTimeline', 'familyPlans', 'settlingAbroad', 'socialBattery', 'conflictResolution', 'financialApproach',
+  'futurePlans', 'pets',
 ];
 
 const HOROSCOPE: (keyof UserProfile)[] = ['manglik', 'rashi', 'nakshatra', 'horoscopeMatch'];

@@ -141,7 +141,7 @@ try {
 
   await page.getByText('My Profile', { exact: true }).first().click();
   await page.getByText('Chota Bheem fan who loves chutney; magna cum laude.').click();
-  await page.getByPlaceholder('Write a few sentences about yourself…').fill('Not a chutiya, I promise you all of that.');  // 30+ characters
+  await page.getByLabel('About me', { exact: true }).fill('Not a chutiya, I promise you all of that.');  // 30+ characters
   await page.getByRole('button', { name: 'Save', exact: true }).click();
   check(await appears(page.getByText("Couldn't save: Your About me has words Shaadi24 doesn't allow. Please change them.")),
     'My Profile says why About me wasn\'t saved');
