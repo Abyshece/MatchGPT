@@ -14,7 +14,9 @@
 // an Android client for com.shaadi24.app with the app's signing
 // certificates). iPhones use their own client, VITE_GOOGLE_IOS_CLIENT_ID,
 // set when the app is built (scripts/ios-google-sign-in.mjs adds its URL
-// scheme); without it iPhones don't offer Google.
+// scheme); without it iPhones don't offer Google. They ask Google for a
+// token made out to the web client (iOSServerClientId), the one Supabase
+// checks, so it doesn't matter whether Supabase lists the iOS client.
 // Apple: iPhones only, offered once Supabase's Apple provider is on. Apple
 // asks for Sign in with Apple wherever another account sign-in is offered,
 // so iPhones offer Google only next to it. Apple gives the person's name
@@ -93,7 +95,9 @@ function socialLogin(): Promise<SocialLoginPlugin> {
     const ios = platform() === 'ios';
     await SocialLogin.initialize({
       ...(ios
-        ? GOOGLE_IOS_CLIENT_ID ? { google: { iOSClientId: GOOGLE_IOS_CLIENT_ID, mode: 'online' } } : {}
+        ? GOOGLE_IOS_CLIENT_ID
+          ? { google: { iOSClientId: GOOGLE_IOS_CLIENT_ID, iOSServerClientId: GOOGLE_WEB_CLIENT_ID || undefined, mode: 'online' } }
+          : {}
         : { google: { webClientId: GOOGLE_WEB_CLIENT_ID, mode: 'online' } }),
       ...(ios ? { apple: {} } : {}),
     });
