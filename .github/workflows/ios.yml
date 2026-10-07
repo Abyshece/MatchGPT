@@ -66,6 +66,10 @@ jobs:
       # Optional, as for TestFlight: "Continue with Google" on the welcome screen
       VITE_GOOGLE_IOS_CLIENT_ID: ${{ secrets.VITE_GOOGLE_IOS_CLIENT_ID }}
       MAESTRO_VERSION: 2.11.0
+      # A new simulator can take minutes to settle on GitHub's Macs; Maestro's
+      # iPhone driver gives up after about 2 minutes by default ("iOS driver not
+      # ready in time"), and the screenshots stop at the first screen
+      MAESTRO_DRIVER_STARTUP_TIMEOUT: 360000
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
