@@ -98,9 +98,27 @@ export async function availabilityNote(call, subscriptionId) {
     path = res?.links?.next ? res.links.next.replace(/^https:\/\/[^/]+/, '') : null;
   }
   if (!territories.length) return 'no countries chosen yet (Availability)';
-  return territories.includes('IND')
-    ? `sold in ${territories.length} ${territories.length === 1 ? 'country or region' : 'countries or regions'}, India included`
-    : `sold in ${territories.length} ${territories.length === 1 ? 'country or region' : 'countries or regions'}, but not India`;
+  const places = (n) => `${n} ${n === 1 ? 'country or region' : 'countries or regions'}`;
+  let note = territories.includes('IND')
+    ? `sold in ${places(territories.length)}, India included`
+    : `sold in ${places(territories.length)}, but not India`;
+
+  // A country it's sold in but has no price for doesn't get it
+  const priced = new Set();
+  path = `/v1/subscriptions/${subscriptionId}/prices?include=territory&limit=200`;
+  for (let page = 0; path && page < 10; page++) {
+    const res = await call('GET', path);
+    for (const p of res?.data ?? []) {
+      const id = p.relationships?.territory?.data?.id;
+      if (id) priced.add(id);
+    }
+    path = res?.links?.next ? res.links.next.replace(/^https:\/\/[^/]+/, '') : null;
+  }
+  const unpriced = territories.filter((t) => !priced.has(t));
+  if (unpriced.length) {
+    note += `; ${unpriced.length} of them without a price (${unpriced.slice(0, 6).join(', ')}${unpriced.length > 6 ? '…' : ''})`;
+  }
+  return note;
 }
 
 async function tryRead(what, read) {

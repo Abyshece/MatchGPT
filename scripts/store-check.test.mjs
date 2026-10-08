@@ -32,8 +32,14 @@ function standIn({ subscriptions, groups = ['Shaadi24+'], groupNames = [{ name: 
     if (m?.[2] === 'prices') {
       const list = d.price === undefined ? [] : Array.isArray(d.price) ? d.price : [{ price: d.price, start: null }];
       return {
-        data: list.map((p, i) => ({ id: `p${i}`, type: 'subscriptionPrices', attributes: { startDate: p.start, preserved: false },
-          relationships: { subscriptionPricePoint: { data: { type: 'subscriptionPricePoints', id: `pp${i}` } } } })),
+        data: [
+          ...list.map((p, i) => ({ id: `p${i}`, type: 'subscriptionPrices', attributes: { startDate: p.start, preserved: false },
+            relationships: { subscriptionPricePoint: { data: { type: 'subscriptionPricePoints', id: `pp${i}` } },
+              territory: { data: { type: 'territories', id: 'IND' } } } })),
+          // Prices elsewhere, when the whole list is asked for
+          ...(path.includes('filter[territory]') ? [] : (d.pricedIn ?? d.territories ?? []).filter((t) => t !== 'IND')
+            .map((t) => ({ id: `p-${t}`, type: 'subscriptionPrices', relationships: { territory: { data: { type: 'territories', id: t } } } }))),
+        ],
         included: [
           ...list.map((p, i) => ({ id: `pp${i}`, type: 'subscriptionPricePoints', attributes: { customerPrice: p.price } })),
           ...(list.length ? [{ id: 'IND', type: 'territories', attributes: { currency: 'INR' } }] : []),
@@ -171,6 +177,17 @@ test('sold, but not in India: says so', async () => {
     call: standIn({ subscriptions: FOUR, details: { s0: { ...full('499'), territories: ['USA'] }, s1: full('999'), s2: full('1999'), s3: full('2999') } }),
   });
   assert.match(lines.join('\n'), /shaadi24_plus_weekly \(1 week\): ready to submit; India price 499 INR; sold in 1 country or region, but not India;/);
+});
+
+test('sold in countries without a price: names them', async () => {
+  const { lines } = await checkSubscriptions({
+    bundleId: 'com.shaadi24.app',
+    call: standIn({ subscriptions: FOUR, details: {
+      s0: { ...full('499'), territories: ['IND', 'DEU', 'USA', 'GBR'], pricedIn: ['IND', 'USA'] },
+      s1: full('999'), s2: full('1999'), s3: full('2999') } }),
+  });
+  assert.match(lines.join('\n'), /shaadi24_plus_weekly \(1 week\): ready to submit; India price 499 INR; sold in 4 countries or regions, India included; 2 of them without a price \(DEU, GBR\);/);
+  assert.doesNotMatch(lines.join('\n'), /shaadi24_plus_monthly[^\n]*without a price/);
 });
 
 test('no groups yet', async () => {
