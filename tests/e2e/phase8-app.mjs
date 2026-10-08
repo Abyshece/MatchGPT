@@ -25,7 +25,8 @@ sql(`update profiles set last_active_at = now(), settings_show_online = (coalesc
      delete from standouts where user_id = '${me}';
      delete from verification_requests where user_id = '${me}';
      update profiles set is_paused = false, is_verified = false, verification_status = 'unverified', daily_search_count = 0, account_created = now()
-      where id = '${me}';`);  // not verified yet, and inside the 3 days to verify
+      where id = '${me}';
+     delete from search_usage where user_id = '${me}';`);  // not verified yet, and inside the 3 days to verify
 const hidden = new Set(sql(`select name from profiles where settings_show_online = false;`).split('\n'));
 
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });

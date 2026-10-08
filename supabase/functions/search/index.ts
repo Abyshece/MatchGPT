@@ -8,11 +8,13 @@
 // come back, without anything their owners marked hidden.
 //
 //   POST { mode: 'search', prompt, filters, limit? }
-//     → { candidates, poolSize, totalEligible, remaining,
+//     → { candidates, poolSize, totalEligible, remaining, allowance,
 //         understood: ["Women", "Doesn't smoke", ...], understoodBy: 'ai' | 'rules' }
-//     Counts toward the daily limit (consume_search): 429 { code:
-//     'LIMIT_REACHED' } once it's used up. Unverified accounts older than 72
-//     hours get 403 { code: 'VERIFY_REQUIRED' }.
+//     Counts toward the search limits (consume_search, limits.ts: so many
+//     every 5 hours, a day and a week): 429 { code: 'LIMIT_REACHED',
+//     allowance } once one is used up, saying which and when the next search
+//     can be. Unverified accounts older than 72 hours get 403
+//     { code: 'VERIFY_REQUIRED' }.
 //   POST { mode: 'standouts', refresh? }
 //     → { candidates, computed }
 //     Today's 5 picks (UTC day), chosen on the first visit and kept for the
@@ -27,6 +29,7 @@
 
 import { withCors } from '../_shared/cors.ts';
 import { understandPrompt } from './ai.ts';
+import { limitMessage, type SearchAllowance } from './limits.ts';
 import {
   buildCatalog, describeParsed, parsePrompt, planToParsed, rankCandidates, sanitizeFilters, withoutProFilters,
   type MatchCandidate, type ParsedPrompt, type Row, type SearchPlan,
@@ -139,9 +142,9 @@ async function search(me: Row, body: Record<string, unknown>): Promise<Response>
     return json({ error: 'Verify your account to keep searching.', code: 'VERIFY_REQUIRED' }, 403);
   }
 
-  const allowance = await rpc('consume_search', { p_user_id: me.id }) as { allowed: boolean; remaining: number | null };
+  const allowance = await rpc('consume_search', { p_user_id: me.id }) as SearchAllowance;
   if (!allowance.allowed) {
-    return json({ error: "You've used today's searches. They reset at midnight UTC.", code: 'LIMIT_REACHED', remaining: 0 }, 429);
+    return json({ error: limitMessage(allowance), code: 'LIMIT_REACHED', remaining: 0, allowance }, 429);
   }
 
   const pro = await hasPro(me.id);
@@ -153,8 +156,10 @@ async function search(me: Row, body: Record<string, unknown>): Promise<Response>
   const pool = await rpc('search_candidates', { p_user_id: me.id, p_exclude_liked: true }) as Row[];
   const { parsed, by } = await understand(prompt, pool);
   const { candidates, poolSize } = rankCandidates(me, pool, prompt, filters, limit, Date.now(), parsed);
+  // The allowance after this search: whether the next one can go ahead
+  const after = { ...allowance, allowed: !allowance.limited_by };
   return json({
-    candidates: pro ? candidates : withoutReport(candidates), poolSize, totalEligible: pool.length, remaining: allowance.remaining,
+    candidates: pro ? candidates : withoutReport(candidates), poolSize, totalEligible: pool.length, remaining: allowance.remaining, allowance: after,
     understood: describeParsed(parsed), understoodBy: by,
   });
 }

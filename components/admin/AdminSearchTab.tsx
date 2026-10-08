@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useToast } from '../../lib/useToast';
 import { fetchSearchInsights, filterLabel, type SearchInsights } from '../../lib/adminInsights';
+import AdminSearchLimits from './AdminSearchLimits';
 import DailyChart from './DailyChart';
 import { FINANCE_VIZ_CSS } from './RevenueChart';
 import { ago } from './adminUi';
@@ -10,7 +11,8 @@ import { ago } from './adminUi';
 // day; the words and the searches typed most, with how many people each
 // usually finds; searches that found no one (members we don't have yet, or
 // a search the app misreads); and the filters used. Good for knowing whom to
-// bring to Shaadi24, and for blog topics.
+// bring to Shaadi24, and for blog topics. On top, the search limits
+// (AdminSearchLimits), which owners change.
 // ============================================================================
 
 const SPANS = [7, 30, 90] as const;
@@ -50,6 +52,7 @@ const AdminSearchTab: React.FC = () => {
   return (
     <div className="fin-viz space-y-5" data-testid="admin-search">
       <style>{FINANCE_VIZ_CSS}</style>
+      <AdminSearchLimits />
       <div className="flex justify-end">
         <div className="inline-flex rounded-md border border-gray-200 dark:border-zinc-700 p-0.5" role="group" aria-label="Period">
           {SPANS.map((s) => (

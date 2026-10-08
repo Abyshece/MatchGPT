@@ -39,6 +39,7 @@ sql(`update profiles set ${INDIA_COLUMNS.map((c) => `${c} = null`).join(', ')}, 
        hidden_fields = '{}', is_paused = false, settings_incognito = false, onboarding_complete = true where id = '${A}';
      update profiles set gender = 'Male', interested_in = 'Women', is_verified = true, subscription_tier = 'PRO',
        daily_search_count = 0, is_paused = false where id = '${B}';
+     delete from search_usage where user_id = '${B}';
      delete from likes where (liker_id = '${A}' and liked_id = '${B}') or (liker_id = '${B}' and liked_id = '${A}');
      delete from blocks where (blocker_id = '${A}' and blocked_id = '${B}') or (blocker_id = '${B}' and blocked_id = '${A}');`);
 

@@ -22,7 +22,7 @@ export const SUBSCRIPTION_PLANS = [
     price: '₹0',
     period: 'Forever',
     features: [
-      '3 AI searches a day, up to 9 with a complete profile',
+      'AI searches every 5 hours, more a day with a complete profile',
       '15 likes a day',
       'Chat with your matches',
     ],
@@ -37,7 +37,7 @@ export const SUBSCRIPTION_PLANS = [
     price: '₹999',
     period: 'per month',
     features: [
-      'Unlimited AI searches',
+      'More AI searches',
       'Unlimited likes',
       'Super Likes',
       'Refresh your Standouts any time',

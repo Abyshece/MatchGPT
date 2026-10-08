@@ -4,7 +4,8 @@ A matrimony app for India. People describe the person they hope to marry in thei
 Shaadi24 finds the people they fit best: by values, family, lifestyle and plans, not just photos.
 Profiles carry what Indian families ask about (community, mother tongue, family, horoscope), and any
 answer can be hidden. Likes that go both ways become matches, and matches can chat. Profiles are
-verified through their social links, and Shaadi24+ adds unlimited searches and likes.
+verified through their social links. AI searches have limits every 5 hours, a day and a week (like
+Claude's), and Shaadi24+ adds more searches and unlimited likes.
 
 Members use Shaadi24 in the **Android and iPhone apps**. The website, **https://shaadi-gpt.vercel.app**,
 says what Shaadi24 is and where to get the apps, serves the pages the stores and Indian law ask for

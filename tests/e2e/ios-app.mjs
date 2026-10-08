@@ -37,7 +37,8 @@ sql(`delete from matches where '${me}' in (user_a_id, user_b_id);
      insert into matches (user_a_id, user_b_id)  -- stored as the smaller id first
        values (least('${me}'::uuid, '${otherId}'::uuid), greatest('${me}'::uuid, '${otherId}'::uuid));
      update profiles set subscription_tier = 'FREE', account_created = now(), daily_search_count = 0,
-       is_paused = false, settings_theme = 'system' where id = '${me}';`);
+       is_paused = false, settings_theme = 'system' where id = '${me}';
+     delete from search_usage where user_id = '${me}';`);
 
 // What the native side provides: the bridge, and the plugins this app uses
 const STANDIN = `

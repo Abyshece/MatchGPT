@@ -31,7 +31,7 @@ const check = (ok, what) => { log(ok ? '  ok  ' : '  FAIL', what); if (!ok) fail
 const sorted = (list, cmp) => list.every((x, i) => i === 0 || cmp(list[i - 1], x) <= 0);
 
 const me = sql(`select id from auth.users where email = '${EMAIL}';`);
-const freshSearches = () => sql(`update profiles set daily_search_count = 0 where id = '${me}';`);
+const freshSearches = () => sql(`update profiles set daily_search_count = 0 where id = '${me}'; delete from search_usage where user_id = '${me}';`);
 sql(`update profiles set subscription_tier = 'FREE', is_paused = false, account_created = now(), settings_theme = 'system', ${CONSENTED} where id = '${me}';
      delete from likes where liker_id = '${me}';`);
 freshSearches();

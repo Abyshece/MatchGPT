@@ -3,7 +3,7 @@ import { useAuth } from '../lib/AuthContext';
 import { useNow } from '../lib/useNow';
 import { useToast } from '../lib/useToast';
 import { loadHistory, deleteSearch, clearHistory } from '../lib/searchHistoryService';
-import { computeSearchAllowance } from '../lib/profileService';
+import { useSearchAllowance } from '../lib/searchLimits';
 import { listMyLikesDetailed } from '../lib/likesService';
 import MatchCard from './MatchCard';
 import ProfileModal from './ProfileModal';
@@ -40,7 +40,8 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
   const [loading, setLoading] = useState(true);
   const [selectedCandidate, setSelectedCandidate] = useState<MatchCandidate | null>(null);
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeReason, setUpgradeReason] = useState<'search_limit' | 'pro_feature' | null>(null);
+  const { allowance } = useSearchAllowance(session?.user.id, `${profile?.subscriptionTier}:${profile?.searchBonus}`);
   const now = useNow();
 
   const fetchHistory = useCallback(async () => {
@@ -85,12 +86,12 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
 
   const handleRerun = useCallback((saved: SavedSearch) => {
     if (!profile) return;
-    if (!computeSearchAllowance(profile).allowed) {
-      setShowUpgradeModal(true);
+    if (allowance && !allowance.allowed) {
+      setUpgradeReason('search_limit');
       return;
     }
     onOpenInSearch(saved);
-  }, [profile, onOpenInSearch]);
+  }, [profile, allowance, onOpenInSearch]);
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Delete this saved search?')) return;
@@ -311,15 +312,15 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
           candidate={selectedCandidate}
           isPro={hasPro}
           onClose={() => setSelectedCandidate(null)}
-          onUpgrade={() => { setSelectedCandidate(null); setShowUpgradeModal(true); }}
+          onUpgrade={() => { setSelectedCandidate(null); setUpgradeReason('pro_feature'); }}
         />
       )}
 
-      {showUpgradeModal && (
+      {upgradeReason && (
         <UpgradeModal
-          reason="daily_limit"
-          resetInHours={computeSearchAllowance(profile).resetInHours}
-          onClose={() => setShowUpgradeModal(false)}
+          reason={upgradeReason}
+          limit={allowance}
+          onClose={() => setUpgradeReason(null)}
         />
       )}
     </div>

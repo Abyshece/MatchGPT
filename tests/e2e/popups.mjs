@@ -26,7 +26,8 @@ const started = sql('select now();');
 sql(`delete from likes where liker_id = '${me}';
      delete from verification_requests where user_id = '${me}';
      update profiles set subscription_tier = 'FREE', is_verified = false, verification_status = null,
-       account_created = now(), daily_search_count = 0, daily_like_count = 0, is_paused = false where id = '${me}';`);
+       account_created = now(), daily_search_count = 0, daily_like_count = 0, is_paused = false where id = '${me}';
+     delete from search_usage where user_id = '${me}';`);
 
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
 

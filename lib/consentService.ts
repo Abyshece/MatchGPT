@@ -11,7 +11,7 @@ import { supabase } from './supabase';
 
 // Bump these whenever the legal documents change: every member is asked to
 // accept the new versions before they continue (needsConsent(); App.tsx).
-export const TERMS_VERSION = 'terms-v9-2026-10-08';
+export const TERMS_VERSION = 'terms-v10-2026-10-08';
 export const PRIVACY_VERSION = 'privacy-v13-2026-10-08';
 
 export type ConsentEventType =

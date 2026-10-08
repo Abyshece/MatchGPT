@@ -186,9 +186,13 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => (
 
     <Section title="9. Shaadi24+ and payments">
       <List>
-        <li>{LEGAL.brand} is free to use, with daily limits for free accounts ({DAILY_LIMITS.FREE.searches} AI searches a
-          day, up to 9 for a complete profile, and {DAILY_LIMITS.FREE.likes} likes a day). Shaadi24+ is a paid
-          subscription that lifts those limits and adds features listed in the app.</li>
+        <li>{LEGAL.brand} is free to use. Every account has limits on AI searches: a number every few hours, a day and
+          a week (the week starts on Friday evening, India time). Settings in the app shows them, how many you have
+          used and when each resets. Free accounts also have {DAILY_LIMITS.FREE.likes} likes a day, and completing your
+          profile adds free searches a day. Shaadi24+ is a paid subscription with higher search limits, unlimited likes
+          and the other features listed in the app.</li>
+        <li>We may change these limits to keep {LEGAL.brand} running well for everyone. The app always shows the current
+          ones, and we tell Shaadi24+ members in the app before we lower theirs.</li>
         <li>Shaadi24+ is sold only in our Android and iPhone apps, through Google Play and the App Store. It runs for one
           week, one month, three months or six months; our prices in India are {pricesInWords()}. The store shows you the final price, including GST and any other
           taxes, before you confirm, takes the payment, and its own terms of sale also apply. We never see your

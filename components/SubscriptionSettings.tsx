@@ -11,12 +11,14 @@ import {
 } from '../lib/storePurchases';
 import UpgradeModal from './UpgradeModal';
 import { DAILY_LIMITS } from '../lib/profileService';
+import { useSearchAllowance } from '../lib/searchLimits';
+import SearchUsage from './SearchUsage';
 
 // ============================================================================
 // SubscriptionSettings: the Shaadi24+ part of Settings
 //
-// Shows the plan and what happens next (trial end, renewal, end date) and the
-// payments. Shaadi24+ is bought in the phone apps, so the store that sold it
+// Shows the plan and what happens next (trial end, renewal, end date), the AI
+// searches used against each limit (SearchUsage) and the payments. Shaadi24+ is bought in the phone apps, so the store that sold it
 // bills it and manages it: the app opens the store's page, and anywhere else
 // this says where. In the apps there's Restore purchases too, and on opening
 // the subscription is caught up with the store, in case a notification was
@@ -27,6 +29,7 @@ const SubscriptionSettings: React.FC = () => {
   const { session, profile, refreshProfile } = useAuth();
   const { showToast } = useToast();
   const userId = session?.user.id;
+  const { allowance } = useSearchAllowance(userId, `${profile?.subscriptionTier}:${profile?.searchBonus}`);
   const platform = storePlatform();
 
   const [sub, setSub] = useState<Subscription | null>(null);
@@ -115,8 +118,8 @@ const SubscriptionSettings: React.FC = () => {
   } else if (isPro) {
     status = <>Shaadi24+ is on for your account.</>;
   } else {
-    status = <>Free plan: {DAILY_LIMITS.FREE.searches + (profile?.searchBonus ?? 0)} AI searches and {DAILY_LIMITS.FREE.likes} likes a day.
-      {(profile?.searchBonus ?? 0) < 6 && <> Each profile section you complete adds a search a day.</>}</>;
+    status = <>Free plan: {DAILY_LIMITS.FREE.likes} likes a day, and the AI searches below.
+      {(profile?.searchBonus ?? 0) < 6 && allowance?.day.limit !== null && <> Each profile section you complete adds a search a day.</>}</>;
   }
 
   const showUpgradeButton = !loading && !isPro && !(store && live);
@@ -150,6 +153,8 @@ const SubscriptionSettings: React.FC = () => {
           </button>
         )}
       </div>
+
+      <SearchUsage allowance={allowance} />
 
       {payments.length > 0 && (
         <div className="px-2">

@@ -128,16 +128,18 @@ const ProfileView: React.FC<{ initialSection?: SectionId }> = ({ initialSection 
 
   // A section just completed: say what it earned
   const bonus = profile?.searchBonus ?? 0;
+  // The free plan's searches a day (null: no daily limit, nothing to earn)
+  const freeBase = sections ? sections.freeDailySearches : DAILY_LIMITS.FREE.searches;
   const isPro = profile?.subscriptionTier === 'PRO';
   const lastBonus = useRef<number | null>(null);
   useEffect(() => {
     if (lastBonus.current !== null && bonus > lastBonus.current) {
-      showToast(isPro
+      showToast(isPro || freeBase === null
         ? 'Section complete! Your profile is stronger for it.'
-        : `Section complete! You now get ${DAILY_LIMITS.FREE.searches + bonus} free AI searches a day.`, 'success');
+        : `Section complete! You now get ${freeBase + bonus} free AI searches a day.`, 'success');
     }
     lastBonus.current = bonus;
-  }, [bonus, isPro, showToast]);
+  }, [bonus, isPro, freeBase, showToast]);
 
   // The badge on a section's heading: earned, or how many answers are left
   const rewardBadge = (id: SectionId): { badge?: string; badgeTone?: 'done' | 'todo' } => {

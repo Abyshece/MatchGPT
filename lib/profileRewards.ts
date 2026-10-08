@@ -7,13 +7,15 @@
 //
 // Sections: everything else is optional and comes in six sections in My
 // Profile, and each one a member completes (about 70% of its answers given)
-// adds one free AI search a day: 3 a day plus up to 6. The database decides
+// adds one free AI search a day: the free plan's (3 to start with; owners set
+// it in Admin → Search insights) plus up to 6. The database decides
 // (profile_sections(), latest in supabase/migrations/…_short_sign_up.sql) and
 // keeps the count in profiles.search_bonus; this file reads it for My Profile
 // and the pop-up that offers it (ProfileRewardsPopup).
 // ============================================================================
 
 import { supabase } from './supabase';
+import { DAILY_LIMITS } from './profileService';
 import type { UserProfile } from '../types';
 
 /** The shortest "About me" that counts. */
@@ -71,16 +73,20 @@ export interface ProfileSection {
 
 export interface ProfileSections {
   sections: ProfileSection[];
-  bonus: number;           // sections complete: free searches a day on top of 3
-  dailySearches: number;
+  bonus: number;                   // sections complete: free searches a day on top of the free plan's
+  dailySearches: number | null;    // the member's own searches a day (null: no daily limit)
+  freeDailySearches: number | null; // the free plan's, before the bonus (Admin → Search insights)
 }
 
 /** The signed-in member's sections, as the database counts them. */
 export async function fetchProfileSections(): Promise<ProfileSections | null> {
   const { data, error } = await supabase.rpc('my_profile_sections');
   if (error || !data) return null;
-  const d = data as unknown as { sections: ProfileSection[] | null; bonus: number; daily_searches: number };
-  return { sections: d.sections ?? [], bonus: d.bonus, dailySearches: d.daily_searches };
+  const d = data as unknown as { sections: ProfileSection[] | null; bonus: number; daily_searches: number | null; free_daily_searches?: number | null };
+  return {
+    sections: d.sections ?? [], bonus: d.bonus, dailySearches: d.daily_searches,
+    freeDailySearches: d.free_daily_searches === undefined ? DAILY_LIMITS.FREE.searches : d.free_daily_searches,
+  };
 }
 
 /** What My Profile calls each counted answer, for "answer these to finish it". */

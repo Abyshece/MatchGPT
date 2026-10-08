@@ -82,6 +82,35 @@ export async function fetchSearchInsights(days: number): Promise<{ insights: Sea
   return { insights: (data ?? null) as unknown as SearchInsights | null, error: fail(error) };
 }
 
+// ---- Search limits (supabase/migrations/…_search_limits.sql; lib/searchLimits.ts) ------------
+
+export interface AdminPlanLimits { per_window: number | null; per_day: number | null; per_week: number | null; updated_at?: string }
+
+export interface AdminSearchLimits {
+  window_hours: number;
+  week_reset_dow: number;
+  week_reset_hour: number;
+  plans: { free: AdminPlanLimits; plus: AdminPlanLimits };
+  can_edit: boolean;                      // owners only
+  week_started_at: string;
+  limited_7d: { members: number; window: number; day: number; week: number };   // by the limit that stopped them last
+  searching_this_week: number;
+}
+
+export async function fetchSearchLimits(): Promise<{ limits: AdminSearchLimits | null; error: string | null }> {
+  const { data, error } = await supabase.rpc('admin_search_limits');
+  return { limits: (data ?? null) as unknown as AdminSearchLimits | null, error: fail(error) };
+}
+
+/** Owners only; null for no limit */
+export async function saveSearchLimits(settings: { window_hours: number; plans: { free: AdminPlanLimits; plus: AdminPlanLimits } }): Promise<string | null> {
+  const plan = (p: AdminPlanLimits) => ({ per_window: p.per_window, per_day: p.per_day, per_week: p.per_week });
+  const { error } = await supabase.rpc('admin_set_search_limits', {
+    p_settings: { window_hours: settings.window_hours, plans: { free: plan(settings.plans.free), plus: plan(settings.plans.plus) } },
+  });
+  return fail(error);
+}
+
 /** "motherTongue" → "Mother tongue" */
 export const filterLabel = (key: string) => {
   const known: Record<string, string> = {

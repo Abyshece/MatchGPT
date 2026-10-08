@@ -45,7 +45,8 @@ const me = sql(`select id from profiles where email = '${EMAIL}';`);
 const reset = () => sql(`delete from payments where user_id = '${me}';
   delete from subscriptions where user_id = '${me}';
   update profiles set subscription_tier = 'FREE', subscription_renews_at = null, account_created = now(),
-    daily_search_count = 0, is_paused = false, settings_theme = 'system', ${CONSENTED} where id = '${me}';`);
+    daily_search_count = 0, is_paused = false, settings_theme = 'system', ${CONSENTED} where id = '${me}';
+  delete from search_usage where user_id = '${me}';`);
 const tier = () => sql(`select subscription_tier from profiles where id = '${me}';`);
 const subOf = (provider) => sql(`select status || '|' || plan_id from subscriptions
   where user_id = '${me}' and provider = '${provider}' order by created_at desc limit 1;`);

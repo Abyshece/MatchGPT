@@ -9,6 +9,7 @@
 
 import { supabase } from './supabase';
 import type { Tables } from './database.types';
+import { plusSearchesText, type PlanLimits } from './searchLimits';
 
 // A plan's id is also its length (billing_plans: id and period)
 export type PlanId = 'weekly' | 'monthly' | 'quarterly' | 'halfyearly' | 'yearly';
@@ -59,15 +60,16 @@ export function pricesInWords(): string {
   return `${each.slice(0, -1).join(', ')} and ${each[each.length - 1]}`;
 }
 
-// What Shaadi24+ adds (each is enforced by the server): the daily limits
-// lifted, which takes a subscription...
+// What Shaadi24+ adds (each is enforced by the server): more searches and
+// unlimited likes, which take a subscription...
 export interface ProBenefit {
   key: 'searches' | 'likes' | 'likes-you' | 'super-likes' | 'filters' | 'reports' | 'dates' | 'standouts';
   title: string;
   detail?: string;
 }
-const UNLIMITED: ProBenefit[] = [
-  { key: 'searches', title: 'Unlimited AI searches', detail: 'Free: 3 a day, up to 9 with a complete profile' },
+// (searches: more of them, as many as Admin → Search insights sets; lib/searchLimits.ts)
+const limitsLifted = (plans?: { free: PlanLimits; plus: PlanLimits }, hours?: number): ProBenefit[] => [
+  { key: 'searches', ...plusSearchesText(plans, hours) },
   { key: 'likes', title: 'Unlimited likes', detail: 'Free: 15 a day' },
 ];
 // ...and the features, which are also everyone's while "Shaadi24+ for
@@ -81,9 +83,9 @@ const FEATURES: ProBenefit[] = [
   { key: 'standouts', title: 'Refresh your Standouts any time' },
 ];
 
-/** What buying Shaadi24+ adds right now. */
-export function proBenefits(proForAll: boolean): ProBenefit[] {
-  return proForAll ? UNLIMITED : [...UNLIMITED, ...FEATURES];
+/** What buying Shaadi24+ adds right now (with the search limits the server has, when they're known). */
+export function proBenefits(proForAll: boolean, plans?: { free: PlanLimits; plus: PlanLimits }, hours?: number): ProBenefit[] {
+  return proForAll ? limitsLifted(plans, hours) : [...limitsLifted(plans, hours), ...FEATURES];
 }
 
 /** Said under the benefits while Shaadi24+'s features are everyone's. */

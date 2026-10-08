@@ -269,10 +269,10 @@ The subscriptions' names and descriptions (App Store: 30 and 45 characters at mo
 
 | Product | Display name | Description |
 |---|---|---|
-| `shaadi24_plus_weekly` | Shaadi24+ 1 Week | Unlimited AI searches and likes for 1 week |
-| `shaadi24_plus_monthly` | Shaadi24+ 1 Month | Unlimited AI searches and likes for 1 month |
-| `shaadi24_plus_quarterly` | Shaadi24+ 3 Months | Unlimited AI searches and likes, 3 months |
-| `shaadi24_plus_halfyearly` | Shaadi24+ 6 Months | Unlimited AI searches and likes, 6 months |
+| `shaadi24_plus_weekly` | Shaadi24+ 1 Week | More AI searches, unlimited likes, 1 week |
+| `shaadi24_plus_monthly` | Shaadi24+ 1 Month | More AI searches, unlimited likes, 1 month |
+| `shaadi24_plus_quarterly` | Shaadi24+ 3 Months | More AI searches, unlimited likes, 3 months |
+| `shaadi24_plus_halfyearly` | Shaadi24+ 6 Months | More AI searches, unlimited likes, 6 months |
 
 ---
 
@@ -315,7 +315,7 @@ SAFE AND RESPECTFUL
 • For adults 18 and over
 
 SHAADI24+
-A free account can search 3 times and send 15 likes a day. Shaadi24+ adds unlimited searches and likes, Super Likes, everyone who has liked you, more search filters (religion, mother tongue, community, Manglik, height, diet, education and more), the full compatibility report and date proposals in chat. It's a subscription for a week, a month, 3 months or 6 months through Google Play that renews until you cancel it in Google Play.
+A free account can make a few AI searches every 5 hours (more a day with a complete profile) and send 15 likes a day. Shaadi24+ adds more searches, unlimited likes, Super Likes, everyone who has liked you, more search filters (religion, mother tongue, community, Manglik, height, diet, education and more), the full compatibility report and date proposals in chat. It's a subscription for a week, a month, 3 months or 6 months through Google Play that renews until you cancel it in Google Play.
 
 Making a profile for a son, daughter, brother, sister or friend? Welcome, with their permission.
 
@@ -371,9 +371,9 @@ SAFE AND RESPECTFUL
 • For adults 18 and over
 
 SHAADI24+
-A free account can search 3 times and send 15 likes a day. Shaadi24+ adds unlimited searches and likes, Super Likes, everyone who has liked you, more search filters (religion, mother tongue, community, Manglik, height, diet, education and more), the full compatibility report and date proposals in chat.
+A free account can make a few AI searches every 5 hours (more a day with a complete profile) and send 15 likes a day. Shaadi24+ adds more searches, unlimited likes, Super Likes, everyone who has liked you, more search filters (religion, mother tongue, community, Manglik, height, diet, education and more), the full compatibility report and date proposals in chat.
 
-Shaadi24+ is an auto-renewing subscription for 1 month or 1 year. Payment is charged to your Apple Account when you confirm the purchase. It renews automatically unless you turn off auto-renewal at least 24 hours before the end of the current period, and your account is charged for the renewal within 24 hours before the period ends. Manage or cancel it in your Apple Account settings. If a free trial is offered, any unused part of it ends when you buy a subscription.
+Shaadi24+ is an auto-renewing subscription for 1 week, 1 month, 3 months or 6 months. Payment is charged to your Apple Account when you confirm the purchase. It renews automatically unless you turn off auto-renewal at least 24 hours before the end of the current period, and your account is charged for the renewal within 24 hours before the period ends. Manage or cancel it in your Apple Account settings. If a free trial is offered, any unused part of it ends when you buy a subscription.
 
 Terms of Use: https://shaadi-gpt.vercel.app/terms
 Privacy Policy: https://shaadi-gpt.vercel.app/privacy
