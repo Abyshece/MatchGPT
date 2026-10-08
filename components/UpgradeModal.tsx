@@ -97,10 +97,11 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ reason, resetInHours, onClo
 
   return createPortal(
     // Full screen and dark on a phone (data-popup keeps it clear of the
-    // iPhone's notch and home bar); a card over the blurred page on a wide screen
+    // iPhone's notch and home bar); a card over the blurred page on a wide
+    // screen, like every popup
     <div
       data-popup
-      className="fixed inset-0 z-[500] flex sm:items-center justify-center bg-[#111] sm:bg-black/50 sm:backdrop-blur-sm sm:p-4 animate-fade-in"
+      className="fixed inset-0 z-[500] flex sm:items-center justify-center popup-backdrop max-sm:!bg-[#111] max-sm:!backdrop-blur-none sm:p-4 animate-fade-in"
       onClick={close}
     >
       <div
