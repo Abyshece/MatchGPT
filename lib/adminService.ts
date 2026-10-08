@@ -197,14 +197,16 @@ export async function fetchAuditLog(limit = 50): Promise<{ entries: AdminAuditRo
 
 // ----------------------------------------------------------------------------
 // Admin check (used by frontend to decide whether to show the Admin tab).
-// Asks the database: is_admin() compares the signed-in user's confirmed email
-// with the admin_emails table. Every admin RPC checks again on the server.
+// Asks the database: admin_status() compares the signed-in user's confirmed
+// email with the admin_emails table (any role; two-step sign-in, when it's
+// required, is asked for inside the admin panel). Every admin RPC checks
+// again on the server, with the admin's role.
 // ----------------------------------------------------------------------------
 
 export async function checkIsAdmin(): Promise<boolean> {
-  const { data, error } = await supabase.rpc('is_admin');
+  const { data, error } = await supabase.rpc('admin_status');
   if (error) return false;
-  return data === true;
+  return (data as { listed?: boolean } | null)?.listed === true;
 }
 
 // ----------------------------------------------------------------------------

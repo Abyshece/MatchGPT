@@ -23,12 +23,13 @@ const GEMINI_API_BASE = Deno.env.get('GEMINI_API_BASE') || undefined;  // only f
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
-// is_admin() as the caller (their access token), so it's their sign-in that counts
+// admin_can('blog') as the caller (their access token), so it's their sign-in
+// (and their role, and two-step sign-in when it's required) that counts
 async function isAdmin(auth: string): Promise<boolean> {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/is_admin`, {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_can`, {
     method: 'POST',
     headers: { apikey: ANON_KEY, Authorization: auth, 'Content-Type': 'application/json' },
-    body: '{}',
+    body: JSON.stringify({ p_areas: ['blog'] }),
   });
   return res.ok && (await res.json().catch(() => false)) === true;
 }

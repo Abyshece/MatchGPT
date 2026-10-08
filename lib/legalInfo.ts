@@ -46,7 +46,7 @@ export const LEGAL = {
 export const orPending = (value: string) => value.trim() || 'to be published before launch';
 
 /** The date the current documents took effect, as shown on them. */
-export const LEGAL_UPDATED = '6 October 2026';
+export const LEGAL_UPDATED = '8 October 2026';
 
 /** The legal pages, at /<page> on the website and #<page> in the apps. */
 export const LEGAL_PAGES = ['terms', 'privacy', 'grievances', 'safety', 'refunds'] as const;

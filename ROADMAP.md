@@ -781,6 +781,61 @@ Part 24 done 2026-10-08: **The admin panel, part 3: the Blog.**
   (Markdown, the server's pages, sitemap and feed), `blog-ai/writer_test.ts`, and accessibility (the
   blog, a post, the admin list, editor and AI draft).
 
+Part 25 done 2026-10-08: **The admin panel, part 4: safety, insights, automatic messages and the team.**
+
+- [x] **Moderation** (Safety): a photo a member adds, and what they write about themselves and their
+  family, wait for an admin. Until then other members see the profile without that photo and with the
+  text as it was; the member sees "under review" on their own profile. Approved, it shows; rejected,
+  the photo comes off or the text goes back, and the member gets a message with the reason and a
+  button to fix it. "Show first, review after" shows everything at once and keeps the queue. Each
+  photo is fingerprinted in the admin's browser, so the same photo on another account shows next to it.
+  New items notify the admins who moderate.
+- [x] **Scam alerts** (Safety): members who look like scammers or fake profiles, from what they do: the
+  same photo as another account, money or investment talk in chats, one message pasted to many people,
+  likes by the dozen, reports from several members, a banned member back with a new account. Open the
+  member, ban them, or mark it reviewed (it comes back if something new happens).
+- [x] **A member's timeline** (Customers → a member → Timeline): everything they did and what was done
+  about them, newest first, by day: searches, likes, matches, chats (a count, never the text), photos
+  and text and their review, reports, blocks, complaints, verification, Shaadi24+, messages from the
+  team. "Safety" shows reports, blocks and
+  verification only.
+- [x] **Growth** (Insights): members and who is active (today, 7 and 30 days); how far new members get
+  in 8 steps (joined → profile → photo → verified → liked → matched → messaged → paid); sign-ups and
+  active members a day (hover for the numbers, or see them as a table); members by city, community,
+  religion, gender and age. For 7, 30 or 90 days.
+- [x] **Search insights** (Insights): searches a day, the words and searches typed most, the searches
+  that found no one (what members want and don't find), and the filters used. Never who searched.
+- [x] **Success stories** (Growth): couples who met on Shaadi24, published only with both partners'
+  consent written down; on the website's home page and `/stories`. The contact form has "Our success
+  story" for couples to send theirs.
+- [x] **Automatic messages** (Growth): messages that send themselves, in the app and as a notification
+  (to members who left notifications on), every hour from 9 in the morning to 9 at night India time:
+  a welcome, nudges for a photo, an unfinished profile and verification, and for members not seen for
+  a week or a month. Each can be turned off and reworded, shows how many it's due for now, sent, seen
+  and tapped; "Send now" sends to those due at any hour. One a day at most to any member. **They are on
+  from the start**; turn any off in Admin → Automatic messages.
+- [x] **Team** (System, owners): add an admin by email with a role (Owner; Moderator; Support; Content;
+  Finance), change it, remove them. Each role sees only its sections, and the database enforces it
+  (`admin_can()` in every admin function and access rule); admin alerts go only to admins whose role
+  covers them. Only owners have the team, the audit log and "Shaadi24+ for everyone".
+- [x] **Two-step sign-in** for admins: an authenticator app (Google Authenticator, Microsoft
+  Authenticator, 1Password…; scan the QR code, then the 6-digit code). Anyone can set it up on the
+  Overview or Team; once set up, the admin panel asks for the code after signing in. An owner signed in
+  with it can **require it for every admin**: then the admin functions refuse a session without it,
+  and admins without one are asked to set it up first. A lost phone: an owner resets that admin's
+  (which signs them out everywhere).
+- [x] Bugs fixed on the way: admin alerts for enquiries went to the wrong Android channel; Verification
+  and Reports counts in the sidebar only loaded on the Overview; Admin → Messages notified members who
+  had turned notifications off; a member who changed a rejected photo was told twice; two quick clicks
+  on "Set up" for two-step sign-in failed.
+- [x] Database: `20261008190000_moderation_and_risk.sql`, `20261008200000_admin_insights_and_stories.sql`,
+  `20261008210000_automatic_messages.sql`, `20261008220000_admin_roles_and_two_step.sql` (applied live).
+  The Privacy Policy says photos and text are checked before others see them, and how scam checks
+  work (members accept it again, v13).
+- [x] Tests: `admin-safety` (moderation, fingerprints, scam alerts), `admin-insights` (timeline,
+  growth, search insights, success stories), `admin-team` (roles, two-step sign-in with codes worked
+  out like an authenticator app's, automatic messages), and the rest of the regression.
+
 **Still to do**
 
 - [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.

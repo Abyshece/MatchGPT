@@ -265,4 +265,6 @@ try {
   console.log(`\n${problems.length} problem(s) seen by the browser:`);
   for (const p of [...new Set(problems)]) console.log(' -', p);
   await browser.close();
+  // An account this run made for itself goes again, so runs don't pile up (in search, in Moderation)
+  if (!process.argv[2]) sql(`delete from auth.users where email = '${email}';`);
 }

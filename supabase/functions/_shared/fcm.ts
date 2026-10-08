@@ -34,7 +34,7 @@ export function fcmConfig(): FcmConfig | null {
 
 export interface PhonePush {
   token: string;
-  eventType: string;  // new_message, new_match, super_like; admin_report, admin_verification, admin_grievance
+  eventType: string;  // new_message, new_match, super_like, admin_message; admin_* (admin alerts)
   title: string;
   body: string;
   data: Record<string, unknown> | null;
@@ -42,11 +42,14 @@ export interface PhonePush {
 
 // The app's notification channels on Android (lib/nativePush.ts makes them):
 // people can turn each kind off in the phone's settings. Admins' phones have
-// one more, for reports and verification requests to review
+// one more, for every admin alert (event types starting "admin_": reports,
+// verification requests, complaints, enquiries, photos to approve). A
+// message from the team to a member ("admin_message") isn't one.
 const CHANNEL: Record<string, string> = {
   new_message: 'messages', new_match: 'matches', super_like: 'likes',
-  admin_report: 'admin', admin_verification: 'admin', admin_grievance: 'admin',
 };
+export const channelFor = (eventType: string): string =>
+  eventType.startsWith('admin_') && eventType !== 'admin_message' ? 'admin' : CHANNEL[eventType] ?? 'messages';
 const BRAND_ORANGE = '#F97316';
 
 /** The FCM message for one phone. */
@@ -66,7 +69,7 @@ export function fcmMessage(p: PhonePush): Record<string, unknown> {
       priority: 'high',
       ttl: '86400s',
       notification: {
-        channel_id: CHANNEL[p.eventType] ?? 'messages',
+        channel_id: channelFor(p.eventType),
         tag: group,
         icon: 'ic_stat_notify',
         color: BRAND_ORANGE,

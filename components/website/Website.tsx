@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from '../../lib/AuthContext';
 import { ToastProvider, useToast } from '../../lib/useToast';
 import { emailLinkError } from '../../lib/supabase';
 import { setErrorScreen } from '../../lib/errorReports';
+import { isAdminAlert } from '../../lib/adminAlerts';
 import SiteHome from './SiteHome';
 
 const AdminSite = lazyScreen(() => import('./AdminSite'));
@@ -15,6 +16,7 @@ const SafetyView = lazyScreen(() => import('../SafetyView'));
 const RefundsView = lazyScreen(() => import('../RefundsView'));
 const BlogIndex = lazyScreen(() => import('./BlogPages').then((m) => ({ default: m.BlogIndex })));
 const BlogPostPage = lazyScreen(() => import('./BlogPages').then((m) => ({ default: m.BlogPostPage })));
+const StoriesPage = lazyScreen(() => import('./StoriesPages').then((m) => ({ default: m.StoriesPage })));
 
 // ============================================================================
 // Website: the website, for everyone who isn't in the apps (lib/website.ts)
@@ -25,18 +27,19 @@ const BlogPostPage = lazyScreen(() => import('./BlogPages').then((m) => ({ defau
 //                     #privacy too, as older links have them)
 //   /grievances       the Grievance Officer and a complaint form (IT Rules 2021)
 //   /safety, /refunds Community Guidelines and Safety; Refunds and Cancellations
+//   /stories          couples who met on Shaadi24 (StoriesPages.tsx)
 //   /blog             the blog (BlogPages.tsx), /blog/<slug> a post; the server
 //                     sends these with their search engine tags (api/blog.ts)
 // /support and /delete-account stand on their own (index.tsx). A link from
 // an email (a password reset) asks for the new password wherever it lands.
 // ============================================================================
 
-type Route = 'home' | 'admin' | 'terms' | 'privacy' | 'grievances' | 'safety' | 'refunds' | 'blog' | `blog/${string}`;
+type Route = 'home' | 'admin' | 'terms' | 'privacy' | 'grievances' | 'safety' | 'refunds' | 'stories' | 'blog' | `blog/${string}`;
 
 // An admin alert clicked while no tab was open comes to /?push=… (public/sw.js)
-function isAdminAlert(raw: string | null): boolean {
+function isAdminAlertData(raw: string | null): boolean {
   try {
-    return String(JSON.parse(raw ?? '{}')?.event_type ?? '').startsWith('admin_');
+    return isAdminAlert(JSON.parse(raw ?? '{}')?.event_type);
   } catch {
     return false;
   }
@@ -48,10 +51,11 @@ function currentRoute(): Route {
   if (path === 'terms' || window.location.hash === '#terms') return 'terms';
   if (path === 'privacy' || window.location.hash === '#privacy') return 'privacy';
   if (path === 'grievances' || path === 'safety' || path === 'refunds') return path;
+  if (path === 'stories') return 'stories';
   if (path === 'blog') return 'blog';
   const post = path.match(/^blog\/([a-z0-9-]+)$/);
   if (post) return `blog/${post[1]}`;
-  if (isAdminAlert(new URLSearchParams(window.location.search).get('push'))) {
+  if (isAdminAlertData(new URLSearchParams(window.location.search).get('push'))) {
     window.history.replaceState(null, '', `/admin${window.location.search}`);
     return 'admin';
   }
@@ -83,6 +87,7 @@ const Routes: React.FC<{ route: Route }> = ({ route }) => {
   if (route === 'grievances') return <GrievancesView onBack={goHome} />;
   if (route === 'safety') return <SafetyView onBack={goHome} />;
   if (route === 'refunds') return <RefundsView onBack={goHome} />;
+  if (route === 'stories') return <StoriesPage />;
   if (route === 'blog') return <BlogIndex />;
   if (route.startsWith('blog/')) return <BlogPostPage slug={route.slice('blog/'.length)} />;
   return <SiteHome />;
@@ -110,7 +115,7 @@ const Website: React.FC = () => {
     const onMessage = (e: MessageEvent) => {
       if (e.data?.type !== 'push_click') return;
       const data = JSON.stringify(e.data.data ?? {});
-      if (isAdminAlert(data)) window.location.assign(`/admin?push=${encodeURIComponent(data)}`);
+      if (isAdminAlertData(data)) window.location.assign(`/admin?push=${encodeURIComponent(data)}`);
     };
     navigator.serviceWorker.addEventListener('message', onMessage);
     return () => navigator.serviceWorker.removeEventListener('message', onMessage);

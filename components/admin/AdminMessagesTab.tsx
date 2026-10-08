@@ -60,8 +60,8 @@ const AdminMessagesTab: React.FC = () => {
                   </td>
                   <td className="px-3 py-2.5 whitespace-nowrap">{m.audience_label}{m.pushed ? ' · notified' : ''}</td>
                   <td className="px-3 py-2.5 text-right tabular-nums">{m.recipients}</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums">{m.seen} <span className="text-gray-400">({pct(m.seen, m.recipients)})</span></td>
-                  <td className="px-3 py-2.5 text-right tabular-nums">{m.clicked} <span className="text-gray-400">({pct(m.clicked, m.recipients)})</span></td>
+                  <td className="px-3 py-2.5 text-right tabular-nums">{m.seen} <span className="text-gray-500 dark:text-zinc-400">({pct(m.seen, m.recipients)})</span></td>
+                  <td className="px-3 py-2.5 text-right tabular-nums">{m.clicked} <span className="text-gray-500 dark:text-zinc-400">({pct(m.clicked, m.recipients)})</span></td>
                   <td className="px-3 py-2.5 whitespace-nowrap text-gray-500 dark:text-zinc-400">{new Date(m.created_at).toLocaleString()}</td>
                 </tr>
               ))}

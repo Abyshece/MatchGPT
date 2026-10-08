@@ -1,6 +1,6 @@
 // deno test supabase/functions/_shared/fcm_test.ts
 import { assertEquals } from 'jsr:@std/assert@1';
-import { fcmMessage, fcmOutcome } from './fcm.ts';
+import { channelFor, fcmMessage, fcmOutcome } from './fcm.ts';
 
 Deno.test('a message notification: Android channel and grouping per chat, data as strings', () => {
   const m = fcmMessage({
@@ -31,6 +31,15 @@ Deno.test('matches and super likes use their own channels; super likes share one
   const other = fcmMessage({ token: 't', eventType: 'something_new', title: 'x', body: 'y', data: null }) as any;
   assertEquals(other.android.notification.channel_id, 'messages');
   assertEquals(other.data, { event_type: 'something_new' });
+});
+
+Deno.test('every admin alert goes to the admin channel; a message from the team to a member does not', () => {
+  for (const t of ['admin_report', 'admin_verification', 'admin_grievance', 'admin_enquiry', 'admin_moderation']) {
+    assertEquals(channelFor(t), 'admin', t);
+  }
+  assertEquals(channelFor('admin_message'), 'messages');
+  const enquiry = fcmMessage({ token: 't', eventType: 'admin_enquiry', title: 'x', body: 'y', data: { admin_tab: 'enquiries' } }) as any;
+  assertEquals(enquiry.android.notification.channel_id, 'admin');
 });
 
 Deno.test("FCM's answers: which phones to forget, retry or leave alone", () => {
