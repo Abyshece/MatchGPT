@@ -8,7 +8,8 @@
 //     the admin panel, its Complaints and Users tabs, the date-of-birth pop-up,
 //     its Errors tab (with an error open) and its App Preview tab
 //   - app: the landing and sign-in screens; signed in (an onboarded account,
-//     password TestPass!2026): the free-searches pop-up, Find Match with results, filters, a profile,
+//     password TestPass!2026): the free-searches pop-up, Find Match with results,
+//     its Sort menu and filter chips, filters, a profile,
 //     Likes You, Matches and a chat, Standouts, My Profile, Settings,
 //     Shaadi24+, the phone menu
 // Usage: node accessibility.mjs <admin email> <member email>   (DB_CONTAINER as the other tests)
@@ -140,6 +141,17 @@ try {
     await box.press('Enter');
     await page.locator('[data-testid=match-card], .grid img').first().waitFor({ timeout: 25000 }).catch(() => {});
     await audit(page, `results (${scheme})`);
+    // The Sort menu above the results, and a filter chip under the box
+    if (await page.getByTestId('sort-button').isVisible().catch(() => false)) {
+      await page.getByTestId('sort-button').click();
+      await page.waitForTimeout(500);
+      await audit(page, `sort menu (${scheme})`);
+      await page.keyboard.press('Escape');
+      await page.getByRole('button', { name: 'Online Now', exact: true }).click();
+      await page.waitForTimeout(300);
+      await audit(page, `filter chips (${scheme})`);
+      await page.getByTestId('filter-chips').getByRole('button', { name: 'Clear all' }).click();
+    }
 
     const openMenu = async (label) => {
       await page.getByRole('button', { name: 'Menu', exact: true }).first().click();
