@@ -1616,6 +1616,54 @@ export type Database = {
           },
         ]
       }
+      success_stories: {
+        Row: {
+          consent_note: string
+          created_at: string
+          created_by: string | null
+          id: string
+          married_on: string | null
+          names: string
+          photo_alt: string
+          photo_url: string | null
+          place: string
+          published: boolean
+          sort_order: number
+          story: string
+          updated_at: string
+        }
+        Insert: {
+          consent_note?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          married_on?: string | null
+          names: string
+          photo_alt?: string
+          photo_url?: string | null
+          place?: string
+          published?: boolean
+          sort_order?: number
+          story: string
+          updated_at?: string
+        }
+        Update: {
+          consent_note?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          married_on?: string | null
+          names?: string
+          photo_alt?: string
+          photo_url?: string | null
+          place?: string
+          published?: boolean
+          sort_order?: number
+          story?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           auto_renew: boolean | null
@@ -1819,6 +1867,94 @@ export type Database = {
       admin_update_enquiry: { Args: { p_id: string; p_notes?: string; p_status: string }; Returns: undefined }
       mark_my_message: { Args: { p_action: string; p_id: string }; Returns: undefined }
       my_messages: { Args: never; Returns: Json }
+      admin_moderation_queue: {
+        Args: { p_limit?: number; p_status?: string }
+        Returns: Json
+      }
+      admin_moderate: {
+        Args: { p_approve: boolean; p_ids: string[]; p_reason?: string }
+        Returns: Json
+      }
+      admin_set_review_before_showing: {
+        Args: { p_on: boolean }
+        Returns: undefined
+      }
+      my_review_status: {
+        Args: never
+        Returns: Json
+      }
+      admin_photos_to_fingerprint: {
+        Args: { p_limit?: number }
+        Returns: Json
+      }
+      admin_save_photo_fingerprints: {
+        Args: { p_items: Json }
+        Returns: number
+      }
+      admin_risk_signals: {
+        Args: never
+        Returns: Json
+      }
+      admin_review_risk: {
+        Args: { p_note?: string; p_signal: string; p_user: string }
+        Returns: undefined
+      }
+      admin_sidebar_counts: {
+        Args: never
+        Returns: Json
+      }
+      admin_member_timeline: {
+        Args: { p_limit?: number; p_user: string }
+        Returns: Json
+      }
+      admin_growth: {
+        Args: { p_days?: number }
+        Returns: Json
+      }
+      admin_search_insights: {
+        Args: { p_days?: number }
+        Returns: Json
+      }
+      admin_automations: {
+        Args: never
+        Returns: Json
+      }
+      admin_save_automation: {
+        Args: { p_body: string; p_cta_label: string; p_cta_target: string; p_enabled: boolean; p_id: string; p_push: boolean; p_title: string }
+        Returns: undefined
+      }
+      admin_run_automation: {
+        Args: { p_id: string }
+        Returns: number
+      }
+      admin_status: {
+        Args: never
+        Returns: Json
+      }
+      admin_can: {
+        Args: { p_areas: string[] }
+        Returns: boolean
+      }
+      admin_team: {
+        Args: never
+        Returns: Json
+      }
+      admin_team_save: {
+        Args: { p_email: string; p_notes?: string; p_role: string }
+        Returns: undefined
+      }
+      admin_team_remove: {
+        Args: { p_email: string }
+        Returns: undefined
+      }
+      admin_team_reset_two_step: {
+        Args: { p_email: string }
+        Returns: number
+      }
+      admin_set_require_two_step: {
+        Args: { p_on: boolean }
+        Returns: undefined
+      }
       blog_view: {
         Args: { p_slug: string }
         Returns: undefined

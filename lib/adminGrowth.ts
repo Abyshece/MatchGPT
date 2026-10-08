@@ -178,7 +178,7 @@ export async function markMyMessage(id: string, action: 'seen' | 'clicked' | 'di
 
 // ---- Enquiries -----------------------------------------------------------------------------
 
-export type EnquiryTopic = 'general' | 'account' | 'subscription' | 'safety' | 'partnership' | 'press' | 'other';
+export type EnquiryTopic = 'general' | 'account' | 'subscription' | 'safety' | 'partnership' | 'press' | 'story' | 'other';
 export const ENQUIRY_TOPICS: { id: EnquiryTopic; label: string }[] = [
   { id: 'general', label: 'A question about Shaadi24' },
   { id: 'account', label: 'My account' },
@@ -186,6 +186,7 @@ export const ENQUIRY_TOPICS: { id: EnquiryTopic; label: string }[] = [
   { id: 'safety', label: 'Safety' },
   { id: 'partnership', label: 'Partnership or business' },
   { id: 'press', label: 'Press' },
+  { id: 'story', label: 'Our success story' },
   { id: 'other', label: 'Something else' },
 ];
 export const topicLabel = (t: string) => ENQUIRY_TOPICS.find((x) => x.id === t)?.label ?? t;
@@ -272,4 +273,54 @@ export function redeemLinks(offer: Pick<Offer, 'code' | 'stores'>): { appStore: 
     appStore: offer.stores !== 'google_play' ? `https://apps.apple.com/redeem?ctx=offercodes&id=${APPLE_APP_ID}&code=${code}` : null,
     googlePlay: offer.stores !== 'app_store' ? `https://play.google.com/redeem?code=${code}` : null,
   };
+}
+
+// ---- Automatic messages (supabase/migrations/…_automatic_messages.sql) -------------------------
+
+export type AutomationId = 'welcome' | 'no_photo' | 'profile_incomplete' | 'verify' | 'inactive_7' | 'inactive_30';
+
+export interface Automation {
+  id: AutomationId;
+  enabled: boolean;
+  title: string;
+  body: string;
+  cta_label: string | null;
+  cta_target: MessageTarget | null;
+  push: boolean;
+  updated_at: string;
+  waiting: number;
+  sent: number;
+  sent_7: number;
+  seen: number;
+  clicked: number;
+  last_sent: string | null;
+}
+
+/** Who each one goes to (the rules are in automation_audience()) */
+export const AUTOMATION_INFO: Record<AutomationId, { name: string; who: string }> = {
+  welcome: { name: 'Welcome', who: 'Members who finished sign-up in the last 3 days, once.' },
+  no_photo: { name: 'No photo yet', who: 'Members a day or more in without a photo, once.' },
+  profile_incomplete: { name: 'Unfinished profile', who: 'Members 2 days in with fewer than 3 of the 6 sections complete; again after 14 days if still so.' },
+  verify: { name: 'Get verified', who: 'Members 3 days in, not verified and not waiting to be, once.' },
+  inactive_7: { name: 'Not seen for a week', who: 'Members not seen for 7 days (until it’s a month); again only after they’ve been back.' },
+  inactive_30: { name: 'Not seen for a month', who: 'Members not seen for 30 days; again only after they’ve been back.' },
+};
+
+export async function fetchAutomations(): Promise<{ automations: Automation[]; error: string | null }> {
+  const { data, error } = await supabase.rpc('admin_automations');
+  return { automations: (data ?? []) as unknown as Automation[], error: fail(error) };
+}
+
+export async function saveAutomation(a: Pick<Automation, 'id' | 'enabled' | 'title' | 'body' | 'cta_label' | 'cta_target' | 'push'>): Promise<{ error: string | null }> {
+  const { error } = await supabase.rpc('admin_save_automation', {
+    p_id: a.id, p_enabled: a.enabled, p_title: a.title, p_body: a.body,
+    p_cta_label: a.cta_target ? a.cta_label ?? '' : '', p_cta_target: a.cta_target ?? '', p_push: a.push,
+  });
+  return { error: fail(error) };
+}
+
+/** Send it now to those it's due for; returns how many */
+export async function runAutomation(id: AutomationId): Promise<{ sent: number; error: string | null }> {
+  const { data, error } = await supabase.rpc('admin_run_automation', { p_id: id });
+  return { sent: Number(data ?? 0), error: fail(error) };
 }

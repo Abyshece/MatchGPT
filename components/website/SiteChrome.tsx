@@ -25,6 +25,7 @@ export const SiteFooter: React.FC = () => (
   <footer className="border-t border-gray-100 dark:border-zinc-800 px-5 py-6">
     <nav aria-label="About Shaadi24" className="max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-gray-500 dark:text-gray-400">
       <a className={footerLink} href="/blog">Blog</a>
+      <a className={footerLink} href="/stories">Success stories</a>
       <a className={footerLink} href="/support">Help &amp; Support</a>
       <a className={footerLink} href="/privacy">Privacy Policy</a>
       <a className={footerLink} href="/terms">Terms of Service</a>

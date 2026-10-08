@@ -146,7 +146,7 @@ export function notFoundPage(shell: string): string {
 const xml = (s: string) => escapeHtml(s);
 
 // The website's own pages, for the sitemap
-const PAGES = ['/', '/blog', '/support', '/privacy', '/terms', '/grievances', '/safety', '/refunds', '/delete-account'];
+const PAGES = ['/', '/blog', '/stories', '/support', '/privacy', '/terms', '/grievances', '/safety', '/refunds', '/delete-account'];
 
 export function sitemapXml(posts: Pick<Post, 'slug' | 'noindex' | 'published_at' | 'updated_at'>[]): string {
   const urls = [

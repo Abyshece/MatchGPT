@@ -279,7 +279,7 @@ const BlogEditor: React.FC<{ initial: PostDraft; startWithAi?: { topic: string; 
 
           {preview ? (
             <article className="mt-6 min-h-[480px]" data-testid="blog-preview">
-              {p.content.trim() ? <Markdown source={p.content} /> : <p className="text-gray-400">Nothing written yet.</p>}
+              {p.content.trim() ? <Markdown source={p.content} /> : <p className="text-gray-500 dark:text-zinc-400">Nothing written yet.</p>}
             </article>
           ) : (
             <>

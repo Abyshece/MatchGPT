@@ -60,11 +60,11 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => (
           why="To show your profile to people who might want to marry you, and to find your matches. Your date of birth also lets us check you are of the legal age to marry (other members only ever see your age)." />
         <Item what="Optional answers you choose to give: caste or community, sub-caste, sect, gotra, horoscope (Manglik, rashi, nakshatra, time and place of birth), education and work (degree, college, employer, job, annual income), family (parents' occupations, brothers and sisters, family type, status, values and where they live), lifestyle, appearance, plans and personality, hometown, disability, vaccination and similar"
           why="To show your profile and work out how well you might match someone. Completing sections of these also gives you extra free searches a day. Leave out anything you prefer not to say." />
-        <Item what="Photos" why="To show your profile to other members." />
+        <Item what="Photos" why="To show your profile to other members. Our team checks new photos, and what you write about yourself and your family, before other members see them." />
         <Item what="Links to your profiles on LinkedIn, Instagram, Facebook or X, if you ask to be verified"
           why="So our team can check them and give your profile the Verified badge. Only our team sees them." />
         <Item what="What you do on Shaadi24: likes, matches, messages, what you search for, Standouts, the people you block and the reports you make"
-          why="To provide these features (for example, to deliver your messages), to keep members safe, and to act on reports." />
+          why="To provide these features (for example, to deliver your messages), to keep members safe, and to act on reports. To keep members safe our systems also look for signs of scams and fake profiles, such as messages asking for money, the same message sent to many people, or the same photo on several accounts; our team looks at what was flagged and can stop the account." />
         <Item what="Device and technical data: the internet (IP) addresses and devices you sign in from and use to set up your profile, the app's version, and a notification token if you turn notifications on"
           why="To keep accounts secure, prevent fraud and fake profiles, send notifications you asked for, and keep the records Indian law requires (section 6)." />
         <Item what="Error reports" why="When something goes wrong in the app, we get what went wrong, on which screen, and the kind of device, without your name, email or account; email addresses and phone numbers in it are removed first." />
@@ -92,7 +92,8 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => (
         <li><strong>Other members</strong> see your profile and photos, except answers you hide and your date of birth
           (they see your age), and can filter searches by the answers you show. Whether you're online shows only if
           Active Status is on. Messages are seen by the person you send them to.</li>
-        <li><strong>Our team</strong> sees what it needs to verify profiles, review reports and complaints, and run{' '}
+        <li><strong>Our team</strong> sees what it needs to verify profiles, check new photos and profile text, look into
+          possible scams, review reports and complaints, and run{' '}
           {LEGAL.brand}, and every action in the admin panel is logged.</li>
         <li><strong>Service providers</strong> that process data for us, under contract and only to provide{' '}
           {LEGAL.brand} (in the DPDP Act, "Data Processors"):

@@ -5,6 +5,7 @@ import { deleteAccount } from '../../lib/deleteAccountService';
 import StoreBadges from '../StoreBadges';
 import OfferBanner from './OfferBanner';
 import { SiteFooter, SiteHeader } from './SiteChrome';
+import { StoriesStrip } from './StoriesPages';
 
 // ============================================================================
 // SiteHome: the website's home page
@@ -167,6 +168,8 @@ const SiteHome: React.FC = () => {
             </div>
           ))}
         </section>
+
+        <StoriesStrip />
       </main>
 
       <SiteFooter />

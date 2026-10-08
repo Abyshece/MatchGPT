@@ -1,4 +1,5 @@
 import React, { Suspense, useCallback, useEffect, useState } from 'react';
+import { adminTabFromAlert } from '../../lib/adminAlerts';
 import { lazyScreen } from '../../lib/lazyScreen';
 import { useAuth } from '../../lib/AuthContext';
 import { useIsAdmin } from '../../lib/useIsAdmin';
@@ -48,12 +49,7 @@ const NotAnAdmin: React.FC<{ email: string; onSignOut: () => void }> = ({ email,
 );
 
 interface PushData { event_type?: string; admin_tab?: string }
-const tabFor = (data: PushData): AdminTab | null =>
-  data.event_type === 'admin_report' || data.event_type === 'admin_verification' || data.event_type === 'admin_grievance'
-    || data.event_type === 'admin_enquiry'
-    ? (data.admin_tab === 'verifications' ? 'verifications' : data.admin_tab === 'grievances' ? 'grievances'
-      : data.admin_tab === 'enquiries' ? 'enquiries' : 'reports')
-    : null;
+const tabFor = (data: PushData): AdminTab | null => adminTabFromAlert(data);
 
 const AdminShell: React.FC<{ email: string; onSignOut: () => void }> = ({ email, onSignOut }) => {
   const [open, setOpen] = useState<{ tab?: AdminTab; key: number }>({ key: 0 });

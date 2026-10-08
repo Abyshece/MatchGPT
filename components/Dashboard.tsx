@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
+import { adminTabFromAlert, type AdminAlertTab } from '../lib/adminAlerts';
 import { lazyScreen } from '../lib/lazyScreen';
 import { useAuth } from '../lib/AuthContext';
 import Sidebar from './Sidebar';
@@ -147,11 +148,9 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
         setProfileOpen((o) => ({ section, key: o.key + 1 }));
         setActiveTab('profile');
       }
-    } else if (data.event_type === 'admin_report' || data.event_type === 'admin_verification' || data.event_type === 'admin_grievance'
-      || data.event_type === 'admin_enquiry') {
+    } else if (adminTabFromAlert(data)) {
       setPendingMatchOpenId(null);
-      const tab = data.admin_tab === 'verifications' ? 'verifications' : data.admin_tab === 'grievances' ? 'grievances'
-        : data.admin_tab === 'enquiries' ? 'enquiries' : 'reports';
+      const tab = adminTabFromAlert(data) as AdminAlertTab;
       setAdminOpen((o) => ({ tab, key: o.key + 1 }));
       setActiveTab('admin');
     }

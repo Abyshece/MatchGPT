@@ -6,6 +6,7 @@
 // serious or critical problems; moderate and minor ones are listed.
 //   - website: home, Help & Support, Delete account, Terms, admin sign-in,
 //     the admin panel, its Complaints and Users tabs, the date-of-birth pop-up,
+//     every admin section at computer width (where the sidebar shows),
 //     its Errors tab (with an error open) and its App Preview tab
 //   - app: the landing and sign-in screens; signed in (an onboarded account,
 //     password TestPass!2026): the free-searches pop-up, Find Match with results,
@@ -153,6 +154,27 @@ try {
     await page.getByTestId('app-preview-frame').waitFor({ timeout: 15000 });
     await page.waitForTimeout(1500);
     await audit(page, `admin app preview (${scheme})`);
+    await ctx.close();
+  }
+
+  // Every admin section on a computer too, where the sidebar shows
+  for (const scheme of ['light', 'dark']) {
+    log(`== The admin panel on a computer (${scheme})`);
+    const ctx = await browser.newContext({ viewport: { width: 1366, height: 900 }, colorScheme: scheme });
+    const page = await ctx.newPage();
+    await page.goto(`${WEBSITE}/admin`);
+    await page.getByRole('button', { name: /Continue with Email/ }).click();
+    await page.locator('input[type=email]').fill(ADMIN);
+    await page.locator('input[type=password]').fill(PASSWORD);
+    await page.locator('form').getByRole('button', { name: /Log In/i }).click();
+    await page.getByRole('heading', { name: 'Overview' }).waitFor({ timeout: 20000 });
+    const sidebar = page.getByTestId('admin-sidebar');
+    const sections = await sidebar.locator('[data-section]').evaluateAll((bs) => bs.map((b) => b.getAttribute('data-section')));
+    for (const id of sections) {
+      await sidebar.locator(`[data-section="${id}"]`).click();
+      await page.waitForTimeout(1800);
+      await audit(page, `admin ${id}, computer (${scheme})`);
+    }
     await ctx.close();
   }
 

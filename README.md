@@ -67,6 +67,16 @@ in the apps, through Google Play and the App Store.
   features while it's on; only the daily limits (3 to 9 AI searches, 15 likes) stay for free accounts. The
   server (`has_pro()` in the database) and the apps (`useAuth().hasPro`) follow it at once, with no
   new app release.
+- **The admin panel** (`components/admin/`, at `/admin` on the website and under Admin in the apps).
+  A sidebar like Notion's: Overview; People (Customers, with each member's timeline; Verification;
+  Profiles); Safety (Moderation of new photos and text before others see them; Reports; Scam alerts;
+  Complaints); Growth (Messages; Automatic messages, which send themselves every hour by day, India
+  time; Offers; Blog; Success stories); Inbox (Enquiries); Insights (Growth; Search insights;
+  Finance); System (Errors; Audit log; Team; App preview). Admins are the emails in Admin → Team, each
+  with a role (Owner, Moderator, Support, Content, Finance) that decides the sections they see; the
+  database enforces it (`admin_can()` in every admin function and access rule), and logs every action.
+  Two-step sign-in with an authenticator app can be set up by any admin, and an owner can require it
+  of all (`lib/adminTeam.ts`, Supabase's TOTP factors).
 - **Errors.** When the apps or the website hit an error, they report it to the database
   (`lib/errorReports.ts`): the error, where in the code, the screen, the app version and the device,
   never who (emails, phone numbers and ids are blanked out, and reports go without the member's

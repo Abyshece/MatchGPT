@@ -15,6 +15,7 @@ import { draftAboutFamily, draftAboutMe, hasFamilyDetails } from '../lib/aboutDr
 import { ABOUT_ME_MIN, REQUIRED_LABELS, fetchProfileSections, type ProfileSections, type SectionId } from '../lib/profileRewards';
 import { DAILY_LIMITS } from '../lib/profileService';
 import ProfileRewardsCard from './ProfileRewardsCard';
+import { fetchMyReviewStatus, type MyReviewStatus } from '../lib/adminSafety';
 import { SECT_LABEL, formatBirthTime, formatChildren, formatSiblings } from '../lib/profileDisplay';
 import {
   ANNUAL_INCOME, BODY_TYPES, CASTES, CHILDREN, CHILDREN_COUNT, CITIES_BY_STATE, COUNTRIES, DEGREES, DIETS, DISABILITY,
@@ -101,6 +102,21 @@ const ProfileView: React.FC<{ initialSection?: SectionId }> = ({ initialSection 
     fetchProfileSections().then((s) => { if (live && s) setSections(s); });
     return () => { live = false; };
   }, [savedAt]);
+
+  // New photos and text wait for the team's approval before others see them
+  const [review, setReview] = useState<MyReviewStatus | null>(null);
+  useEffect(() => {
+    let live = true;
+    void fetchMyReviewStatus().then((r) => { if (live) setReview(r); });
+    return () => { live = false; };
+  }, [savedAt]);
+  const waiting = review
+    ? [
+      ...(review.photos.length ? [`${review.photos.length} photo${review.photos.length === 1 ? '' : 's'}`] : []),
+      ...(review.texts.includes('description') ? ['About me'] : []),
+      ...(review.texts.includes('about_family') ? ['About my family'] : []),
+    ]
+    : [];
 
   // Opened at a section: go to it once the page has drawn
   useEffect(() => {
@@ -390,6 +406,15 @@ const ProfileView: React.FC<{ initialSection?: SectionId }> = ({ initialSection 
           }
         />
 
+        {waiting.length > 0 && (
+          <div role="status" data-testid="under-review" className="mb-6 rounded-lg border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-900/20 px-4 py-3 text-sm text-amber-900 dark:text-amber-200">
+            <strong>Waiting for approval:</strong> {waiting.join(', ')}.{' '}
+            {review?.review_before_showing
+              ? 'Other members see them once our team has checked them, usually within a day.'
+              : 'Our team checks new photos and text to keep Shaadi24 safe.'}
+          </div>
+        )}
+
         {/* Free searches for filling in the profile (lib/profileRewards.ts) */}
         <ProfileRewardsCard sections={sections} isPro={profile.subscriptionTier === 'PRO'}
           completionPercentage={completionPercentage} estimatedMinutes={estimatedMinutes} />
@@ -641,6 +666,9 @@ const ProfileView: React.FC<{ initialSection?: SectionId }> = ({ initialSection 
               {photos.map((url, idx) => (
                 <div key={idx} className="aspect-[3/4] rounded-lg overflow-hidden border border-gray-200 dark:border-zinc-800 group relative bg-gray-50 dark:bg-zinc-900">
                   <img src={url} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt={`photo-${idx}`} loading="lazy" />
+                  {review?.photos.includes(url) && (
+                    <span className="absolute top-2 left-2 z-10 rounded-full bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 shadow" data-testid="photo-under-review">Under review</span>
+                  )}
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-2 z-20">
                     <label className="cursor-pointer bg-white text-gray-800 px-3 py-1.5 rounded-full text-xs font-bold hover:bg-gray-100 shadow-sm flex items-center gap-1 transition-transform hover:scale-105">
                       <IconEdit /> Replace

@@ -21,6 +21,10 @@
       "destination": "/api/blog?view=robots"
     },
     {
+      "source": "/stories",
+      "destination": "/index.html"
+    },
+    {
       "source": "/admin",
       "destination": "/index.html"
     },
