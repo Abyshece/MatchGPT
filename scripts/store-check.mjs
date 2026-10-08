@@ -57,6 +57,25 @@ export function indiaPrices(response, today = new Date().toISOString().slice(0, 
   return { currency, now: amount(current), next: amount(next), nextStart: next?.start ?? null };
 }
 
+/**
+ * Whether a price is one of Apple's India price points for a subscription,
+ * and if not, the nearest below and above (Apple offers set prices only).
+ */
+export async function pricePointNote(call, subscriptionId, wanted) {
+  const prices = [];
+  let path = `/v1/subscriptions/${subscriptionId}/pricePoints?filter[territory]=IND&fields[subscriptionPricePoints]=customerPrice&limit=200`;
+  for (let page = 0; path && page < 20; page++) {
+    const res = await call('GET', path);
+    for (const p of res?.data ?? []) prices.push(Number(p.attributes?.customerPrice));
+    path = res?.links?.next ? res.links.next.replace(/^https:\/\/[^/]+/, '') : null;
+  }
+  if (prices.includes(wanted)) return `${wanted} is one of Apple's India prices`;
+  const below = Math.max(...prices.filter((p) => p < wanted));
+  const above = Math.min(...prices.filter((p) => p > wanted));
+  const near = [below, above].filter(Number.isFinite);
+  return `Apple has no ${wanted} in India${near.length ? `; the nearest are ${near.join(' and ')}` : ''}`;
+}
+
 async function tryRead(what, read) {
   try {
     return { value: await read() };
@@ -128,7 +147,10 @@ export async function checkSubscriptions({ call, bundleId, expected = EXPECTED }
           ? `India price ${p.next} ${p.currency} from ${p.nextStart}`
           : `India price ${p.now} ${p.currency}${p.next !== null ? `, ${p.next} ${p.currency} from ${p.nextStart}` : ''}`);
         const final = p.next ?? p.now;
-        if (want.price && p.currency === 'INR' && final !== want.price) prices.push(`${want.productId} is ${final} INR, the Terms say ${want.price}`);
+        if (want.price && p.currency === 'INR' && final !== want.price) {
+          const points = await tryRead("Apple's India prices", () => pricePointNote(call, sub.id, want.price));
+          prices.push(`${want.productId} is ${final} INR, the Terms say ${want.price} (${points.error ?? points.value})`);
+        }
       }
     }
 

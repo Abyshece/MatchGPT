@@ -38,6 +38,13 @@ function standIn({ subscriptions, groups = ['Shaadi24+'], groupNames = [{ name: 
         ],
       };
     }
+    if (m?.[2] === 'pricePoints') {
+      // Two pages, as Apple pages them
+      const points = (d.points ?? []).map((customerPrice, i) => ({ id: `pt${i}`, type: 'subscriptionPricePoints', attributes: { customerPrice } }));
+      const second = path.includes('cursor=2');
+      return second ? { data: points.slice(2), links: {} }
+        : { data: points.slice(0, 2), links: { next: `https://api.appstoreconnect.apple.com${path}&cursor=2` } };
+    }
     if (m?.[2] === 'subscriptionLocalizations') {
       return { data: (d.names ?? []).map((n) => ({ type: 'subscriptionLocalizations', attributes: n })) };
     }
@@ -88,12 +95,13 @@ test('a price that differs from the Terms, two groups and a subscription the app
       subscriptions: [...FOUR, { productId: 'shaadi24_plus_yearly', state: 'MISSING_METADATA', subscriptionPeriod: 'ONE_YEAR' }],
       groups: ['Shaadi24+', 'Shaadi24 weekly'],
       inGroup: [1, 0, 0, 0, 0],
-      details: { s0: full('349'), s1: full('999'), s2: full('1999'), s3: full('2999') },
+      details: { s0: { ...full('349'), points: ['349.0', '399.0', '449.0', '499.0'] }, s1: full('999'), s2: full('1999'),
+        s3: { ...full('3499'), points: ['2499.0', '2899.0', '3099.0', '3499.0'] } },
     }),
   });
   assert.equal(ready, true, 'the App Store still gives them to the app');
   const text = lines.join('\n');
-  assert.match(text, /⚠ Prices that differ from the Terms: shaadi24_plus_weekly is 349 INR, the Terms say 449\./);
+  assert.match(text, /⚠ Prices that differ from the Terms: shaadi24_plus_weekly is 349 INR, the Terms say 449 \(449 is one of Apple's India prices\); shaadi24_plus_halfyearly is 3499 INR, the Terms say 2999 \(Apple has no 2999 in India; the nearest are 2899 and 3099\)\./);
   assert.match(text, /⚠ They're in different groups \(Shaadi24 weekly, Shaadi24\+\)/);
   assert.match(text, /Also there, but not sold by the app: shaadi24_plus_yearly \(missing metadata\)\./);
 });
