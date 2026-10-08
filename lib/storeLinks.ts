@@ -10,3 +10,7 @@
 
 export const PLAY_STORE_URL: string | null = import.meta.env.VITE_PLAY_STORE_URL?.trim() || null;
 export const APP_STORE_URL: string | null = import.meta.env.VITE_APP_STORE_URL?.trim() || null;
+
+// The app's number in the App Store (App Store Connect → App Information → Apple ID), for links that
+// redeem an offer code
+export const APPLE_APP_ID = '6819755167';

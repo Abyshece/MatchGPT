@@ -618,6 +618,48 @@ export type Database = {
           },
         ]
       }
+      offers: {
+        Row: {
+          active: boolean
+          banner_text: string
+          code: string
+          created_at: string
+          created_by: string | null
+          ends_at: string | null
+          id: string
+          starts_at: string
+          stores: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          banner_text: string
+          code: string
+          created_at?: string
+          created_by?: string | null
+          ends_at?: string | null
+          id?: string
+          starts_at?: string
+          stores?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          banner_text?: string
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          ends_at?: string | null
+          id?: string
+          starts_at?: string
+          stores?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
@@ -1663,6 +1705,29 @@ export type Database = {
       }
       admin_customers: {
         Args: { p_filter?: string; p_limit?: number; p_offset?: number; p_query?: string; p_sort?: string }
+        Returns: Json
+      }
+      admin_enquiries: { Args: { p_status?: string }; Returns: Json }
+      admin_list_messages: { Args: never; Returns: Json }
+      admin_message_audience: { Args: { p_audience: Json }; Returns: number }
+      admin_profile_stats: { Args: never; Returns: Json }
+      admin_send_message: {
+        Args: {
+          p_audience: Json
+          p_audience_label: string
+          p_body: string
+          p_cta_label: string
+          p_cta_target: string
+          p_push?: boolean
+          p_title: string
+        }
+        Returns: Json
+      }
+      admin_update_enquiry: { Args: { p_id: string; p_notes?: string; p_status: string }; Returns: undefined }
+      mark_my_message: { Args: { p_action: string; p_id: string }; Returns: undefined }
+      my_messages: { Args: never; Returns: Json }
+      submit_enquiry: {
+        Args: { p_email: string; p_message: string; p_name: string; p_source?: string; p_topic: string }
         Returns: Json
       }
       admin_finance_summary: {

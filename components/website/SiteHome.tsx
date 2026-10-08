@@ -3,6 +3,7 @@ import { useAuth } from '../../lib/AuthContext';
 import { useIsAdmin } from '../../lib/useIsAdmin';
 import { deleteAccount } from '../../lib/deleteAccountService';
 import StoreBadges from '../StoreBadges';
+import OfferBanner from './OfferBanner';
 import { LEGAL } from '../../lib/legalInfo';
 
 // ============================================================================
@@ -127,6 +128,7 @@ const SiteHome: React.FC = () => {
   const [deleted, setDeleted] = useState<Deleted | null>(null);
   return (
     <div className="min-h-screen flex flex-col">
+      <OfferBanner />
       <header className="flex items-center justify-between px-5 sm:px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
         <a href="/" className="flex items-center gap-2.5 select-none">
           <span className="text-2xl" aria-hidden="true">💍</span>

@@ -1,13 +1,15 @@
 import React, { useEffect } from 'react';
 import { helpTopics, PRIVACY_EMAIL, SUPPORT_EMAIL } from './helpTopics';
 import StoreBadges from './StoreBadges';
+import ContactForm from './ContactForm';
 
 // ============================================================================
 // SupportPage: /support on the website
 //
 // The stores ask for a support page with a way to reach us (App Store
 // Connect's "Support URL", Google Play's store listing). The answers are the
-// same as the Help Center's in the apps (helpTopics), worded for the web.
+// same as the Help Center's in the apps (helpTopics), worded for the web, and
+// a contact form that lands in Admin → Enquiries.
 // ============================================================================
 
 const SupportPage: React.FC = () => {
@@ -42,6 +44,12 @@ const SupportPage: React.FC = () => {
             (⋯ on their profile or in the chat → Report). We review every report within 24 hours.</p>
           <p><strong className="text-gray-900 dark:text-white">A complaint?</strong> Our Grievance Officer answers on the{' '}
             <a className={link} href="/grievances">Grievance Redressal</a> page, member or not.</p>
+        </section>
+
+        <section className="mt-8" id="contact" aria-labelledby="contact-heading">
+          <h2 id="contact-heading" className="text-lg font-semibold tracking-tight">Send us a message</h2>
+          <p className="mt-1 mb-4 text-sm text-gray-600 dark:text-gray-300">Questions, feedback or partnerships: we reply by email.</p>
+          <ContactForm />
         </section>
 
         <section className="mt-8 divide-y divide-gray-200 dark:divide-zinc-800 border-y border-gray-200 dark:border-zinc-800">

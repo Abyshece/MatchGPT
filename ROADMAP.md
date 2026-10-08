@@ -728,6 +728,29 @@ Part 22 done 2026-10-08: **The admin panel, part 1: a sidebar, Customers and ver
   under 21 corrected from the member panel, the Audit log, a request unlikely to pass and why), and the
   accessibility, admin alerts, app preview, website, finance, errors and complaints tests.
 
+Part 23 done 2026-10-08: **The admin panel, part 2: Profiles, Messages, Offers and Enquiries.**
+
+- [x] **Profiles** (People): how much members have filled in (by quarters and by sections complete),
+  each section's complete and not complete, and the 15 answers most often missing. Each section has
+  **Message them**: a ready in-app message to everyone who hasn't completed it, with a button that
+  opens that section in their app ("Fill in Family"), and how many it reaches.
+- [x] **Messages** (Growth): in-app messages to a group (everyone, profile not complete, a section not
+  complete, not verified, free, inactive 14 or 30 days), with a title, text, a button (a section of My
+  Profile, My Profile, Get verified, Shaadi24+, Find Match, or none), optionally as a notification too,
+  and a preview. Sent messages show how many got, saw and tapped each. In the app, the newest one
+  shows as a card until it's tapped or put off ("Not now").
+- [x] **Offers** (Growth): a code from App Store Connect (offer codes) or Play Console (promo codes),
+  with banner text, the stores and dates. The home page shows the running one in a banner with the
+  code (tap to copy) and the stores' redeem links; the Shaadi24+ page has "Have an offer code?".
+- [x] **Enquiries** (Inbox): a contact form on the website's Support page (a few a day from one
+  address); the inbox lists them newest first with a count in the sidebar, Reply by email (quoting it),
+  notes, Close and Reopen; a new one alerts the admins.
+- [x] Database: `supabase/migrations/20261008170000_admin_profiles_messages_enquiries_offers.sql`
+  (applied live): admins only, except the contact form (anyone) and the running offer (anyone reads).
+- [x] Tests: `admin-growth` (a Family message from Profiles reaching a member, its card opening Family,
+  seen and tapped; the contact form landing in Enquiries and closed; an offer on the home page with its
+  redeem links, and gone when turned off; visitors refused), and accessibility (the new screens).
+
 **Still to do**
 
 - [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.
