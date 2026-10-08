@@ -108,7 +108,7 @@ const ChatList: React.FC<ChatListProps> = ({
               </div>
               {/* Pro badge mini */}
               {m.otherUser.subscriptionTier === 'PRO' && (
-                <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white border-2 border-white dark:border-zinc-900 flex items-center justify-center">
+                <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full plus-solid border-2 border-white dark:border-zinc-900 flex items-center justify-center">
                   <IconZap />
                 </div>
               )}

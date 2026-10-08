@@ -38,9 +38,9 @@ const FilterRow = ({
         <button
           onClick={onUpgrade}
           aria-label={`${label}: unlock with Shaadi24+`}
-          className="flex items-center gap-1 text-[10px] font-bold text-yellow-700 dark:text-yellow-400 hover:underline"
+          className="flex items-center gap-1 text-[10px] font-bold text-gray-900 dark:text-white hover:underline"
         >
-          <IconLock /> Pro
+          <IconLock /> Shaadi24+
         </button>
       )}
     </div>
@@ -371,19 +371,19 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
           {/* Pro upsell at bottom for free users */}
           {!isPro && (
             <div className="py-4 mt-2">
-              <div className="bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4">
+              <div className="plus-soft border rounded-xl p-4">
                 <div className="flex items-start gap-3">
-                  <div className="text-yellow-500 flex-shrink-0 mt-0.5"><IconZap /></div>
+                  <div className="text-gray-900 dark:text-white flex-shrink-0 mt-0.5"><IconZap /></div>
                   <div>
                     <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-1">Unlock all filters</h4>
                     <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
-                      Pro lets you filter by religion, mother tongue, community, height, education, lifestyle, and more.
+                      Shaadi24+ lets you filter by religion, mother tongue, community, height, education, lifestyle, and more.
                     </p>
                     <button
                       onClick={onUpgrade}
-                      className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm hover:opacity-90"
+                      className="plus-solid text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm hover:opacity-90"
                     >
-                      Upgrade to Pro
+                      Get Shaadi24+
                     </button>
                   </div>
                 </div>

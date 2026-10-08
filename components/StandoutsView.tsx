@@ -107,7 +107,7 @@ const StandoutsView: React.FC<StandoutsViewProps> = ({ onNavigateToMatches }) =>
             disabled={refreshing}
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors disabled:opacity-50 ${
               isPro
-                ? 'bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/30 dark:to-orange-900/30 text-yellow-800 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800 hover:from-yellow-100 hover:to-orange-100'
+                ? 'plus-soft text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-zinc-700'
                 : 'bg-gray-50 dark:bg-zinc-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-zinc-700'
             }`}
           >
@@ -141,7 +141,7 @@ const StandoutsView: React.FC<StandoutsViewProps> = ({ onNavigateToMatches }) =>
           <>
             {/* Featured top pick */}
             <div className="mb-6 relative">
-              <div className="absolute -top-2 left-4 z-10 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-lg flex items-center gap-1">
+              <div className="absolute -top-2 left-4 z-10 plus-solid text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-lg flex items-center gap-1">
                 <IconStar /> Top Pick of the Day
               </div>
               <div className="md:max-w-md mx-auto">

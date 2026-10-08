@@ -128,7 +128,7 @@ const SubscriptionSettings: React.FC = () => {
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm font-semibold text-gray-900 dark:text-white">{isPro || (store && live) ? planName : 'Free'}</span>
-            {isPro && <span className="text-[10px] font-bold uppercase tracking-wide bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 px-1.5 py-0.5 rounded">Active</span>}
+            {isPro && <span className="text-[10px] font-bold uppercase tracking-wide plus-solid px-1.5 py-0.5 rounded">Active</span>}
             {store && live && <span className="text-[10px] font-bold uppercase tracking-wide bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded">{sellerName(store)}</span>}
             {sub?.mode === 'test' && <span className="text-[10px] font-bold uppercase tracking-wide bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded">Test</span>}
           </div>
@@ -137,7 +137,7 @@ const SubscriptionSettings: React.FC = () => {
         {showUpgradeButton && (
           <button
             onClick={() => setShowUpgrade(true)}
-            className="flex-shrink-0 text-xs font-bold px-3 py-2 rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:opacity-90"
+            className="flex-shrink-0 text-xs font-bold px-3 py-2 rounded-lg plus-solid hover:opacity-90"
           >
             Get Shaadi24+
           </button>

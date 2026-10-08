@@ -162,7 +162,8 @@ try {
   page = await ctx.newPage();
   await adminSignIn(page, ADMIN);
   check(await adminTabOpen(page, 'dashboard', 20000), 'the admin panel');
-  check(await page.getByText(ADMIN).isVisible(), "the admin's email in the header");
+  // (in the header: "Recent admin actions" lists it too, once per action)
+  check(await page.locator('header').getByText(ADMIN).isVisible(), "the admin's email in the header");
   await page.getByRole('button', { name: 'Alerts' }).click();
   check(await appears(page.getByTestId('admin-alerts-setup').getByText('Alerts in this browser')), 'Alerts: a switch for alerts in this browser');
   await page.screenshot({ path: `${OUT}6-admin-panel.png` });

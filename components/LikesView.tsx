@@ -14,8 +14,8 @@ import { firstCelebration } from '../lib/matchCelebration';
 // ============================================================================
 // LikesView — restyled to match the legacy Shaadi24 design (see Item 1):
 //   - "Likes You (N)" header with sort dropdown on the right (Pro only)
-//   - Cream/yellow gradient upsell banner with circular ⚡ icon and black
-//     "Upgrade to Pro" pill button (Free users only)
+//   - Black-and-white upsell banner with circular ⚡ icon and black
+//     "Get Shaadi24+" pill button (Free users only)
 //   - Free users see heavily blurred cards with yellow circular ⚡ icon and
 //     white "UPGRADE TO SEE" pill centered — handled inside LikedYouCard.
 //   - Grid is 4 columns on xl viewports to match Item 3.
@@ -86,15 +86,15 @@ const LikesView: React.FC<{ onNavigateToMatches?: (matchId: string) => void }> =
         </div>
 
         {!isPro && !loading && likes.length > 0 && (
-          <div className="mb-8 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border border-orange-100 dark:border-orange-900/30 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm animate-fade-in">
+          <div className="mb-8 plus-soft border rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm animate-fade-in">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 flex-shrink-0 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center text-yellow-600 dark:text-yellow-400">
+              <div className="w-12 h-12 flex-shrink-0 plus-solid rounded-full flex items-center justify-center">
                 <IconZap />
               </div>
               <div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white">See who liked you</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Upgrade to Shaadi24 Pro to reveal all {likes.length} {likes.length === 1 ? 'person' : 'people'} and sort them.
+                  Get Shaadi24+ to reveal all {likes.length} {likes.length === 1 ? 'person' : 'people'} and sort them.
                 </p>
               </div>
             </div>
@@ -102,7 +102,7 @@ const LikesView: React.FC<{ onNavigateToMatches?: (matchId: string) => void }> =
               onClick={() => setShowUpgradeModal(true)}
               className="bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 whitespace-nowrap h-12 px-6 rounded-full font-bold shadow-md transition-colors"
             >
-              Upgrade to Pro
+              Get Shaadi24+
             </button>
           </div>
         )}

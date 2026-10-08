@@ -19,7 +19,7 @@ const CompatibilityReport: React.FC<CompatibilityReportProps> = ({
 
   if (!isPro) {
     return (
-      <div className="bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-6 relative overflow-hidden">
+      <div className="plus-soft border rounded-xl p-6 relative overflow-hidden">
         {/* Score teaser */}
         <div className="text-center mb-4">
           <div className="text-5xl font-bold text-gray-900 dark:text-white mb-1">{score}%</div>
@@ -40,18 +40,18 @@ const CompatibilityReport: React.FC<CompatibilityReportProps> = ({
           {/* Upgrade CTA */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center bg-white/90 dark:bg-zinc-900/95 rounded-xl p-5 shadow-lg border border-gray-200 dark:border-zinc-800 max-w-sm mx-auto">
-              <div className="w-10 h-10 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-full flex items-center justify-center mx-auto mb-3">
+              <div className="w-10 h-10 plus-solid rounded-full flex items-center justify-center mx-auto mb-3">
                 <IconLock />
               </div>
               <h4 className="font-bold text-gray-900 dark:text-white mb-1">See the full breakdown</h4>
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
-                Pro members see exactly which traits align and where there might be friction.
+                Shaadi24+ members see exactly which traits align and where there might be friction.
               </p>
               <button
                 onClick={onUpgrade}
-                className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-sm hover:opacity-90 inline-flex items-center gap-1.5"
+                className="plus-solid text-xs font-bold px-4 py-2 rounded-lg shadow-sm hover:opacity-90 inline-flex items-center gap-1.5"
               >
-                <IconZap /> Upgrade to Pro
+                <IconZap /> Get Shaadi24+
               </button>
             </div>
           </div>

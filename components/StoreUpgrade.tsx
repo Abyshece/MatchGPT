@@ -126,14 +126,14 @@ const StoreUpgrade: React.FC<StoreUpgradeProps> = ({ paying, setPaying, onPurcha
                 aria-checked={selected}
                 onClick={() => setPlanId(o.planId)}
                 disabled={busy}
-                className={`relative rounded-xl border-2 px-3 py-3 text-left transition-colors ${
+                className={`relative rounded-2xl border-2 px-3 py-3 text-left transition-colors ${
                   selected
-                    ? 'border-orange-500 bg-orange-50 dark:bg-orange-500/10'
-                    : 'border-gray-200 dark:border-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600'
+                    ? 'border-gray-900 dark:border-white bg-white/80 dark:bg-white/10'
+                    : 'border-gray-200/80 dark:border-zinc-700 bg-white/40 dark:bg-zinc-800/40 hover:border-gray-300 dark:hover:border-zinc-600'
                 }`}
               >
                 {o.period === 'yearly' && saving > 0 && (
-                  <span className="absolute -top-2.5 right-2 text-[10px] font-bold bg-green-600 text-white px-1.5 py-0.5 rounded">
+                  <span className="absolute -top-2.5 right-2 text-[10px] font-bold plus-solid px-1.5 py-0.5 rounded">
                     SAVE {saving}%
                   </span>
                 )}
@@ -152,7 +152,7 @@ const StoreUpgrade: React.FC<StoreUpgradeProps> = ({ paying, setPaying, onPurcha
       <ul className="space-y-2 mb-6">
         {proBenefits(proForAll).map((f) => (
           <li key={f} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
-            <span className="text-green-500 flex-shrink-0 mt-0.5"><IconCheck className="w-4 h-4" /></span>
+            <span className="text-gray-900 dark:text-white flex-shrink-0 mt-0.5"><IconCheck className="w-4 h-4" /></span>
             <span>{f}</span>
           </li>
         ))}
@@ -175,7 +175,7 @@ const StoreUpgrade: React.FC<StoreUpgradeProps> = ({ paying, setPaying, onPurcha
       <button
         onClick={buy}
         disabled={!available || busy}
-        className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold py-3 rounded-lg shadow-md hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        className="w-full plus-solid font-bold py-3.5 rounded-2xl shadow-lg hover:opacity-90 disabled:opacity-40 disabled:shadow-none disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
         <IconZap />
         {!offers ? 'Loading…' : !available ? 'Coming soon' : paying ? `Opening ${store}…` : `Subscribe for ${offer?.price}/${per(offer!.period)}`}
