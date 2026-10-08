@@ -76,6 +76,33 @@ export async function pricePointNote(call, subscriptionId, wanted) {
   return `Apple has no ${wanted} in India${near.length ? `; the nearest are ${near.join(' and ')}` : ''}`;
 }
 
+/**
+ * Where a subscription is sold (its Availability): how many countries or
+ * regions, and whether India is one. A subscription with none set stays
+ * "Missing Metadata".
+ */
+export async function availabilityNote(call, subscriptionId) {
+  let availability;
+  try {
+    availability = (await call('GET', `/v1/subscriptions/${subscriptionId}/subscriptionAvailability`))?.data;
+  } catch (e) {
+    if (e.status === 404) availability = null;
+    else throw e;
+  }
+  if (!availability) return 'no countries chosen yet (Availability)';
+  const territories = [];
+  let path = `/v1/subscriptionAvailabilities/${availability.id}/availableTerritories?limit=200`;
+  for (let page = 0; path && page < 5; page++) {
+    const res = await call('GET', path);
+    for (const t of res?.data ?? []) territories.push(t.id);
+    path = res?.links?.next ? res.links.next.replace(/^https:\/\/[^/]+/, '') : null;
+  }
+  if (!territories.length) return 'no countries chosen yet (Availability)';
+  return territories.includes('IND')
+    ? `sold in ${territories.length} ${territories.length === 1 ? 'country or region' : 'countries or regions'}, India included`
+    : `sold in ${territories.length} ${territories.length === 1 ? 'country or region' : 'countries or regions'}, but not India`;
+}
+
 async function tryRead(what, read) {
   try {
     return { value: await read() };
@@ -154,6 +181,9 @@ export async function checkSubscriptions({ call, bundleId, expected = EXPECTED }
       }
     }
 
+    const availability = await tryRead('where it is sold', () => availabilityNote(call, sub.id));
+    notes.push(availability.error ?? availability.value);
+
     const localizations = await tryRead('its names', () => call('GET', `/v1/subscriptions/${sub.id}/subscriptionLocalizations?limit=50`));
     if (localizations.error) notes.push(localizations.error);
     else {
@@ -189,7 +219,7 @@ export async function checkSubscriptions({ call, bundleId, expected = EXPECTED }
 
   lines.push(ready
     ? 'All are ready, so the App Store gives them to the app, TestFlight included, once the Paid Apps agreement is active (Business → Agreements; Apple\'s API doesn\'t show it).'
-    : 'The app offers each one that shows ✓; with none, it says Shaadi24+ is "Coming soon". "Missing metadata" means a price, a name and description, or the review screenshot is still missing.');
+    : 'The app offers each one that shows ✓; with none, it says Shaadi24+ is "Coming soon". "Missing metadata" means a price, the countries it\'s sold in (Availability), a name and description, or the review screenshot is still missing.');
   return { ready, lines };
 }
 

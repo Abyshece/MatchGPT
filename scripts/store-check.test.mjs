@@ -25,6 +25,8 @@ function standIn({ subscriptions, groups = ['Shaadi24+'], groupNames = [{ name: 
         ],
       };
     }
+    const av = /^\/v1\/subscriptionAvailabilities\/av-(s\d+)\/availableTerritories/.exec(path);
+    if (av) return { data: (details[av[1]]?.territories ?? []).map((id) => ({ type: 'territories', id })), links: {} };
     const m = /^\/v1\/subscriptions\/(s\d+)\/(\w+)/.exec(path);
     const d = details[m?.[1]] ?? {};
     if (m?.[2] === 'prices') {
@@ -45,6 +47,10 @@ function standIn({ subscriptions, groups = ['Shaadi24+'], groupNames = [{ name: 
       return second ? { data: points.slice(2), links: {} }
         : { data: points.slice(0, 2), links: { next: `https://api.appstoreconnect.apple.com${path}&cursor=2` } };
     }
+    if (m?.[2] === 'subscriptionAvailability') {
+      if (!d.territories) throw Object.assign(new Error('App Store Connect answered 404: Not Found'), { status: 404 });
+      return { data: { id: `av-${m[1]}`, type: 'subscriptionAvailabilities', attributes: { availableInNewTerritories: true } } };
+    }
     if (m?.[2] === 'subscriptionLocalizations') {
       return { data: (d.names ?? []).map((n) => ({ type: 'subscriptionLocalizations', attributes: n })) };
     }
@@ -55,7 +61,7 @@ function standIn({ subscriptions, groups = ['Shaadi24+'], groupNames = [{ name: 
   };
 }
 
-const full = (price) => ({ price, names: [{ locale: 'en-GB', name: 'Shaadi24+', description: 'Unlimited searches' }], screenshot: 'COMPLETE' });
+const full = (price) => ({ price, territories: ['IND', 'USA'], names: [{ locale: 'en-GB', name: 'Shaadi24+', description: 'Unlimited searches' }], screenshot: 'COMPLETE' });
 
 test('all four subscriptions ready: says so, with prices and names', async () => {
   const { ready, lines } = await checkSubscriptions({
@@ -72,7 +78,7 @@ test('all four subscriptions ready: says so, with prices and names', async () =>
   });
   assert.equal(ready, true);
   const text = lines.join('\n');
-  assert.match(text, /✓ shaadi24_plus_weekly \(1 week\): ready to submit; India price 499 INR; shown as "Shaadi24\+" \(en-GB\); review screenshot uploaded\./);
+  assert.match(text, /✓ shaadi24_plus_weekly \(1 week\): ready to submit; India price 499 INR; sold in 2 countries or regions, India included; shown as "Shaadi24\+" \(en-GB\); review screenshot uploaded\./);
   assert.match(text, /✓ shaadi24_plus_monthly \(1 month\): ready to submit; India price 999 INR/);
   assert.match(text, /✓ shaadi24_plus_quarterly \(3 months\): approved; India price 1999 INR/);
   assert.match(text, /✓ shaadi24_plus_halfyearly \(6 months\): waiting for review; India price 2999 INR/);
@@ -153,10 +159,18 @@ test('one missing, one missing metadata, a wrong length and a wrong ID: not read
   assert.equal(ready, false);
   const text = lines.join('\n');
   assert.match(text, /no display name yet/);
-  assert.match(text, /✗ shaadi24_plus_monthly \(1 week\): missing metadata; its length is 1 week, but the app sells it as 1 month; no price for India yet; no display name or description yet; no review screenshot yet\./);
+  assert.match(text, /✗ shaadi24_plus_monthly \(1 week\): missing metadata; its length is 1 week, but the app sells it as 1 month; no price for India yet; no countries chosen yet \(Availability\); no display name or description yet; no review screenshot yet\./);
   assert.match(text, /✗ shaadi24_plus_quarterly: not in App Store Connect \(found: shaadi24_plus_monthly, shaadi24plus_quarterly\)\. The product ID must match exactly\./);
   assert.match(text, /✗ shaadi24_plus_weekly: not in App Store Connect/);
   assert.match(text, /Coming soon/);
+});
+
+test('sold, but not in India: says so', async () => {
+  const { lines } = await checkSubscriptions({
+    bundleId: 'com.shaadi24.app',
+    call: standIn({ subscriptions: FOUR, details: { s0: { ...full('499'), territories: ['USA'] }, s1: full('999'), s2: full('1999'), s3: full('2999') } }),
+  });
+  assert.match(lines.join('\n'), /shaadi24_plus_weekly \(1 week\): ready to submit; India price 499 INR; sold in 1 country or region, but not India;/);
 });
 
 test('no groups yet', async () => {
