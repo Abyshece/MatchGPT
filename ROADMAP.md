@@ -877,6 +877,23 @@ reset, and a search goes ahead only while none is used up:
   the new ones in `docs/store/README.md` ("More AI searches, unlimited likes, …"), and the store
   listings' Shaadi24+ paragraph.
 
+Part 27 done 2026-10-09: **Change plan.** Settings → Shaadi24+ had only "Manage subscription", which
+opens the store; there was no way to move to another plan in the app.
+
+- [x] **Change plan** next to Manage subscription, for a subscriber in the app of the store that bills
+  them: the four plans with theirs marked "Your plan", the next longer one chosen to start with, what it
+  saves, when the change happens, and the store's terms.
+- [x] Buying another of the plans is how both stores change a plan, and neither charges twice:
+  - **App Store**: the plans are on one level, so a plan of another length starts when the current one
+    renews and is charged then; until then Settings says "Switches to 3 months on 8 Apr 2027" (from the
+    App Store on the phone).
+  - **Google Play**: the plans are base plans of one subscription, so Google switches the plan with
+    the subscription's default replacement mode; the server closes the old purchase.
+- [x] Tests: `app-purchases` changes plan on both stores (the store stand-in now has Apple's
+  change at the next renewal).
+- [ ] **Owner:** in Play Console, set the `shaadi24_plus` subscription's default replacement mode to
+  "Charge at the next billing date" (`docs/store/README.md`, Google Play step 4).
+
 **Still to do**
 
 - [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.

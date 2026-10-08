@@ -215,6 +215,24 @@ export async function restoreStorePurchases(interactive: boolean, userId?: strin
 /** The store's own page for the person's subscriptions (to change plan or cancel). */
 export const manageStoreSubscription = () => NativePurchases.manageSubscriptions();
 
+/**
+ * A change of plan waiting for the next renewal: on iPhone, a switch between
+ * plans of different lengths starts when the current one renews (Apple's
+ * rule; all four are on the same level). Read from the App Store on the
+ * phone. Google Play switches at once, so there's never one waiting there.
+ */
+export async function pendingPlanChange(): Promise<{ planId: PlanId } | null> {
+  if (storePlatform() !== 'ios') return null;
+  const { purchases = [] } = await NativePurchases.getPurchases({ productType: PURCHASE_TYPE.SUBS, onlyCurrentEntitlements: true });
+  const next = purchases
+    .map((p) => p.renewalInfo?.willAutoRenew !== false ? p.renewalInfo?.autoRenewProductId : undefined)
+    .find((id, i) => !!id && id !== purchases[i].productIdentifier);
+  if (!next) return null;
+  const { plans } = await callStore<{ plans: StorePlanConfig[] }>({ action: 'config' });
+  const plan = plans.find((p) => p.appleProductId === next);
+  return plan ? { planId: plan.id } : null;
+}
+
 // ---- Keeping the server in step from the app ------------------------------------------
 
 const SYNC_KEY = 'matchgpt_store_sync';

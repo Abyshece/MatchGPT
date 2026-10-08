@@ -154,6 +154,11 @@ then test it and add iPad screenshots.)
    3 months) and `halfyearly` (₹2,999, every 6 months). The app shows them side by side with what each
    saves on the week's price; a base plan not made yet simply doesn't show. Leave free-trial offers out
    for now (ROADMAP.md, Phase 13). (A `yearly` base plan is no longer used: leave it out.)
+   In the subscription's settings, set the **default replacement mode** (what happens when a subscriber
+   buys another of its base plans: Settings → Shaadi24+ → Change plan in the app) to **"Charge at the
+   next billing date"**: the new plan applies straight away and its price is charged on the date the
+   current one would have renewed, so nobody pays twice. ("Charge immediately" also works: the new price
+   is charged at once and the rest of the current plan is credited.)
 5. **Users and permissions**: invite the Google Cloud service account whose key is
    `GOOGLE_PLAY_SERVICE_ACCOUNT`, with "View financial data" and "Manage orders and subscriptions".
 6. **Monetization setup → Real-time developer notifications**: the Pub/Sub topic whose push subscription
@@ -185,7 +190,8 @@ then test it and add iPad screenshots.)
    Server Notifications, Version 2, for production and sandbox:
    `https://fmrbzzdjtarsaqvfukum.supabase.co/functions/v1/store-notifications?provider=apple`.
 4. **Monetization → Subscriptions**: group "Shaadi24+" with four subscriptions, all on the same level
-   (so changing length is a crossgrade): `shaadi24_plus_weekly` (1 week, ₹499), `shaadi24_plus_monthly`
+   (so changing length is a crossgrade, which Apple starts at the next renewal: Settings → Shaadi24+ →
+   Change plan in the app says so): `shaadi24_plus_weekly` (1 week, ₹499), `shaadi24_plus_monthly`
    (1 month, ₹999), `shaadi24_plus_quarterly` (3 months, ₹1,999) and `shaadi24_plus_halfyearly`
    (6 months, ₹2,999), each with a display name, a description and a review screenshot (the Shaadi24+
    page in the app; names and descriptions under "Shaadi24+ prices" below). `shaadi24_plus_yearly`, made earlier, is no longer used: delete it (it was never

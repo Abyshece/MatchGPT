@@ -7,9 +7,11 @@ import {
   type Payment, type Subscription,
 } from '../lib/billingService';
 import {
-  manageStoreSubscription, restoreStorePurchases, startStoreSync, storeManageHint, storeName, storePlatform,
+  manageStoreSubscription, pendingPlanChange, restoreStorePurchases, startStoreSync, storeManageHint, storeName, storePlatform,
 } from '../lib/storePurchases';
+import { PERIODS, type PlanId } from '../lib/billingService';
 import UpgradeModal from './UpgradeModal';
+import ChangePlanModal from './ChangePlanModal';
 import { DAILY_LIMITS } from '../lib/profileService';
 import { useSearchAllowance } from '../lib/searchLimits';
 import SearchUsage from './SearchUsage';
@@ -17,7 +19,8 @@ import SearchUsage from './SearchUsage';
 // ============================================================================
 // SubscriptionSettings: the Shaadi24+ part of Settings
 //
-// Shows the plan and what happens next (trial end, renewal, end date), the AI
+// Shows the plan and what happens next (trial end, renewal, end date, a change
+// of plan waiting for the renewal), Change plan (ChangePlanModal), the AI
 // searches used against each limit (SearchUsage) and the payments. Shaadi24+ is bought in the phone apps, so the store that sold it
 // bills it and manages it: the app opens the store's page, and anywhere else
 // this says where. In the apps there's Restore purchases too, and on opening
@@ -36,6 +39,8 @@ const SubscriptionSettings: React.FC = () => {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [changing, setChanging] = useState(false);
+  const [pending, setPending] = useState<PlanId | null>(null);   // iPhone: the plan from the next renewal
   const [busy, setBusy] = useState(false);
   const now = useNow();
 
@@ -71,6 +76,22 @@ const SubscriptionSettings: React.FC = () => {
   const live = !!sub && ['authenticated', 'active', 'pending', 'halted', 'paused'].includes(sub.status);
   const inTrial = !!sub?.trial_ends_at && Date.parse(sub.trial_ends_at) > now && !sub.current_end;
   const planName = sub ? nameOfPlan(sub.plan_id) : 'Shaadi24+';
+  // Change plan: a store subscription that's on, in the app of the store that bills it
+  const canChange = manageHere && !!sub && ['authenticated', 'active'].includes(sub.status) && !!sub.plan_id && sub.plan_id in PERIODS;
+
+  // iPhone: a change of plan waiting for the renewal (Apple starts a plan of
+  // another length then); read from the App Store again after a change
+  const [pendingCheck, setPendingCheck] = useState(0);
+  const watchPending = manageHere && platform === 'ios' && live;
+  useEffect(() => {
+    if (!watchPending) return;
+    let on = true;
+    pendingPlanChange()
+      .then((p) => { if (on) setPending(p?.planId ?? null); })
+      .catch(() => { /* the App Store didn't answer: nothing shown */ });
+    return () => { on = false; };
+  }, [watchPending, pendingCheck, sub?.plan_id]);
+  const pendingPlan = watchPending && pending && pending !== sub?.plan_id ? pending : null;
 
   const manage = async () => {
     try {
@@ -134,7 +155,15 @@ const SubscriptionSettings: React.FC = () => {
             {store && live && <span className="text-[10px] font-bold uppercase tracking-wide bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded">{sellerName(store)}</span>}
             {sub?.mode === 'test' && <span className="text-[10px] font-bold uppercase tracking-wide bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded">Test</span>}
           </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">{status}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+            {status}
+            {pendingPlan && sub && (
+              <span data-testid="pending-plan">
+                {' '}Switches to <strong>{PERIODS[pendingPlan].label}</strong>
+                {sub.current_end || sub.trial_ends_at ? <> on <strong>{formatDate(sub.current_end ?? sub.trial_ends_at)}</strong></> : null}.
+              </span>
+            )}
+          </p>
         </div>
         {showUpgradeButton && (
           <button
@@ -145,12 +174,22 @@ const SubscriptionSettings: React.FC = () => {
           </button>
         )}
         {store && live && manageHere && (
-          <button
-            onClick={manage}
-            className="flex-shrink-0 text-xs font-semibold px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800"
-          >
-            Manage subscription
-          </button>
+          <div className="flex-shrink-0 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            {canChange && (
+              <button
+                onClick={() => setChanging(true)}
+                className="text-xs font-bold px-3 py-2 rounded-lg plus-solid hover:opacity-90"
+              >
+                Change plan
+              </button>
+            )}
+            <button
+              onClick={manage}
+              className="text-xs font-semibold px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800"
+            >
+              Manage subscription
+            </button>
+          </div>
         )}
       </div>
 
@@ -191,6 +230,18 @@ const SubscriptionSettings: React.FC = () => {
             {busy ? 'Checking…' : 'Restore purchases'}
           </button>
         </div>
+      )}
+
+      {changing && sub?.plan_id && (
+        <ChangePlanModal
+          current={sub.plan_id as PlanId}
+          renewsAt={sub.current_end ?? sub.trial_ends_at}
+          onClose={() => setChanging(false)}
+          onChanged={() => {
+            void Promise.all([load(), refreshProfile()]);
+            setPendingCheck((n) => n + 1);
+          }}
+        />
       )}
 
       {showUpgrade && (
