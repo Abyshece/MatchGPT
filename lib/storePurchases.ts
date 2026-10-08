@@ -17,6 +17,7 @@
 
 import { Capacitor, type PluginListenerHandle } from '@capacitor/core';
 import { NativePurchases, PURCHASE_TYPE, type SKProductDiscount, type Transaction } from '@capgo/native-purchases';
+import { reportError } from './errorReports';
 import { FunctionsHttpError } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 import type { PlanId, PlanPeriod } from './billingService';
@@ -112,7 +113,7 @@ export async function loadStoreOffers(): Promise<StoreOffer[]> {
     const ids = [...new Set(plans.map((p) => p.googleProductId).filter((id): id is string => !!id))];
     if (!ids.length) return [];
     const { products } = await NativePurchases.getProducts({ productIdentifiers: ids, productType: PURCHASE_TYPE.SUBS });
-    return plans.flatMap((plan) => {
+    const offers = plans.flatMap((plan) => {
       // One entry per base plan and offer; the base plan's has no offer id
       const base = (products ?? []).find((p) =>
         p.planIdentifier === plan.googleProductId && p.identifier === plan.googleBasePlanId && !p.offerId);
@@ -122,12 +123,14 @@ export async function loadStoreOffers(): Promise<StoreOffer[]> {
         freeTrial: null, buy: { productIdentifier: plan.googleProductId, planIdentifier: plan.googleBasePlanId },
       }];
     });
+    reportMissing('Google Play', plans.filter((p) => !offers.some((o) => o.planId === p.id)).map((p) => `${p.googleProductId}/${p.googleBasePlanId}`), plans.length);
+    return offers;
   }
 
   const ids = plans.map((p) => p.appleProductId).filter((id): id is string => !!id);
   if (!ids.length) return [];
   const { products } = await NativePurchases.getProducts({ productIdentifiers: ids, productType: PURCHASE_TYPE.SUBS });
-  return plans.flatMap((plan) => {
+  const offers = plans.flatMap((plan) => {
     const product = (products ?? []).find((p) => p.identifier === plan.appleProductId);
     if (!product) return [];
     return [{
@@ -135,6 +138,17 @@ export async function loadStoreOffers(): Promise<StoreOffer[]> {
       freeTrial: trialText(product.introductoryPrice), buy: { productIdentifier: product.identifier },
     }];
   });
+  reportMissing('The App Store', ids.filter((id) => !offers.some((o) => o.buy.productIdentifier === id)), ids.length);
+  return offers;
+}
+
+// When the store holds back plans the server lists (not set up there yet, an
+// agreement not active, not sold in the buyer's country), Admin → Errors says
+// which, so "Coming soon" in the app has a reason someone can see
+function reportMissing(store: string, missing: string[], asked: number) {
+  if (missing.length) {
+    reportError(new Error(`${store} returned ${asked - missing.length} of ${asked} Shaadi24+ plans; missing: ${missing.join(', ')}`), 'Shaadi24+ plans');
+  }
 }
 
 /** Sends a store purchase to the server, which checks it and turns Pro on. */
