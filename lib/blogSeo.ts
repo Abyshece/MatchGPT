@@ -5,8 +5,8 @@
 // (api/blog.ts). No browser-only imports here: api/blog.ts uses it too.
 // ============================================================================
 
-import { LEGAL } from './legalInfo.ts';
-import { plainText } from './markdown.ts';
+import { LEGAL } from './legalInfo.js';
+import { plainText } from './markdown.js';
 
 export const SITE_URL = LEGAL.websiteUrl;
 export const BLOG_TITLE = 'Shaadi24 Blog';

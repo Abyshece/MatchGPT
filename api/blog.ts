@@ -17,10 +17,11 @@
 // it is, and the browser shows the post.
 // ============================================================================
 
-import { escapeHtml, parseMarkdown, toHtml } from '../lib/markdown.ts';
+// Imports end in .js: Vercel compiles each file to .js and leaves import paths as written
+import { escapeHtml, parseMarkdown, toHtml } from '../lib/markdown.js';
 import {
   BLOG_DESCRIPTION, BLOG_TITLE, SITE_URL, blogJsonLd, metaDescription, pageTitle, postJsonLd, postPath, type SeoPost,
-} from '../lib/blogSeo.ts';
+} from '../lib/blogSeo.js';
 
 export const config = { runtime: 'edge' };
 

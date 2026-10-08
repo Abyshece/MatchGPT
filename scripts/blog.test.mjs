@@ -1,11 +1,15 @@
 // The blog's Markdown (lib/markdown.ts) and the pages, sitemap and feed the
-// server sends (api/blog.ts). Node runs the TypeScript directly.
+// server sends (api/blog.ts). tsx loads the TypeScript, whose imports end in
+// .js the way Vercel needs them.
 //   node --test scripts/blog.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseMarkdown, parseInline, toHtml, wordCount, readingMinutes, safeHref } from '../lib/markdown.ts';
-import { metaDescription, pageTitle, postJsonLd, SITE_URL } from '../lib/blogSeo.ts';
-import { fillShell, handle, postPage, sitemapXml, feedXml, robotsTxt, viewFor } from '../api/blog.ts';
+import { register } from 'tsx/esm/api';
+
+register();
+const { parseMarkdown, parseInline, toHtml, wordCount, readingMinutes, safeHref } = await import('../lib/markdown.ts');
+const { metaDescription, pageTitle, postJsonLd, SITE_URL } = await import('../lib/blogSeo.ts');
+const { fillShell, handle, postPage, sitemapXml, feedXml, robotsTxt, viewFor } = await import('../api/blog.ts');
 
 const POST = {
   slug: 'first-meeting-tips', title: 'First meeting tips', excerpt: 'What to say & ask.',
