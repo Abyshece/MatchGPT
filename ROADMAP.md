@@ -603,6 +603,17 @@ scrollbar on the right: a large sparkle and title, then seven full-width suggest
 - [x] The iPhone test checks the start screen fits; the Android, Settings, popup and accessibility tests
   pass.
 
+Part 16 done 2026-10-08: **a new app icon: the ring with the blue diamond, on white.** The icon was a
+white ring outline on a pink-to-orange square; the apps and the website show 💍, a silver ring with a
+blue diamond.
+
+- [x] Our own drawing of that ring (the emoji's picture belongs to Apple or Google, so it can't be the
+  icon), large on white: the iPhone icon, the Android icon (round, squircle or square, whatever the
+  phone uses, and the single-colour themed icon on Android 13+), Google Play's icon and feature
+  graphic, and the website's favicon, home-screen icon and link preview.
+- [x] Launch screens: the ring on white, or on the app's dark grey when the phone is in dark mode.
+- [x] `scripts/store-graphics.mjs` draws it once and makes every image from it.
+
 **Still to do**
 
 - [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.

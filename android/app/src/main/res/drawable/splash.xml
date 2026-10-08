@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Launch screen before Android 12; later versions use the launch theme's
+<!-- Launch screen before Android 12, with the ring (splash_icon, made by
+     scripts/store-graphics.mjs); later versions use the launch theme's
      windowSplashScreen* attributes (values/styles.xml) -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/app_background" />

@@ -7,8 +7,10 @@ Store menus move around now and then; the names here are from October 2026.
 In this folder:
 - `README.md`: this guide
 - `graphics/play-icon-512.png` (512 × 512) and `graphics/play-feature-graphic.jpg` (1024 × 500): Google
-  Play's icon and feature graphic, made from the app's icon. Change the words in
-  `scripts/store-graphics.mjs` and run it to remake them. The App Store takes its icon from the app.
+  Play's icon and feature graphic, made from the app's icon (a silver ring with a blue diamond, on
+  white). `scripts/store-graphics.mjs` draws the icon and makes every image from it: these two, the
+  iPhone and Android icons and launch screens, and the website's icons and link preview. Change the
+  drawing or the words there and run it to remake them all. The App Store takes its icon from the app.
 
 The website pages the stores link to (the home page, https://shaadi-gpt.vercel.app, says what Shaadi24
 is and links to the stores; members use the apps):

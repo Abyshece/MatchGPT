@@ -1,14 +1,27 @@
 // ============================================================================
-// The graphics made from the app's icon design (the pink-to-orange square
-// with the white ring), for Google Play's store listing and the website:
-//   docs/store/graphics/play-icon-512.png          512 × 512, 32-bit PNG
-//   docs/store/graphics/play-feature-graphic.jpg   1024 × 500, JPEG
-//   public/og-image.png                            1200 × 630, the picture in
-//                                                  link previews (index.html)
+// Shaadi24's logo, a silver ring with a blue diamond (like the 💍 the website
+// and the apps show), and every image made from it:
+//   ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+//                                   the iPhone app's icon, 1024 × 1024, white,
+//                                   no alpha channel (the App Store takes it
+//                                   from the app)
+//   ios/App/App/Assets.xcassets/Splash.imageset/splash-2732x2732(-dark).png
+//                                   the iPhone launch screen, light and dark
+//   android/app/src/main/res/mipmap-*/ic_launcher_foreground.png
+//                                   the Android icon's front layer (the back
+//                                   layer is white: values/ic_launcher_background.xml)
+//   android/app/src/main/res/mipmap-*/ic_launcher(_round).png
+//                                   the icon on Android 7 and older launchers
+//   android/app/src/main/res/drawable-*/splash_icon.png
+//                                   the Android launch screen
+//   android/app/src/main/res/drawable/ic_launcher_monochrome.xml
+//                                   the Android themed (single-colour) icon
+//   docs/store/graphics/play-icon-512.png         Google Play, 512 × 512, 32-bit
+//   docs/store/graphics/play-feature-graphic.jpg  Google Play, 1024 × 500
+//   public/og-image.png                            the picture in link previews
 //   public/apple-touch-icon.png, favicon-32.png    the website's icons (with
 //                                                  public/favicon.svg)
-// The App Store takes its icon from the iPhone app itself (AppIcon, 1024 ×
-// 1024). Change the words below and run again to remake them.
+// Change the drawing or the words below and run again to remake them all.
 //
 // Usage: node scripts/store-graphics.mjs
 // (needs Playwright's Chromium: npm i --no-save playwright && npx playwright install chromium;
@@ -24,18 +37,104 @@ import { fileURLToPath } from 'node:url';
 const ROOT = process.env.REPO_ROOT || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'docs/store/graphics');
 const PUBLIC = path.join(ROOT, 'public');
-const ICON = path.join(ROOT, 'ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png');
+const IOS = path.join(ROOT, 'ios/App/App/Assets.xcassets');
+const ANDROID = path.join(ROOT, 'android/app/src/main/res');
 
 const TITLE = 'Shaadi24';
 const TAGLINE = 'Describe your life partner.<br>Meet the people you fit.';
 const PREVIEW_LINE = 'Matrimony for India';
+const DARK = '#191919';  // the apps' dark background (index.css, values-night/colors.xml)
 
-// The icon's ring, drawn (1024-unit square)
-const RING = `<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-  <polygon points="442,140 582,140 652,224 512,388 372,224" fill="#fff"/>
-  <circle cx="512" cy="636" r="233" fill="none" stroke="#fff" stroke-width="77"/>
-</svg>`;
+// ---- The logo -------------------------------------------------------------------------
+// In a 1024-unit square, centred on (512, 530): the band seen a little from
+// above, the setting, and the diamond with its facets and a sparkle. The
+// outlines are kept here so the single-colour Android icon follows them
+const BAND = { cx: 512, cy: 650, outer: [250, 232], inner: [182, 166] };
+const SETTING = [[420, 380], [604, 380], [566, 452], [458, 452]];
+const STONE = [[350, 262], [432, 178], [592, 178], [674, 262], [512, 438]];
+const points = (list) => list.map((p) => p.join(',')).join(' ');
+const round = (v) => +v.toFixed(2);
+const ellipse = ({ cx, cy }, [rx, ry]) => `M${round(cx - rx)},${cy} a${rx},${ry} 0 1,0 ${round(2 * rx)},0 a${rx},${ry} 0 1,0 ${round(-2 * rx)},0 Z`;
+const RING_DEFS = `
+  <linearGradient id="band" x1="0.15" y1="0.1" x2="0.85" y2="0.95">
+    <stop offset="0" stop-color="#f1f5f9"/><stop offset="0.3" stop-color="#cbd5e1"/>
+    <stop offset="0.55" stop-color="#94a3b8"/><stop offset="0.75" stop-color="#e2e8f0"/>
+    <stop offset="1" stop-color="#64748b"/>
+  </linearGradient>
+  <linearGradient id="head" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#94a3b8"/><stop offset="0.5" stop-color="#e2e8f0"/><stop offset="1" stop-color="#64748b"/>
+  </linearGradient>
+  <linearGradient id="table" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#e0f2fe"/><stop offset="1" stop-color="#93c5fd"/>
+  </linearGradient>`;
+const RING_SHAPES = `
+  <path fill="url(#band)" fill-rule="evenodd" d="${ellipse(BAND, BAND.outer)} ${ellipse(BAND, BAND.inner)}"/>
+  <ellipse cx="${BAND.cx}" cy="${BAND.cy}" rx="${BAND.inner[0]}" ry="${BAND.inner[1]}" fill="none" stroke="#64748b" stroke-opacity="0.45" stroke-width="8"/>
+  <path d="M300,560 A250,232 0 0,1 470,424" fill="none" stroke="#fff" stroke-width="14" stroke-linecap="round" stroke-opacity="0.9"/>
+  <polygon points="${points(SETTING)}" fill="url(#head)"/>
+  <g stroke="#eff6ff" stroke-width="5" stroke-linejoin="round">
+    <polygon points="350,262 432,178 456,262" fill="#93c5fd"/>
+    <polygon points="432,178 592,178 568,262 456,262" fill="url(#table)"/>
+    <polygon points="592,178 674,262 568,262" fill="#60a5fa"/>
+    <polygon points="350,262 456,262 512,438" fill="#60a5fa"/>
+    <polygon points="456,262 568,262 512,438" fill="#93c5fd"/>
+    <polygon points="568,262 674,262 512,438" fill="#2563eb"/>
+  </g>
+  <polygon points="${points(STONE)}" fill="none" stroke="#2563eb" stroke-opacity="0.55" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M478,198 l9,22 22,9 -22,9 -9,22 -9,-22 -22,-9 22,-9 z" fill="#fff"/>`;
 
+/**
+ * The logo as an SVG: `scale` sizes the ring in the square (1 ≈ 69% of its
+ * height); `tile` puts it on a shape (a rounded square of `radius`, or a
+ * circle) of `background`, inset by `inset` units on each side.
+ */
+function ringSvg({ scale = 1.1, background = null, tile = 'square', radius = 0, inset = 0, border = null } = {}) {
+  const size = 1024 - inset * 2;
+  const back = !background ? ''
+    : tile === 'circle'
+      ? `<circle cx="512" cy="512" r="${size / 2}" fill="${background}"/>`
+      : `<rect x="${inset}" y="${inset}" width="${size}" height="${size}" rx="${radius}" fill="${background}"${
+        border ? ` stroke="${border}" stroke-width="20"` : ''}/>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><defs>${RING_DEFS}</defs>${back}`
+    + `<g transform="translate(512 512) scale(${scale}) translate(-512 -530)">${RING_SHAPES}</g></svg>`;
+}
+
+// The app icon: the ring large, on white
+const APP_ICON = ringSvg({ background: '#fff' });
+// Android's front layer: launchers show the middle 72 of 108 units, masked to
+// a circle, squircle or square of their choosing; this keeps the ring inside
+// the 66-unit circle every one of them shows
+const ANDROID_SCALE = 0.8;
+const ANDROID_FOREGROUND = ringSvg({ scale: ANDROID_SCALE });
+
+// Android's themed icon (Android 13+, when the member picks themed icons): the
+// same outlines in one colour, as a vector on the front layer's 108-unit grid
+function androidMonochrome() {
+  const unit = (v) => round(v * 108 / 1024);
+  const at = ([x, y]) => [unit(512 + ANDROID_SCALE * (x - 512)), unit(512 + ANDROID_SCALE * (y - 530))];
+  const band = { cx: at([BAND.cx, BAND.cy])[0], cy: at([BAND.cx, BAND.cy])[1] };
+  const radii = (r) => r.map((v) => unit(ANDROID_SCALE * v));
+  const path = (list) => `M${list.map((p) => at(p).join(',')).join(' L')} Z`;
+  const shape = (comment, d, extra = '') => `    <!-- ${comment} -->
+    <path
+        android:pathData="${d}"${extra}
+        android:fillColor="#FFFFFF" />`;
+  return `<?xml version="1.0" encoding="utf-8"?>
+<!-- The themed (single-colour) app icon: the ring and its diamond, inside the
+     66dp circle every launcher shows. Made by scripts/store-graphics.mjs -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+${shape('the band', `${ellipse(band, radii(BAND.outer))} ${ellipse(band, radii(BAND.inner))}`, '\n        android:fillType="evenOdd"')}
+${shape('the setting', path(SETTING))}
+${shape('the diamond', path(STONE))}
+</vector>
+`;
+}
+
+// ---- Store and link-preview graphics ------------------------------------------------------
 const FEATURE = `<!doctype html><html><head><meta charset="utf-8"><style>
   html, body { margin: 0; }
   body {
@@ -44,15 +143,15 @@ const FEATURE = `<!doctype html><html><head><meta charset="utf-8"><style>
     background: linear-gradient(135deg, #ec4899 0%, #f05a6e 45%, #f97316 100%);
     color: #fff; font-family: 'Helvetica Neue', 'Liberation Sans', Arial, sans-serif;
   }
-  svg { width: 230px; height: 230px; flex: none; }
+  svg { width: 230px; height: 230px; flex: none; border-radius: 52px; box-shadow: 0 12px 32px rgba(0,0,0,.18); }
   h1 { margin: 0; font-size: 86px; font-weight: 700; letter-spacing: -2px; }
   p { margin: 18px 0 0; font-size: 34px; line-height: 1.3; }
-</style></head><body>${RING}<div><h1>${TITLE}</h1><p>${TAGLINE}</p></div></body></html>`;
+</style></head><body>${APP_ICON}<div><h1>${TITLE}</h1><p>${TAGLINE}</p></div></body></html>`;
 
 // The link preview: the same, larger, with a line saying what Shaadi24 is
 const PREVIEW = FEATURE
   .replace('width: 1024px; height: 500px;', 'width: 1200px; height: 630px;')
-  .replace('svg { width: 230px; height: 230px;', 'svg { width: 280px; height: 280px;')
+  .replace('svg { width: 230px; height: 230px; flex: none; border-radius: 52px;', 'svg { width: 280px; height: 280px; flex: none; border-radius: 63px;')
   .replace('h1 { margin: 0; font-size: 86px;', 'h1 { margin: 0; font-size: 100px;')
   .replace('p { margin: 18px 0 0; font-size: 34px;', 'p { margin: 18px 0 0; font-size: 40px;')
   .replace(`<h1>${TITLE}</h1>`, `<div style="font-size:30px;font-weight:700;letter-spacing:3px;text-transform:uppercase;opacity:.85;margin-bottom:10px">${PREVIEW_LINE}</div><h1>${TITLE}</h1>`);
@@ -81,13 +180,18 @@ function pngWithAlpha(width, height, rgba) {
   ]);
 }
 
-fs.mkdirSync(OUT, { recursive: true });
+const write = (file, data) => {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, data);
+  return path.relative(ROOT, file);
+};
+
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
+const saved = [];
 try {
-  const page = await browser.newPage({ viewport: { width: 1024, height: 500 } });
-  const icon = `data:image/png;base64,${fs.readFileSync(ICON).toString('base64')}`;
-  // The app icon at another size, as RGBA pixels
-  const iconAt = async (size) => Buffer.from(await page.evaluate(async ({ src, size }) => {
+  const page = await browser.newPage({ viewport: { width: 1024, height: 1024 } });
+  // An SVG drawn at a size, as RGBA pixels (transparent where it draws nothing)
+  const pixels = async (svg, size) => Buffer.from(await page.evaluate(async ({ src, size }) => {
     const img = new Image();
     img.src = src;
     await img.decode();
@@ -96,20 +200,52 @@ try {
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(img, 0, 0, size, size);
     return Array.from(ctx.getImageData(0, 0, size, size).data);
-  }, { src: icon, size }));
-  fs.writeFileSync(path.join(OUT, 'play-icon-512.png'), pngWithAlpha(512, 512, await iconAt(512)));
-  fs.writeFileSync(path.join(PUBLIC, 'apple-touch-icon.png'), pngWithAlpha(180, 180, await iconAt(180)));
-  fs.writeFileSync(path.join(PUBLIC, 'favicon-32.png'), pngWithAlpha(32, 32, await iconAt(32)));
+  }, { src: `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`, size }));
+  const png = async (file, svg, size) => saved.push(write(file, pngWithAlpha(size, size, await pixels(svg, size))));
+  // An opaque PNG (no alpha channel), as the App Store requires of the icon
+  const opaque = async (file, svg, size, background) => {
+    await page.setViewportSize({ width: size, height: size });
+    await page.setContent(`<html><body style="margin:0;background:${background}">${svg.replace('<svg ', `<svg width="${size}" height="${size}" style="display:block" `)}</body></html>`);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    await page.screenshot({ path: file, type: 'png' });
+    saved.push(path.relative(ROOT, file));
+  };
 
+  // iPhone
+  await opaque(path.join(IOS, 'AppIcon.appiconset/AppIcon-512@2x.png'), APP_ICON, 1024, '#fff');
+  await opaque(path.join(IOS, 'Splash.imageset/splash-2732x2732.png'), ringSvg({ scale: 0.3, background: '#fff' }), 2732, '#fff');
+  await opaque(path.join(IOS, 'Splash.imageset/splash-2732x2732-dark.png'), ringSvg({ scale: 0.3, background: DARK }), 2732, DARK);
+
+  // Android: the adaptive icon's front layer and the launch screen at each density
+  // (108 dp), and the icons older launchers show as they are (48 dp)
+  const densities = { mdpi: 1, hdpi: 1.5, xhdpi: 2, xxhdpi: 3, xxxhdpi: 4 };
+  for (const [name, x] of Object.entries(densities)) {
+    await png(path.join(ANDROID, `mipmap-${name}/ic_launcher_foreground.png`), ANDROID_FOREGROUND, 108 * x);
+    await png(path.join(ANDROID, `mipmap-${name}/ic_launcher.png`), ringSvg({ scale: 0.95, background: '#fff', radius: 190, inset: 48 }), 48 * x);
+    await png(path.join(ANDROID, `mipmap-${name}/ic_launcher_round.png`), ringSvg({ scale: 0.85, background: '#fff', tile: 'circle', inset: 48 }), 48 * x);
+    await png(path.join(ANDROID, `drawable-${name}/splash_icon.png`), ANDROID_FOREGROUND, 108 * x);
+  }
+  saved.push(write(path.join(ANDROID, 'drawable/ic_launcher_monochrome.xml'), androidMonochrome()));
+
+  // Google Play and the website
+  await png(path.join(OUT, 'play-icon-512.png'), APP_ICON, 512);
+  await png(path.join(PUBLIC, 'apple-touch-icon.png'), APP_ICON, 180);
+  await png(path.join(PUBLIC, 'favicon-32.png'), ringSvg({ scale: 1.2, background: '#fff', radius: 224, border: '#e5e7eb' }), 32);
+  saved.push(write(path.join(PUBLIC, 'favicon.svg'),
+    `<!-- The app icon (scripts/store-graphics.mjs), with rounded corners and an edge for browser tabs -->\n${
+      ringSvg({ scale: 1.2, background: '#fff', radius: 224, border: '#e5e7eb' })}\n`));
+
+  await page.setViewportSize({ width: 1024, height: 500 });
   await page.setContent(FEATURE);
   // JPEG: the feature graphic may not have an alpha channel
   await page.screenshot({ path: path.join(OUT, 'play-feature-graphic.jpg'), type: 'jpeg', quality: 92 });
+  saved.push(path.relative(ROOT, path.join(OUT, 'play-feature-graphic.jpg')));
 
   await page.setViewportSize({ width: 1200, height: 630 });
   await page.setContent(PREVIEW);
   await page.screenshot({ path: path.join(PUBLIC, 'og-image.png') });
-  console.log(`Saved: ${path.relative(ROOT, OUT)}/play-icon-512.png and play-feature-graphic.jpg; `
-    + 'public/og-image.png, apple-touch-icon.png and favicon-32.png');
+  saved.push('public/og-image.png');
+  console.log(`Saved ${saved.length} images:\n  ${saved.join('\n  ')}`);
 } finally {
   await browser.close();
 }

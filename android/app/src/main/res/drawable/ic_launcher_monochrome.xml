@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The themed (single-colour) app icon: the ring and its diamond, inside the
+     66dp circle every launcher shows. Made by scripts/store-graphics.mjs -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- the band -->
+    <path
+        android:pathData="M32.91,64.13 a21.09,19.58 0 1,0 42.18,0 a21.09,19.58 0 1,0 -42.18,0 Z M38.64,64.13 a15.36,14.01 0 1,0 30.72,0 a15.36,14.01 0 1,0 -30.72,0 Z"
+        android:fillType="evenOdd"
+        android:fillColor="#FFFFFF" />
+    <!-- the setting -->
+    <path
+        android:pathData="M46.24,41.34 L61.76,41.34 L58.56,47.42 L49.44,47.42 Z"
+        android:fillColor="#FFFFFF" />
+    <!-- the diamond -->
+    <path
+        android:pathData="M40.33,31.39 L47.25,24.3 L60.75,24.3 L67.67,31.39 L54,46.24 Z"
+        android:fillColor="#FFFFFF" />
+</vector>
