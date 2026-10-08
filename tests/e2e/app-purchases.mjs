@@ -292,6 +292,11 @@ try {
   await openMenuItem(page, 'Get Shaadi24+');
   await page.getByText('Shaadi24+ is coming to the app soon.').waitFor({ timeout: 15000 });
   check(true, 'nothing on sale in Google Play yet: "coming to the app soon"');
+  // ...and Admin → Errors says which plans Google Play held back
+  await page.waitForTimeout(1500);
+  check(Number(sql(`select count(*) from error_reports where screen = 'Shaadi24+ plans'
+      and message like 'Google Play returned 0 of 4 Shaadi24+ plans; missing: shaadi24_plus/weekly, %'
+      and last_seen_at > now() - interval '5 minutes';`)) === 1, 'reported: Google Play returned 0 of 4 plans, and which');
   await page.context().close();
 
   // ======================================================================================

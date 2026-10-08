@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { PERIODS, type PlanId } from '../lib/billingService';
+import { reportError } from '../lib/errorReports';
 import {
   buyOffer, loadStoreOffers, restoreStorePurchases, storeName, storePlatform, type StoreOffer, type StorePlatform,
 } from '../lib/storePurchases';
@@ -69,7 +70,11 @@ export function useStoreUpgrade({ paying, setPaying, onPurchased }: {
     let live = true;
     loadStoreOffers()
       .then((o) => { if (live) setOffers(o); })
-      .catch(() => { if (live) setOffers([]); });
+      .catch((e) => {
+        // Asking the store failed: shown as "Coming soon", and Admin → Errors says why
+        reportError(e, 'Shaadi24+ plans');
+        if (live) setOffers([]);
+      });
     return () => { live = false; };
   }, []);
 
