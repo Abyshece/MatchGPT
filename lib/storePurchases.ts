@@ -19,7 +19,7 @@ import { Capacitor, type PluginListenerHandle } from '@capacitor/core';
 import { NativePurchases, PURCHASE_TYPE, type SKProductDiscount, type Transaction } from '@capgo/native-purchases';
 import { FunctionsHttpError } from '@supabase/supabase-js';
 import { supabase } from './supabase';
-import type { PlanId } from './billingService';
+import type { PlanId, PlanPeriod } from './billingService';
 
 export type StorePlatform = 'android' | 'ios';
 
@@ -66,7 +66,7 @@ interface StorePlanConfig {
   name: string;
   amount: number;
   currency: string;
-  period: 'monthly' | 'yearly';
+  period: PlanPeriod;
   googleProductId: string | null;
   googleBasePlanId: string | null;
   appleProductId: string | null;
@@ -75,7 +75,7 @@ interface StorePlanConfig {
 /** A plan as the store sells it to this person: the store's own price and terms. */
 export interface StoreOffer {
   planId: PlanId;
-  period: 'monthly' | 'yearly';
+  period: PlanPeriod;
   price: string;          // the store's price text, e.g. "₹999.00"
   amount: number;         // the same in currency units
   currency: string;

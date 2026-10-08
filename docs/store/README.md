@@ -12,6 +12,9 @@ In this folder:
   it: these two, the iPhone and Android icons and launch screens, and the website's icons and link
   preview. Change the words or the picture there and run it to remake them all. The App Store takes
   its icon from the app.
+- The photo at the top of the Shaadi24+ page (`public/images/paywall-hero.jpg`: a bride's and groom's
+  hands, in black and white) was made for Shaadi24 with an AI image generator (GPT Image 2.5, through the
+  owner's Higgsfield account) from a text prompt; it shows no real people.
 
 The website pages the stores link to (the home page, https://shaadi-gpt.vercel.app, says what Shaadi24
 is and links to the stores; members use the apps):
@@ -149,9 +152,11 @@ then test it and add iPad screenshots.)
 3. **Test and release → Testing → Internal testing**: create a release, upload `app-release.aab`, add
    yourself as a tester and install it from the link. Do this before step 4: Play lets you make
    subscriptions only once a build that can sell them has been uploaded.
-4. **Monetize with Play → Products → Subscriptions**: `shaadi24_plus` with base plans `monthly` (₹999,
-   renews every month) and `yearly` (₹9,999, every year), both active. Leave free-trial offers out for
-   now (ROADMAP.md, Phase 13).
+4. **Monetize with Play → Products → Subscriptions**: `shaadi24_plus` with four base plans, all active,
+   auto-renewing: `weekly` (₹349, every week), `monthly` (₹999, every month), `quarterly` (₹1,999, every
+   3 months) and `halfyearly` (₹2,999, every 6 months). The app shows them side by side with what each
+   saves on the week's price; a base plan not made yet simply doesn't show. Leave free-trial offers out
+   for now (ROADMAP.md, Phase 13). (A `yearly` base plan is no longer used: leave it out.)
 5. **Users and permissions**: invite the Google Cloud service account whose key is
    `GOOGLE_PLAY_SERVICE_ACCOUNT`, with "View financial data" and "Manage orders and subscriptions".
 6. **Monetization setup → Real-time developer notifications**: the Pub/Sub topic whose push subscription
@@ -182,9 +187,13 @@ then test it and add iPad screenshots.)
 3. **App Information**: category Lifestyle (secondary: Social Networking); Age Rating (below); App Store
    Server Notifications, Version 2, for production and sandbox:
    `https://fmrbzzdjtarsaqvfukum.supabase.co/functions/v1/store-notifications?provider=apple`.
-4. **Monetization → Subscriptions**: group "Shaadi24+" with `shaadi24_plus_monthly` (1 month, ₹999) and
-   `shaadi24_plus_yearly` (1 year, ₹9,999), each with a display name, a description and a review
-   screenshot (the Shaadi24+ sheet in the app). Optionally a 1-week free trial as the introductory offer.
+4. **Monetization → Subscriptions**: group "Shaadi24+" with four subscriptions, all on the same level
+   (so changing length is a crossgrade): `shaadi24_plus_weekly` (1 week, ₹349), `shaadi24_plus_monthly`
+   (1 month, ₹999), `shaadi24_plus_quarterly` (3 months, ₹1,999) and `shaadi24_plus_halfyearly`
+   (6 months, ₹2,999), each with a display name, a description and a review screenshot (the Shaadi24+
+   page in the app). `shaadi24_plus_yearly`, made earlier, is no longer used: delete it (it was never
+   submitted). Optionally a 1-week free trial as the introductory offer. Actions → App Store check
+   (`scripts/store-check.mjs`) says what each still needs.
    The first subscriptions are reviewed with the app: tick them on the version page before submitting.
 5. **App Privacy**: the Privacy Policy address and the answers below.
 6. **Pricing and Availability**: free; the same countries as Google Play.
@@ -269,7 +278,7 @@ SAFE AND RESPECTFUL
 • For adults 18 and over
 
 SHAADI24+
-A free account can search 3 times and send 15 likes a day. Shaadi24+ adds unlimited searches and likes, Super Likes, everyone who has liked you, more search filters (religion, mother tongue, community, Manglik, height, diet, education and more), the full compatibility report and date proposals in chat. It's a monthly or yearly subscription through Google Play that renews until you cancel it in Google Play.
+A free account can search 3 times and send 15 likes a day. Shaadi24+ adds unlimited searches and likes, Super Likes, everyone who has liked you, more search filters (religion, mother tongue, community, Manglik, height, diet, education and more), the full compatibility report and date proposals in chat. It's a subscription for a week, a month, 3 months or 6 months through Google Play that renews until you cancel it in Google Play.
 
 Making a profile for a son, daughter, brother, sister or friend? Welcome, with their permission.
 
@@ -437,7 +446,7 @@ DEMO ACCOUNT (verified, with a match and a chat)
 On the first screen tap "Sign in or create account", then "Continue with Email", and use the email and password above.
 
 IN-APP PURCHASES
-Shaadi24+ is an auto-renewable subscription (group "Shaadi24+": shaadi24_plus_monthly and shaadi24_plus_yearly). Open it from the menu ("Get Shaadi24+") or Settings → Shaadi24+, which also has Restore purchases and Manage subscription. Our server checks every purchase with the App Store. The app offers no other way to pay.
+Shaadi24+ is an auto-renewable subscription (group "Shaadi24+": shaadi24_plus_weekly, shaadi24_plus_monthly, shaadi24_plus_quarterly and shaadi24_plus_halfyearly). Open it from the menu ("Get Shaadi24+") or Settings → Shaadi24+, which also has Restore purchases and Manage subscription. Our server checks every purchase with the App Store. The app offers no other way to pay.
 
 SIGN IN WITH APPLE is on the first screen, above Google.
 

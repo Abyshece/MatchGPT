@@ -89,18 +89,19 @@ const KEYS_FILE = process.env.KEYS_FILE || path.join(process.cwd(), 'store-stand
 const ENV_OUT = process.env.ENV_OUT || path.join(process.cwd(), 'store-standin.env');
 
 const DAY = 86_400_000;
-const PRICES = { monthly: 99900, yearly: 999900 };           // paise
-const APPLE_PRODUCTS = { shaadi24_plus_monthly: 'monthly', shaadi24_plus_yearly: 'yearly' };
+const PRICES = { weekly: 34900, monthly: 99900, quarterly: 199900, halfyearly: 299900, yearly: 999900 };  // paise
+const APPLE_PRODUCTS = Object.fromEntries(Object.keys(PRICES).map((plan) => [`shaadi24_plus_${plan}`, plan]));
 
 const b64 = (buf) => Buffer.from(buf).toString('base64');
 const b64url = (buf) => Buffer.from(buf).toString('base64url');
 const json64url = (v) => b64url(Buffer.from(JSON.stringify(v)));
 const randomDigits = (n) => Array.from(crypto.randomBytes(n), (b) => b % 10).join('');
 const iso = (ms) => new Date(ms).toISOString();
+const MONTHS = { monthly: 1, quarterly: 3, halfyearly: 6, yearly: 12 };
 const addPeriod = (ms, plan) => {
+  if (plan === 'weekly') return ms + 7 * DAY;
   const d = new Date(ms);
-  if (plan === 'yearly') d.setUTCFullYear(d.getUTCFullYear() + 1);
-  else d.setUTCMonth(d.getUTCMonth() + 1);
+  d.setUTCMonth(d.getUTCMonth() + (MONTHS[plan] ?? 1));
   return d.getTime();
 };
 

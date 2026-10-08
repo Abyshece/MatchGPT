@@ -1,5 +1,6 @@
 import React from 'react';
 import { IconBook } from '../constants';
+import { pricesInWords } from '../lib/billingService';
 import { LEGAL } from '../lib/legalInfo';
 import { HindiSummary, LegalLayout, List, Mail, Section, Summary, linkClass } from './legal/LegalLayout';
 
@@ -19,8 +20,8 @@ const RefundsView: React.FC<{ onBack: () => void }> = ({ onBack }) => (
     </Summary>
 
     <Section title="1. What you buy">
-      <p>Shaadi24+ is a subscription of one month (₹999) or one year (₹9,999) in India, that renews automatically until
-        you cancel. The store shows you the final price, including GST and any other taxes, and any free trial, before
+      <p>Shaadi24+ is a subscription of one week, one month, three months or six months ({pricesInWords()} in India),
+        that renews automatically until you cancel. The store shows you the final price, including GST and any other taxes, and any free trial, before
         you confirm. {LEGAL.brand} itself is free to use.</p>
     </Section>
 

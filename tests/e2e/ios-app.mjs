@@ -3,7 +3,7 @@
 // calls recorded and answered) on an iPhone 15/16-sized screen. Chromium has
 // no notch, so the test sets --safe-top / --safe-bottom to an iPhone's 59 and
 // 34 points and checks nothing sits under them: the headers, the sign-in
-// popup, the menu, the filters, a toast, the Shaadi24+ sheet, a chat's message
+// popup, the menu, the filters, a toast, the Shaadi24+ page, a chat's message
 // box. Also: viewport-fit=cover, the status bar text follows the theme,
 // email-only sign-in while Supabase has Apple and Google off
 // (app-social-signin.mjs covers them), Shaadi24+ "coming to the app soon".
@@ -158,19 +158,26 @@ try {
   check(await page.getByText('Shaadi24+ is coming to the app soon.').waitFor({ timeout: 8000 }).then(() => true, () => false),
     'Shaadi24+ "coming to the app soon"');
   clear(await rect(page, '[role="dialog"]'), 'the Shaadi24+ sheet');
-  // A card that floats clear of the screen's sides, with round corners all
-  // round, in black and white (no orange or pink gradient)
+  // A full-screen dark page, like the stores' own paywalls: the photo, the
+  // plans and what you get scroll; the button stays at the bottom. No colour:
+  // any gradient is greys (the shade over the photo)
   const sheet = await page.getByTestId('upgrade-modal').evaluate((el) => {
     const r = el.getBoundingClientRect();
-    const cs = getComputedStyle(el);
-    const coloured = [...el.querySelectorAll('*')].some((n) => /gradient/.test(getComputedStyle(n).backgroundImage));
-    return { left: r.left, right: r.right, radius: parseFloat(cs.borderBottomLeftRadius), coloured };
+    const grey = (css) => [...css.matchAll(/rgba?\(([^)]+)\)/g)].every(([, v]) => {
+      const [r, g, b] = v.split(',').map(Number);
+      return r === g && g === b;
+    });
+    const coloured = [...el.querySelectorAll('*')].some((n) => /gradient/.test(getComputedStyle(n).backgroundImage)
+      && !grey(getComputedStyle(n).backgroundImage));
+    const button = el.querySelector('[data-testid="upgrade-button"]').getBoundingClientRect();
+    return { left: r.left, right: r.right, bg: getComputedStyle(el).backgroundColor, coloured, buttonBottom: button.bottom, bottom: r.bottom };
   });
-  check(sheet.left >= 8 && sheet.right <= SCREEN.width - 8 && sheet.radius >= 20,
-    `the Shaadi24+ sheet floats clear of the sides, corners round (${Math.round(sheet.left)}–${Math.round(sheet.right)}, ${sheet.radius}px)`);
-  check(!sheet.coloured, 'the Shaadi24+ sheet has no colour gradient');
+  check(sheet.left === 0 && sheet.right === SCREEN.width && sheet.bg === 'rgb(17, 17, 17)',
+    `the Shaadi24+ page fills the screen, dark (${Math.round(sheet.left)}–${Math.round(sheet.right)}, ${sheet.bg})`);
+  check(!sheet.coloured, 'the Shaadi24+ page has no colour gradient');
+  check(sheet.bottom - sheet.buttonBottom < 80, 'its button sits at the bottom');
   await page.screenshot({ path: `${OUT}7-shaadi24-plus.png` });
-  await page.getByRole('button', { name: 'Maybe later' }).click();
+  await page.getByTestId('upgrade-modal').getByRole('button', { name: 'Close' }).click();
   await page.waitForTimeout(400);
 
   await page.getByText('Matches', { exact: true }).first().click();  // the menu is still open

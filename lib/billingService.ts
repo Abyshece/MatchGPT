@@ -10,15 +10,26 @@
 import { supabase } from './supabase';
 import type { Tables } from './database.types';
 
-export type PlanId = 'monthly' | 'yearly';
+// A plan's id is also its length (billing_plans: id and period)
+export type PlanId = 'weekly' | 'monthly' | 'quarterly' | 'halfyearly' | 'yearly';
+export type PlanPeriod = PlanId;
 
 export interface BillingPlan {
   id: PlanId;
   name: string;
   amount: number;  // paise
   currency: string;
-  period: 'monthly' | 'yearly';
+  period: PlanPeriod;
 }
+
+/** How long each plan runs: in words, and in weeks (for the price a week) */
+export const PERIODS: Record<PlanPeriod, { label: string; every: string; weeks: number }> = {
+  weekly: { label: '1 week', every: 'week', weeks: 1 },
+  monthly: { label: '1 month', every: 'month', weeks: 52 / 12 },
+  quarterly: { label: '3 months', every: '3 months', weeks: 13 },
+  halfyearly: { label: '6 months', every: '6 months', weeks: 26 },
+  yearly: { label: '1 year', every: 'year', weeks: 52 },
+};
 
 export type Subscription = Tables<'subscriptions'>;
 // What members may read of their own payments (not the fees we paid)
@@ -27,31 +38,51 @@ export type Payment = Pick<Tables<'payments'>,
   'id' | 'user_id' | 'subscription_id' | 'provider' | 'store_order_id' | 'amount' | 'currency' | 'status' | 'method'
   | 'paid_at' | 'refunded_amount' | 'refunded_at' | 'created_at'>;
 
-// The prices in the Terms (the stores show their own, in the buyer's currency)
+// The prices in the Terms (the stores show their own, in the buyer's currency):
+// the plans on sale, shortest first
 export const DEFAULT_PLANS: BillingPlan[] = [
-  { id: 'monthly', name: 'Shaadi24+ monthly', amount: 99900, currency: 'INR', period: 'monthly' },
-  { id: 'yearly', name: 'Shaadi24+ yearly', amount: 999900, currency: 'INR', period: 'yearly' },
+  { id: 'weekly', name: 'Shaadi24+ 1 week', amount: 34900, currency: 'INR', period: 'weekly' },
+  { id: 'monthly', name: 'Shaadi24+ 1 month', amount: 99900, currency: 'INR', period: 'monthly' },
+  { id: 'quarterly', name: 'Shaadi24+ 3 months', amount: 199900, currency: 'INR', period: 'quarterly' },
+  { id: 'halfyearly', name: 'Shaadi24+ 6 months', amount: 299900, currency: 'INR', period: 'halfyearly' },
 ];
+
+/** A plan's name, for subscriptions of any plan (yearly is no longer sold) */
+export const planName = (id: string | null | undefined) =>
+  DEFAULT_PLANS.find((p) => p.id === id)?.name ?? (id === 'yearly' ? 'Shaadi24+ 1 year' : 'Shaadi24+');
+
+/** The Terms' prices in words: "₹349 a week, ₹999 a month, ₹1,999 for 3 months and ₹2,999 for 6 months" */
+export function pricesInWords(): string {
+  const each = DEFAULT_PLANS.map((p) => p.period === 'weekly' || p.period === 'monthly'
+    ? `${formatRupees(p.amount)} a ${PERIODS[p.period].every}`
+    : `${formatRupees(p.amount)} for ${PERIODS[p.period].label}`);
+  return `${each.slice(0, -1).join(', ')} and ${each[each.length - 1]}`;
+}
 
 // What Shaadi24+ adds (each is enforced by the server): the daily limits
 // lifted, which takes a subscription...
-const UNLIMITED = [
-  'Unlimited AI searches (free: 3 a day, up to 9 with a complete profile)',
-  'Unlimited likes (free: 15 a day)',
+export interface ProBenefit {
+  key: 'searches' | 'likes' | 'likes-you' | 'super-likes' | 'filters' | 'reports' | 'dates' | 'standouts';
+  title: string;
+  detail?: string;
+}
+const UNLIMITED: ProBenefit[] = [
+  { key: 'searches', title: 'Unlimited AI searches', detail: 'Free: 3 a day, up to 9 with a complete profile' },
+  { key: 'likes', title: 'Unlimited likes', detail: 'Free: 15 a day' },
 ];
 // ...and the features, which are also everyone's while "Shaadi24+ for
 // everyone" is on (useAuth().proForAll; app_settings)
-const FEATURES = [
-  'See everyone who liked you',
-  'Super Likes, to stand out',
-  'Every search filter: religion, community, height and more',
-  'Compatibility reports: why you match',
-  'Propose dates in chat',
-  'Refresh your Standouts any time',
+const FEATURES: ProBenefit[] = [
+  { key: 'likes-you', title: 'See everyone who liked you' },
+  { key: 'super-likes', title: 'Super Likes, to stand out' },
+  { key: 'filters', title: 'Every search filter', detail: 'Religion, community, height and more' },
+  { key: 'reports', title: 'Compatibility reports', detail: 'Why you match' },
+  { key: 'dates', title: 'Propose dates in chat' },
+  { key: 'standouts', title: 'Refresh your Standouts any time' },
 ];
 
 /** What buying Shaadi24+ adds right now. */
-export function proBenefits(proForAll: boolean): string[] {
+export function proBenefits(proForAll: boolean): ProBenefit[] {
   return proForAll ? UNLIMITED : [...UNLIMITED, ...FEATURES];
 }
 

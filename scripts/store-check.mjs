@@ -4,8 +4,8 @@
 // Actions → App Store check → Run workflow.)
 //
 // The iPhone app asks the App Store for the products in billing_plans
-// (shaadi24_plus_monthly and shaadi24_plus_yearly) and says "Coming soon"
-// while it gets none back. The App Store, TestFlight included, gives them
+// (shaadi24_plus_weekly, _monthly, _quarterly and _halfyearly) and says
+// "Coming soon" while it gets none back; it offers each one it gets. The App Store, TestFlight included, gives them
 // once each has its price, a name and description, and the review
 // screenshot ("Ready to Submit" or later), and the Paid Apps agreement is
 // active. Apple's API doesn't show agreements, so that one is left to the
@@ -21,8 +21,10 @@ import { client } from './testflight-testers.mjs';
 
 /** What the app sells (billing_plans.apple_product_id) and for how long. */
 export const EXPECTED = [
+  { productId: 'shaadi24_plus_weekly', period: 'ONE_WEEK' },
   { productId: 'shaadi24_plus_monthly', period: 'ONE_MONTH' },
-  { productId: 'shaadi24_plus_yearly', period: 'ONE_YEAR' },
+  { productId: 'shaadi24_plus_quarterly', period: 'THREE_MONTHS' },
+  { productId: 'shaadi24_plus_halfyearly', period: 'SIX_MONTHS' },
 ];
 
 // The states in which the App Store gives a subscription to the app
@@ -117,8 +119,8 @@ export async function checkSubscriptions({ call, bundleId, expected = EXPECTED }
   }
 
   lines.push(ready
-    ? 'Both are ready, so the App Store gives them to the app, TestFlight included, once the Paid Apps agreement is active (Business → Agreements; Apple\'s API doesn\'t show it).'
-    : 'Until each shows ✓, the app says Shaadi24+ is "Coming soon". "Missing metadata" means a price, a name and description, or the review screenshot is still missing.');
+    ? 'All are ready, so the App Store gives them to the app, TestFlight included, once the Paid Apps agreement is active (Business → Agreements; Apple\'s API doesn\'t show it).'
+    : 'The app offers each one that shows ✓; with none, it says Shaadi24+ is "Coming soon". "Missing metadata" means a price, a name and description, or the review screenshot is still missing.');
   return { ready, lines };
 }
 

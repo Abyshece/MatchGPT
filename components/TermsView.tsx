@@ -1,5 +1,6 @@
 import React from 'react';
 import { IconBook } from '../constants';
+import { pricesInWords } from '../lib/billingService';
 import { TERMS_VERSION } from '../lib/consentService';
 import { DAILY_LIMITS } from '../lib/profileService';
 import { LEGAL, orPending } from '../lib/legalInfo';
@@ -188,8 +189,8 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => (
         <li>{LEGAL.brand} is free to use, with daily limits for free accounts ({DAILY_LIMITS.FREE.searches} AI searches a
           day, up to 9 for a complete profile, and {DAILY_LIMITS.FREE.likes} likes a day). Shaadi24+ is a paid
           subscription that lifts those limits and adds features listed in the app.</li>
-        <li>Shaadi24+ is sold only in our Android and iPhone apps, through Google Play and the App Store. Our prices in
-          India are ₹999 a month and ₹9,999 a year. The store shows you the final price, including GST and any other
+        <li>Shaadi24+ is sold only in our Android and iPhone apps, through Google Play and the App Store. It runs for one
+          week, one month, three months or six months; our prices in India are {pricesInWords()}. The store shows you the final price, including GST and any other
           taxes, before you confirm, takes the payment, and its own terms of sale also apply. We never see your
           card, UPI or bank details.</li>
         <li>A subscription renews automatically at the end of each period until you cancel it. You can cancel any time
