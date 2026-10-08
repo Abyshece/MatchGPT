@@ -625,7 +625,8 @@ Part 17 done 2026-10-08: **sort Find Match's results, and the Online filter show
   and the filter button counts it. Before, the chips counted every filter but Online, so with only
   Online on there was no chip to take it off (with Verified as well, both showed).
 - [x] Every active filter now has its chip, the filter panel's too (religion, age, height, state…);
-  before, those showed only Clear all.
+  before, those showed only Clear all. Screen readers hear how many are on ("Open filters, 1 on"), as
+  the button's badge shows.
 - [x] The quick filters (Online Now, Verified Only, Has Instagram, Has LinkedIn) narrow the results on
   screen at once. Before, they did nothing until the next search, which used up one of the day's
   searches. Taking one off, or a change in the filter panel, asks to search again; if nobody left
