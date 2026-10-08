@@ -59,7 +59,7 @@ const product = (over) => ({
 const base = (plan, price, priceString, numberOfUnits, unit) => product({ identifier: plan, planIdentifier: 'shaadi24_plus',
   offerId: null, offerToken: `base-${plan}`, price, priceString, subscriptionPeriod: { numberOfUnits, unit } });
 const ANDROID_PRODUCTS = [
-  base('weekly', 349, '₹349.00', 1, 1),
+  base('weekly', 449, '₹449.00', 1, 1),
   base('monthly', 999, '₹999.00', 1, 2),
   product({ identifier: 'monthly', planIdentifier: 'shaadi24_plus', offerId: 'free-trial', offerToken: 'trial-monthly', price: 999,
     priceString: '₹999.00', subscriptionPeriod: { numberOfUnits: 1, unit: 2 } }),
@@ -71,7 +71,7 @@ const WEEK_FREE = { identifier: '', type: 0, price: 0, priceString: '₹0.00', c
 const apple = (plan, price, priceString, numberOfUnits, unit) => product({ identifier: `shaadi24_plus_${plan}`, price, priceString,
   subscriptionPeriod: { numberOfUnits, unit }, introductoryPrice: WEEK_FREE });
 const IOS_PRODUCTS = [
-  apple('weekly', 349, '₹349.00', 1, 1),
+  apple('weekly', 449, '₹449.00', 1, 1),
   apple('monthly', 999, '₹999.00', 1, 2),
   apple('quarterly', 1999, '₹1,999.00', 3, 2),
   apple('halfyearly', 2999, '₹2,999.00', 6, 2),
@@ -210,12 +210,23 @@ try {
   const cards = sheet.getByTestId('plan-cards');
   const cardText = (name) => cards.getByRole('radio', { name }).innerText().then((t) => t.replace(/\s+/g, ' '));
   check(await sheet.getByRole('radio').count() === 4, 'four plans (the monthly offer entry is not a plan of its own)');
-  check(await cardText(/1 week/) === 'Try it 1 week ₹349.00 ₹349/wk', `1 week: ${await cardText(/1 week/)}`);
-  check(await cardText(/1 month/) === 'Save 34% 1 month ₹999.00 ₹231/wk', `1 month: ${await cardText(/1 month/)}`);
-  check(await cardText(/3 months/) === 'Save 56% 3 months ₹1,999.00 ₹154/wk', `3 months: ${await cardText(/3 months/)}`);
-  check(await cardText(/6 months/) === 'Save 67% 6 months ₹2,999.00 ₹115/wk', `6 months: ${await cardText(/6 months/)}`);
+  check(await cardText(/1 week/) === 'Try it 1 week ₹449.00 ₹449/wk', `1 week: ${await cardText(/1 week/)}`);
+  check(await cardText(/1 month/) === 'Save 49% 1 month ₹999.00 ₹231/wk', `1 month: ${await cardText(/1 month/)}`);
+  check(await cardText(/3 months/) === 'Save 66% 3 months ₹1,999.00 ₹154/wk', `3 months: ${await cardText(/3 months/)}`);
+  check(await cardText(/6 months/) === 'Save 74% 6 months ₹2,999.00 ₹115/wk', `6 months: ${await cardText(/6 months/)}`);
   check(await cards.getByRole('radio', { name: /3 months/ }).getAttribute('aria-checked') === 'true'
     && await sheet.getByRole('button', { name: 'Get 3 months for ₹1,999.00' }).isVisible(), '3 months chosen to start with');
+  // What the chosen plan saves, in money, and against what
+  const saving = () => sheet.getByTestId('plan-saving').innerText().then((t) => t.replace(/\s+/g, ' '));
+  check(await saving() === 'You save ₹998 ₹1,999 instead of ₹2,997 (₹999 a month for 3 months)', `3 months saves: ${await saving()}`);
+  await cards.getByRole('radio', { name: /6 months/ }).click();
+  check(await saving() === 'You save ₹2,995 ₹2,999 instead of ₹5,994 (₹999 a month for 6 months)', `6 months saves: ${await saving()}`);
+  await cards.getByRole('radio', { name: /1 week/ }).click();
+  check(await saving() === 'The longer the plan, the less you pay a week.', `1 week: ${await saving()}`);
+  await page.screenshot({ path: `${OUT}android-0-saving.png` });
+  await cards.getByRole('radio', { name: /1 month/ }).click();
+  check(await saving() === 'You save ₹218 a week ₹231 a week instead of ₹449 with the 1-week plan', `1 month saves: ${await saving()}`);
+  check(await sheet.getByTestId('plan-saving').locator('s').first().innerText() === '₹449', 'the price compared with is struck through');
   // The price charged stands out more than the price a week (App Review 3.1.2)
   const sizes = await cards.getByRole('radio', { name: /3 months/ }).evaluate((el) => {
     const size = (re) => [...el.querySelectorAll('div')].filter((d) => d.children.length === 0 && re.test(d.textContent))

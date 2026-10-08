@@ -12,7 +12,8 @@ import {
 // payment sheet takes the payment, and the server checks the purchase before
 // Pro turns on (lib/storePurchases.ts). The plans sit side by side, each
 // with its full price first (what the store charges) and the price a week
-// under it, and what it saves on the shortest plan's price a week. Shows
+// under it, and what it saves on the shortest plan's price a week; under
+// them, what the chosen plan saves in money (PlanSaving). Shows
 // what the stores require next to an auto-renewing subscription: its length
 // and price, that it renews until cancelled, where to cancel, Restore
 // purchases, and the Terms and Privacy Policy. Until the store has the
@@ -183,6 +184,44 @@ export const PlanCards: React.FC<{ offers: StoreOffer[] | null; chosen: PlanId |
           </button>
         );
       })}
+    </div>
+  );
+};
+
+/**
+ * What the chosen plan saves, in money: 3 or 6 months against paying the
+ * monthly price for as long ("You save ₹998: ₹1,999 instead of ₹2,997"), a
+ * month against the weekly plan's price a week. Each says what it's compared
+ * with; from the store's prices, so it's right in any currency.
+ */
+export const PlanSaving: React.FC<{ offer: StoreOffer | undefined; offers: StoreOffer[] | null }> = ({ offer, offers }) => {
+  if (!offer || !offers || offers.length < 2) return null;
+  const fmt = (x: number) => money(x, offer.currency, x >= 100 ? 0 : 2);
+  const other = (id: PlanId) => offers.find((o) => o.planId === id && o.currency === offer.currency);
+  const monthly = other('monthly');
+  const weekly = other('weekly');
+
+  let saved: string | null = null;
+  let detail: React.ReactNode = 'The longer the plan, the less you pay a week.';
+  if ((offer.period === 'quarterly' || offer.period === 'halfyearly') && monthly) {
+    const months = Math.round(PERIODS[offer.period].weeks / PERIODS.monthly.weeks);
+    const full = monthly.amount * months;
+    if (full > offer.amount) {
+      saved = `You save ${fmt(full - offer.amount)}`;
+      detail = <>{fmt(offer.amount)} instead of <s>{fmt(full)}</s> ({fmt(monthly.amount)} a month for {months} months)</>;
+    }
+  } else if (offer.period === 'monthly' && weekly) {
+    const week = Math.round(perWeek(offer) * 100) / 100;
+    if (weekly.amount > week) {
+      saved = `You save ${fmt(weekly.amount - week)} a week`;
+      detail = <>{fmt(week)} a week instead of <s>{fmt(weekly.amount)}</s> with the 1-week plan</>;
+    }
+  }
+
+  return (
+    <div data-testid="plan-saving" aria-live="polite" className="mt-3 min-h-10 flex flex-col items-center justify-center text-center">
+      {saved && <p className="text-sm font-semibold text-white">{saved}</p>}
+      <p className="text-xs text-zinc-400">{detail}</p>
     </div>
   );
 };
