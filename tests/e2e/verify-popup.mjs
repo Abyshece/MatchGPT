@@ -44,7 +44,7 @@ try {
   const line = page.getByTestId('search-allowance');
   await line.waitFor({ timeout: 10000 }).catch(() => {});
   const said = await line.innerText().catch(() => '');
-  check(/^\d+ searches? (every|left)/.test(said) && !said.includes('Infinity'), `a Pro account sees its searches: "${said}"`);
+  check(/^\d+ search(es)? (every|left)/.test(said) && !said.includes('Infinity'), `a Pro account sees its searches: "${said}"`);
 
   log('1. open from the sidebar');
   await page.getByText('Get verified today', { exact: false }).first().click();

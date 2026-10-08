@@ -161,7 +161,7 @@ try {
   log('2. 5 hours later');
   sql(`update search_usage set window_started_at = now() - interval '5 hours 1 minute' where user_id = '${me}';`);
   await reload(page);
-  l = await lineSays(page, /searches? (left|every)/);
+  l = await lineSays(page, /\bsearch(es)? (left|every)/);
   check(l.ok, `searches again: "${l.said}"`);
   check(await search(page) === 200, 'and a search goes ahead');
   check(sql(`select window_count || '/' || day_count from search_usage where user_id = '${me}';`) === '1/3', 'a new 5 hours, the day goes on');
@@ -202,7 +202,7 @@ try {
   // The week before: a new week has begun
   sql(`update search_usage set week_started_at = search_week_start(now()) - interval '7 days' where user_id = '${me}';`);
   await reload(page);
-  l = await lineSays(page, /searches? (left|every)/);
+  l = await lineSays(page, /\bsearch(es)? (left|every)/);
   check(l.ok, `a new week: "${l.said}"`);
   check(await search(page) === 200, 'and a search goes ahead');
 
