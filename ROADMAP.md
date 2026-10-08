@@ -693,6 +693,16 @@ Part 20 done 2026-10-08: **Prices that get cheaper the longer you take, with the
 - [ ] **Owner:** a review screenshot for each of the four (the Shaadi24+ page in TestFlight); then they
   are "Ready to Submit" and the app offers them. In Play Console, the base plan `weekly` at ₹499.
 
+Part 21 done 2026-10-08: **A plain Shaadi24+ page in the app's own colours.**
+
+- [x] Light in light mode and dark only in dark mode (it was always dark), as a card over the blurred
+  page that stays clear of the screen's edges, like every popup.
+- [x] Simpler: the 💍 Shaadi24 logo on top instead of the lightning bolt, no photo, the plans in a list
+  (each with its price, the price a week and what it saves), a short "What you get" checklist, and the
+  button with the store's terms at the bottom.
+- [x] Tests: the iPhone test checks a white card in light mode and a dark one in dark mode, the logo, no
+  photo and no colour; the purchase, popup and accessibility tests pass in both.
+
 **Still to do**
 
 - [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.

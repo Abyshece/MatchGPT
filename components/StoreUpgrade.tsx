@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { PERIODS, type PlanId } from '../lib/billingService';
 import {
@@ -10,10 +10,11 @@ import {
 //
 // Prices come from the store (in the person's own currency); the store's
 // payment sheet takes the payment, and the server checks the purchase before
-// Pro turns on (lib/storePurchases.ts). The plans sit side by side, each
-// with its full price first (what the store charges) and the price a week
-// under it, and what it saves on the shortest plan's price a week; under
-// them, what the chosen plan saves in money (PlanSaving). Shows
+// Pro turns on (lib/storePurchases.ts). The plans are listed one under
+// another, each with its full price (what the store charges, the most
+// prominent), the price a week, and what it saves on the shortest plan's
+// price a week; under them, what the chosen plan saves in money
+// (PlanSaving). Shows
 // what the stores require next to an auto-renewing subscription: its length
 // and price, that it renews until cancelled, where to cancel, Restore
 // purchases, and the Terms and Privacy Policy. Until the store has the
@@ -127,36 +128,23 @@ export function useStoreUpgrade({ paying, setPaying, onPurchased }: {
   };
 }
 
-/** The plans, side by side (they scroll sideways on a phone) */
+/** The plans, one under another: each with its full price (what the store charges), the price a week, and what it saves */
 export const PlanCards: React.FC<{ offers: StoreOffer[] | null; chosen: PlanId | undefined; busy: boolean; onPick: (id: PlanId) => void }> = ({
   offers, chosen, busy, onPick,
 }) => {
-  const row = useRef<HTMLDivElement>(null);
   const saved = offers ? savings(offers) : null;
-
-  // The chosen plan in view, in the middle, once the prices are in
-  useEffect(() => {
-    const el = row.current?.querySelector<HTMLElement>('[aria-checked="true"]');
-    if (el && row.current) row.current.scrollLeft = el.offsetLeft - (row.current.clientWidth - el.clientWidth) / 2;
-  }, [offers]);
 
   if (!offers) {
     return (
-      <div className="flex gap-3 overflow-hidden" aria-hidden="true">
-        {[1, 2, 3].map((i) => <div key={i} className="flex-none w-[9.25rem] h-[8.25rem] rounded-2xl bg-zinc-800/80 animate-pulse" />)}
+      <div className="space-y-2" aria-hidden="true">
+        {[1, 2, 3, 4].map((i) => <div key={i} className="h-[62px] rounded-2xl bg-gray-100 dark:bg-zinc-800 animate-pulse" />)}
       </div>
     );
   }
   if (offers.length === 0) return null;
 
   return (
-    <div
-      ref={row}
-      role="radiogroup"
-      aria-label="Plan"
-      data-testid="plan-cards"
-      className="flex gap-3 overflow-x-auto no-scrollbar snap-x snap-mandatory -mx-5 px-5 py-1"
-    >
+    <div role="radiogroup" aria-label="Plan" data-testid="plan-cards" className="space-y-2">
       {offers.map((o) => {
         const on = o.planId === chosen;
         const save = saved?.get(o.planId) ?? 0;
@@ -169,18 +157,34 @@ export const PlanCards: React.FC<{ offers: StoreOffer[] | null; chosen: PlanId |
             aria-checked={on}
             onClick={() => onPick(o.planId)}
             disabled={busy}
-            className={`snap-center flex-none w-[9.25rem] rounded-2xl border-2 overflow-hidden text-center transition-colors ${
-              on ? 'border-white' : 'border-zinc-700 hover:border-zinc-500'
+            className={`w-full flex items-center gap-3 rounded-2xl border px-4 py-3 text-left transition-colors ${
+              on
+                ? 'border-gray-900 dark:border-white bg-gray-50 dark:bg-zinc-800'
+                : 'border-gray-200 dark:border-zinc-700 hover:border-gray-400 dark:hover:border-zinc-500'
             }`}
           >
-            <div className={`py-1.5 text-xs font-bold ${on ? 'bg-white text-black' : 'bg-zinc-800 text-zinc-200'}`}>
-              {save > 0 ? `Save ${save}%` : 'Try it'}
-            </div>
-            <div className="px-2 pt-3 pb-3.5">
-              <div className="text-sm text-zinc-300">{PERIODS[o.period].label}</div>
-              <div className="mt-1 text-[17px] font-bold text-white whitespace-nowrap">{o.price}</div>
-              <div className="text-xs text-zinc-400">{money(week, o.currency, week >= 100 ? 0 : 2)}/wk</div>
-            </div>
+            <span
+              aria-hidden="true"
+              className={`flex-none w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                on ? 'border-gray-900 dark:border-white' : 'border-gray-300 dark:border-zinc-600'
+              }`}
+            >
+              {on && <span className="w-2.5 h-2.5 rounded-full bg-gray-900 dark:bg-white" />}
+            </span>
+            <span className="flex-1 min-w-0">
+              <span className="flex items-center gap-2">
+                <span className="text-[15px] font-semibold">{PERIODS[o.period].label}</span>
+                {save > 0 && (
+                  <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                    on ? 'plus-solid' : 'bg-gray-100 text-gray-700 dark:bg-zinc-800 dark:text-zinc-200'
+                  }`}>
+                    Save {save}%
+                  </span>
+                )}
+              </span>
+              <span className="block text-xs text-gray-500 dark:text-zinc-400">{money(week, o.currency, week >= 100 ? 0 : 2)}/wk</span>
+            </span>
+            <span className="flex-none text-[17px] font-bold whitespace-nowrap">{o.price}</span>
           </button>
         );
       })}
@@ -220,8 +224,8 @@ export const PlanSaving: React.FC<{ offer: StoreOffer | undefined; offers: Store
 
   return (
     <div data-testid="plan-saving" aria-live="polite" className="mt-3 min-h-10 flex flex-col items-center justify-center text-center">
-      {saved && <p className="text-sm font-semibold text-white">{saved}</p>}
-      <p className="text-xs text-zinc-400">{detail}</p>
+      {saved && <p className="text-sm font-semibold">{saved}</p>}
+      <p className="text-xs text-gray-500 dark:text-zinc-400">{detail}</p>
     </div>
   );
 };
@@ -233,14 +237,14 @@ export const StoreTerms: React.FC<{ offer: StoreOffer | undefined; platform: Sto
   if (!offer) return null;
   const every = PERIODS[offer.period].every;
   return (
-    <p className="text-[11px] leading-relaxed text-zinc-400 text-center">
+    <p className="text-[11px] leading-relaxed text-gray-500 dark:text-zinc-400 text-center">
       {offer.freeTrial && <>{offer.freeTrial[0].toUpperCase() + offer.freeTrial.slice(1)} for new subscribers, then {offer.price} every {every}. </>}
       {platform === 'ios'
         ? <>Payment is charged to your Apple ID when you confirm. Shaadi24+ renews automatically at the same price every {every} unless you turn it off at least 24 hours before the period ends; manage it in your App Store account settings. </>
         : <>Payment is charged to your Google Play account. Shaadi24+ renews automatically every {every} until you cancel, which you can do any time in Google Play's Subscriptions. </>}
-      <button type="button" onClick={() => openLegal('terms', onClose)} className="underline text-zinc-200">Terms of Use</button>
+      <button type="button" onClick={() => openLegal('terms', onClose)} className="underline text-gray-700 dark:text-zinc-200">Terms of Use</button>
       {' · '}
-      <button type="button" onClick={() => openLegal('privacy', onClose)} className="underline text-zinc-200">Privacy Policy</button>
+      <button type="button" onClick={() => openLegal('privacy', onClose)} className="underline text-gray-700 dark:text-zinc-200">Privacy Policy</button>
     </p>
   );
 };

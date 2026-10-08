@@ -210,10 +210,10 @@ try {
   const cards = sheet.getByTestId('plan-cards');
   const cardText = (name) => cards.getByRole('radio', { name }).innerText().then((t) => t.replace(/\s+/g, ' '));
   check(await sheet.getByRole('radio').count() === 4, 'four plans (the monthly offer entry is not a plan of its own)');
-  check(await cardText(/1 week/) === 'Try it 1 week ₹499.00 ₹499/wk', `1 week: ${await cardText(/1 week/)}`);
-  check(await cardText(/1 month/) === 'Save 54% 1 month ₹999.00 ₹231/wk', `1 month: ${await cardText(/1 month/)}`);
-  check(await cardText(/3 months/) === 'Save 69% 3 months ₹1,999.00 ₹154/wk', `3 months: ${await cardText(/3 months/)}`);
-  check(await cardText(/6 months/) === 'Save 77% 6 months ₹2,999.00 ₹115/wk', `6 months: ${await cardText(/6 months/)}`);
+  check(await cardText(/1 week/) === '1 week ₹499/wk ₹499.00', `1 week: ${await cardText(/1 week/)}`);
+  check(await cardText(/1 month/) === '1 month Save 54% ₹231/wk ₹999.00', `1 month: ${await cardText(/1 month/)}`);
+  check(await cardText(/3 months/) === '3 months Save 69% ₹154/wk ₹1,999.00', `3 months: ${await cardText(/3 months/)}`);
+  check(await cardText(/6 months/) === '6 months Save 77% ₹115/wk ₹2,999.00', `6 months: ${await cardText(/6 months/)}`);
   check(await cards.getByRole('radio', { name: /3 months/ }).getAttribute('aria-checked') === 'true'
     && await sheet.getByRole('button', { name: 'Get 3 months for ₹1,999.00' }).isVisible(), '3 months chosen to start with');
   // What the chosen plan saves, in money, and against what
@@ -229,7 +229,7 @@ try {
   check(await sheet.getByTestId('plan-saving').locator('s').first().innerText() === '₹499', 'the price compared with is struck through');
   // The price charged stands out more than the price a week (App Review 3.1.2)
   const sizes = await cards.getByRole('radio', { name: /3 months/ }).evaluate((el) => {
-    const size = (re) => [...el.querySelectorAll('div')].filter((d) => d.children.length === 0 && re.test(d.textContent))
+    const size = (re) => [...el.querySelectorAll('*')].filter((d) => d.children.length === 0 && re.test(d.textContent))
       .map((d) => parseFloat(getComputedStyle(d).fontSize))[0];
     return { total: size(/^₹1,999\.00$/), week: size(/\/wk$/) };
   });
