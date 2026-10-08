@@ -1,16 +1,20 @@
 # Where the logo comes from
 
-`noto-emoji-ring.svg` is the 💍 emoji from Google's Noto Emoji, unchanged:
-[`2D/svg/emoji_u1f48d.svg`](https://github.com/googlefonts/noto-emoji/blob/main/2D/svg/emoji_u1f48d.svg)
-in https://github.com/googlefonts/noto-emoji. It's the ring most Android phones show for 💍 (Samsung draws
-its own), so it's what the apps and the website show there.
+`ring.png` (2048 × 2048, transparent background) is Shaadi24's logo: a silver solitaire ring with a
+pale blue diamond. It was made for Shaadi24 on 8 October 2026 with an AI image generator (GPT Image
+2.5, through the owner's Higgsfield account), from this text prompt alone, with no picture to copy:
 
-Noto Emoji's images are under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)
-and its font under the [SIL Open Font License 1.1](https://openfontlicense.org); both allow it as an
-app icon, in a paid app too. Copyright 2013 Google LLC.
+> A single polished platinum solitaire engagement ring, glossy 3D illustration for a phone app icon.
+> The smooth, rounded silver band is seen at a three-quarter angle from slightly above, slightly
+> tilted, with soft reflections and gentle grey shading. On top sits one round brilliant-cut diamond
+> with a pale icy-blue tint and visible sparkling facets, held by six slim silver prongs on a small
+> raised setting. Clean studio lighting, crisp edges, smooth gradients, simple and friendly, no text,
+> no hands, no box, no cast shadow. The ring is centred and fills about 80% of the square.
+> Transparent background.
 
-Apple's 💍 (what iPhones show) can't be used: Apple's emoji pictures may only be shown as text on
-Apple's devices, and App Review rejects apps that use them as pictures.
+It looks like the 💍 iPhones show, but it isn't Apple's picture, which can't be used: Apple's emoji
+pictures may only be shown as text on Apple's devices, and App Review rejects apps that use them.
 
 `scripts/store-graphics.mjs` makes the app icons, launch screens, store graphics and the website's
-icons from this file.
+icons from this file. To change the logo, replace `ring.png` (any size, transparent around the ring)
+and run it.

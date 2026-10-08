@@ -1,9 +1,7 @@
 // ============================================================================
-// Shaadi24's logo is the 💍 emoji, as the apps and the website show it: Google's
-// Noto Emoji ring (the one most Android phones show), unchanged, from
-// scripts/assets/noto-emoji-ring.svg (see scripts/assets/README.md for where
-// it comes from and its licence). Apple's 💍 can't be used: Apple's emoji
-// pictures may only be shown as text on Apple's devices. Every image made from it:
+// Shaadi24's logo, a silver solitaire ring with a pale blue diamond
+// (scripts/assets/ring.png; scripts/assets/README.md says where it comes
+// from), and every image made from it:
 //   ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
 //                                   the iPhone app's icon, 1024 × 1024, white,
 //                                   no alpha channel (the App Store takes it
@@ -17,15 +15,15 @@
 //                                   the icon on Android 7 and older launchers
 //   android/app/src/main/res/drawable-*/splash_icon.png
 //                                   the Android launch screen
-//   android/app/src/main/res/drawable/ic_launcher_monochrome.xml
+//   android/app/src/main/res/drawable-*/ic_launcher_monochrome.png
 //                                   the Android themed (single-colour) icon: the
-//                                   emoji's outline
+//                                   ring's outline
 //   docs/store/graphics/play-icon-512.png         Google Play, 512 × 512, 32-bit
 //   docs/store/graphics/play-feature-graphic.jpg  Google Play, 1024 × 500
 //   public/og-image.png                            the picture in link previews
-//   public/apple-touch-icon.png, favicon-32.png    the website's icons (with
-//                                                  public/favicon.svg)
-// Change the sizes or the words below and run again to remake them all.
+//   public/apple-touch-icon.png, favicon-32.png    the website's icons
+// Change the sizes or the words below, or the picture, and run again to
+// remake them all.
 //
 // Usage: node scripts/store-graphics.mjs
 // (needs Playwright's Chromium: npm i --no-save playwright && npx playwright install chromium;
@@ -39,6 +37,7 @@ import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = process.env.REPO_ROOT || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const RING = path.join(ROOT, 'scripts/assets/ring.png');
 const OUT = path.join(ROOT, 'docs/store/graphics');
 const PUBLIC = path.join(ROOT, 'public');
 const IOS = path.join(ROOT, 'ios/App/App/Assets.xcassets');
@@ -49,80 +48,20 @@ const TAGLINE = 'Describe your life partner.<br>Meet the people you fit.';
 const PREVIEW_LINE = 'Matrimony for India';
 const DARK = '#191919';  // the apps' dark background (index.css, values-night/colors.xml)
 
-// ---- The logo -------------------------------------------------------------------------
-// The emoji, drawn on its own 128-unit square
-const EMOJI = fs.readFileSync(path.join(ROOT, 'scripts/assets/noto-emoji-ring.svg'), 'utf8');
-const EMOJI_ART = EMOJI.slice(EMOJI.indexOf('<g>'), EMOJI.lastIndexOf('</svg>'));
-
-/**
- * The logo as a 1024-unit SVG: the emoji's square takes `size` of it,
- * centred; `tile` puts it on a shape (a rounded square of `radius`, or a
- * circle) of `background`, inset by `inset` units on each side.
- */
-function logoSvg({ size = 0.8, background = null, tile = 'square', radius = 0, inset = 0, border = null } = {}) {
-  const side = 1024 - inset * 2;
-  const back = !background ? ''
-    : tile === 'circle'
-      ? `<circle cx="512" cy="512" r="${side / 2}" fill="${background}"/>`
-      : `<rect x="${inset}" y="${inset}" width="${side}" height="${side}" rx="${radius}" fill="${background}"${
-        border ? ` stroke="${border}" stroke-width="20"` : ''}/>`;
-  const box = 1024 * size;
-  const at = (1024 - box) / 2;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">${back}`
-    + `<svg x="${at}" y="${at}" width="${box}" height="${box}" viewBox="0 0 128 128">${EMOJI_ART}</svg></svg>`;
-}
-
-// The app icon: the emoji large, on white
-const APP_ICON = logoSvg({ background: '#fff' });
+// ---- The logo, at each use --------------------------------------------------------------
+// `size` is how much of the square the ring takes (its longer side), or
+// `circle` how much a circle around the whole ring takes; a `background` puts
+// it on a shape (a rounded square of `radius`, or a circle with
+// `tile: 'circle'`), inset by `inset` of 1024 units on each side
+const APP_ICON = { size: 0.76, background: '#fff' };
 // Android's front layer: launchers show the middle 72 of 108 units, masked to
-// a circle, squircle or square of their choosing; this keeps the emoji inside
-// the 66-unit circle every one of them shows
-const ANDROID_SIZE = 0.56;
-const ANDROID_FOREGROUND = logoSvg({ size: ANDROID_SIZE });
-
-// Android's themed icon (Android 13+, when the member picks themed icons): the
-// emoji's shapes in one colour, as a vector on the front layer's 108-unit grid
-function androidMonochrome() {
-  const round = (v) => +v.toFixed(3);
-  const scale = round(108 * ANDROID_SIZE / 128);
-  const offset = round((108 - 108 * ANDROID_SIZE) / 2);
-  // Its outline: the band, the setting and the stone, without the light on
-  // them (the shadow inside the band and the white glints on it)
-  const lighting = (tag, attributes) => /fill:#4B8A99/i.test(attributes) || (tag === 'path' && /fill:#FFFFFF/i.test(attributes));
-  const shapes = [...EMOJI_ART.matchAll(/<(path|polygon)\b([^>]*?)\s(d|points)="([^"]+)"/g)]
-    .filter(([, tag, attributes]) => !lighting(tag, attributes))
-    .map(([, tag, , , value]) => {
-      const flat = value.replace(/\s+/g, ' ').trim();
-      const d = tag === 'path' ? flat : `M${flat.split(' ').join(' L')} Z`;
-      // a hairline of the same colour, so the facets join without seams
-      return `        <path
-            android:pathData="${d}"
-            android:fillColor="#FFFFFF"
-            android:strokeColor="#FFFFFF"
-            android:strokeWidth="0.5"
-            android:strokeLineJoin="round" />`;
-    });
-  return `<?xml version="1.0" encoding="utf-8"?>
-<!-- The themed (single-colour) app icon: the 💍 emoji's outline, inside the 66dp
-     circle every launcher shows. Made by scripts/store-graphics.mjs -->
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp"
-    android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-    <group
-        android:scaleX="${scale}"
-        android:scaleY="${scale}"
-        android:translateX="${offset}"
-        android:translateY="${offset}">
-${shapes.join('\n')}
-    </group>
-</vector>
-`;
-}
+// a circle, squircle or square of their choosing; this keeps all of the ring
+// inside the 66-unit circle every one of them shows
+const ANDROID_FOREGROUND = { circle: 64 / 108 };
+const LAUNCH = { size: 0.24 };
 
 // ---- Store and link-preview graphics ------------------------------------------------------
-const FEATURE = `<!doctype html><html><head><meta charset="utf-8"><style>
+const feature = (icon) => `<!doctype html><html><head><meta charset="utf-8"><style>
   html, body { margin: 0; }
   body {
     width: 1024px; height: 500px; box-sizing: border-box; padding: 0 80px;
@@ -130,25 +69,30 @@ const FEATURE = `<!doctype html><html><head><meta charset="utf-8"><style>
     background: linear-gradient(135deg, #ec4899 0%, #f05a6e 45%, #f97316 100%);
     color: #fff; font-family: 'Helvetica Neue', 'Liberation Sans', Arial, sans-serif;
   }
-  body > svg { width: 230px; height: 230px; flex: none; border-radius: 52px; box-shadow: 0 12px 32px rgba(0,0,0,.18); }
+  .icon { width: 230px; height: 230px; flex: none; border-radius: 52px; box-shadow: 0 12px 32px rgba(0,0,0,.18); }
   h1 { margin: 0; font-size: 86px; font-weight: 700; letter-spacing: -2px; }
   p { margin: 18px 0 0; font-size: 34px; line-height: 1.3; }
-</style></head><body>${APP_ICON}<div><h1>${TITLE}</h1><p>${TAGLINE}</p></div></body></html>`;
+</style></head><body><img class="icon" src="${icon}" alt=""><div><h1>${TITLE}</h1><p>${TAGLINE}</p></div></body></html>`;
 
 // The link preview: the same, larger, with a line saying what Shaadi24 is
-const PREVIEW = FEATURE
+const preview = (icon) => feature(icon)
   .replace('width: 1024px; height: 500px;', 'width: 1200px; height: 630px;')
-  .replace('body > svg { width: 230px; height: 230px; flex: none; border-radius: 52px;', 'body > svg { width: 280px; height: 280px; flex: none; border-radius: 63px;')
+  .replace('.icon { width: 230px; height: 230px; flex: none; border-radius: 52px;', '.icon { width: 280px; height: 280px; flex: none; border-radius: 63px;')
   .replace('h1 { margin: 0; font-size: 86px;', 'h1 { margin: 0; font-size: 100px;')
   .replace('p { margin: 18px 0 0; font-size: 34px;', 'p { margin: 18px 0 0; font-size: 40px;')
   .replace(`<h1>${TITLE}</h1>`, `<div style="font-size:30px;font-weight:700;letter-spacing:3px;text-transform:uppercase;opacity:.85;margin-bottom:10px">${PREVIEW_LINE}</div><h1>${TITLE}</h1>`);
 
-// A PNG with an alpha channel (colour type 6) from RGBA pixels: browsers save
-// opaque screenshots without one, and Google Play asks for a 32-bit PNG
-function pngWithAlpha(width, height, rgba) {
-  const row = width * 4 + 1;
-  const raw = Buffer.alloc(row * height);
-  for (let y = 0; y < height; y++) rgba.copy(raw, y * row + 1, y * width * 4, (y + 1) * width * 4);  // filter 0: none
+// A PNG from RGBA pixels: with its alpha channel (colour type 6; Google Play
+// asks for a 32-bit PNG) or without (colour type 2; the App Store's icon may
+// not have one)
+function encodePng(width, height, rgba, { alpha = true } = {}) {
+  const channels = alpha ? 4 : 3;
+  const row = width * channels + 1;
+  const raw = Buffer.alloc(row * height);  // filter 0 (none) at the start of each row
+  for (let y = 0; y < height; y++) {
+    if (alpha) rgba.copy(raw, y * row + 1, y * width * 4, (y + 1) * width * 4);
+    else for (let x = 0; x < width; x++) rgba.copy(raw, y * row + 1 + x * 3, (y * width + x) * 4, (y * width + x) * 4 + 3);
+  }
   const chunk = (type, data) => {
     const body = Buffer.concat([Buffer.from(type, 'ascii'), data]);
     const out = Buffer.alloc(body.length + 8);
@@ -160,7 +104,7 @@ function pngWithAlpha(width, height, rgba) {
   const header = Buffer.alloc(13);
   header.writeUInt32BE(width, 0);
   header.writeUInt32BE(height, 4);
-  header.set([8, 6, 0, 0, 0], 8);  // 8 bits, RGBA, deflate, no filter method, no interlace
+  header.set([8, alpha ? 6 : 2, 0, 0, 0], 8);  // 8 bits, RGBA or RGB, deflate, no filter method, no interlace
   return Buffer.concat([
     Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
     chunk('IHDR', header), chunk('IDAT', zlib.deflateSync(raw, { level: 9 })), chunk('IEND', Buffer.alloc(0)),
@@ -177,59 +121,112 @@ const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PAT
 const saved = [];
 try {
   const page = await browser.newPage({ viewport: { width: 1024, height: 1024 } });
-  // An SVG drawn at a size, as RGBA pixels (transparent where it draws nothing)
-  const pixels = async (svg, size) => Buffer.from(await page.evaluate(async ({ src, size }) => {
+  // The ring, loaded once in the page, and where it sits in its picture
+  // (which has empty space around it)
+  await page.evaluate(async (src) => {
     const img = new Image();
     img.src = src;
     await img.decode();
-    const canvas = Object.assign(document.createElement('canvas'), { width: size, height: size });
+    const canvas = Object.assign(document.createElement('canvas'), { width: img.width, height: img.height });
     const ctx = canvas.getContext('2d');
-    ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(img, 0, 0, size, size);
-    return Array.from(ctx.getImageData(0, 0, size, size).data);
-  }, { src: `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`, size }));
-  const png = async (file, svg, size) => saved.push(write(file, pngWithAlpha(size, size, await pixels(svg, size))));
-  // An opaque PNG (no alpha channel), as the App Store requires of the icon
-  const opaque = async (file, svg, size, background) => {
-    await page.setViewportSize({ width: size, height: size });
-    await page.setContent(`<html><body style="margin:0;background:${background}">${svg.replace('<svg ', `<svg width="${size}" height="${size}" style="display:block" `)}</body></html>`);
-    fs.mkdirSync(path.dirname(file), { recursive: true });
-    await page.screenshot({ path: file, type: 'png' });
-    saved.push(path.relative(ROOT, file));
+    ctx.drawImage(img, 0, 0);
+    const { data } = ctx.getImageData(0, 0, img.width, img.height);
+    const solid = (x, y) => data[(y * img.width + x) * 4 + 3] > 8;
+    let [left, top, right, bottom] = [img.width, img.height, -1, -1];
+    for (let y = 0; y < img.height; y++) {
+      for (let x = 0; x < img.width; x++) {
+        if (solid(x, y)) {
+          left = Math.min(left, x); right = Math.max(right, x);
+          top = Math.min(top, y); bottom = Math.max(bottom, y);
+        }
+      }
+    }
+    const [w, h] = [right - left + 1, bottom - top + 1];
+    const [cx, cy] = [left + w / 2, top + h / 2];
+    // How far the ring reaches from its middle, in any direction
+    let reach = 0;
+    for (let y = top; y <= bottom; y++) {
+      for (let x = left; x <= right; x++) if (solid(x, y)) reach = Math.max(reach, Math.hypot(x + 0.5 - cx, y + 0.5 - cy));
+    }
+    // The logo on a canvas `px` square (the options above); `outline` turns
+    // it into one colour, without the soft glow at its edges
+    window.drawLogo = ({ px, size, circle, background = null, tile = 'square', radius = 0, inset = 0, border = null, outline = false }) => {
+      const c = Object.assign(document.createElement('canvas'), { width: px, height: px });
+      const g = c.getContext('2d');
+      g.imageSmoothingEnabled = true;
+      g.imageSmoothingQuality = 'high';
+      g.scale(px / 1024, px / 1024);
+      if (background) {
+        const side = 1024 - inset * 2;
+        g.beginPath();
+        if (tile === 'circle') g.arc(512, 512, side / 2, 0, Math.PI * 2);
+        else g.roundRect(inset, inset, side, side, radius);
+        g.fillStyle = background;
+        g.fill();
+        if (border) { g.lineWidth = 20; g.strokeStyle = border; g.stroke(); }
+      }
+      const k = circle ? 1024 * circle / (2 * reach) : 1024 * size / Math.max(w, h);
+      g.drawImage(img, 512 - cx * k, 512 - cy * k, img.width * k, img.height * k);
+      if (outline) {
+        const pixels = g.getImageData(0, 0, px, px);
+        const d = pixels.data;
+        for (let i = 0; i < d.length; i += 4) {
+          d[i] = d[i + 1] = d[i + 2] = 255;
+          d[i + 3] = Math.max(0, Math.min(255, (d[i + 3] - 64) * 2));
+        }
+        g.putImageData(pixels, 0, 0);
+      }
+      return c;
+    };
+    // Its pixels, as base64 RGBA
+    window.logoPixels = (options) => {
+      const d = window.drawLogo(options).getContext('2d').getImageData(0, 0, options.px, options.px).data;
+      let bytes = '';
+      for (let i = 0; i < d.length; i += 0x8000) bytes += String.fromCharCode.apply(null, d.subarray(i, i + 0x8000));
+      return btoa(bytes);
+    };
+  }, `data:image/png;base64,${fs.readFileSync(RING).toString('base64')}`);
+
+  const pixels = async (options, px) => Buffer.from(await page.evaluate((o) => window.logoPixels(o), { ...options, px }), 'base64');
+  const png = async (file, options, px, { alpha = true } = {}) =>
+    saved.push(write(file, encodePng(px, px, await pixels(options, px), { alpha })));
+  // Large images (the launch screens), through the browser's own encoder
+  const big = async (file, options, px) => {
+    const url = await page.evaluate((o) => window.drawLogo(o).toDataURL('image/png'), { ...options, px });
+    saved.push(write(file, Buffer.from(url.split(',')[1], 'base64')));
   };
 
   // iPhone
-  await opaque(path.join(IOS, 'AppIcon.appiconset/AppIcon-512@2x.png'), APP_ICON, 1024, '#fff');
-  await opaque(path.join(IOS, 'Splash.imageset/splash-2732x2732.png'), logoSvg({ size: 0.22, background: '#fff' }), 2732, '#fff');
-  await opaque(path.join(IOS, 'Splash.imageset/splash-2732x2732-dark.png'), logoSvg({ size: 0.22, background: DARK }), 2732, DARK);
+  await png(path.join(IOS, 'AppIcon.appiconset/AppIcon-512@2x.png'), APP_ICON, 1024, { alpha: false });
+  await big(path.join(IOS, 'Splash.imageset/splash-2732x2732.png'), { ...LAUNCH, background: '#fff' }, 2732);
+  await big(path.join(IOS, 'Splash.imageset/splash-2732x2732-dark.png'), { ...LAUNCH, background: DARK }, 2732);
 
-  // Android: the adaptive icon's front layer and the launch screen at each density
-  // (108 dp), and the icons older launchers show as they are (48 dp)
+  // Android: the adaptive icon's front layer, its single-colour version and
+  // the launch screen at each density (108 dp), and the icons older launchers
+  // show as they are (48 dp)
   const densities = { mdpi: 1, hdpi: 1.5, xhdpi: 2, xxhdpi: 3, xxxhdpi: 4 };
   for (const [name, x] of Object.entries(densities)) {
     await png(path.join(ANDROID, `mipmap-${name}/ic_launcher_foreground.png`), ANDROID_FOREGROUND, 108 * x);
-    await png(path.join(ANDROID, `mipmap-${name}/ic_launcher.png`), logoSvg({ size: 0.74, background: '#fff', radius: 190, inset: 48 }), 48 * x);
-    await png(path.join(ANDROID, `mipmap-${name}/ic_launcher_round.png`), logoSvg({ size: 0.72, background: '#fff', tile: 'circle', inset: 48 }), 48 * x);
+    await png(path.join(ANDROID, `drawable-${name}/ic_launcher_monochrome.png`), { ...ANDROID_FOREGROUND, outline: true }, 108 * x);
+    await png(path.join(ANDROID, `mipmap-${name}/ic_launcher.png`), { size: 0.72, background: '#fff', radius: 190, inset: 48 }, 48 * x);
+    await png(path.join(ANDROID, `mipmap-${name}/ic_launcher_round.png`), { size: 0.68, background: '#fff', tile: 'circle', inset: 48 }, 48 * x);
     await png(path.join(ANDROID, `drawable-${name}/splash_icon.png`), ANDROID_FOREGROUND, 108 * x);
   }
-  saved.push(write(path.join(ANDROID, 'drawable/ic_launcher_monochrome.xml'), androidMonochrome()));
 
   // Google Play and the website
   await png(path.join(OUT, 'play-icon-512.png'), APP_ICON, 512);
   await png(path.join(PUBLIC, 'apple-touch-icon.png'), APP_ICON, 180);
-  await png(path.join(PUBLIC, 'favicon-32.png'), logoSvg({ size: 0.86, background: '#fff', radius: 224, border: '#e5e7eb' }), 32);
-  saved.push(write(path.join(PUBLIC, 'favicon.svg'),
-    `<!-- The app icon (scripts/store-graphics.mjs), with rounded corners and an edge for browser tabs -->\n${
-      logoSvg({ size: 0.86, background: '#fff', radius: 224, border: '#e5e7eb' })}\n`));
+  await png(path.join(PUBLIC, 'favicon-32.png'), { size: 0.86, background: '#fff', radius: 224, border: '#e5e7eb' }, 32);
 
+  const icon = `data:image/png;base64,${encodePng(560, 560, await pixels(APP_ICON, 560)).toString('base64')}`;
   await page.setViewportSize({ width: 1024, height: 500 });
-  await page.setContent(FEATURE);
+  await page.setContent(feature(icon));
   // JPEG: the feature graphic may not have an alpha channel
   await page.screenshot({ path: path.join(OUT, 'play-feature-graphic.jpg'), type: 'jpeg', quality: 92 });
   saved.push(path.relative(ROOT, path.join(OUT, 'play-feature-graphic.jpg')));
 
   await page.setViewportSize({ width: 1200, height: 630 });
-  await page.setContent(PREVIEW);
+  await page.setContent(preview(icon));
   await page.screenshot({ path: path.join(PUBLIC, 'og-image.png') });
   saved.push('public/og-image.png');
   console.log(`Saved ${saved.length} images:\n  ${saved.join('\n  ')}`);
