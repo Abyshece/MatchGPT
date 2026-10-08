@@ -615,6 +615,24 @@ white**, like the 💍 iPhones show. The icon was a white ring outline on a pink
 - [x] Launch screens: the ring on white, or on the app's dark grey when the phone is in dark mode.
 - [x] `scripts/store-graphics.mjs` makes every image from that one picture.
 
+Part 17 done 2026-10-08: **sort Find Match's results, and the Online filter shows as a chip.**
+
+- [x] A **Sort** button just above the first result: best match first (as before), lowest match first,
+  online now first, verified first, youngest or oldest first. And a **match level**: top matches,
+  middle or lower matches (about a third of the results each, by match score, with the scores each
+  covers and how many), or any match. The count beside it says how many show ("17 of 50").
+- [x] **"Online Now" on its own now shows an "Online now" chip** under the search box, with Clear all,
+  and the filter button counts it. Before, the chips counted every filter but Online, so with only
+  Online on there was no chip to take it off (with Verified as well, both showed).
+- [x] Every active filter now has its chip, the filter panel's too (religion, age, height, state…);
+  before, those showed only Clear all.
+- [x] The quick filters (Online Now, Verified Only, Has Instagram, Has LinkedIn) narrow the results on
+  screen at once. Before, they did nothing until the next search, which used up one of the day's
+  searches. Taking one off, or a change in the filter panel, asks to search again; if nobody left
+  matches, "Show all" brings the results back.
+- [x] Tests: `tests/e2e/search-sort.mjs` (a phone screen, light and dark), and the search, filter,
+  Android, iPhone and accessibility tests again.
+
 **Still to do**
 
 - [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.

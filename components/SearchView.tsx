@@ -11,9 +11,13 @@ import ProfileModal from './ProfileModal';
 import VerificationBanner from './VerificationBanner';
 import UpgradeModal from './UpgradeModal';
 import MatchCelebrationModal from './MatchCelebrationModal';
+import ResultsSortMenu from './ResultsSortMenu';
 import { IconX, IconCheck } from '../constants';
 import type { MatchCandidate, FilterOptions } from '../types';
 import { firstCelebration } from '../lib/matchCelebration';
+import {
+  DEFAULT_FILTERS, activeFilterChips, arrangeResults, matchLevels, widensSearch, type LevelId, type SortId,
+} from '../lib/searchResults';
 
 // The filter panel carries the long answer lists; it loads the first time it's opened
 const FilterPanel = lazyScreen(() => import('./FilterPanel'));
@@ -30,12 +34,6 @@ interface SearchViewProps {
   onNavigateToProfile?: () => void;
 }
 
-const DEFAULT_FILTERS: FilterOptions = {
-  isOnline: false,
-  isVerified: false,
-  isPremium: false,
-};
-
 // Short, so two fit in a row on a phone and the start screen needs no
 // scrolling; each is understood like a longer one ("near me" and "online"
 // become filters)
@@ -49,32 +47,6 @@ const EXAMPLE_PROMPTS = [
   'Most compatible',
 ];
 
-function countActiveFilters(f: FilterOptions): number {
-  let n = 0;
-  if (f.ageRange && (f.ageRange[0] !== 21 || f.ageRange[1] !== 45)) n++;
-  if (f.neighborhood) n++;
-  if (f.religion) n++;
-  if (f.educationLevel) n++;
-  if (f.datingIntention) n++;
-  if (f.familyPlans) n++;
-  if (f.children) n++;
-  if (f.drinking) n++;
-  if (f.smoking) n++;
-  if (f.motherTongue) n++;
-  if (f.caste) n++;
-  if (f.maritalStatus) n++;
-  if (f.manglik) n++;
-  if (f.dietaryPreferences) n++;
-  if (f.country) n++;
-  if (f.state) n++;
-  if (f.heightRange) n++;
-  if (f.isVerified) n++;
-  if (f.isPremium) n++;
-  if (f.hasInstagram) n++;
-  if (f.hasLinkedin) n++;
-  return n;
-}
-
 // The profile sections that each add a free search a day (lib/profileRewards.ts)
 const MAX_SECTIONS = 6;
 
@@ -85,6 +57,10 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
   const [prompt, setPrompt] = useState('');
   const [filters, setFilters] = useState<FilterOptions>(DEFAULT_FILTERS);
   const [results, setResults] = useState<MatchCandidate[]>([]);
+  // The filters the results came from, and how the member wants them shown
+  const [searchedFilters, setSearchedFilters] = useState<FilterOptions | null>(null);
+  const [sort, setSort] = useState<SortId>('best');
+  const [level, setLevel] = useState<LevelId>('all');
   const [hasSearched, setHasSearched] = useState(false);
   const [searching, setSearching] = useState(false);
   // What the server understood from the prompt, shown above the results
@@ -139,7 +115,11 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
   const verification = profile ? computeVerificationStatus(profile) : null;
   const isLockedOut = verification?.isLockedOut ?? false;
   const searchAllowed = allowance?.allowed ?? false;
-  const activeFilterCount = countActiveFilters(filters);
+  const filterChips = activeFilterChips(filters);
+  const activeFilterCount = filterChips.length;
+  // The results as shown: the quick filters, the match level, the order
+  const { levels, levelOf } = useMemo(() => matchLevels(results, filters), [results, filters]);
+  const shown = useMemo(() => arrangeResults(results, filters, sort, level, levelOf), [results, filters, sort, level, levelOf]);
 
   // Profile completion percentage — the same figure as My Profile. Drives the
   // banner at top of dashboard.
@@ -176,6 +156,8 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
       const output = await searchProfiles(effectivePrompt, filters, 50);
 
       setResults(output.candidates);
+      setSearchedFilters(filters);
+      setLevel('all');
       setUnderstood({ labels: output.understood, byAi: output.understoodBy === 'ai' });
 
       saveSearch(userId, effectivePrompt, filters, output.candidates, output.poolSize)
@@ -285,9 +267,9 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
           </div>
         )}
 
-        {/* Quick filter suggestion pills — only shown post-search to refine results.
-            Toggles common filters (Online, Verified, Has Instagram, Non-Smoker).
-            Active ones disappear from this row and reappear as removable chips below the pill. */}
+        {/* Quick filter pills — only shown post-search to refine results. Each
+            narrows the results on screen at once (and the next search sends it
+            to the server); an active one leaves this row for the chips below the box. */}
         {hasSearched && (
           <div className="flex flex-wrap justify-center gap-2 mb-3 animate-fade-in">
             {[
@@ -408,29 +390,30 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
           )}
         </div>
 
-        {/* Remove isPremium chip — Pro tier hidden during free period.
-            Active filter chips below show only filters that exist. */}
+        {/* Every active filter as a chip that takes it off, and Clear all */}
         {hasSearched && activeFilterCount > 0 && (
-          <div className="flex flex-wrap justify-center gap-1.5 mb-6 animate-fade-in">
-            {filters.isOnline && (
-              <FilterChip label="Online" onRemove={() => setFilters((p) => ({ ...p, isOnline: false }))} />
-            )}
-            {filters.isVerified && (
-              <FilterChip label="Verified" onRemove={() => setFilters((p) => ({ ...p, isVerified: false }))} />
-            )}
-            {filters.hasInstagram && (
-              <FilterChip label="Has Instagram" onRemove={() => setFilters((p) => ({ ...p, hasInstagram: false }))} />
-            )}
-            {filters.hasLinkedin && (
-              <FilterChip label="Has LinkedIn" onRemove={() => setFilters((p) => ({ ...p, hasLinkedin: false }))} />
-            )}
+          <div className="flex flex-wrap justify-center gap-1.5 mb-3 animate-fade-in" data-testid="filter-chips">
+            {filterChips.map((chip) => (
+              <FilterChip key={chip.key} label={chip.label} onRemove={() => setFilters(chip.remove)} />
+            ))}
             <button
               onClick={() => setFilters(DEFAULT_FILTERS)}
-              className="text-[10px] text-gray-500 dark:text-gray-400 hover:text-red-500 hover:underline ml-1 self-center"
+              className="text-[11px] text-gray-500 dark:text-gray-400 hover:text-red-500 hover:underline ml-1 self-center"
             >
               Clear all
             </button>
           </div>
+        )}
+        {/* The quick filters narrow the results on screen at once; a filter
+            taken off, or one from the filter panel, needs a new search */}
+        {hasSearched && !searching && searchedFilters && widensSearch(filters, searchedFilters) && (
+          <p className="text-center text-xs text-gray-500 dark:text-gray-400 mb-6 animate-fade-in" data-testid="search-again">
+            Your filters have changed.{' '}
+            <button type="button" onClick={() => handleSearch()} className="font-semibold text-gray-900 dark:text-white underline">
+              Search again
+            </button>{' '}
+            to update the results.
+          </p>
         )}
 
         {/* Trending Near You — landing state only */}
@@ -486,16 +469,33 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
               </div>
             ) : (
               <>
-                <div className="flex items-center justify-center gap-3 mb-6">
-                  <h2 className="text-sm font-bold text-gray-700 dark:text-gray-200 flex items-center gap-2">
-                    <span className="text-lg">✨</span> Results for you
+                {/* Above the first card: how many, and the Sort button */}
+                <div className="flex items-center justify-between gap-2 mb-4">
+                  <h2 className="text-sm font-bold text-gray-700 dark:text-gray-200 flex items-center gap-2 min-w-0 whitespace-nowrap">
+                    <span className="text-lg" aria-hidden="true">✨</span>
+                    {/* Short on a phone, so the Sort button fits beside it */}
+                    <span className="sm:hidden">Results</span>
+                    <span className="hidden sm:inline">Results for you</span>
+                    <span className="inline-flex items-center justify-center min-w-[24px] h-6 px-2 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 text-xs font-bold whitespace-nowrap" data-testid="results-count">
+                      {shown.length === results.length ? results.length : `${shown.length} of ${results.length}`}
+                    </span>
                   </h2>
-                  <span className="inline-flex items-center justify-center min-w-[24px] h-6 px-2 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 text-xs font-bold">
-                    {results.length}
-                  </span>
+                  <ResultsSortMenu sort={sort} level={level} levels={levels} onSort={setSort} onLevel={setLevel} />
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {results.map((c) => (
+                {shown.length === 0 && (
+                  <div className="text-center py-12 bg-gray-50 dark:bg-zinc-900/50 rounded-xl border border-gray-100 dark:border-zinc-800" data-testid="none-shown">
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">None of these results match what you've picked.</p>
+                    <button
+                      type="button"
+                      onClick={() => { setLevel('all'); setFilters(searchedFilters ?? DEFAULT_FILTERS); }}
+                      className="px-4 py-2 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-semibold"
+                    >
+                      Show all {results.length}
+                    </button>
+                  </div>
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" data-testid="results-grid">
+                  {shown.map((c) => (
                     <MatchCard
                       key={c.id}
                       candidate={c}
