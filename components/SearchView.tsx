@@ -119,7 +119,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
   // this screen is showing)
   const userId = session?.user.id;
   // The search limits (every 5 hours, a day, a week), as the server counts them
-  const { allowance, setAllowance } = useSearchAllowance(userId, `${profile?.subscriptionTier}:${profile?.searchBonus}`);
+  const { allowance, setAllowance, refresh: refreshAllowance } = useSearchAllowance(userId, `${profile?.subscriptionTier}:${profile?.searchBonus}`);
   const verification = profile ? computeVerificationStatus(profile) : null;
   const isLockedOut = verification?.isLockedOut ?? false;
   // Not read yet (or unreadable): let the server decide
@@ -163,7 +163,9 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
       // The server runs the search, leaves out people already liked and
       // counts it toward the search limits. Everyone gets the list of 50.
       const output = await searchProfiles(effectivePrompt, filters, 50);
+      // (a search function from before the limits sends none: read them)
       if (output.allowance) setAllowance(output.allowance);
+      else void refreshAllowance();
 
       setResults(output.candidates);
       setSearchedFilters(filters);
@@ -186,6 +188,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
         // Already used up (e.g. in another tab): back to how it was, plus which limit and until when
         setHasSearched(hadSearched);
         if (e.allowance) setAllowance(e.allowance);
+        else void refreshAllowance();
         openUpgrade('search_limit');
         await refreshProfile();
       } else {
@@ -194,7 +197,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
     } finally {
       setSearching(false);
     }
-  }, [prompt, filters, userId, searchAllowed, isLockedOut, activeFilterCount, hasSearched, refreshProfile, showToast, openUpgrade, setAllowance]);
+  }, [prompt, filters, userId, searchAllowed, isLockedOut, activeFilterCount, hasSearched, refreshProfile, showToast, openUpgrade, setAllowance, refreshAllowance]);
 
   // Keep the ref pointed at the latest handleSearch so the mount-effect can call it
   useEffect(() => {
