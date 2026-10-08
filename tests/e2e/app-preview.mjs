@@ -70,6 +70,12 @@ try {
   await signIn(page, ADMIN);
   const tab = page.getByRole('button', { name: 'App preview', exact: true });
   check(await appears(tab), 'the admin panel has an App Preview tab');
+  // On a phone the tabs wrap, so App Preview stays in view
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.waitForTimeout(300);
+  const box = await tab.boundingBox();
+  check(!!box && box.x >= 0 && box.x + box.width <= 390, 'on a phone-sized screen the App Preview tab is in view');
+  await page.setViewportSize({ width: 1280, height: 900 });
   await tab.click();
   check(await appears(page.getByTestId('admin-app-tab').getByText(/Only admins can open it/)), 'what the preview is');
   const frameEl = page.getByTestId('app-preview-frame');

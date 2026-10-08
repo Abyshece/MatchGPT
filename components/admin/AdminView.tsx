@@ -110,16 +110,18 @@ const AdminView: React.FC<{ initialTab?: AdminTab }> = ({ initialTab }) => {
           </p>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1 mb-6 border-b border-gray-200 dark:border-zinc-800 overflow-x-auto">
+        {/* Tabs: on a phone, buttons that wrap so every tab (App Preview too) is in
+            view; from tablet width, one underlined row */}
+        <div className="flex flex-wrap gap-1.5 mb-6 sm:flex-nowrap sm:gap-1 sm:border-b sm:border-gray-200 sm:dark:border-zinc-800 sm:overflow-x-auto">
           {TABS.map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors capitalize whitespace-nowrap ${
+              aria-current={tab === t ? 'page' : undefined}
+              className={`px-3 py-1.5 rounded-full border text-xs sm:px-4 sm:py-2 sm:rounded-none sm:border-0 sm:border-b-2 sm:text-sm font-medium transition-colors capitalize whitespace-nowrap ${
                 tab === t
-                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                  ? 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-300 sm:bg-transparent sm:dark:bg-transparent sm:border-blue-500 sm:dark:border-blue-500 sm:text-blue-600 sm:dark:text-blue-400'
+                  : 'border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-gray-300 sm:border-transparent sm:dark:border-transparent sm:text-gray-500 sm:dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               {TAB_LABEL[t] ?? t}
