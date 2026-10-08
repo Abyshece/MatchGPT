@@ -8,7 +8,7 @@ import { useIsAdmin } from '../../lib/useIsAdmin';
 import { isNativeApp } from '../../lib/nativeApp';
 import { isAppPreview } from '../../lib/appPreview';
 import type { PlatformStats, ReportRow, AdminAuditRow } from '../../lib/adminService';
-import AdminUsersTab from './AdminUsersTab';
+import AdminCustomersTab from './AdminCustomersTab';
 import AdminReportsTab from './AdminReportsTab';
 import AdminGrievancesTab from './AdminGrievancesTab';
 import AdminVerificationsTab from './AdminVerificationsTab';
@@ -19,29 +19,61 @@ import AdminAppTab from './AdminAppTab';
 // ============================================================================
 // AdminView
 //
-// Admin panel tabs:
-//   1. Dashboard — platform stats + recent audit log
-//   2. Reports — pending reports queue
-//   2b. Complaints — complaints to the Grievance Officer, with their legal deadlines
-//   3. Verifications — identity checks waiting for a decision
-//   4. Users — search any user, take actions
-//   5. Finance — subscribers, revenue by month and seller, every charge (CSV)
-//   6. Errors — what the apps and the website reported
-//   7. App Preview — the members' app, phone-sized (website only)
+// The admin panel: sections in a sidebar on the left (a row of buttons at the
+// top on a phone), grouped like a Notion workspace:
+//   Overview                     platform stats, recent reports and actions,
+//                                the Shaadi24+ for everyone switch
+//   People:   Customers          every member in one row (AdminCustomersTab)
+//             Verification       requests waiting, each with whether it's
+//                                likely to pass (AdminVerificationsTab)
+//   Safety:   Reports, Complaints (to the Grievance Officer, with deadlines)
+//   Business: Finance            subscribers, revenue, every charge (CSV)
+//   System:   Errors, Audit log, App preview (the members' app, website only)
 //
 // Access is decided by the database (is_admin(): the signed-in email must be
 // in admin_emails). If a non-admin somehow reaches this view they see "Access
 // denied", and the admin RPCs refuse them anyway.
 // ============================================================================
 
-export type AdminTab = 'dashboard' | 'reports' | 'grievances' | 'verifications' | 'users' | 'finance' | 'errors' | 'app';
+export type AdminTab = 'dashboard' | 'customers' | 'verifications' | 'reports' | 'grievances' | 'finance' | 'errors' | 'audit' | 'app';
+
+interface Section {
+  id: AdminTab;
+  label: string;
+  description: string;
+  icon: React.ReactNode;
+  count?: (stats: PlatformStats | null) => number;
+  wide?: boolean;   // uses the whole width (a wide table)
+}
+
+// Small line icons, Notion-like (Lucide's shapes)
+const icon = (d: string) => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    {d.split('|').map((path) => <path key={path} d={path} />)}
+  </svg>
+);
+
+const SECTIONS: Record<AdminTab, Section> = {
+  dashboard: { id: 'dashboard', label: 'Overview', description: 'How Shaadi24 is doing, and what needs you.', icon: icon('M3 3h7v9H3z|M14 3h7v5h-7z|M14 12h7v9h-7z|M3 16h7v5H3z') },
+  customers: { id: 'customers', label: 'Customers', description: 'Every member, one row each. Open a member to act on their account.', icon: icon('M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2|M9 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8|M22 21v-2a4 4 0 0 0-3-3.87|M16 3.13a4 4 0 0 1 0 7.75'), wide: true },
+  verifications: { id: 'verifications', label: 'Verification', description: 'Members waiting to be verified, with whether each is likely to pass.', icon: icon('M9 12l2 2 4-4|M12 2l2.4 1.8 3 .2.9 2.8 2.4 1.8-1 2.8 1 2.8-2.4 1.8-.9 2.8-3 .2L12 22l-2.4-1.8-3-.2-.9-2.8L3.3 15.4l1-2.8-1-2.8 2.4-1.8.9-2.8 3-.2z'), count: (s) => s?.pending_verifications ?? 0 },
+  reports: { id: 'reports', label: 'Reports', description: 'Members reported by other members.', icon: icon('M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z|M4 22v-7'), count: (s) => s?.pending_reports ?? 0 },
+  grievances: { id: 'grievances', label: 'Complaints', description: 'Complaints to the Grievance Officer, with their legal deadlines.', icon: icon('M12 3v18|M5 7l7-4 7 4|M2 14l3-7 3 7a3.5 3.5 0 0 1-6 0|M16 14l3-7 3 7a3.5 3.5 0 0 1-6 0|M8 21h8') },
+  finance: { id: 'finance', label: 'Finance', description: 'Subscribers, revenue by month and store, every charge.', icon: icon('M3 7h18v13H3z|M16 13h2|M3 7l3-4h12l3 4'), wide: true },
+  errors: { id: 'errors', label: 'Errors', description: 'What the apps and the website reported going wrong.', icon: icon('M12 9v4|M12 17h.01|M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z') },
+  audit: { id: 'audit', label: 'Audit log', description: 'Every admin action, newest first.', icon: icon('M3 12a9 9 0 1 0 3-6.7L3 8|M3 3v5h5|M12 7v5l4 2') },
+  app: { id: 'app', label: 'App preview', description: "The members' app, phone-sized, signed in as you.", icon: icon('M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z|M12 18h.01') },
+};
 
 // The app preview opens the members' app from the website; inside the phone
 // apps and the preview itself, admins are in the members' app already
-const TABS: AdminTab[] = isNativeApp() || isAppPreview()
-  ? ['dashboard', 'reports', 'grievances', 'verifications', 'users', 'finance', 'errors']
-  : ['dashboard', 'reports', 'grievances', 'verifications', 'users', 'finance', 'errors', 'app'];
-const TAB_LABEL: Partial<Record<AdminTab, string>> = { app: 'App preview', grievances: 'Complaints' };
+const GROUPS: { label: string | null; items: AdminTab[] }[] = [
+  { label: null, items: ['dashboard'] },
+  { label: 'People', items: ['customers', 'verifications'] },
+  { label: 'Safety', items: ['reports', 'grievances'] },
+  { label: 'Business', items: ['finance'] },
+  { label: 'System', items: isNativeApp() || isAppPreview() ? ['errors', 'audit'] : ['errors', 'audit', 'app'] },
+];
 
 // initialTab: the tab an admin alert opens (Dashboard)
 const AdminView: React.FC<{ initialTab?: AdminTab }> = ({ initialTab }) => {
@@ -97,57 +129,125 @@ const AdminView: React.FC<{ initialTab?: AdminTab }> = ({ initialTab }) => {
     );
   }
 
-  return (
-    <div className="h-full overflow-y-auto bg-gray-50 dark:bg-zinc-900/30">
-      <div className="max-w-6xl mx-auto py-8 px-6 lg:px-12">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-1">
-            🛡️ Admin Panel
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Platform moderation and oversight. Every action here is logged.
-          </p>
-        </div>
-
-        {/* Tabs: on a phone, buttons that wrap so every tab (App Preview too) is in
-            view; from tablet width, one underlined row */}
-        <div className="flex flex-wrap gap-1.5 mb-6 sm:flex-nowrap sm:gap-1 sm:border-b sm:border-gray-200 sm:dark:border-zinc-800 sm:overflow-x-auto">
-          {TABS.map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              aria-current={tab === t ? 'page' : undefined}
-              className={`px-3 py-1.5 rounded-full border text-xs sm:px-4 sm:py-2 sm:rounded-none sm:border-0 sm:border-b-2 sm:text-sm font-medium transition-colors capitalize whitespace-nowrap ${
-                tab === t
-                  ? 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-300 sm:bg-transparent sm:dark:bg-transparent sm:border-blue-500 sm:dark:border-blue-500 sm:text-blue-600 sm:dark:text-blue-400'
-                  : 'border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-gray-300 sm:border-transparent sm:dark:border-transparent sm:text-gray-500 sm:dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-              }`}
-            >
-              {TAB_LABEL[t] ?? t}
-            </button>
-          ))}
-        </div>
-
-        {/* Tab body */}
-        {tab === 'dashboard' && <ProForAllSwitch onChanged={loadDashboard} />}
-        {tab === 'dashboard' && (
-          <DashboardTab
-            stats={stats}
-            recentReports={recentReports}
-            recentAudit={recentAudit}
-            loading={loading}
-            onGoToReports={() => setTab('reports')}
-          />
+  const section = SECTIONS[tab];
+  const navButton = (id: AdminTab, phone: boolean) => {
+    const item = SECTIONS[id];
+    const count = item.count?.(stats) ?? 0;
+    const on = tab === id;
+    return (
+      <button
+        key={id}
+        type="button"
+        data-section={id}
+        onClick={() => setTab(id)}
+        aria-current={on ? 'page' : undefined}
+        className={phone
+          ? `flex items-center gap-1.5 h-8 px-3 rounded-full border text-xs font-medium whitespace-nowrap ${
+            on ? 'bg-gray-900 text-white border-gray-900 dark:bg-white dark:text-gray-900 dark:border-white' : 'border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-zinc-300'}`
+          : `w-full flex items-center gap-2.5 h-8 px-2 rounded-md text-[14px] text-left transition-colors ${
+            on ? 'bg-gray-200/70 dark:bg-zinc-700/60 text-gray-900 dark:text-white font-medium' : 'text-gray-600 dark:text-zinc-400 hover:bg-gray-200/50 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-zinc-100'}`}
+      >
+        {!phone && <span className="flex-none opacity-80">{item.icon}</span>}
+        <span className="flex-1 truncate">{item.label}</span>
+        {count > 0 && (
+          <span aria-hidden="true" className={`text-[11px] tabular-nums px-1.5 rounded ${on && phone ? '' : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'}`}>{count}</span>
         )}
-        {tab === 'reports' && <AdminReportsTab onAuditUpdate={loadDashboard} />}
-        {tab === 'grievances' && <AdminGrievancesTab onAuditUpdate={loadDashboard} />}
-        {tab === 'verifications' && <AdminVerificationsTab onAuditUpdate={loadDashboard} />}
-        {tab === 'users' && <AdminUsersTab onAuditUpdate={loadDashboard} />}
-        {tab === 'finance' && <AdminFinanceTab />}
-        {tab === 'errors' && <AdminErrorsTab onAuditUpdate={loadDashboard} />}
-        {tab === 'app' && <AdminAppTab />}
+      </button>
+    );
+  };
+
+  return (
+    <div className="h-full flex bg-white dark:bg-[#191919]">
+      {/* Sections, Notion-like, from tablet width */}
+      <nav aria-label="Admin sections" data-testid="admin-sidebar" className="hidden md:flex flex-col w-56 flex-none overflow-y-auto border-r border-gray-200/80 dark:border-zinc-800 bg-[#f7f7f5] dark:bg-[#202020] px-2 py-4">
+        <p className="px-2 pb-2 text-[12px] font-semibold text-gray-500 dark:text-zinc-400">Admin</p>
+        {GROUPS.map((g) => (
+          <div key={g.label ?? 'top'} className="mb-3">
+            {g.label && <p className="px-2 pt-1 pb-1 text-[11px] font-medium text-gray-400 dark:text-zinc-500">{g.label}</p>}
+            <div className="space-y-0.5">{g.items.map((id) => navButton(id, false))}</div>
+          </div>
+        ))}
+      </nav>
+
+      <div className="flex-1 min-w-0 overflow-y-auto">
+        {/* On a phone, the sections at the top, wrapping so all are in view */}
+        <nav aria-label="Admin sections" className="md:hidden flex flex-wrap gap-1.5 px-3 py-2 border-b border-gray-200 dark:border-zinc-800">
+          {GROUPS.flatMap((g) => g.items).map((id) => navButton(id, true))}
+        </nav>
+
+        <div className={`${section.wide ? 'max-w-none' : 'max-w-5xl'} mx-auto px-4 sm:px-8 py-6 sm:py-8`}>
+          <header className="mb-6">
+            <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
+              <span className="text-gray-400 dark:text-zinc-500 [&>svg]:w-6 [&>svg]:h-6">{section.icon}</span>
+              {section.label}
+            </h1>
+            <p className="mt-1 text-sm text-gray-500 dark:text-zinc-400">{section.description} Every action here is logged.</p>
+          </header>
+
+          {tab === 'dashboard' && <ProForAllSwitch onChanged={loadDashboard} />}
+          {tab === 'dashboard' && (
+            <DashboardTab
+              stats={stats}
+              recentReports={recentReports}
+              recentAudit={recentAudit}
+              loading={loading}
+              onGoToReports={() => setTab('reports')}
+            />
+          )}
+          {tab === 'customers' && <AdminCustomersTab onAuditUpdate={loadDashboard} />}
+          {tab === 'verifications' && <AdminVerificationsTab onAuditUpdate={loadDashboard} />}
+          {tab === 'reports' && <AdminReportsTab onAuditUpdate={loadDashboard} />}
+          {tab === 'grievances' && <AdminGrievancesTab onAuditUpdate={loadDashboard} />}
+          {tab === 'finance' && <AdminFinanceTab />}
+          {tab === 'errors' && <AdminErrorsTab onAuditUpdate={loadDashboard} />}
+          {tab === 'audit' && <AuditLog />}
+          {tab === 'app' && <AdminAppTab />}
+        </div>
       </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// Audit log: every admin action, newest first
+// ============================================================================
+
+const AuditLog: React.FC = () => {
+  const { showToast } = useToast();
+  const [entries, setEntries] = useState<AdminAuditRow[] | null>(null);
+
+  useEffect(() => {
+    void fetchAuditLog(300).then(({ entries, error }) => {
+      if (error) showToast(`Couldn't load the audit log: ${error}`, 'error');
+      setEntries(entries);
+    });
+  }, [showToast]);
+
+  if (!entries) return <div className="h-40 rounded-lg bg-gray-50 dark:bg-zinc-800 animate-pulse" />;
+  if (!entries.length) return <p className="text-sm text-gray-500 dark:text-zinc-400">No admin actions yet.</p>;
+  return (
+    <div className="border border-gray-200 dark:border-zinc-800 rounded-lg overflow-hidden" data-testid="audit-log">
+      <table className="w-full text-sm">
+        <thead className="bg-gray-50 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400">
+          <tr>
+            <th scope="col" className="text-left font-medium px-3 py-2">When</th>
+            <th scope="col" className="text-left font-medium px-3 py-2">Admin</th>
+            <th scope="col" className="text-left font-medium px-3 py-2">What</th>
+          </tr>
+        </thead>
+        <tbody>
+          {entries.map((e) => (
+            <tr key={e.id} className="border-t border-gray-100 dark:border-zinc-800 align-top">
+              <td className="px-3 py-2 whitespace-nowrap text-gray-500 dark:text-zinc-400">{new Date(e.created_at).toLocaleString()}</td>
+              <td className="px-3 py-2 whitespace-nowrap">{e.admin_email}</td>
+              <td className="px-3 py-2 text-gray-700 dark:text-zinc-300">
+                {auditAction(e)}
+                {e.details && typeof e.details === 'object' && 'reason' in e.details && <span className="text-gray-500 dark:text-zinc-400 italic"> — “{String(e.details.reason)}”</span>}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };

@@ -1,5 +1,6 @@
-// Admin Users and Reports tabs see everyone (they used to see only the admin's own row),
-// and Users corrects a date of birth: a member made under 21 and hidden shows as such,
+// The admin sidebar; Customers and Reports see everyone (they used to see only the admin's own
+// row), every detail of a member in one row, and a member corrects a date of birth: one made
+// under 21 and hidden shows as such,
 // a date under the legal age is refused, a real one is saved with its note in the audit
 // log and the profile is visible again (the member is put back as it was afterwards).
 import { chromium } from 'playwright';
@@ -40,28 +41,41 @@ try {
   await page.locator('form').getByRole('button', { name: /Log In/i }).click();
   await page.getByText('Admin', { exact: true }).first().click();
 
-  await page.getByRole('button', { name: /^users$/i }).click();
-  await page.getByPlaceholder(/Search users by name or email/).waitFor({ timeout: 10000 });
-  await page.waitForTimeout(2000);
-  // Rows starting with any address: other tests add accounts at other domains (example.com)
-  const listed = await page.evaluate(() => [...document.querySelectorAll('main *')]
-    .filter((el) => el.children.length === 0 && /^[\w.+-]+@[\w-]+(\.[\w-]+)+(\s|$)/.test((el.textContent || '').trim())).length);
-  await page.screenshot({ path: `${OUT}1-users.png` });
-  check(listed >= Math.min(totalUsers, 50) - 1, `Users tab lists everyone (${listed} of ${totalUsers} shown, 50 max)`);
-  await page.getByPlaceholder(/Search users by name or email/).fill(target[1]);
-  await page.waitForTimeout(2000);
-  check(await page.getByText(target[1]).first().isVisible(), `search finds "${target[1]}"`);
+  // The sections are in a sidebar
+  const sidebar = page.getByTestId('admin-sidebar');
+  await sidebar.waitFor({ timeout: 15000 });
+  check((await Promise.all(['Overview', 'Customers', 'Verification', 'Reports', 'Complaints', 'Finance', 'Errors', 'Audit log']
+    .map((name) => sidebar.getByRole('button', { name, exact: true }).isVisible()))).every(Boolean), 'the sections are in the sidebar');
+  await sidebar.getByRole('button', { name: 'Customers', exact: true }).click();
+  const table = page.getByTestId('customers-table');
+  await table.locator('tbody tr').nth(1).waitFor({ timeout: 15000 });
+  const listed = await table.locator('tbody tr').count();
+  await page.screenshot({ path: `${OUT}1-customers.png` });
+  check(listed === Math.min(totalUsers, 50), `Customers lists everyone, 50 to a page (${listed} of ${totalUsers})`);
+  check((await page.getByTestId('customers-count').innerText()) === `1–${Math.min(totalUsers, 50)} of ${totalUsers.toLocaleString('en-US')}`,
+    `the count: ${await page.getByTestId('customers-count').innerText()}`);
+  const headers = await table.locator('thead th').allInnerTexts();
+  check(['Member', 'Phone', 'Location', 'Religion', 'Education', 'Joined', 'Sign-in', 'Verified', 'Plan', 'Profile', 'Matches', 'Reported', 'Status']
+    .every((h) => headers.includes(h)), `every detail in one row (${headers.length} columns)`);
+  const search = page.getByRole('searchbox', { name: 'Search customers' });
+  await search.fill(target[1]);
+  await page.waitForTimeout(1500);
+  check(await table.getByText(target[1]).first().isVisible(), `search finds "${target[1]}"`);
 
   // A member under 21 writes in with an ID that shows an earlier date of birth
   sql(`set session_replication_role = replica;
        update profiles set gender = 'Male', date_of_birth = current_date - interval '20 years', age = 20, is_paused = true, paused_at = null
         where id = '${young[0]}';`);
-  await page.getByPlaceholder(/Search users by name or email/).fill(young[1]);
-  await page.waitForTimeout(2000);
-  const row = page.locator('div.p-4', { has: page.getByRole('heading', { name: new RegExp(`^${young[1]}`) }) }).first();
-  check(await row.getByText('Under 21', { exact: true }).isVisible() && await row.getByText('Hidden', { exact: true }).isVisible(),
-    `${young[1]} shows as under 21 and hidden`);
-  await row.getByRole('button', { name: 'Date of birth' }).click();
+  await search.fill(young[1]);
+  await page.waitForTimeout(1500);
+  const row = table.locator('tbody tr', { has: page.getByText(young[1], { exact: true }) }).first();
+  check(await row.getByText('Under 21', { exact: true }).isVisible() && await row.getByText('Paused', { exact: true }).isVisible(),
+    `${young[1]} shows as under 21 and paused`);
+  await row.getByRole('button').first().click();
+  const panel = page.getByTestId('member-panel');
+  await panel.waitFor();
+  check(await panel.getByText(young[1]).first().isVisible() && await panel.getByText('Background').isVisible(), 'a row opens the member, everything grouped');
+  await panel.getByRole('button', { name: 'Date of birth' }).click();
   const dialog = page.getByRole('dialog', { name: `Correct ${young[1]}'s date of birth` });
   await dialog.waitFor();
   await dialog.getByLabel('Date of birth on the ID').fill(isoYearsAgo(19));
@@ -76,13 +90,35 @@ try {
     'a real date of birth is saved');
   await page.waitForTimeout(1500);
   check(!(await dialog.isVisible()), 'the pop-up closes');
-  check(await row.getByText(/Born 15 Mar 1995/).isVisible() && !(await row.getByText('Under 21', { exact: true }).isVisible())
-    && !(await row.getByText('Hidden', { exact: true }).isVisible()), 'the row shows the new date, no longer under 21 or hidden');
+  check(await panel.getByText(/born 15 Mar 1995/).isVisible(), 'the member shows the new date');
+  await page.screenshot({ path: `${OUT}4-member.png` });
+  await panel.getByRole('button', { name: 'Close' }).click();
+  check(!(await row.getByText('Under 21', { exact: true }).isVisible()) && await row.getByText('Active', { exact: true }).isVisible(),
+    'the row: no longer under 21 or paused');
   const saved = sql(`select age || ' ' || is_paused || ' ' || (select details ->> 'note' from admin_audit
     where action = 'correct_date_of_birth' and target_user_id = '${young[0]}' order by created_at desc limit 1)
     from profiles where id = '${young[0]}';`);
   const expectedAge = new Date().getFullYear() - 1995 - (new Date() < new Date(new Date().getFullYear(), 2, 15) ? 1 : 0);
   check(saved === `${expectedAge} false Passport seen (test)`, `the age follows, the profile is visible, the note is in the audit log (${saved})`);
+
+  await sidebar.getByRole('button', { name: 'Audit log', exact: true }).click();
+  await page.getByTestId('audit-log').waitFor({ timeout: 10000 });
+  check(await page.getByTestId('audit-log').getByText(/corrected a date of birth.*Passport seen \(test\)/).first().isVisible(), 'the Audit log has it');
+
+  // A verification request, and whether it's likely to pass
+  const slug = target[1].toLowerCase().replace(/[^a-z]+/g, '-');
+  sql(`delete from verification_requests where user_id = '${target[0]}';
+       insert into verification_requests (user_id, linkedin_url, instagram_url, status)
+       values ('${target[0]}', 'https://www.linkedin.com/in/${slug}-123', 'instagram.com/p/abc123', 'pending');`);
+  await sidebar.getByRole('button', { name: 'Verification', exact: true }).click();
+  const verdict = page.getByTestId('verification-check').first();
+  await verdict.waitFor({ timeout: 15000 });
+  const said = await verdict.innerText();
+  await page.screenshot({ path: `${OUT}5-verification.png` });
+  check(said.includes('Unlikely to pass') && said.includes('Only 1 working profile link (LinkedIn); 2 are needed')
+    && said.includes("The Instagram link isn't a profile") && said.includes('Their name is in the LinkedIn link'),
+    `the request says why it's unlikely to pass (${said.split('\n').join(' | ')})`);
+  check(/1 waiting/.test(await page.getByTestId('verification-summary').innerText()), 'and how many are waiting');
 
   await page.getByRole('button', { name: /^reports$/i }).click();
   await page.waitForTimeout(2000);
@@ -96,7 +132,8 @@ try {
   sql(`set session_replication_role = replica;
        update profiles set gender = ${lit(youngWas.gender)}, date_of_birth = ${lit(youngWas.date_of_birth)}, age = ${youngWas.age ?? 'null'},
          is_paused = ${youngWas.is_paused}, paused_at = ${lit(youngWas.paused_at)} where id = '${young[0]}';
-       delete from admin_audit where action = 'correct_date_of_birth' and target_user_id = '${young[0]}';`);
+       delete from admin_audit where action = 'correct_date_of_birth' and target_user_id = '${young[0]}';
+       delete from verification_requests where user_id = '${target[0]}';`);
   await browser.close();
   log(failures ? `${failures} check(s) failed` : 'all checks passed');
   process.exit(failures ? 1 : 0);

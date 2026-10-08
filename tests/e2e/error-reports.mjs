@@ -204,7 +204,7 @@ try {
   await page.locator('input[type=email]').fill(ADMIN);
   await page.locator('input[type=password]').fill(PASSWORD);
   await page.locator('form').getByRole('button', { name: /Log In/i }).click();
-  await page.getByText('Admin Panel').waitFor({ timeout: 20000 });
+  await page.getByRole('heading', { name: 'Overview' }).waitFor({ timeout: 20000 });
   await page.getByRole('button', { name: /^errors$/i }).click();
   await page.getByTestId('admin-error').first().waitFor({ timeout: 15000 });
   check(await page.getByTestId('admin-error').count() === waiting, `each error once (${await page.getByTestId('admin-error').count()} of ${waiting})`);
@@ -231,7 +231,7 @@ try {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ colorScheme: 'dark' });
   await page.reload();
-  await page.getByText('Admin Panel').waitFor({ timeout: 20000 });
+  await page.getByRole('heading', { name: 'Overview' }).waitFor({ timeout: 20000 });
   await page.getByRole('button', { name: /^errors$/i }).click();
   await page.getByTestId('admin-error').first().waitFor({ timeout: 15000 });
   check(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), 'at phone width nothing is wider than the screen');

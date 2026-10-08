@@ -70,7 +70,7 @@ try {
   await signIn(page, ADMIN);
   const tab = page.getByRole('button', { name: 'App preview', exact: true });
   check(await appears(tab), 'the admin panel has an App Preview tab');
-  // On a phone the tabs wrap, so App Preview stays in view
+  // On a phone the sections wrap, so App Preview stays in view
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForTimeout(300);
   const box = await tab.boundingBox();
@@ -93,7 +93,7 @@ try {
   let who = await signIns(page);
   check(who.website === ADMIN && who.preview === MEMBER, `two sign-ins: the website as the admin, the preview as the member (${who.website} / ${who.preview})`);
   await page.reload();
-  check(await appears(page.getByRole('heading', { name: /Admin Panel/ })), 'the admin panel is still signed in after a reload');
+  check(await appears(page.getByRole('heading', { name: 'Overview' })), 'the admin panel is still signed in after a reload');
 
   log('4. Phone sizes, Reload, a new tab');
   await page.getByRole('button', { name: 'App preview', exact: true }).click();
@@ -116,7 +116,7 @@ try {
   check(await appears(app.getByRole('button', { name: 'Sign in' }), 20000), 'the preview is signed out');
   who = await signIns(page);
   check(who.website === ADMIN && !who.preview, 'the admin panel is still signed in');
-  check(await page.getByRole('heading', { name: /Admin Panel/ }).isVisible(), 'and still shows the panel');
+  check(await page.getByRole('heading', { name: 'App preview' }).isVisible(), 'and still shows the panel');
 
   log("6. The admin's own account in the preview");
   await app.getByRole('button', { name: 'Sign in' }).first().click();
