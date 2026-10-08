@@ -25,7 +25,7 @@ import { client } from './testflight-testers.mjs';
  * which a test keeps the same).
  */
 export const EXPECTED = [
-  { productId: 'shaadi24_plus_weekly', period: 'ONE_WEEK', price: 449 },
+  { productId: 'shaadi24_plus_weekly', period: 'ONE_WEEK', price: 499 },
   { productId: 'shaadi24_plus_monthly', period: 'ONE_MONTH', price: 999 },
   { productId: 'shaadi24_plus_quarterly', period: 'THREE_MONTHS', price: 1999 },
   { productId: 'shaadi24_plus_halfyearly', period: 'SIX_MONTHS', price: 2999 },

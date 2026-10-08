@@ -67,12 +67,12 @@ test('all four subscriptions ready: says so, with prices and names', async () =>
         { productId: 'shaadi24_plus_quarterly', state: 'APPROVED', subscriptionPeriod: 'THREE_MONTHS' },
         { productId: 'shaadi24_plus_halfyearly', state: 'WAITING_FOR_REVIEW', subscriptionPeriod: 'SIX_MONTHS' },
       ],
-      details: { s0: full('449'), s1: full('999'), s2: full('1999'), s3: full('2999') },
+      details: { s0: full('499'), s1: full('999'), s2: full('1999'), s3: full('2999') },
     }),
   });
   assert.equal(ready, true);
   const text = lines.join('\n');
-  assert.match(text, /✓ shaadi24_plus_weekly \(1 week\): ready to submit; India price 449 INR; shown as "Shaadi24\+" \(en-GB\); review screenshot uploaded\./);
+  assert.match(text, /✓ shaadi24_plus_weekly \(1 week\): ready to submit; India price 499 INR; shown as "Shaadi24\+" \(en-GB\); review screenshot uploaded\./);
   assert.match(text, /✓ shaadi24_plus_monthly \(1 month\): ready to submit; India price 999 INR/);
   assert.match(text, /✓ shaadi24_plus_quarterly \(3 months\): approved; India price 1999 INR/);
   assert.match(text, /✓ shaadi24_plus_halfyearly \(6 months\): waiting for review; India price 2999 INR/);
@@ -101,7 +101,7 @@ test('a price that differs from the Terms, two groups and a subscription the app
   });
   assert.equal(ready, true, 'the App Store still gives them to the app');
   const text = lines.join('\n');
-  assert.match(text, /⚠ Prices that differ from the Terms: shaadi24_plus_weekly is 349 INR, the Terms say 449 \(449 is one of Apple's India prices\); shaadi24_plus_halfyearly is 3499 INR, the Terms say 2999 \(Apple has no 2999 in India; the nearest are 2899 and 3099\)\./);
+  assert.match(text, /⚠ Prices that differ from the Terms: shaadi24_plus_weekly is 349 INR, the Terms say 499 \(499 is one of Apple's India prices\); shaadi24_plus_halfyearly is 3499 INR, the Terms say 2999 \(Apple has no 2999 in India; the nearest are 2899 and 3099\)\./);
   assert.match(text, /⚠ They're in different groups \(Shaadi24 weekly, Shaadi24\+\)/);
   assert.match(text, /Also there, but not sold by the app: shaadi24_plus_yearly \(missing metadata\)\./);
 });
@@ -111,11 +111,11 @@ test('a new price set to start later: shows both, and compares the new one with 
     bundleId: 'com.shaadi24.app',
     call: standIn({
       subscriptions: FOUR,
-      details: { s0: full([{ price: '349', start: null }, { price: '449', start: '2099-01-01' }]), s1: full('999'), s2: full('1999'), s3: full('2999') },
+      details: { s0: full([{ price: '349', start: null }, { price: '499', start: '2099-01-01' }]), s1: full('999'), s2: full('1999'), s3: full('2999') },
     }),
   });
   const text = lines.join('\n');
-  assert.match(text, /✓ shaadi24_plus_weekly \(1 week\): ready to submit; India price 349 INR, 449 INR from 2099-01-01;/);
+  assert.match(text, /✓ shaadi24_plus_weekly \(1 week\): ready to submit; India price 349 INR, 499 INR from 2099-01-01;/);
   assert.doesNotMatch(text, /⚠/);
 });
 
