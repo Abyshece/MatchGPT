@@ -48,12 +48,12 @@ test('all four subscriptions ready: says so, with prices and names', async () =>
         { productId: 'shaadi24_plus_quarterly', state: 'APPROVED', subscriptionPeriod: 'THREE_MONTHS' },
         { productId: 'shaadi24_plus_halfyearly', state: 'WAITING_FOR_REVIEW', subscriptionPeriod: 'SIX_MONTHS' },
       ],
-      details: { s0: full('349'), s1: full('999'), s2: full('1999'), s3: full('2999') },
+      details: { s0: full('449'), s1: full('999'), s2: full('1999'), s3: full('2999') },
     }),
   });
   assert.equal(ready, true);
   const text = lines.join('\n');
-  assert.match(text, /✓ shaadi24_plus_weekly \(1 week\): ready to submit; India price 349 INR; shown as "Shaadi24\+" \(en-GB\); review screenshot uploaded\./);
+  assert.match(text, /✓ shaadi24_plus_weekly \(1 week\): ready to submit; India price 449 INR; shown as "Shaadi24\+" \(en-GB\); review screenshot uploaded\./);
   assert.match(text, /✓ shaadi24_plus_monthly \(1 month\): ready to submit; India price 999 INR/);
   assert.match(text, /✓ shaadi24_plus_quarterly \(3 months\): approved; India price 1999 INR/);
   assert.match(text, /✓ shaadi24_plus_halfyearly \(6 months\): waiting for review; India price 2999 INR/);

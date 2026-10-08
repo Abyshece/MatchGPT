@@ -5,14 +5,14 @@ import { useAuth } from '../lib/AuthContext';
 import { FEATURES_FREE_NOW, proBenefits, formatDate, type ProBenefit } from '../lib/billingService';
 import { isNativeApp } from '../lib/nativeApp';
 import StoreBadges from './StoreBadges';
-import { PlanCards, StoreTerms, buyLabel, useStoreUpgrade } from './StoreUpgrade';
+import { PlanCards, PlanSaving, StoreTerms, buyLabel, useStoreUpgrade } from './StoreUpgrade';
 
 // ============================================================================
 // UpgradeModal: Shaadi24+
 //
 // A full-screen, dark page on a phone (a tall card on a wide screen): a
 // photo with the headline, the plans side by side (1 week, 1 month, 3 months,
-// 6 months; StoreUpgrade), what Shaadi24+ adds, and the button with the
+// 6 months; StoreUpgrade) with what the chosen one saves, what Shaadi24+ adds, and the button with the
 // store's terms, which stay at the bottom while the rest scrolls.
 //
 // Shaadi24+ is sold only inside the phone apps, through Google Play or the App
@@ -142,6 +142,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ reason, resetInHours, onClo
           {selling && (
             <div className="mt-5">
               <PlanCards offers={store.offers} chosen={store.offer?.planId} busy={store.busy} onPick={store.pick} />
+              <PlanSaving offer={store.offer} offers={store.offers} />
             </div>
           )}
 

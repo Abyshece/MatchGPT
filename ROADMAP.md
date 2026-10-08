@@ -651,7 +651,7 @@ Shaadi24+ pop-up ran to the screen's edges, under an orange-to-pink header.
 Part 19 done 2026-10-08: **Shaadi24+ for a week, a month, 3 months or 6 months, on a page like the
 dating apps' own.** It offered a month or a year in a small pop-up.
 
-- [x] Four plans side by side, sliding sideways on a phone: 1 week (₹349), 1 month (₹999), 3 months
+- [x] Four plans side by side, sliding sideways on a phone: 1 week (₹349, now ₹449: Part 20), 1 month (₹999), 3 months
   (₹1,999) and 6 months (₹2,999). Each card shows the full price first, the price a week under it
   ("₹154/wk") and what it saves on the week's price ("Save 56%"); 3 months is chosen to start with, and
   the button says what you get and what it costs ("Get 3 months for ₹1,999.00", or the free trial). The
@@ -672,6 +672,18 @@ dating apps' own.** It offered a month or a year in a small pop-up.
 - [ ] **Owner:** in App Store Connect, add `shaadi24_plus_weekly`, `shaadi24_plus_quarterly` and
   `shaadi24_plus_halfyearly` to the "Shaadi24+" group next to `shaadi24_plus_monthly`, all on one level,
   and delete `shaadi24_plus_yearly`; in Play Console, the four base plans. Then Actions → App Store check.
+
+Part 20 done 2026-10-08: **Prices that get cheaper the longer you take, with the saving in rupees.**
+
+- [x] The week is now ₹449 (was ₹349): ₹449 a week, ₹999 a month, ₹1,999 for 3 months, ₹2,999 for
+  6 months, so each plan costs 49%, 66% and 74% less a week than the week, the same steps as Hinge's
+  own (docs/store/README.md, "Shaadi24+ prices", with why, and what's left after GST and the stores).
+- [x] Under the plans, what the chosen one saves: "You save ₹998" and "₹1,999 instead of ~~₹2,997~~
+  (₹999 a month for 3 months)"; for a month, ₹218 a week less than the week's price. Worked out from the
+  store's prices, so it's right in any currency.
+- [x] The Terms and Refund page show the new price (Terms `terms-v8-2026-10-08`), and `billing_plans`
+  has it (`supabase/migrations/20261008131919_shaadi24_plus_weekly_price.sql`, applied live).
+- [ ] **Owner:** set `shaadi24_plus_weekly` (and the Play base plan `weekly`) to ₹449.
 
 **Still to do**
 

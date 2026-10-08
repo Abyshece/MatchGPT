@@ -89,7 +89,7 @@ const KEYS_FILE = process.env.KEYS_FILE || path.join(process.cwd(), 'store-stand
 const ENV_OUT = process.env.ENV_OUT || path.join(process.cwd(), 'store-standin.env');
 
 const DAY = 86_400_000;
-const PRICES = { weekly: 34900, monthly: 99900, quarterly: 199900, halfyearly: 299900, yearly: 999900 };  // paise
+const PRICES = { weekly: 44900, monthly: 99900, quarterly: 199900, halfyearly: 299900, yearly: 999900 };  // paise
 const APPLE_PRODUCTS = Object.fromEntries(Object.keys(PRICES).map((plan) => [`shaadi24_plus_${plan}`, plan]));
 
 const b64 = (buf) => Buffer.from(buf).toString('base64');

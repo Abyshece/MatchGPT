@@ -41,7 +41,7 @@ export type Payment = Pick<Tables<'payments'>,
 // The prices in the Terms (the stores show their own, in the buyer's currency):
 // the plans on sale, shortest first
 export const DEFAULT_PLANS: BillingPlan[] = [
-  { id: 'weekly', name: 'Shaadi24+ 1 week', amount: 34900, currency: 'INR', period: 'weekly' },
+  { id: 'weekly', name: 'Shaadi24+ 1 week', amount: 44900, currency: 'INR', period: 'weekly' },
   { id: 'monthly', name: 'Shaadi24+ 1 month', amount: 99900, currency: 'INR', period: 'monthly' },
   { id: 'quarterly', name: 'Shaadi24+ 3 months', amount: 199900, currency: 'INR', period: 'quarterly' },
   { id: 'halfyearly', name: 'Shaadi24+ 6 months', amount: 299900, currency: 'INR', period: 'halfyearly' },
@@ -51,7 +51,7 @@ export const DEFAULT_PLANS: BillingPlan[] = [
 export const planName = (id: string | null | undefined) =>
   DEFAULT_PLANS.find((p) => p.id === id)?.name ?? (id === 'yearly' ? 'Shaadi24+ 1 year' : 'Shaadi24+');
 
-/** The Terms' prices in words: "₹349 a week, ₹999 a month, ₹1,999 for 3 months and ₹2,999 for 6 months" */
+/** The Terms' prices in words: "₹449 a week, ₹999 a month, ₹1,999 for 3 months and ₹2,999 for 6 months" */
 export function pricesInWords(): string {
   const each = DEFAULT_PLANS.map((p) => p.period === 'weekly' || p.period === 'monthly'
     ? `${formatRupees(p.amount)} a ${PERIODS[p.period].every}`

@@ -153,7 +153,7 @@ then test it and add iPad screenshots.)
    yourself as a tester and install it from the link. Do this before step 4: Play lets you make
    subscriptions only once a build that can sell them has been uploaded.
 4. **Monetize with Play → Products → Subscriptions**: `shaadi24_plus` with four base plans, all active,
-   auto-renewing: `weekly` (₹349, every week), `monthly` (₹999, every month), `quarterly` (₹1,999, every
+   auto-renewing: `weekly` (₹449, every week), `monthly` (₹999, every month), `quarterly` (₹1,999, every
    3 months) and `halfyearly` (₹2,999, every 6 months). The app shows them side by side with what each
    saves on the week's price; a base plan not made yet simply doesn't show. Leave free-trial offers out
    for now (ROADMAP.md, Phase 13). (A `yearly` base plan is no longer used: leave it out.)
@@ -188,10 +188,10 @@ then test it and add iPad screenshots.)
    Server Notifications, Version 2, for production and sandbox:
    `https://fmrbzzdjtarsaqvfukum.supabase.co/functions/v1/store-notifications?provider=apple`.
 4. **Monetization → Subscriptions**: group "Shaadi24+" with four subscriptions, all on the same level
-   (so changing length is a crossgrade): `shaadi24_plus_weekly` (1 week, ₹349), `shaadi24_plus_monthly`
+   (so changing length is a crossgrade): `shaadi24_plus_weekly` (1 week, ₹449), `shaadi24_plus_monthly`
    (1 month, ₹999), `shaadi24_plus_quarterly` (3 months, ₹1,999) and `shaadi24_plus_halfyearly`
    (6 months, ₹2,999), each with a display name, a description and a review screenshot (the Shaadi24+
-   page in the app). `shaadi24_plus_yearly`, made earlier, is no longer used: delete it (it was never
+   page in the app; names and descriptions under "Shaadi24+ prices" below). `shaadi24_plus_yearly`, made earlier, is no longer used: delete it (it was never
    submitted). Optionally a 1-week free trial as the introductory offer. Actions → App Store check
    (`scripts/store-check.mjs`) says what each still needs.
    The first subscriptions are reviewed with the app: tick them on the version page before submitting.
@@ -236,6 +236,44 @@ On an Android phone (internal testing) and an iPhone (TestFlight):
 3. iPhone: `npm run build:ios`, Archive and upload in Xcode, and a new version in App Store Connect with
    "What's New".
 4. Commit the version change.
+
+## Shaadi24+ prices
+
+A ladder: the longer the plan, the less it costs a week, and the page shows both what each plan saves
+on the week's price ("Save 66%" on its card) and what the chosen one saves in rupees under the cards.
+
+| Plan | Price | A week | A month | Card says | Saving shown under the cards | You keep* |
+|---|---|---|---|---|---|---|
+| 1 week | ₹449 | ₹449 | (₹1,946) | Try it | "The longer the plan, the less you pay a week." | ~₹323 |
+| 1 month | ₹999 | ₹231 | ₹999 | Save 49% | You save ₹218 a week (₹231 instead of ₹449) | ~₹720 |
+| 3 months | ₹1,999 | ₹154 | ₹666 | Save 66% | You save ₹998 (₹1,999 instead of ₹2,997) | ~₹1,440 |
+| 6 months | ₹2,999 | ₹115 | ₹500 | Save 74% | You save ₹2,995 (₹2,999 instead of ₹5,994) | ~₹2,160 |
+
+\* After 18% GST (included in Indian store prices) and the stores' 15% (Google Play's for subscriptions;
+Apple's with the Small Business Program, 30% without it).
+
+Why these:
+- **The week is the anchor.** At ₹449, a month costs as much as 2.2 weeks, so most people who'd try a
+  week take a month or more. The steps (49%, 66%, 74% less a week) are the same as Hinge's own
+  ($14.99, $32.99, $64.99 and $99.99 in the US).
+- **₹999, ₹1,999, ₹2,999**: under ₹1,000, ₹2,000 and ₹3,000, the price points Indian buyers know.
+  3 months costs about what 2 months would, and 6 months about what 3 would.
+- **3 months is chosen to start with** (most people take it); 6 months is the best value for those
+  who are sure, and brings the most in at once.
+- **Still well under the matrimony sites**: Shaadi.com's 3-month plans are around ₹3,900–₹5,900 and
+  its 6-month ones ₹5,500–₹8,900; Hinge+ in India is about ₹500–₹1,200 a month.
+- Change them any time in App Store Connect and Play Console (the app shows whatever the stores say,
+  and works the savings out from those), then update `DEFAULT_PLANS` in `lib/billingService.ts` and
+  `billing_plans` so the Terms list the same prices (bump `TERMS_VERSION`).
+
+The subscriptions' names and descriptions (App Store: 30 and 45 characters at most):
+
+| Product | Display name | Description |
+|---|---|---|
+| `shaadi24_plus_weekly` | Shaadi24+ 1 Week | Unlimited AI searches and likes for 1 week |
+| `shaadi24_plus_monthly` | Shaadi24+ 1 Month | Unlimited AI searches and likes for 1 month |
+| `shaadi24_plus_quarterly` | Shaadi24+ 3 Months | Unlimited AI searches and likes, 3 months |
+| `shaadi24_plus_halfyearly` | Shaadi24+ 6 Months | Unlimited AI searches and likes, 6 months |
 
 ---
 
