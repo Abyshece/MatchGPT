@@ -141,7 +141,7 @@ try {
   await editor.getByLabel('How both of them agreed to be shown').fill('Both agreed by email on 3 October 2026');
   await editor.getByRole('button', { name: 'Save' }).click();
   await page.getByText('Story published').waitFor({ timeout: 10000 });
-  check(await stories.getByTestId('story-card').filter({ hasText: NAMES }).getByText('Published').isVisible(), 'listed as Published');
+  check(await appears(stories.getByTestId('story-card').filter({ hasText: NAMES }).getByText('Published'), 10000), 'listed as Published');
   check(sql(`select count(*) from admin_audit where action = 'publish_story' and details->>'names' = '${NAMES.replace(/'/g, "''")}';`) !== '0', 'publishing is logged');
 
   const site = await newPage();

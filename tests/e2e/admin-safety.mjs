@@ -156,7 +156,7 @@ try {
   log('2. Moderation');
   await signIn(admin, ADMIN);
   const sidebar = await openAdmin(admin, 'Moderation');
-  check(/Moderation\s*2/.test(await sidebar.getByRole('button', { name: /^Moderation/ }).innerText()), 'the sidebar counts 2 waiting');
+  check(await until(async () => /Moderation\s*2/.test(await sidebar.getByRole('button', { name: /^Moderation/ }).innerText())), 'the sidebar counts 2 waiting');
   const queue = admin.getByTestId('admin-moderation');
   await queue.getByTestId('moderation-item').first().waitFor({ timeout: 15000 });
   const textCard = queue.locator('[data-testid="moderation-item"][data-field="description"]');
