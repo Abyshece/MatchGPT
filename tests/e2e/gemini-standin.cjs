@@ -2,7 +2,9 @@
 // real key. Answers generateContent calls with a search plan built from a few
 // cues in the prompt (girl/woman, Pune, near me, online, under 30, smoking,
 // vegetarian, book), using the profile answers listed in the request, and
-// returns "out of quota" (429) for prompts containing "quota".
+// returns "out of quota" (429) for prompts containing "quota". Blog requests
+// (supabase/functions/blog-ai) get a fixed answer for each task: ideas, a
+// draft, the search fields, or the text rewritten in capitals.
 //
 //   node tests/e2e/gemini-standin.cjs          # listens on :8787, GET /stats shows calls
 //   # serve the functions with an env file containing:
@@ -12,6 +14,32 @@
 const http = require('http');
 let calls = 0;
 const log = [];
+const SEO = {
+  seo_title: 'Questions to Ask Before Marriage: A Practical Guide',
+  seo_description: 'The questions to ask before marriage, about money, family, careers and children, so you both start married life with fewer surprises.',
+  excerpt: 'The conversations worth having before you say yes.',
+  slug: 'questions-to-ask-before-marriage',
+  tags: ['before marriage', 'family'],
+  focus_keyword: 'questions to ask before marriage',
+};
+function blogAnswer(task, text) {
+  if (task === 'ideas') {
+    return { ideas: [
+      { title: 'Questions to ask before marriage', angle: 'The talks that matter', keyword: 'questions to ask before marriage' },
+      { title: 'Meeting his parents for the first time', angle: 'What to expect', keyword: 'meeting parents first time' },
+    ] };
+  }
+  if (task === 'seo') return SEO;
+  if (task === 'rewrite') return { text: (text.split('\nText:\n')[1] || '').toUpperCase() };
+  const para = 'Talking openly before marriage about money, family and plans helps you both start well. '.repeat(4);
+  return {
+    ...SEO,
+    title: 'Questions to Ask Before Marriage',
+    content: `# Questions to Ask Before Marriage\n\nThese questions to ask before marriage help. ${para}\n\n## Money\n\n${para}\n\n## Family\n\n- Where will you live?\n- How often will you visit family?\n\n## In short\n\n${para}`,
+    cover_alt: 'A couple talking over chai',
+  };
+}
+
 http.createServer((req, res) => {
   if (req.method === 'GET' && req.url === '/stats') {
     res.end(JSON.stringify({ calls, log }));
@@ -25,6 +53,14 @@ http.createServer((req, res) => {
     const key = req.headers['x-goog-api-key'];
     const reqJson = JSON.parse(body || '{}');
     const text = reqJson?.contents?.[0]?.parts?.[0]?.text ?? '';
+    const blogTask = (text.match(/^Blog task: (\w+)\./) || [])[1];
+    if (blogTask) {
+      log.push({ model: m && m[1], key, blogTask });
+      if (!m || key !== 'test-key') { res.writeHead(403); res.end('{}'); return; }
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(blogAnswer(blogTask, text)) }] }, finishReason: 'STOP' }] }));
+      return;
+    }
     const prompt = JSON.parse((text.match(/\nSearch: (.*)$/s) || [, '""'])[1]);
     log.push({ model: m && m[1], key, prompt, hasSchema: !!reqJson?.generationConfig?.responseJsonSchema });
     if (!m || key !== 'test-key') { res.writeHead(403); res.end('{}'); return; }

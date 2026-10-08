@@ -232,6 +232,99 @@ export type Database = {
           },
         ]
       }
+      blog_posts: {
+        Row: {
+          ai_assisted: boolean
+          author_name: string
+          content: string
+          cover_alt: string
+          cover_url: string | null
+          created_at: string
+          created_by: string | null
+          excerpt: string
+          focus_keyword: string
+          id: string
+          noindex: boolean
+          published_at: string | null
+          seo_description: string
+          seo_title: string
+          slug: string
+          status: string
+          tags: string[]
+          title: string
+          updated_at: string
+          updated_by: string | null
+          word_count: number
+        }
+        Insert: {
+          ai_assisted?: boolean
+          author_name?: string
+          content?: string
+          cover_alt?: string
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          excerpt?: string
+          focus_keyword?: string
+          id?: string
+          noindex?: boolean
+          published_at?: string | null
+          seo_description?: string
+          seo_title?: string
+          slug: string
+          status?: string
+          tags?: string[]
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          ai_assisted?: boolean
+          author_name?: string
+          content?: string
+          cover_alt?: string
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          excerpt?: string
+          focus_keyword?: string
+          id?: string
+          noindex?: boolean
+          published_at?: string | null
+          seo_description?: string
+          seo_title?: string
+          slug?: string
+          status?: string
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      blog_views: {
+        Row: {
+          post_id: string
+          views: number
+        }
+        Insert: {
+          post_id: string
+          views?: number
+        }
+        Update: {
+          post_id?: string
+          views?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_views_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: true
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       consent_records: {
         Row: {
           consented: boolean
@@ -1726,6 +1819,10 @@ export type Database = {
       admin_update_enquiry: { Args: { p_id: string; p_notes?: string; p_status: string }; Returns: undefined }
       mark_my_message: { Args: { p_action: string; p_id: string }; Returns: undefined }
       my_messages: { Args: never; Returns: Json }
+      blog_view: {
+        Args: { p_slug: string }
+        Returns: undefined
+      }
       submit_enquiry: {
         Args: { p_email: string; p_message: string; p_name: string; p_source?: string; p_topic: string }
         Returns: Json

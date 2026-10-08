@@ -13,6 +13,8 @@ const PrivacyView = lazyScreen(() => import('../PrivacyView'));
 const GrievancesView = lazyScreen(() => import('../GrievancesView'));
 const SafetyView = lazyScreen(() => import('../SafetyView'));
 const RefundsView = lazyScreen(() => import('../RefundsView'));
+const BlogIndex = lazyScreen(() => import('./BlogPages').then((m) => ({ default: m.BlogIndex })));
+const BlogPostPage = lazyScreen(() => import('./BlogPages').then((m) => ({ default: m.BlogPostPage })));
 
 // ============================================================================
 // Website: the website, for everyone who isn't in the apps (lib/website.ts)
@@ -23,11 +25,13 @@ const RefundsView = lazyScreen(() => import('../RefundsView'));
 //                     #privacy too, as older links have them)
 //   /grievances       the Grievance Officer and a complaint form (IT Rules 2021)
 //   /safety, /refunds Community Guidelines and Safety; Refunds and Cancellations
+//   /blog             the blog (BlogPages.tsx), /blog/<slug> a post; the server
+//                     sends these with their search engine tags (api/blog.ts)
 // /support and /delete-account stand on their own (index.tsx). A link from
 // an email (a password reset) asks for the new password wherever it lands.
 // ============================================================================
 
-type Route = 'home' | 'admin' | 'terms' | 'privacy' | 'grievances' | 'safety' | 'refunds';
+type Route = 'home' | 'admin' | 'terms' | 'privacy' | 'grievances' | 'safety' | 'refunds' | 'blog' | `blog/${string}`;
 
 // An admin alert clicked while no tab was open comes to /?push=… (public/sw.js)
 function isAdminAlert(raw: string | null): boolean {
@@ -44,6 +48,9 @@ function currentRoute(): Route {
   if (path === 'terms' || window.location.hash === '#terms') return 'terms';
   if (path === 'privacy' || window.location.hash === '#privacy') return 'privacy';
   if (path === 'grievances' || path === 'safety' || path === 'refunds') return path;
+  if (path === 'blog') return 'blog';
+  const post = path.match(/^blog\/([a-z0-9-]+)$/);
+  if (post) return `blog/${post[1]}`;
   if (isAdminAlert(new URLSearchParams(window.location.search).get('push'))) {
     window.history.replaceState(null, '', `/admin${window.location.search}`);
     return 'admin';
@@ -76,6 +83,8 @@ const Routes: React.FC<{ route: Route }> = ({ route }) => {
   if (route === 'grievances') return <GrievancesView onBack={goHome} />;
   if (route === 'safety') return <SafetyView onBack={goHome} />;
   if (route === 'refunds') return <RefundsView onBack={goHome} />;
+  if (route === 'blog') return <BlogIndex />;
+  if (route.startsWith('blog/')) return <BlogPostPage slug={route.slice('blog/'.length)} />;
   return <SiteHome />;
 };
 

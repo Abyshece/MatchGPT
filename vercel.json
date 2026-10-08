@@ -1,6 +1,26 @@
 {
   "rewrites": [
     {
+      "source": "/blog",
+      "destination": "/api/blog?view=index"
+    },
+    {
+      "source": "/blog/feed.xml",
+      "destination": "/api/blog?view=feed"
+    },
+    {
+      "source": "/blog/:slug",
+      "destination": "/api/blog?view=post&slug=:slug"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api/blog?view=sitemap"
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "/api/blog?view=robots"
+    },
+    {
       "source": "/admin",
       "destination": "/index.html"
     },

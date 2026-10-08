@@ -8,8 +8,8 @@ verified through their social links, and Shaadi24+ adds unlimited searches and l
 
 Members use Shaadi24 in the **Android and iPhone apps**. The website, **https://shaadi-gpt.vercel.app**,
 says what Shaadi24 is and where to get the apps, serves the pages the stores and Indian law ask for
-(support, privacy, terms, grievances, safety, refunds, account deletion), and has the admin panel for
-Shaadi24's team at `/admin`. Shaadi24+ is sold only
+(support, privacy, terms, grievances, safety, refunds, account deletion), has a blog at `/blog`, and
+has the admin panel for Shaadi24's team at `/admin`. Shaadi24+ is sold only
 in the apps, through Google Play and the App Store.
 
 - What's done and what's left: [ROADMAP.md](ROADMAP.md)
@@ -44,6 +44,11 @@ in the apps, through Google Play and the App Store.
   | `send-push` | Notifications: phones through Firebase Cloud Messaging, and admin alerts in browsers through Web Push. A cron job runs it every minute |
   | `delete-account` | Deletes an account and everything kept about it, stopping its Google Play renewal first; keeps only the registration record Indian law asks for, for a year |
   | `apple-sign-in` | Keeps the Sign in with Apple token, so deleting the account also ends it at Apple |
+  | `blog-ai` | AI writing in Admin → Blog (Gemini, admins only): post ideas, whole drafts, search fields, rewriting a passage |
+
+  One more runs on Vercel with the website: `api/blog.ts` sends the blog's pages with their titles,
+  descriptions and link previews for search engines, and serves `/sitemap.xml`, `/blog/feed.xml` and
+  `/robots.txt` (`vercel.json` sends those addresses to it).
 
 - **The profile.** Sign-up takes about two minutes and asks only what families judge a match on
   first: who the profile is for, name, date of birth, gender, who they're interested in, marital
@@ -111,8 +116,9 @@ them yourself before pushing:
 - `npx tsc --noEmit`: the type check
 - `npm run lint`: the linter (ESLint: TypeScript's recommended rules and React's rules of hooks)
 - `npm run build`: the website's build
+- `node --test scripts/*.test.mjs`: the scripts' tests, and the blog's Markdown and server pages
 - `deno test --no-config --node-modules-dir=none --allow-env --allow-read supabase/functions/`: the
-  server's unit tests (search scores, the stores, notifications, Sign in with Apple). This
+  server's unit tests (search scores, the stores, notifications, Sign in with Apple, AI blog writing). This
   needs [Deno](https://deno.com) 2.
 
 With a local backend you can also run:

@@ -751,6 +751,36 @@ Part 23 done 2026-10-08: **The admin panel, part 2: Profiles, Messages, Offers a
   seen and tapped; the contact form landing in Enquiries and closed; an offer on the home page with its
   redeem links, and gone when turned off; visitors refused), and accessibility (the new screens).
 
+Part 24 done 2026-10-08: **The admin panel, part 3: the Blog.**
+
+- [x] **Blog** (Growth): every post (published, scheduled, drafts) with its visits; **New post** opens
+  an editor like Notion's: the title, the text in Markdown with a toolbar (headings, bold, lists, a tip,
+  links, pictures), Write and Preview, and on the right, like WordPress: publish now or on a date,
+  unpublish, delete; the address, excerpt, tags and author; a cover picture (uploaded, 1200 × 630) and
+  its description; the search title and description with counters, the search phrase, a Google
+  preview, "hide from search engines", and a check list of 12 SEO points (the phrase in the title,
+  description, first paragraph and address; lengths; 600+ words; headings; a cover; a link; an
+  excerpt).
+- [x] **AI writing** with Gemini (the same free key as search, `blog-ai` function, admins only):
+  **Ideas** suggests posts people search for; **Write with AI** drafts a whole post from a topic,
+  search phrase, reader, tone and length (title, address, text, excerpt, search fields, tags, a cover
+  description); **Fill search fields** writes them for what's written; **Rewrite selection** improves a
+  passage ("clearer", "shorter", "warmer", or anything). The house style: Indian English, respectful of
+  every community, no invented facts or statistics, Shaadi24 mentioned at most twice.
+- [x] **The website's blog**: `/blog` (newest first, a featured post, topics) and `/blog/<slug>` (cover,
+  contents, the post, tags, sharing to WhatsApp, Facebook and X, where to get the apps, more posts),
+  light and dark, with "Blog" in the header and footer.
+- [x] **Found by search engines and link previews**: a Vercel function (`api/blog.ts`) sends each blog
+  page with its own title, description, canonical address, Open Graph picture and schema.org
+  `BlogPosting`, and the post as plain HTML for crawlers that don't run JavaScript; `/sitemap.xml` (the
+  website's pages and every post), `/blog/feed.xml` (RSS) and `/robots.txt`.
+- [x] Database: `supabase/migrations/20261008180000_blog.sql` (applied live): posts readable by anyone
+  once published and their date has come, written by admins only; publishing, unpublishing and
+  deleting in the audit log; visit counts; a public "blog" picture bucket only admins add to.
+- [x] Tests: `admin-blog` (the whole flow above, with a Gemini stand-in), `scripts/blog.test.mjs`
+  (Markdown, the server's pages, sitemap and feed), `blog-ai/writer_test.ts`, and accessibility (the
+  blog, a post, the admin list, editor and AI draft).
+
 **Still to do**
 
 - [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.

@@ -13,6 +13,7 @@ import AdminProfilesTab from './AdminProfilesTab';
 import AdminMessagesTab from './AdminMessagesTab';
 import AdminOffersTab from './AdminOffersTab';
 import AdminEnquiriesTab from './AdminEnquiriesTab';
+import AdminBlogTab from './AdminBlogTab';
 import { fetchEnquiries } from '../../lib/adminGrowth';
 import AdminReportsTab from './AdminReportsTab';
 import AdminGrievancesTab from './AdminGrievancesTab';
@@ -36,6 +37,8 @@ import AdminAppTab from './AdminAppTab';
 //   Safety:   Reports, Complaints (to the Grievance Officer, with deadlines)
 //   Growth:   Messages           in-app messages and notifications
 //             Offers             a code in a banner on the home page
+//             Blog               posts for the website's /blog, written by
+//                                hand or with AI, with their SEO fields
 //   Inbox:    Enquiries          the website's contact form
 //   Business: Finance            subscribers, revenue, every charge (CSV)
 //   System:   Errors, Audit log, App preview (the members' app, website only)
@@ -46,7 +49,7 @@ import AdminAppTab from './AdminAppTab';
 // ============================================================================
 
 export type AdminTab = 'dashboard' | 'customers' | 'verifications' | 'profiles' | 'reports' | 'grievances' | 'messages' | 'offers'
-  | 'enquiries' | 'finance' | 'errors' | 'audit' | 'app';
+  | 'blog' | 'enquiries' | 'finance' | 'errors' | 'audit' | 'app';
 
 interface Section {
   id: AdminTab;
@@ -71,6 +74,7 @@ const SECTIONS: Record<AdminTab, Section> = {
   profiles: { id: 'profiles', label: 'Profiles', description: 'How much members have filled in, section by section, and a message to those who haven’t.', icon: icon('M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z|M14 2v6h6|M8 13h8|M8 17h5') },
   messages: { id: 'messages', label: 'Messages', description: 'In-app messages and notifications to a group of members.', icon: icon('M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z') },
   offers: { id: 'offers', label: 'Offers', description: 'A code for Shaadi24+ in a banner on the website’s home page.', icon: icon('M20 12v10H4V12|M2 7h20v5H2z|M12 22V7|M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z|M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z') },
+  blog: { id: 'blog', label: 'Blog', description: 'Posts on the website’s blog: write them yourself or with AI, with their search engine fields.', wide: true, icon: icon('M12.5 22H18a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v9.5|M14 2v4a2 2 0 0 0 2 2h4|M13.378 15.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z') },
   enquiries: { id: 'enquiries', label: 'Enquiries', description: 'Messages from the contact form on the website.', icon: icon('M22 12h-6l-2 3h-4l-2-3H2|M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z'), count: (_s, x) => x.newEnquiries },
   reports: { id: 'reports', label: 'Reports', description: 'Members reported by other members.', icon: icon('M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z|M4 22v-7'), count: (s) => s?.pending_reports ?? 0 },
   grievances: { id: 'grievances', label: 'Complaints', description: 'Complaints to the Grievance Officer, with their legal deadlines.', icon: icon('M12 3v18|M5 7l7-4 7 4|M2 14l3-7 3 7a3.5 3.5 0 0 1-6 0|M16 14l3-7 3 7a3.5 3.5 0 0 1-6 0|M8 21h8') },
@@ -86,7 +90,7 @@ const GROUPS: { label: string | null; items: AdminTab[] }[] = [
   { label: null, items: ['dashboard'] },
   { label: 'People', items: ['customers', 'verifications', 'profiles'] },
   { label: 'Safety', items: ['reports', 'grievances'] },
-  { label: 'Growth', items: ['messages', 'offers'] },
+  { label: 'Growth', items: ['messages', 'offers', 'blog'] },
   { label: 'Inbox', items: ['enquiries'] },
   { label: 'Business', items: ['finance'] },
   { label: 'System', items: isNativeApp() || isAppPreview() ? ['errors', 'audit'] : ['errors', 'audit', 'app'] },
@@ -223,6 +227,7 @@ const AdminView: React.FC<{ initialTab?: AdminTab }> = ({ initialTab }) => {
           {tab === 'grievances' && <AdminGrievancesTab onAuditUpdate={loadDashboard} />}
           {tab === 'messages' && <AdminMessagesTab />}
           {tab === 'offers' && <AdminOffersTab />}
+          {tab === 'blog' && <AdminBlogTab />}
           {tab === 'enquiries' && <AdminEnquiriesTab onChanged={countEnquiries} />}
           {tab === 'finance' && <AdminFinanceTab />}
           {tab === 'errors' && <AdminErrorsTab onAuditUpdate={loadDashboard} />}
