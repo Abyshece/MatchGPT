@@ -445,6 +445,10 @@ verify_jwt = false
 [functions.delete-account]
 verify_jwt = false
 
+# Checks that the caller is an admin itself (supabase/functions/blog-ai/index.ts).
+[functions.blog-ai]
+verify_jwt = false
+
 # Checks the signed-in user itself (supabase/functions/search/index.ts).
 [functions.search]
 verify_jwt = false

@@ -64,6 +64,12 @@ async function audit(page, name) {
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
 const phone = (colorScheme = 'light') => browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, colorScheme });
 
+// A post for the blog's pages
+sql(`delete from blog_posts where slug = 'a11y-test-post';
+  insert into blog_posts (slug, title, excerpt, content, tags, status) values ('a11y-test-post', 'Meeting the family for the first time',
+  'What to expect, and what to ask.', E'Some advice first.\\n\\n## Before\\n\\n- Dress simply\\n- [Read our guide](/safety)\\n\\n## During\\n\\nListen.\\n\\n## After\\n\\n> Say thank you.',
+  array['family'], 'published');`);
+
 // An error for the Errors tab to show
 sql(`select report_error('android', 'TypeError: Cannot read properties of undefined (reading ''photos'')',
        E'TypeError: Cannot read properties of undefined (reading ''photos'')\\n    at ProfileCard (index-a1b2c3.js:1:2345)',
@@ -75,7 +81,8 @@ try {
     const ctx = await phone(scheme);
     const page = await ctx.newPage();
     for (const [path, name] of [['/', 'home'], ['/support', 'support'], ['/delete-account', 'delete account'], ['/terms', 'terms'],
-      ['/privacy', 'privacy'], ['/grievances', 'grievances'], ['/safety', 'safety'], ['/refunds', 'refunds'], ['/admin', 'admin sign-in']]) {
+      ['/privacy', 'privacy'], ['/grievances', 'grievances'], ['/safety', 'safety'], ['/refunds', 'refunds'], ['/blog', 'blog'],
+      ['/blog/a11y-test-post', 'blog post'], ['/admin', 'admin sign-in']]) {
       await page.goto(`${WEBSITE}${path}`);
       await page.locator('h1').first().waitFor({ timeout: 15000 });
       await audit(page, `website ${name} (${scheme})`);
@@ -127,6 +134,17 @@ try {
     await page.getByRole('dialog', { name: 'New offer' }).waitFor({ timeout: 5000 });
     await audit(page, `admin new offer (${scheme})`);
     await page.getByRole('dialog', { name: 'New offer' }).getByRole('button', { name: 'Cancel' }).click();
+    await page.getByRole('button', { name: /^blog$/i }).click();
+    await page.getByTestId('blog-posts').waitFor({ timeout: 15000 });
+    await audit(page, `admin blog (${scheme})`);
+    await page.getByRole('button', { name: /^Meeting the family/ }).click();
+    await page.getByTestId('blog-editor').waitFor({ timeout: 5000 });
+    await audit(page, `admin blog editor (${scheme})`);
+    await page.getByRole('button', { name: '✨ Write with AI' }).click();
+    await page.getByTestId('blog-draft-ai').waitFor({ timeout: 5000 });
+    await audit(page, `admin blog AI draft (${scheme})`);
+    await page.getByTestId('blog-draft-ai').getByRole('button', { name: 'Cancel' }).click();
+    await page.getByRole('button', { name: '← All posts' }).click();
     await page.getByRole('button', { name: /^errors$/i }).click();
     await page.getByTestId('admin-error').first().waitFor({ timeout: 15000 });
     await page.getByTestId('admin-error').first().getByRole('button').first().click();
@@ -204,7 +222,8 @@ try {
   log('FAIL (stopped):', e.message.split('\n').slice(0, 2).join(' / '));
   await current?.screenshot({ path: `${OUT}STOPPED.png` }).catch(() => {});
 } finally {
-  sql(`update profiles set profile_nudged_at = now() where email = '${MEMBER}';`);
+  sql(`update profiles set profile_nudged_at = now() where email = '${MEMBER}';
+    delete from blog_posts where slug = 'a11y-test-post';`);
   await browser.close();
   log('== Every problem found, by rule');
   for (const [key, v] of [...seen.entries()].sort()) {
