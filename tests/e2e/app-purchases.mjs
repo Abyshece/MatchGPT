@@ -10,15 +10,20 @@
 //    ignored; closing the payment sheet; buying monthly (the account's id goes
 //    with it; Pro on);
 //    the app catching up with the store at sign-in; Settings: billed by
-//    Google Play, Manage subscription, the payment, Restore purchases; a
-//    pending payment; nothing on sale yet → "coming soon"
+//    Google Play, Manage subscription, the payment, Restore purchases; Change
+//    plan: 1 month marked and not to be picked, 3 months bought as a base plan
+//    of the same subscription, which replaces the old purchase; a pending
+//    payment; nothing on sale yet → "coming soon"
 //  iPhone: the free trial and Apple's terms; buying 6 months in the trial; a
-//    renewal the App Store delivers while the app runs; Settings; deleting the
-//    account warns that the App Store subscription carries on
+//    renewal the App Store delivers while the app runs; Settings; Change plan
+//    to 3 months: nothing charged, "Switches to 3 months on …" until the
+//    renewal, then 3 months; deleting the account warns that the App Store
+//    subscription carries on
 // Usage: node app-purchases.mjs <email>
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
+import { createRequire } from 'node:module';
 import { CONSENTED } from './fixtures.mjs';
 const DB = process.env.DB_CONTAINER || 'supabase_db_Shaadi24';
 const BASE = process.env.BASE_URL || 'http://localhost:3000';
@@ -36,6 +41,17 @@ const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
 const sql = (q) => execSync(`docker exec -i ${DB} psql -U postgres -At`, { input: q }).toString().trim();
 let failures = 0;
 const check = (ok, what) => { log(ok ? '  ok  ' : '  FAIL', what); if (!ok) failures++; };
+const appears = (loc, ms = 10000) => loc.first().waitFor({ timeout: ms }).then(() => true, () => false);
+const AXE = fs.readFileSync(createRequire(import.meta.url).resolve('axe-core/axe.min.js'), 'utf8');
+const accessible = async (page, name) => {
+  await page.waitForTimeout(400);
+  if (!(await page.evaluate(() => 'axe' in window))) await page.addScriptTag({ content: AXE });
+  const { violations } = await page.evaluate(() => window.axe.run(document, {
+    runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice'] },
+  }));
+  const bad = violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
+  check(!bad.length, `${name}: accessible${bad.length ? ` (${bad.map((v) => `${v.id}: ${v.nodes[0]?.html.slice(0, 100)}`).join('; ')})` : ''}`);
+};
 const store = (path, body) => fetch(`${STORE}${path}`, {
   method: body === undefined ? 'GET' : 'POST', headers: { 'Content-Type': 'application/json' },
   ...(body === undefined ? {} : { body: JSON.stringify(body) }),
@@ -137,6 +153,24 @@ function storeSide(platform, state) {
           return { error: platform === 'android' ? { message: 'Purchase is not purchased', code: 'USER_CANCELED' } : { message: 'User cancelled' } };
         }
         if (next === 'pending') return { error: { message: platform === 'android' ? 'Purchase is pending' : 'Transaction pending' } };
+        if (state.change && platform === 'android') {
+          // Another base plan of the same subscription: Google replaces the purchase
+          state.change = false;
+          const old = state.owned.at(-1);
+          const p = await store(`/__google/change/${encodeURIComponent(old)}`, { basePlan: o.planIdentifier });
+          state.owned.push(p.purchaseToken);
+          return { data: { transactionId: p.purchaseToken, purchaseToken: p.purchaseToken, orderId: p.orderId,
+            productIdentifier: o.productIdentifier, purchaseState: '1', isAcknowledged: false, appAccountToken: o.appAccountToken } };
+        }
+        if (state.change) {
+          // Another length on the same level: Apple switches at the next renewal
+          state.change = false;
+          const orig = state.owned.at(-1);
+          const c = await store(`/__apple/crossgrade/${orig}`, { product: o.productIdentifier });
+          const l = await store(`/__apple/latest/${orig}`);
+          return { data: { transactionId: c.transactionId, productIdentifier: l.productId, jwsRepresentation: c.jws,
+            purchaseDate: new Date().toISOString(), isActive: true, willCancel: null } };
+        }
         if (platform === 'android') {
           const p = await store('/__google/purchase', { userId: o.appAccountToken, basePlan: o.planIdentifier, test: true });
           state.owned.push(p.purchaseToken);
@@ -155,7 +189,8 @@ function storeSide(platform, state) {
         const purchases = [];
         for (const orig of state.owned) {
           const l = await store(`/__apple/latest/${orig}`);
-          purchases.push({ transactionId: l.transactionId, jwsRepresentation: l.jws, productIdentifier: 'shaadi24_plus_halfyearly', willCancel: null });
+          purchases.push({ transactionId: l.transactionId, jwsRepresentation: l.jws, productIdentifier: l.productId, willCancel: null,
+            renewalInfo: { willAutoRenew: true, autoRenewProductId: l.autoRenewProductId } });
         }
         return { data: { purchases } };
       }
@@ -277,8 +312,33 @@ try {
   check(callsTo(a, 'getPurchases').length > before && !('appAccountToken' in restoreCall.options), 'Restore purchases: every purchase on this Google account');
   await page.screenshot({ path: `${OUT}android-3-settings.png` });
 
+  // Change plan: 1 month → 3 months
+  await settings.getByRole('button', { name: 'Change plan' }).click();
+  const change = page.getByTestId('change-plan');
+  await change.getByTestId('plan-cards').waitFor({ timeout: 15000 });
+  const mine = change.getByRole('radio', { name: /1 month/ });
+  check((await mine.innerText()).includes('Your plan') && await mine.isDisabled(), 'Change plan: 1 month marked "Your plan" and not to be picked');
+  check(await change.getByRole('radio', { name: /3 months/ }).getAttribute('aria-checked') === 'true', 'the next longer plan chosen to start with');
+  check(await change.getByTestId('change-timing').getByText(/Google Play shows the price and when you'll be charged/).isVisible()
+    && await change.getByText(/charged to your Google Play account/).isVisible(), "how Google Play changes it, and Google Play's terms");
+  await page.screenshot({ path: `${OUT}android-4-change-plan.png` });
+  await accessible(page, 'Change plan');
+  const oldToken = a.owned.at(-1);
+  a.change = true;
+  await change.getByRole('button', { name: 'Switch to 3 months · ₹1,999.00' }).click();
+  await change.getByText('Plan changed').waitFor({ timeout: 15000 });
+  const switched = callsTo(a, 'purchaseProduct').at(-1)?.options;
+  check(switched?.productIdentifier === 'shaadi24_plus' && switched.planIdentifier === 'quarterly',
+    'bought the 3-month base plan of the same subscription (Google treats it as a change of plan)');
+  check(subOf('google_play') === 'active|quarterly' && tier() === 'PRO'
+    && sql(`select status from subscriptions where store_subscription_id = '${oldToken}';`) === 'expired',
+    'the new purchase replaces the old one: 3 months active, 1 month closed, still Shaadi24+');
+  check(await change.getByText(/You're now on 3 months/).isVisible(), '"You\'re now on 3 months"');
+  await change.getByRole('button', { name: 'Done' }).click();
+  check(await appears(settings.getByText('Shaadi24+ 3 months')), 'Settings shows 3 months');
+
   // A pending payment, then nothing on sale
-  await store(`/__google/expire/${encodeURIComponent(a.owned[0])}`, {});
+  await store(`/__google/expire/${encodeURIComponent(a.owned.at(-1))}`, {});
   check(tier() === 'FREE', '(the subscription ran out)');
   await page.reload();
   await page.getByTestId('find-match-box').waitFor({ timeout: 20000 });
@@ -345,6 +405,34 @@ try {
   await page.waitForTimeout(300);
   check(callsTo(i, 'manageSubscriptions').length === 1, "Settings: billed by the App Store; Manage subscription opens Apple's page");
   await page.screenshot({ path: `${OUT}ios-2-settings.png` });
+
+  // Change plan: 6 months → 3 months, from the next renewal
+  const renewsOn = await isettings.locator('p strong').first().innerText();
+  await isettings.getByRole('button', { name: 'Change plan' }).click();
+  const ichange = page.getByTestId('change-plan');
+  await ichange.getByTestId('plan-cards').waitFor({ timeout: 15000 });
+  check((await ichange.getByRole('radio', { name: /6 months/ }).innerText()).includes('Your plan')
+    && await ichange.getByRole('radio', { name: /3 months/ }).getAttribute('aria-checked') === 'true',
+    'Change plan: 6 months marked "Your plan"; 3 months chosen (the next shorter)');
+  check(await ichange.getByTestId('change-timing').innerText()
+    === `Apple moves you to the new plan when your current one renews on ${renewsOn}, and charges its price then. Nothing is charged today.`,
+    `when Apple changes it: ${await ichange.getByTestId('change-timing').innerText()}`);
+  i.change = true;
+  await ichange.getByRole('button', { name: 'Switch to 3 months · ₹1,999.00' }).click();
+  await ichange.getByText('Plan changed').waitFor({ timeout: 15000 });
+  check(callsTo(i, 'purchaseProduct').at(-1)?.options.productIdentifier === 'shaadi24_plus_quarterly', 'bought shaadi24_plus_quarterly (same group: a change of plan)');
+  check(await ichange.getByText(/Your plan changes to 3 months on/).isVisible(), '"Your plan changes to 3 months on …"');
+  check(subOf('app_store') === 'active|halfyearly' && sql(`select count(*) from payments where user_id = '${me}';`) === '1',
+    'nothing charged, still 6 months until the renewal');
+  await page.screenshot({ path: `${OUT}ios-2b-changed.png` });
+  await ichange.getByRole('button', { name: 'Done' }).click();
+  check(await appears(isettings.getByTestId('pending-plan').getByText(`Switches to 3 months on ${renewsOn}.`, { exact: false })),
+    `Settings: "Switches to 3 months on ${renewsOn}"`);
+  // The renewal: on 3 months now
+  const switchedRenewal = await store(`/__apple/renew/${orig}`, {});
+  await page.evaluate((jws) => window.__transactionUpdated({ transactionId: 'y', jwsRepresentation: jws }), switchedRenewal.jws);
+  await page.waitForTimeout(2000);
+  check(subOf('app_store') === 'active|quarterly', 'renewed on 3 months');
 
   await page.getByRole('button', { name: 'Delete Account' }).click();
   await page.getByText('I need a break', { exact: true }).click();

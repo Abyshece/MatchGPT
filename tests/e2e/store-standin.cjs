@@ -32,6 +32,9 @@
 //                                         → {jws, transactionId, originalTransactionId}
 //   POST /__apple/renew/<orig>            the next period is charged (DID_RENEW) → {jws, transactionId}
 //   POST /__apple/autorenew/<orig>?on=0|1 renewal turned off / on (DID_CHANGE_RENEWAL_STATUS)
+//   POST /__apple/crossgrade/<orig> {product}  a change to a plan of another length, from the
+//                                         next renewal (DID_CHANGE_RENEWAL_PREF, DOWNGRADE)
+//                                         → the latest transaction {jws, transactionId}
 //   POST /__apple/fail/<orig>?grace=1     a renewal failed (DID_FAIL_TO_RENEW, with
 //                                         or without a grace period)
 //   POST /__apple/expire/<orig>           the period ran out (EXPIRED)
@@ -39,7 +42,8 @@
 //   POST /__apple/notify {payload}        signs and sends any notification payload
 //   POST /__apple/sign {payload, chain}   signs any payload (chain "other": a look-alike
 //                                         chain that isn't Apple's) → {jws}
-//   GET  /__apple/latest/<orig>           the latest transaction, signed → {jws}
+//   GET  /__apple/latest/<orig>           the latest transaction, signed → {jws, transactionId,
+//                                         productId, autoRenewProductId}
 //   GET  /__calls                         every Google API call so far
 // Sign in with Apple (appleid.apple.com): /appleid/auth/token exchanges an app's
 // one-time code, /appleid/auth/revoke ends it; both check the client secret
@@ -425,7 +429,7 @@ function appleRenewal(a) {
   const latest = a.txs[a.txs.length - 1];
   return {
     originalTransactionId: a.orig,
-    autoRenewProductId: a.product,
+    autoRenewProductId: a.pendingProduct ?? a.product,
     productId: a.product,
     autoRenewStatus: a.autoRenew ? 1 : 0,
     environment: a.environment,
@@ -484,10 +488,21 @@ async function appleHook(action, orig, url, body, res) {
   let r;
   switch (action) {
     case 'latest':
-      return send(res, 200, { jws: await sign(appleTx(a, latest)), transactionId: latest.id });
+      return send(res, 200, { jws: await sign(appleTx(a, latest)), transactionId: latest.id,
+        productId: a.product, autoRenewProductId: a.pendingProduct ?? a.product });
+    case 'crossgrade':
+      // Another length on the same level: from the next renewal; nothing charged now
+      a.pendingProduct = body.product;
+      a.autoRenew = true;
+      r = await appleNotify(a, 'DID_CHANGE_RENEWAL_PREF', 'DOWNGRADE');
+      return send(res, 200, { notified: r, jws: await sign(appleTx(a, latest)), transactionId: latest.id });
     case 'renew': {
-      // The period (or trial) has just ended and the next one is charged
+      // The period (or trial) has just ended and the next one is charged (on a plan changed to)
       latest.expiresDate = Math.min(latest.expiresDate, now - 1);
+      if (a.pendingProduct) {
+        a.product = a.pendingProduct;
+        a.pendingProduct = null;
+      }
       const tx = { id: newTxId(), webOrder: randomDigits(12), purchaseDate: now, reason: 'RENEWAL', trial: false,
         expiresDate: addPeriod(now, APPLE_PRODUCTS[a.product]) };
       a.txs.push(tx);

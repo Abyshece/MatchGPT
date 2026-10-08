@@ -24,6 +24,12 @@ import {
 
 // The plan picked to start with: three months, as most people take it
 const FIRST_CHOICE: PlanId[] = ['quarterly', 'monthly', 'halfyearly', 'weekly'];
+// Changing plan: the next longer one to start with (from 6 months, 3 months)
+const LADDER: PlanId[] = ['weekly', 'monthly', 'quarterly', 'halfyearly'];
+const changeChoice = (current: PlanId): PlanId[] => {
+  const at = LADDER.indexOf(current);
+  return at < 0 ? FIRST_CHOICE : [...LADDER.slice(at + 1), ...LADDER.slice(0, at).reverse()];
+};
 
 function money(amount: number, currency: string, digits: number): string {
   try {
@@ -53,11 +59,16 @@ function openLegal(page: 'terms' | 'privacy', close: () => void) {
   window.location.hash = page;
 }
 
-/** The purchase: the store's offers, the chosen plan, buying and restoring. */
-export function useStoreUpgrade({ paying, setPaying, onPurchased }: {
+/**
+ * The purchase: the store's offers, the chosen plan, buying and restoring.
+ * `current`: changing plan, from this one (it can't be chosen); the stores
+ * treat buying another of the plans as a change of plan.
+ */
+export function useStoreUpgrade({ paying, setPaying, onPurchased, current }: {
   paying: boolean;
   setPaying: (paying: boolean) => void;
   onPurchased: (result: { trialEndsAt: string | null; renewsAt: string | null }) => void;
+  current?: PlanId;
 }) {
   const { session, refreshProfile } = useAuth();
   const platform = storePlatform();
@@ -78,9 +89,9 @@ export function useStoreUpgrade({ paying, setPaying, onPurchased }: {
     return () => { live = false; };
   }, []);
 
-  const offer = offers?.find((o) => o.planId === planId)
-    ?? FIRST_CHOICE.map((id) => offers?.find((o) => o.planId === id)).find(Boolean)
-    ?? offers?.[0];
+  const offer = offers?.find((o) => o.planId === planId && o.planId !== current)
+    ?? (current ? changeChoice(current) : FIRST_CHOICE).map((id) => offers?.find((o) => o.planId === id)).find(Boolean)
+    ?? offers?.find((o) => o.planId !== current);
   const store = storeName(platform);
   const account = platform === 'ios' ? 'Apple ID' : 'Google account';
   const busy = paying || restoring;
@@ -134,8 +145,11 @@ export function useStoreUpgrade({ paying, setPaying, onPurchased }: {
 }
 
 /** The plans, one under another: each with its full price (what the store charges), the price a week, and what it saves */
-export const PlanCards: React.FC<{ offers: StoreOffer[] | null; chosen: PlanId | undefined; busy: boolean; onPick: (id: PlanId) => void }> = ({
-  offers, chosen, busy, onPick,
+export const PlanCards: React.FC<{
+  offers: StoreOffer[] | null; chosen: PlanId | undefined; busy: boolean; onPick: (id: PlanId) => void;
+  current?: PlanId;   // changing plan: the one they have, marked and not to be picked
+}> = ({
+  offers, chosen, busy, onPick, current,
 }) => {
   const saved = offers ? savings(offers) : null;
 
@@ -152,6 +166,7 @@ export const PlanCards: React.FC<{ offers: StoreOffer[] | null; chosen: PlanId |
     <div role="radiogroup" aria-label="Plan" data-testid="plan-cards" className="space-y-2">
       {offers.map((o) => {
         const on = o.planId === chosen;
+        const mine = o.planId === current;
         const save = saved?.get(o.planId) ?? 0;
         const week = perWeek(o);
         return (
@@ -161,11 +176,13 @@ export const PlanCards: React.FC<{ offers: StoreOffer[] | null; chosen: PlanId |
             role="radio"
             aria-checked={on}
             onClick={() => onPick(o.planId)}
-            disabled={busy}
+            disabled={busy || mine}
             className={`w-full flex items-center gap-3 rounded-2xl border px-4 py-3 text-left transition-colors ${
               on
                 ? 'border-gray-900 dark:border-white bg-gray-50 dark:bg-zinc-800'
-                : 'border-gray-200 dark:border-zinc-700 hover:border-gray-400 dark:hover:border-zinc-500'
+                : mine
+                  ? 'border-dashed border-gray-300 dark:border-zinc-600 cursor-default'
+                  : 'border-gray-200 dark:border-zinc-700 hover:border-gray-400 dark:hover:border-zinc-500'
             }`}
           >
             <span
@@ -179,7 +196,12 @@ export const PlanCards: React.FC<{ offers: StoreOffer[] | null; chosen: PlanId |
             <span className="flex-1 min-w-0">
               <span className="flex items-center gap-2">
                 <span className="text-[15px] font-semibold">{PERIODS[o.period].label}</span>
-                {save > 0 && (
+                {mine && (
+                  <span className="rounded-full px-2 py-0.5 text-[11px] font-semibold bg-gray-900 text-white dark:bg-white dark:text-gray-900">
+                    Your plan
+                  </span>
+                )}
+                {save > 0 && !mine && (
                   <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
                     on ? 'plus-solid' : 'bg-gray-100 text-gray-700 dark:bg-zinc-800 dark:text-zinc-200'
                   }`}>
