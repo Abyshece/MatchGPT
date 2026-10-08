@@ -1,6 +1,9 @@
 // ============================================================================
-// Shaadi24's logo, a silver ring with a blue diamond (like the 💍 the website
-// and the apps show), and every image made from it:
+// Shaadi24's logo is the 💍 emoji, as the apps and the website show it: Google's
+// Noto Emoji ring (the one most Android phones show), unchanged, from
+// scripts/assets/noto-emoji-ring.svg (see scripts/assets/README.md for where
+// it comes from and its licence). Apple's 💍 can't be used: Apple's emoji
+// pictures may only be shown as text on Apple's devices. Every image made from it:
 //   ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
 //                                   the iPhone app's icon, 1024 × 1024, white,
 //                                   no alpha channel (the App Store takes it
@@ -15,13 +18,14 @@
 //   android/app/src/main/res/drawable-*/splash_icon.png
 //                                   the Android launch screen
 //   android/app/src/main/res/drawable/ic_launcher_monochrome.xml
-//                                   the Android themed (single-colour) icon
+//                                   the Android themed (single-colour) icon: the
+//                                   emoji's outline
 //   docs/store/graphics/play-icon-512.png         Google Play, 512 × 512, 32-bit
 //   docs/store/graphics/play-feature-graphic.jpg  Google Play, 1024 × 500
 //   public/og-image.png                            the picture in link previews
 //   public/apple-touch-icon.png, favicon-32.png    the website's icons (with
 //                                                  public/favicon.svg)
-// Change the drawing or the words below and run again to remake them all.
+// Change the sizes or the words below and run again to remake them all.
 //
 // Usage: node scripts/store-graphics.mjs
 // (needs Playwright's Chromium: npm i --no-save playwright && npx playwright install chromium;
@@ -46,90 +50,73 @@ const PREVIEW_LINE = 'Matrimony for India';
 const DARK = '#191919';  // the apps' dark background (index.css, values-night/colors.xml)
 
 // ---- The logo -------------------------------------------------------------------------
-// In a 1024-unit square, centred on (512, 530): the band seen a little from
-// above, the setting, and the diamond with its facets and a sparkle. The
-// outlines are kept here so the single-colour Android icon follows them
-const BAND = { cx: 512, cy: 650, outer: [250, 232], inner: [182, 166] };
-const SETTING = [[420, 380], [604, 380], [566, 452], [458, 452]];
-const STONE = [[350, 262], [432, 178], [592, 178], [674, 262], [512, 438]];
-const points = (list) => list.map((p) => p.join(',')).join(' ');
-const round = (v) => +v.toFixed(2);
-const ellipse = ({ cx, cy }, [rx, ry]) => `M${round(cx - rx)},${cy} a${rx},${ry} 0 1,0 ${round(2 * rx)},0 a${rx},${ry} 0 1,0 ${round(-2 * rx)},0 Z`;
-const RING_DEFS = `
-  <linearGradient id="band" x1="0.15" y1="0.1" x2="0.85" y2="0.95">
-    <stop offset="0" stop-color="#f1f5f9"/><stop offset="0.3" stop-color="#cbd5e1"/>
-    <stop offset="0.55" stop-color="#94a3b8"/><stop offset="0.75" stop-color="#e2e8f0"/>
-    <stop offset="1" stop-color="#64748b"/>
-  </linearGradient>
-  <linearGradient id="head" x1="0" y1="0" x2="1" y2="0">
-    <stop offset="0" stop-color="#94a3b8"/><stop offset="0.5" stop-color="#e2e8f0"/><stop offset="1" stop-color="#64748b"/>
-  </linearGradient>
-  <linearGradient id="table" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0" stop-color="#e0f2fe"/><stop offset="1" stop-color="#93c5fd"/>
-  </linearGradient>`;
-const RING_SHAPES = `
-  <path fill="url(#band)" fill-rule="evenodd" d="${ellipse(BAND, BAND.outer)} ${ellipse(BAND, BAND.inner)}"/>
-  <ellipse cx="${BAND.cx}" cy="${BAND.cy}" rx="${BAND.inner[0]}" ry="${BAND.inner[1]}" fill="none" stroke="#64748b" stroke-opacity="0.45" stroke-width="8"/>
-  <path d="M300,560 A250,232 0 0,1 470,424" fill="none" stroke="#fff" stroke-width="14" stroke-linecap="round" stroke-opacity="0.9"/>
-  <polygon points="${points(SETTING)}" fill="url(#head)"/>
-  <g stroke="#eff6ff" stroke-width="5" stroke-linejoin="round">
-    <polygon points="350,262 432,178 456,262" fill="#93c5fd"/>
-    <polygon points="432,178 592,178 568,262 456,262" fill="url(#table)"/>
-    <polygon points="592,178 674,262 568,262" fill="#60a5fa"/>
-    <polygon points="350,262 456,262 512,438" fill="#60a5fa"/>
-    <polygon points="456,262 568,262 512,438" fill="#93c5fd"/>
-    <polygon points="568,262 674,262 512,438" fill="#2563eb"/>
-  </g>
-  <polygon points="${points(STONE)}" fill="none" stroke="#2563eb" stroke-opacity="0.55" stroke-width="7" stroke-linejoin="round"/>
-  <path d="M478,198 l9,22 22,9 -22,9 -9,22 -9,-22 -22,-9 22,-9 z" fill="#fff"/>`;
+// The emoji, drawn on its own 128-unit square
+const EMOJI = fs.readFileSync(path.join(ROOT, 'scripts/assets/noto-emoji-ring.svg'), 'utf8');
+const EMOJI_ART = EMOJI.slice(EMOJI.indexOf('<g>'), EMOJI.lastIndexOf('</svg>'));
 
 /**
- * The logo as an SVG: `scale` sizes the ring in the square (1 ≈ 69% of its
- * height); `tile` puts it on a shape (a rounded square of `radius`, or a
+ * The logo as a 1024-unit SVG: the emoji's square takes `size` of it,
+ * centred; `tile` puts it on a shape (a rounded square of `radius`, or a
  * circle) of `background`, inset by `inset` units on each side.
  */
-function ringSvg({ scale = 1.1, background = null, tile = 'square', radius = 0, inset = 0, border = null } = {}) {
-  const size = 1024 - inset * 2;
+function logoSvg({ size = 0.8, background = null, tile = 'square', radius = 0, inset = 0, border = null } = {}) {
+  const side = 1024 - inset * 2;
   const back = !background ? ''
     : tile === 'circle'
-      ? `<circle cx="512" cy="512" r="${size / 2}" fill="${background}"/>`
-      : `<rect x="${inset}" y="${inset}" width="${size}" height="${size}" rx="${radius}" fill="${background}"${
+      ? `<circle cx="512" cy="512" r="${side / 2}" fill="${background}"/>`
+      : `<rect x="${inset}" y="${inset}" width="${side}" height="${side}" rx="${radius}" fill="${background}"${
         border ? ` stroke="${border}" stroke-width="20"` : ''}/>`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><defs>${RING_DEFS}</defs>${back}`
-    + `<g transform="translate(512 512) scale(${scale}) translate(-512 -530)">${RING_SHAPES}</g></svg>`;
+  const box = 1024 * size;
+  const at = (1024 - box) / 2;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">${back}`
+    + `<svg x="${at}" y="${at}" width="${box}" height="${box}" viewBox="0 0 128 128">${EMOJI_ART}</svg></svg>`;
 }
 
-// The app icon: the ring large, on white
-const APP_ICON = ringSvg({ background: '#fff' });
+// The app icon: the emoji large, on white
+const APP_ICON = logoSvg({ background: '#fff' });
 // Android's front layer: launchers show the middle 72 of 108 units, masked to
-// a circle, squircle or square of their choosing; this keeps the ring inside
+// a circle, squircle or square of their choosing; this keeps the emoji inside
 // the 66-unit circle every one of them shows
-const ANDROID_SCALE = 0.8;
-const ANDROID_FOREGROUND = ringSvg({ scale: ANDROID_SCALE });
+const ANDROID_SIZE = 0.56;
+const ANDROID_FOREGROUND = logoSvg({ size: ANDROID_SIZE });
 
 // Android's themed icon (Android 13+, when the member picks themed icons): the
-// same outlines in one colour, as a vector on the front layer's 108-unit grid
+// emoji's shapes in one colour, as a vector on the front layer's 108-unit grid
 function androidMonochrome() {
-  const unit = (v) => round(v * 108 / 1024);
-  const at = ([x, y]) => [unit(512 + ANDROID_SCALE * (x - 512)), unit(512 + ANDROID_SCALE * (y - 530))];
-  const band = { cx: at([BAND.cx, BAND.cy])[0], cy: at([BAND.cx, BAND.cy])[1] };
-  const radii = (r) => r.map((v) => unit(ANDROID_SCALE * v));
-  const path = (list) => `M${list.map((p) => at(p).join(',')).join(' L')} Z`;
-  const shape = (comment, d, extra = '') => `    <!-- ${comment} -->
-    <path
-        android:pathData="${d}"${extra}
-        android:fillColor="#FFFFFF" />`;
+  const round = (v) => +v.toFixed(3);
+  const scale = round(108 * ANDROID_SIZE / 128);
+  const offset = round((108 - 108 * ANDROID_SIZE) / 2);
+  // Its outline: the band, the setting and the stone, without the light on
+  // them (the shadow inside the band and the white glints on it)
+  const lighting = (tag, attributes) => /fill:#4B8A99/i.test(attributes) || (tag === 'path' && /fill:#FFFFFF/i.test(attributes));
+  const shapes = [...EMOJI_ART.matchAll(/<(path|polygon)\b([^>]*?)\s(d|points)="([^"]+)"/g)]
+    .filter(([, tag, attributes]) => !lighting(tag, attributes))
+    .map(([, tag, , , value]) => {
+      const flat = value.replace(/\s+/g, ' ').trim();
+      const d = tag === 'path' ? flat : `M${flat.split(' ').join(' L')} Z`;
+      // a hairline of the same colour, so the facets join without seams
+      return `        <path
+            android:pathData="${d}"
+            android:fillColor="#FFFFFF"
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="0.5"
+            android:strokeLineJoin="round" />`;
+    });
   return `<?xml version="1.0" encoding="utf-8"?>
-<!-- The themed (single-colour) app icon: the ring and its diamond, inside the
-     66dp circle every launcher shows. Made by scripts/store-graphics.mjs -->
+<!-- The themed (single-colour) app icon: the 💍 emoji's outline, inside the 66dp
+     circle every launcher shows. Made by scripts/store-graphics.mjs -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-${shape('the band', `${ellipse(band, radii(BAND.outer))} ${ellipse(band, radii(BAND.inner))}`, '\n        android:fillType="evenOdd"')}
-${shape('the setting', path(SETTING))}
-${shape('the diamond', path(STONE))}
+    <group
+        android:scaleX="${scale}"
+        android:scaleY="${scale}"
+        android:translateX="${offset}"
+        android:translateY="${offset}">
+${shapes.join('\n')}
+    </group>
 </vector>
 `;
 }
@@ -143,7 +130,7 @@ const FEATURE = `<!doctype html><html><head><meta charset="utf-8"><style>
     background: linear-gradient(135deg, #ec4899 0%, #f05a6e 45%, #f97316 100%);
     color: #fff; font-family: 'Helvetica Neue', 'Liberation Sans', Arial, sans-serif;
   }
-  svg { width: 230px; height: 230px; flex: none; border-radius: 52px; box-shadow: 0 12px 32px rgba(0,0,0,.18); }
+  body > svg { width: 230px; height: 230px; flex: none; border-radius: 52px; box-shadow: 0 12px 32px rgba(0,0,0,.18); }
   h1 { margin: 0; font-size: 86px; font-weight: 700; letter-spacing: -2px; }
   p { margin: 18px 0 0; font-size: 34px; line-height: 1.3; }
 </style></head><body>${APP_ICON}<div><h1>${TITLE}</h1><p>${TAGLINE}</p></div></body></html>`;
@@ -151,7 +138,7 @@ const FEATURE = `<!doctype html><html><head><meta charset="utf-8"><style>
 // The link preview: the same, larger, with a line saying what Shaadi24 is
 const PREVIEW = FEATURE
   .replace('width: 1024px; height: 500px;', 'width: 1200px; height: 630px;')
-  .replace('svg { width: 230px; height: 230px; flex: none; border-radius: 52px;', 'svg { width: 280px; height: 280px; flex: none; border-radius: 63px;')
+  .replace('body > svg { width: 230px; height: 230px; flex: none; border-radius: 52px;', 'body > svg { width: 280px; height: 280px; flex: none; border-radius: 63px;')
   .replace('h1 { margin: 0; font-size: 86px;', 'h1 { margin: 0; font-size: 100px;')
   .replace('p { margin: 18px 0 0; font-size: 34px;', 'p { margin: 18px 0 0; font-size: 40px;')
   .replace(`<h1>${TITLE}</h1>`, `<div style="font-size:30px;font-weight:700;letter-spacing:3px;text-transform:uppercase;opacity:.85;margin-bottom:10px">${PREVIEW_LINE}</div><h1>${TITLE}</h1>`);
@@ -213,16 +200,16 @@ try {
 
   // iPhone
   await opaque(path.join(IOS, 'AppIcon.appiconset/AppIcon-512@2x.png'), APP_ICON, 1024, '#fff');
-  await opaque(path.join(IOS, 'Splash.imageset/splash-2732x2732.png'), ringSvg({ scale: 0.3, background: '#fff' }), 2732, '#fff');
-  await opaque(path.join(IOS, 'Splash.imageset/splash-2732x2732-dark.png'), ringSvg({ scale: 0.3, background: DARK }), 2732, DARK);
+  await opaque(path.join(IOS, 'Splash.imageset/splash-2732x2732.png'), logoSvg({ size: 0.22, background: '#fff' }), 2732, '#fff');
+  await opaque(path.join(IOS, 'Splash.imageset/splash-2732x2732-dark.png'), logoSvg({ size: 0.22, background: DARK }), 2732, DARK);
 
   // Android: the adaptive icon's front layer and the launch screen at each density
   // (108 dp), and the icons older launchers show as they are (48 dp)
   const densities = { mdpi: 1, hdpi: 1.5, xhdpi: 2, xxhdpi: 3, xxxhdpi: 4 };
   for (const [name, x] of Object.entries(densities)) {
     await png(path.join(ANDROID, `mipmap-${name}/ic_launcher_foreground.png`), ANDROID_FOREGROUND, 108 * x);
-    await png(path.join(ANDROID, `mipmap-${name}/ic_launcher.png`), ringSvg({ scale: 0.95, background: '#fff', radius: 190, inset: 48 }), 48 * x);
-    await png(path.join(ANDROID, `mipmap-${name}/ic_launcher_round.png`), ringSvg({ scale: 0.85, background: '#fff', tile: 'circle', inset: 48 }), 48 * x);
+    await png(path.join(ANDROID, `mipmap-${name}/ic_launcher.png`), logoSvg({ size: 0.74, background: '#fff', radius: 190, inset: 48 }), 48 * x);
+    await png(path.join(ANDROID, `mipmap-${name}/ic_launcher_round.png`), logoSvg({ size: 0.72, background: '#fff', tile: 'circle', inset: 48 }), 48 * x);
     await png(path.join(ANDROID, `drawable-${name}/splash_icon.png`), ANDROID_FOREGROUND, 108 * x);
   }
   saved.push(write(path.join(ANDROID, 'drawable/ic_launcher_monochrome.xml'), androidMonochrome()));
@@ -230,10 +217,10 @@ try {
   // Google Play and the website
   await png(path.join(OUT, 'play-icon-512.png'), APP_ICON, 512);
   await png(path.join(PUBLIC, 'apple-touch-icon.png'), APP_ICON, 180);
-  await png(path.join(PUBLIC, 'favicon-32.png'), ringSvg({ scale: 1.2, background: '#fff', radius: 224, border: '#e5e7eb' }), 32);
+  await png(path.join(PUBLIC, 'favicon-32.png'), logoSvg({ size: 0.86, background: '#fff', radius: 224, border: '#e5e7eb' }), 32);
   saved.push(write(path.join(PUBLIC, 'favicon.svg'),
     `<!-- The app icon (scripts/store-graphics.mjs), with rounded corners and an edge for browser tabs -->\n${
-      ringSvg({ scale: 1.2, background: '#fff', radius: 224, border: '#e5e7eb' })}\n`));
+      logoSvg({ size: 0.86, background: '#fff', radius: 224, border: '#e5e7eb' })}\n`));
 
   await page.setViewportSize({ width: 1024, height: 500 });
   await page.setContent(FEATURE);

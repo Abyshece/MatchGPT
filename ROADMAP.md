@@ -603,16 +603,18 @@ scrollbar on the right: a large sparkle and title, then seven full-width suggest
 - [x] The iPhone test checks the start screen fits; the Android, Settings, popup and accessibility tests
   pass.
 
-Part 16 done 2026-10-08: **a new app icon: the ring with the blue diamond, on white.** The icon was a
-white ring outline on a pink-to-orange square; the apps and the website show 💍, a silver ring with a
-blue diamond.
+Part 16 done 2026-10-08: **the app icon is the 💍 emoji, on white.** The icon was a white ring outline
+on a pink-to-orange square; the apps and the website show 💍, a silver ring with a blue diamond.
 
-- [x] Our own drawing of that ring (the emoji's picture belongs to Apple or Google, so it can't be the
-  icon), large on white: the iPhone icon, the Android icon (round, squircle or square, whatever the
-  phone uses, and the single-colour themed icon on Android 13+), Google Play's icon and feature
-  graphic, and the website's favicon, home-screen icon and link preview.
-- [x] Launch screens: the ring on white, or on the app's dark grey when the phone is in dark mode.
-- [x] `scripts/store-graphics.mjs` draws it once and makes every image from it.
+- [x] The icon is that emoji, as Google's Noto Emoji draws it (what most Android phones show), unchanged
+  and large on white: the iPhone icon, the Android icon (round, squircle or square, whatever the phone
+  uses; the single-colour themed icon on Android 13+ is its outline), Google Play's icon and feature
+  graphic, and the website's favicon, home-screen icon and link preview. Apple's 💍 can't be used:
+  Apple's emoji pictures may only be shown as text on Apple's devices. Noto's is free to use (Apache
+  2.0; `scripts/assets/README.md`).
+- [x] Launch screens: the emoji on white, or on the app's dark grey when the phone is in dark mode.
+- [x] `scripts/store-graphics.mjs` makes every image from the emoji's file
+  (`scripts/assets/noto-emoji-ring.svg`).
 
 **Still to do**
 
