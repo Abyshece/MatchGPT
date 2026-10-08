@@ -12,9 +12,6 @@ In this folder:
   it: these two, the iPhone and Android icons and launch screens, and the website's icons and link
   preview. Change the words or the picture there and run it to remake them all. The App Store takes
   its icon from the app.
-- The photo at the top of the Shaadi24+ page (`public/images/paywall-hero.jpg`: a bride's and groom's
-  hands, in black and white) was made for Shaadi24 with an AI image generator (GPT Image 2.5, through the
-  owner's Higgsfield account) from a text prompt; it shows no real people.
 
 The website pages the stores link to (the home page, https://shaadi-gpt.vercel.app, says what Shaadi24
 is and links to the stores; members use the apps):

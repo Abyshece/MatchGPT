@@ -158,26 +158,38 @@ try {
   check(await page.getByText('Shaadi24+ is coming to the app soon.').waitFor({ timeout: 8000 }).then(() => true, () => false),
     'Shaadi24+ "coming to the app soon"');
   clear(await rect(page, '[role="dialog"]'), 'the Shaadi24+ sheet');
-  // A full-screen dark page, like the stores' own paywalls: the photo, the
-  // plans and what you get scroll; the button stays at the bottom. No colour:
-  // any gradient is greys (the shade over the photo)
-  const sheet = await page.getByTestId('upgrade-modal').evaluate((el) => {
+  // A plain card in the app's colours (white here; dark only in dark mode),
+  // clear of the screen's edges with round corners, the Shaadi24 logo on top,
+  // no colour gradient, and the button at the bottom
+  const sheetLook = () => page.getByTestId('upgrade-modal').evaluate((el) => {
     const r = el.getBoundingClientRect();
-    const grey = (css) => [...css.matchAll(/rgba?\(([^)]+)\)/g)].every(([, v]) => {
-      const [r, g, b] = v.split(',').map(Number);
-      return r === g && g === b;
-    });
-    const coloured = [...el.querySelectorAll('*')].some((n) => /gradient/.test(getComputedStyle(n).backgroundImage)
-      && !grey(getComputedStyle(n).backgroundImage));
+    const css = getComputedStyle(el);
+    const coloured = [...el.querySelectorAll('*')].some((n) => /gradient/.test(getComputedStyle(n).backgroundImage));
     const button = el.querySelector('[data-testid="upgrade-button"]').getBoundingClientRect();
-    return { left: r.left, right: r.right, bg: getComputedStyle(el).backgroundColor, coloured, buttonBottom: button.bottom, bottom: r.bottom };
+    return { left: r.left, right: r.right, top: r.top, bg: css.backgroundColor, radius: parseFloat(css.borderTopLeftRadius),
+      coloured, buttonBottom: button.bottom, bottom: r.bottom, logo: el.textContent.includes('💍'), images: el.querySelectorAll('img').length };
   });
-  check(sheet.left === 0 && sheet.right === SCREEN.width && sheet.bg === 'rgb(17, 17, 17)',
-    `the Shaadi24+ page fills the screen, dark (${Math.round(sheet.left)}–${Math.round(sheet.right)}, ${sheet.bg})`);
-  check(!sheet.coloured, 'the Shaadi24+ page has no colour gradient');
+  const sheet = await sheetLook();
+  check(sheet.left >= 8 && SCREEN.width - sheet.right >= 8 && sheet.radius >= 20,
+    `the Shaadi24+ card floats clear of the sides with round corners (${Math.round(sheet.left)}–${Math.round(sheet.right)}, ${sheet.radius}px)`);
+  check(sheet.bg === 'rgb(255, 255, 255)', `light mode: a white card, not a dark page (${sheet.bg})`);
+  check(sheet.logo && sheet.images === 0, 'the 💍 Shaadi24 logo on top, and no photo');
+  check(!sheet.coloured, 'no colour gradient');
   check(sheet.bottom - sheet.buttonBottom < 80, 'its button sits at the bottom');
   await page.screenshot({ path: `${OUT}7-shaadi24-plus.png` });
   await page.getByTestId('upgrade-modal').getByRole('button', { name: 'Close' }).click();
+  await page.waitForTimeout(400);
+  // In dark mode (the phone's setting, as "System" follows it), a dark card
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await page.waitForTimeout(300);
+  await page.getByText('Get Shaadi24+', { exact: true }).click();  // the menu is still open
+  await page.getByTestId('upgrade-modal').waitFor();
+  await page.waitForTimeout(400);
+  const dark = await sheetLook();
+  check(dark.bg === 'rgb(24, 24, 27)', `dark mode: a dark card (${dark.bg})`);
+  await page.screenshot({ path: `${OUT}7b-shaadi24-plus-dark.png` });
+  await page.getByTestId('upgrade-modal').getByRole('button', { name: 'Close' }).click();
+  await page.emulateMedia({ colorScheme: 'light' });
   await page.waitForTimeout(400);
 
   await page.getByText('Matches', { exact: true }).first().click();  // the menu is still open
