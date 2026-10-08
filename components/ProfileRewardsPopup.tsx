@@ -23,7 +23,7 @@ const ProfileRewardsPopup: React.FC<{ onOpenSection: (id: SectionId) => void }> 
   const userId = session?.user.id;
   // The reminder of the rules comes first, when it's due
   const rulesFirst = !!profileRow && needsRulesReminder(profileRow.rules_reminded_at);
-  const [open, setOpen] = useState<{ todo: ProfileSection[]; total: number; justJoined: boolean } | null>(null);
+  const [open, setOpen] = useState<{ todo: ProfileSection[]; total: number; base: number | null; justJoined: boolean } | null>(null);
 
   const nudgedAt = profileRow?.profile_nudged_at;
   useEffect(() => {
@@ -34,7 +34,7 @@ const ProfileRewardsPopup: React.FC<{ onOpenSection: (id: SectionId) => void }> 
       const todo = s.sections.filter((x) => !x.complete);
       if (!todo.length) return;
       void markProfileNudged(userId);
-      setOpen({ todo, total: s.sections.length, justJoined: Date.now() - (profile?.accountCreated ?? 0) < DAY });
+      setOpen({ todo, total: s.sections.length, base: s.freeDailySearches, justJoined: Date.now() - (profile?.accountCreated ?? 0) < DAY });
     }).catch(() => { /* it can wait for next time */ });
     return () => { live = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -50,8 +50,9 @@ const ProfileRewardsPopup: React.FC<{ onOpenSection: (id: SectionId) => void }> 
 
   if (!open) return null;
 
-  const isPro = profile?.subscriptionTier === 'PRO';
-  const base = DAILY_LIMITS.FREE.searches;
+  // (no daily limit for free accounts: nothing to earn, as with Shaadi24+)
+  const isPro = profile?.subscriptionTier === 'PRO' || open.base === null;
+  const base = open.base ?? DAILY_LIMITS.FREE.searches;
   const minutes = open.todo.reduce((sum, s) => sum + sectionMinutes(s), 0);
   const forSomeoneElse = (profile?.profileCreatedFor ?? 'Myself') !== 'Myself';
   const firstName = (profile?.name ?? '').trim().split(/\s+/)[0];

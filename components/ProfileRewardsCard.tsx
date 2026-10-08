@@ -6,7 +6,8 @@ import { sectionMinutes, unansweredLabels, type ProfileSections } from '../lib/p
 // ============================================================================
 // ProfileRewardsCard: top of My Profile. Each profile section completed adds
 // one free AI search a day (lib/profileRewards.ts); the card shows the total
-// and where every section stands. Tapping a section goes to it.
+// (Shaadi24+: its searches a day) and where every section stands. Tapping a
+// section goes to it.
 // ============================================================================
 
 const goTo = (id: string) => document.getElementById(`section-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -19,7 +20,8 @@ const ProfileRewardsCard: React.FC<{
 }> = ({ sections, isPro, completionPercentage, estimatedMinutes }) => {
   const list = sections?.sections ?? [];
   const done = list.filter((s) => s.complete).length;
-  const base = DAILY_LIMITS.FREE.searches;
+  // The free plan's searches a day before the bonus (null: no daily limit)
+  const base = sections ? sections.freeDailySearches : DAILY_LIMITS.FREE.searches;
 
   return (
     <section
@@ -31,15 +33,22 @@ const ProfileRewardsCard: React.FC<{
       <div className="flex items-start justify-between gap-4">
         <h3 id="rewards-title" className="min-w-0 pt-0.5 text-base sm:text-lg font-bold text-gray-900 dark:text-white">Earn free AI searches</h3>
         <div className="flex-none text-right leading-tight">
-          {isPro ? (
-            <>
-              <div className="text-2xl font-bold text-gray-900 dark:text-white">∞</div>
-              <div className="text-[11px] text-gray-500 dark:text-gray-400 whitespace-nowrap">Unlimited with Shaadi24+</div>
-            </>
+          {isPro || base === null ? (
+            sections && sections.dailySearches !== null ? (
+              <>
+                <div className="text-2xl font-bold text-gray-900 dark:text-white" data-testid="daily-searches">{sections.dailySearches}</div>
+                <div className="text-[11px] text-gray-500 dark:text-gray-400 whitespace-nowrap">searches a day with Shaadi24+</div>
+              </>
+            ) : sections ? (
+              <>
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">∞</div>
+                <div className="text-[11px] text-gray-500 dark:text-gray-400 whitespace-nowrap">No daily limit</div>
+              </>
+            ) : null
           ) : (
             <>
               <div className="text-2xl font-bold text-gray-900 dark:text-white" data-testid="daily-searches">
-                {sections ? sections.dailySearches : base}
+                {sections?.dailySearches ?? base}
               </div>
               <div className="text-[11px] text-gray-500 dark:text-gray-400 whitespace-nowrap">free searches a day</div>
             </>
@@ -47,7 +56,9 @@ const ProfileRewardsCard: React.FC<{
         </div>
       </div>
       <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
-        Each section you complete adds one free search a day, up to {base + list.length || base + 6} a day.
+        {isPro || base === null
+          ? 'A complete profile helps families get to know each other, and makes the matches better.'
+          : `Each section you complete adds one free search a day, up to ${base + (list.length || 6)} a day.`}
       </p>
 
       {sections === null ? (

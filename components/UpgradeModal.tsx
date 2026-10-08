@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom';
 import { IconX, IconCheck } from '../constants';
 import { useAuth } from '../lib/AuthContext';
 import { FEATURES_FREE_NOW, proBenefits, formatDate } from '../lib/billingService';
+import { limitTitle, whenText, type SearchAllowance } from '../lib/searchLimits';
+import { DAILY_LIMITS } from '../lib/profileService';
 import { isNativeApp } from '../lib/nativeApp';
 import { APPLE_APP_ID } from '../lib/storeLinks';
 import StoreBadges from './StoreBadges';
@@ -13,7 +15,8 @@ import { PlanCards, PlanSaving, StoreTerms, buyLabel, useStoreUpgrade } from './
 //
 // A plain card in the app's own colours (white, or dark in dark mode) over the
 // blurred page, clear of the screen's edges like every popup: the Shaadi24
-// logo and what the moment calls for, the plans in a list (1 week, 1 month,
+// logo and what the moment calls for (a search limit used up, with when the
+// next search can be; the day's likes used up; a Shaadi24+ feature), the plans in a list (1 week, 1 month,
 // 3 months, 6 months; StoreUpgrade) with what the chosen one saves, what
 // Shaadi24+ adds, and the button with the store's terms, which stay at the
 // bottom while the rest scrolls.
@@ -24,12 +27,12 @@ import { PlanCards, PlanSaving, StoreTerms, buyLabel, useStoreUpgrade } from './
 // ============================================================================
 
 interface UpgradeModalProps {
-  reason: 'daily_limit' | 'pro_feature' | 'compatibility_report';
-  resetInHours?: number;
+  reason: 'search_limit' | 'like_limit' | 'pro_feature' | 'compatibility_report';
+  limit?: SearchAllowance | null;   // search_limit: which limit, and when the next search can be
   onClose: () => void;
 }
 
-const UpgradeModal: React.FC<UpgradeModalProps> = ({ reason, resetInHours, onClose }) => {
+const UpgradeModal: React.FC<UpgradeModalProps> = ({ reason, limit, onClose }) => {
   const { profile, proForAll } = useAuth();
   const [paying, setPaying] = useState(false);
   const [done, setDone] = useState<{ trialEndsAt: string | null; renewsAt: string | null } | null>(null);
@@ -47,19 +50,26 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ reason, resetInHours, onClo
 
   const alreadyPro = profile?.subscriptionTier === 'PRO' && !done;
   const selling = inApp && !done && !alreadyPro;
+  const searchLimit = reason === 'search_limit' && !done;
+  const nextSearch = limit?.next_search_at ? `You can search again ${whenText(limit.next_search_at)}.` : '';
 
   const headline = done ? 'Welcome to Shaadi24+'
-    : alreadyPro ? 'You have Shaadi24+'
-      : reason === 'daily_limit' ? "You've used today's free searches"
-        : reason === 'compatibility_report' ? 'See exactly why you match'
-          : 'Find your life partner sooner';
-  const subtitle = done || alreadyPro ? 'Unlimited searches and likes, Super Likes and more.'
-    : reason === 'daily_limit'
-      ? (profile?.searchBonus ?? 0) < 6
-        ? `Wait ${resetInHours ?? 24}h, complete more profile sections (each adds a free search a day), or search without limits with Shaadi24+.`
-        : `Wait ${resetInHours ?? 24}h, or search without limits with Shaadi24+.`
-      : reason === 'compatibility_report' ? 'Which traits align, and where there might be friction.'
-        : 'Search and like without limits.';
+    : searchLimit ? limitTitle(limit?.limited_by ?? null)
+      : alreadyPro ? 'You have Shaadi24+'
+        : reason === 'like_limit' ? "You've used today's likes"
+          : reason === 'compatibility_report' ? 'See exactly why you match'
+            : 'Find your life partner sooner';
+  const subtitle = done ? 'More searches, unlimited likes, Super Likes and more.'
+    : searchLimit
+      ? alreadyPro
+        ? nextSearch || 'Your searches come back soon.'
+        : [nextSearch,
+            limit?.limited_by === 'day' && (profile?.searchBonus ?? 0) < 6 ? 'Each profile section you complete adds a search a day.' : '',
+            'Shaadi24+ gives you more searches.'].filter(Boolean).join(' ')
+      : alreadyPro ? 'More searches, unlimited likes, Super Likes and more.'
+        : reason === 'like_limit' ? `Free accounts get ${DAILY_LIMITS.FREE.likes} likes a day; more come tomorrow. Shaadi24+ has unlimited likes.`
+          : reason === 'compatibility_report' ? 'Which traits align, and where there might be friction.'
+            : 'More searches, unlimited likes and every feature.';
 
   const button = (label: string, onClick: () => void, disabled = false) => (
     <button
@@ -131,7 +141,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ reason, resetInHours, onClo
             <div className="mt-6 pt-5 border-t border-gray-100 dark:border-zinc-800">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">What you get</h3>
               <ul className="mt-3 space-y-2.5">
-                {proBenefits(proForAll).map((b) => (
+                {proBenefits(proForAll, limit?.plans, limit?.window.hours).map((b) => (
                   <li key={b.key} className="flex gap-3 text-sm">
                     <span className="flex-none mt-0.5 [&>svg]:w-4 [&>svg]:h-4" aria-hidden="true"><IconCheck /></span>
                     <span className="min-w-0">

@@ -4,7 +4,8 @@ import { useAuth } from '../lib/AuthContext';
 import { useToast } from '../lib/useToast';
 import { searchProfiles, SearchError } from '../lib/searchService';
 import { saveSearch } from '../lib/searchHistoryService';
-import { computeSearchAllowance, computeVerificationStatus } from '../lib/profileService';
+import { computeVerificationStatus } from '../lib/profileService';
+import { allowanceLine, useSearchAllowance } from '../lib/searchLimits';
 import { profileCompletion } from '../lib/profileCompletion';
 import MatchCard from './MatchCard';
 import ProfileModal from './ProfileModal';
@@ -67,6 +68,12 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
   const [understood, setUnderstood] = useState<{ labels: string[]; byAi: boolean } | null>(null);
   const [selectedCandidate, setSelectedCandidate] = useState<MatchCandidate | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  // Why it opened: a search limit, the day's likes, or a Shaadi24+ feature
+  const [upgradeReason, setUpgradeReason] = useState<'search_limit' | 'like_limit' | 'pro_feature'>('pro_feature');
+  const openUpgrade = useCallback((why: 'search_limit' | 'like_limit' | 'pro_feature') => {
+    setUpgradeReason(why);
+    setShowUpgradeModal(true);
+  }, []);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [filterPanelLoaded, setFilterPanelLoaded] = useState(false);
   useEffect(() => { if (showFilterPanel) setFilterPanelLoaded(true); }, [showFilterPanel]);
@@ -111,10 +118,12 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
   // requires the same hooks in the same order (the profile can arrive while
   // this screen is showing)
   const userId = session?.user.id;
-  const allowance = profile ? computeSearchAllowance(profile) : null;
+  // The search limits (every 5 hours, a day, a week), as the server counts them
+  const { allowance, setAllowance } = useSearchAllowance(userId, `${profile?.subscriptionTier}:${profile?.searchBonus}`);
   const verification = profile ? computeVerificationStatus(profile) : null;
   const isLockedOut = verification?.isLockedOut ?? false;
-  const searchAllowed = allowance?.allowed ?? false;
+  // Not read yet (or unreadable): let the server decide
+  const searchAllowed = allowance?.allowed ?? true;
   const filterChips = activeFilterChips(filters);
   const activeFilterCount = filterChips.length;
   // The results as shown: the quick filters, the match level, the order
@@ -142,7 +151,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
       return;
     }
     if (!searchAllowed) {
-      setShowUpgradeModal(true);
+      openUpgrade('search_limit');
       return;
     }
 
@@ -152,8 +161,9 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
 
     try {
       // The server runs the search, leaves out people already liked and
-      // counts it toward today's limit. Everyone gets the list of 50.
+      // counts it toward the search limits. Everyone gets the list of 50.
       const output = await searchProfiles(effectivePrompt, filters, 50);
+      if (output.allowance) setAllowance(output.allowance);
 
       setResults(output.candidates);
       setSearchedFilters(filters);
@@ -173,9 +183,10 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
       }
     } catch (e: unknown) {
       if (e instanceof SearchError && e.code === 'LIMIT_REACHED') {
-        // Already used up (e.g. in another tab): back to how it was, plus the upgrade prompt
+        // Already used up (e.g. in another tab): back to how it was, plus which limit and until when
         setHasSearched(hadSearched);
-        setShowUpgradeModal(true);
+        if (e.allowance) setAllowance(e.allowance);
+        openUpgrade('search_limit');
         await refreshProfile();
       } else {
         showToast(e instanceof Error ? e.message : 'Search failed', 'error');
@@ -183,14 +194,14 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
     } finally {
       setSearching(false);
     }
-  }, [prompt, filters, userId, searchAllowed, isLockedOut, activeFilterCount, hasSearched, refreshProfile, showToast]);
+  }, [prompt, filters, userId, searchAllowed, isLockedOut, activeFilterCount, hasSearched, refreshProfile, showToast, openUpgrade, setAllowance]);
 
   // Keep the ref pointed at the latest handleSearch so the mount-effect can call it
   useEffect(() => {
     autoRunSearchRef.current = handleSearch;
   }, [handleSearch]);
 
-  if (!profile || !userId || !allowance || !verification) {
+  if (!profile || !userId || !verification) {
     return <div className="p-12 text-center text-gray-500 dark:text-gray-400">Loading…</div>;
   }
 
@@ -218,7 +229,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
             <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
               <p className="flex-1 min-w-0 text-sm text-rose-800 dark:text-rose-200 font-medium">
                 Your profile is only <strong>{completionPercentage}%</strong> complete (~{estimatedMinutes} min to finish).
-                {(profile?.searchBonus ?? 0) < MAX_SECTIONS
+                {profile?.subscriptionTier !== 'PRO' && (profile?.searchBonus ?? 0) < MAX_SECTIONS
                   ? ' Each section you complete adds a free AI search a day.'
                   : ' A complete profile leads to more accurate matches.'}
               </p>
@@ -362,33 +373,31 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
           </button>
         </div>
 
-        {/* Daily allowance: the day's free searches left (3, plus one for each
-            profile section completed). Subtle until you're running low. */}
-        <div className="flex items-center justify-center gap-3 mb-2 flex-wrap text-[11px]">
-          <span className={`font-medium ${
-            !allowance.allowed
-              ? 'text-red-600 dark:text-red-400'
-              : allowance.remaining === 1
-                ? 'text-yellow-700 dark:text-yellow-400'
-                : 'text-gray-500 dark:text-gray-400'
-          }`}>
-            {!allowance.allowed
-              ? <>Daily limit reached · resets in {allowance.resetInHours}h</>
-              : allowance.isPro
-                ? <>Unlimited searches</>
-                : <>{allowance.remaining} of {allowance.limit} searches remaining today</>}
-          </span>
-          {!allowance.isPro && allowance.bonus < MAX_SECTIONS && onNavigateToProfile && (
-            <button
-              type="button"
-              onClick={onNavigateToProfile}
-              data-testid="earn-searches"
-              className="font-semibold text-amber-700 dark:text-amber-300 hover:underline"
-            >
-              Earn more: fill in your profile
-            </button>
-          )}
-        </div>
+        {/* The searches left before a limit (every 5 hours, a day, a week) and
+            until when, like Claude's usage. Subtle until you're running low. */}
+        {allowance && (
+          <div className="flex items-center justify-center gap-3 mb-2 flex-wrap text-[11px]">
+            <span data-testid="search-allowance" className={`font-medium ${
+              !allowance.allowed
+                ? 'text-red-600 dark:text-red-400'
+                : allowance.remaining !== null && allowance.remaining <= 1
+                  ? 'text-yellow-700 dark:text-yellow-400'
+                  : 'text-gray-500 dark:text-gray-400'
+            }`}>
+              {allowanceLine(allowance)}
+            </span>
+            {allowance.plan === 'free' && allowance.day.bonus < MAX_SECTIONS && onNavigateToProfile && (
+              <button
+                type="button"
+                onClick={onNavigateToProfile}
+                data-testid="earn-searches"
+                className="font-semibold text-amber-700 dark:text-amber-300 hover:underline"
+              >
+                Earn more: fill in your profile
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Every active filter as a chip that takes it off, and Clear all */}
         {hasSearched && activeFilterCount > 0 && (
@@ -501,7 +510,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
                       candidate={c}
                       onClick={() => setSelectedCandidate(c)}
                       onMatched={handleMatched}
-                      onLimitReached={() => setShowUpgradeModal(true)}
+                      onLimitReached={() => openUpgrade('like_limit')}
                       onLiked={() => {
                         // Animate-out then remove from results array (Item 2)
                         setTimeout(() => {
@@ -529,7 +538,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
           candidate={selectedCandidate}
           isPro={hasPro}
           onClose={() => setSelectedCandidate(null)}
-          onUpgrade={() => { setSelectedCandidate(null); setShowUpgradeModal(true); }}
+          onUpgrade={() => { setSelectedCandidate(null); openUpgrade('pro_feature'); }}
           onMatched={handleMatched}
         />
       )}
@@ -537,8 +546,8 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
       {/* Upgrade modal */}
       {showUpgradeModal && (
         <UpgradeModal
-          reason={!allowance.allowed ? 'daily_limit' : 'pro_feature'}
-          resetInHours={allowance.resetInHours}
+          reason={upgradeReason}
+          limit={allowance}
           onClose={() => setShowUpgradeModal(false)}
         />
       )}
@@ -552,7 +561,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
             isPro={hasPro}
             onApply={(f) => setFilters(f)}
             onClose={() => setShowFilterPanel(false)}
-            onUpgrade={() => { setShowFilterPanel(false); setShowUpgradeModal(true); }}
+            onUpgrade={() => { setShowFilterPanel(false); openUpgrade('pro_feature'); }}
           />
         </Suspense>
       )}

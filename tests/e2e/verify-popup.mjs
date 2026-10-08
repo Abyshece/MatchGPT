@@ -2,7 +2,8 @@
 // account, password TestPass!2026): opens full size from the sidebar (it used
 // to be squeezed into it), checks the links, needs 2 of 4, sends the request,
 // reopens as "in review" with the links filled in, and is a full-width sheet
-// on a phone. Also: a Pro account sees "Unlimited searches".
+// on a phone. Also: a Pro account sees its searches as a number (it once said
+// "Infinity of 3").
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -40,7 +41,10 @@ async function signIn(viewport) {
 
 try {
   const { ctx, page } = await signIn({ width: 1400, height: 900 });
-  check(await page.getByText('Unlimited searches').isVisible(), 'a Pro account sees "Unlimited searches" (was "Infinity of 3")');
+  const line = page.getByTestId('search-allowance');
+  await line.waitFor({ timeout: 10000 }).catch(() => {});
+  const said = await line.innerText().catch(() => '');
+  check(/^\d+ searches? (every|left)/.test(said) && !said.includes('Infinity'), `a Pro account sees its searches: "${said}"`);
 
   log('1. open from the sidebar');
   await page.getByText('Get verified today', { exact: false }).first().click();

@@ -85,10 +85,10 @@ try {
   check(await contact.locator('a[href="mailto:privacy@shaadi24.com"]').count() === 1, 'the privacy address');
   check(/review every report within 24 hours/.test(await contact.innerText()), 'how reports are handled');
   const questions = page.locator('details');
-  check(await questions.count() === 16, `16 questions (${await questions.count()})`);
-  check(!(await page.getByText(/search 3 times a day/).isVisible()), 'answers start closed');
+  check(await questions.count() === 17, `17 questions (${await questions.count()})`);
+  check(!(await page.getByText(/use the AI search \(a few searches every few hours/).isVisible()), 'answers start closed');
   await page.getByText('Is Shaadi24 free?').click();
-  check(await appears(page.getByText(/search 3 times a day \(up to 9 with a complete profile\), send/)), 'a question opens to its answer');
+  check(await appears(page.getByText(/use the AI search \(a few searches every few hours, a day and\s+a week; more a day with a complete profile\), send/)), 'a question opens to its answer');
   await page.getByText('My data, and deleting my account').click();
   const mine = questions.filter({ hasText: 'My data, and deleting my account' });
   check(await mine.locator('a[href="/delete-account"]').count() === 1 && await mine.locator('a[href="/privacy"]').count() === 1,

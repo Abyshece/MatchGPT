@@ -182,7 +182,8 @@ try {
     log(`== The members' app (${scheme})`);
     // Searches left today, so the search shows results rather than the limit;
     // the free-searches pop-up due, so it's checked too
-    sql(`update profiles set daily_search_count = 0, is_paused = false, profile_nudged_at = null where email = '${MEMBER}';`);
+    sql(`update profiles set daily_search_count = 0, is_paused = false, profile_nudged_at = null where email = '${MEMBER}';
+         delete from search_usage where user_id = (select id from profiles where email = '${MEMBER}');`);
     const ctx = await phone(scheme);
     await ctx.addInitScript(() => localStorage.setItem('shaadigpt_cookie_consent_shown', '1'));
     const page = await ctx.newPage();

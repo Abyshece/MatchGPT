@@ -4,9 +4,10 @@
 //     the browser never reads the old profile views
 //  2. "near me" and "doesn't smoke" in the prompt
 //  3. A hidden name and religion stay off the screen and out of the response
-//  4. The daily limit is enforced by the server: a search past it (3 a day,
-//     plus one per completed profile section) is refused even when the page
-//     thinks one is left
+//  4. The search limits are counted and enforced by the server: two searches
+//     count toward the 5 hours, the day and the week; a search past the day's
+//     (3 a day, plus one per completed profile section) is refused even when
+//     the page thinks one is left
 //  5. The liked list, Standouts and the blocked list still show people
 // With the GEMINI_API_KEY secret set (or a stand-in, see README), prompts are
 // understood by Gemini; otherwise by rules. The checks hold either way.
@@ -32,9 +33,10 @@ sql(`update profiles set daily_search_count = 0, subscription_tier = 'FREE', is_
      delete from likes where '${me}' in (liker_id, liked_id);  -- a like back would pop up "It's a Match!"
      delete from blocks where blocker_id = '${me}';
      delete from standouts where user_id = '${me}';
+     delete from search_usage where user_id = '${me}';
      update profiles set hidden_fields = '{}' where hidden_fields <> '{}';`);
-// Free accounts get 3 searches a day, plus one per completed profile section
-const LIMIT = 3 + Number(sql(`select search_bonus from profiles where id = '${me}';`));
+// Free accounts get 3 searches every 5 hours, and 3 a day plus one per completed profile section
+const LIMIT = Number(sql(`select per_day from search_limits where plan = 'free';`)) + Number(sql(`select search_bonus from profiles where id = '${me}';`));
 
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
 const ctx = await browser.newContext({ viewport: { width: 1400, height: 1000 } });
@@ -84,7 +86,9 @@ try {
   const smokeIds = smoke.json.candidates.map((c) => c.id);
   const smokers = sql(`select count(*) from profiles where id in (${inList(smokeIds)}) and smoking in ('Socially', 'Regularly');`);
   check(smokeIds.length > 0 && smokers === '0', `"doesn't smoke": ${smokeIds.length} people, none of them smokers`);
-  check(smoke.json.remaining === LIMIT - 2, `server counted 2 searches (${LIMIT - 2} of ${LIMIT} left): ${smoke.json.remaining}`);
+  const counted = smoke.json.allowance;
+  check(counted?.window.used === 2 && counted?.day.used === 2 && counted?.week.used === 2 && smoke.json.remaining === 1,
+    `server counted 2 searches (1 left of the 5 hours' 3): ${JSON.stringify(counted && { window: counted.window.used, day: counted.day.used, week: counted.week.used, remaining: smoke.json.remaining })}`);
 
   log('3. hidden fields');
   // someone near the top whose name nobody else has
@@ -110,16 +114,17 @@ try {
   await page.keyboard.press('Escape');
 
   log('4. daily limit on the server');
-  // The page believes one search is left; the server knows there isn't
-  sql(`update profiles set daily_search_count = ${LIMIT - 1} where id = '${me}';`);
+  // The page believes one search is left today (a new 5 hours); the server knows there isn't
+  sql(`update search_usage set day_count = ${LIMIT - 1}, window_count = 0, window_started_at = null where user_id = '${me}';`);
   await page.reload();
   await page.getByTestId('find-match-box').waitFor({ timeout: 15000 });
-  sql(`update profiles set daily_search_count = ${LIMIT} where id = '${me}';`);
+  sql(`update search_usage set day_count = ${LIMIT} where user_id = '${me}';`);
   const refused = await search('someone kind');
   await page.screenshot({ path: `${OUT}4-limit.png` });
-  check(refused.status === 429 && refused.json.code === 'LIMIT_REACHED', `search ${LIMIT + 1} refused by the server (${refused.status})`);
-  check(await page.getByText("You've used today's free searches").isVisible(), 'the page shows the upgrade prompt');
-  check(sql(`select daily_search_count from profiles where id = '${me}';`) === String(LIMIT), `count stays at ${LIMIT}`);
+  check(refused.status === 429 && refused.json.code === 'LIMIT_REACHED' && refused.json.allowance?.limited_by === 'day',
+    `search ${LIMIT + 1} refused by the server, by the day's limit (${refused.status}, ${refused.json.allowance?.limited_by})`);
+  check(await page.getByText("You've used today's searches").isVisible(), 'the page shows the upgrade prompt');
+  check(sql(`select day_count from search_usage where user_id = '${me}';`) === String(LIMIT), `count stays at ${LIMIT}`);
   await page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).last().click();
 
   log('5. liked list, Standouts, blocked list');

@@ -69,6 +69,7 @@ const clearAB = () => sql(`delete from messages where match_id in (select id fro
 // Both free (another test may have left one with Shaadi24+), with fresh daily counters so the limits
 // don't get in the way
 sql(`update profiles set subscription_tier = 'FREE', daily_like_count = 0, daily_search_count = 0 where id in ('${A}', '${B}');
+     delete from search_usage where user_id in ('${A}', '${B}');
      insert into admin_emails (email) values ('${ADMIN}') on conflict do nothing;`);
 clearAB();
 
@@ -233,7 +234,8 @@ try {
   setSwitch(wasOn);
   sql(`update profiles set subscription_tier = '${tierB}' where id = '${B}';
        update profiles set subscription_tier = '${tierA}', is_verified = ${verifiedA} where id = '${A}';
-       update profiles set daily_like_count = 0, daily_search_count = 0 where id in ('${A}', '${B}');`);
+       update profiles set daily_like_count = 0, daily_search_count = 0 where id in ('${A}', '${B}');
+       delete from search_usage where user_id in ('${A}', '${B}');`);
   log(failures ? `${failures} check(s) failed` : 'all checks passed');
   process.exit(failures ? 1 : 0);
 }

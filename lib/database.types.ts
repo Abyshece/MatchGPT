@@ -1915,6 +1915,8 @@ export type Database = {
         Args: { p_days?: number }
         Returns: Json
       }
+      admin_search_limits: { Args: never; Returns: Json }
+      admin_set_search_limits: { Args: { p_settings: Json }; Returns: undefined }
       admin_automations: {
         Args: never
         Returns: Json
@@ -2170,6 +2172,7 @@ export type Database = {
       is_admin: { Args: never; Returns: boolean }
       mark_messages_read: { Args: { p_match_id: string }; Returns: number }
       my_profile_sections: { Args: never; Returns: Json }
+      my_search_allowance: { Args: never; Returns: Json }
       payment_net: {
         Args: { p: Database["public"]["Tables"]["payments"]["Row"] }
         Returns: number

@@ -2,9 +2,8 @@
 // profileService (Phase 4 update)
 //
 // Adds:
-//   - computeSearchAllowance() — searches left today (the server keeps the
-//     count and enforces the limit; see supabase/functions/search)
-//   - DAILY_LIMITS — constant config
+//   - DAILY_LIMITS — constant config (searches have their own limits now:
+//     lib/searchLimits.ts)
 // ============================================================================
 
 import { supabase } from './supabase';
@@ -13,10 +12,12 @@ import type { ProfileRow } from './database.types';
 import type { UserProfile, UserSettings } from '../types';
 
 export const DAILY_LIMITS = {
-  // Both enforced by the server too. Free searches go up by one a day for
-  // each profile section completed (profile.searchBonus, lib/profileRewards.ts)
+  // Both enforced by the server too. searches: the free plan's searches a day
+  // until the server says (owners set it in Admin → Search insights; see
+  // lib/searchLimits.ts), which go up by one for each profile section completed
+  // (profile.searchBonus, lib/profileRewards.ts)
   FREE: { searches: 3, likes: 15 },
-  PRO:  { searches: Infinity, likes: Infinity },
+  PRO:  { likes: Infinity },
 } as const;
 
 // ----------------------------------------------------------------------------
@@ -89,49 +90,6 @@ export async function toggleHiddenField(
 // ============================================================================
 // PHASE 4 ADDITIONS
 // ============================================================================
-
-// ----------------------------------------------------------------------------
-// canSearch — checks daily limit. Returns { allowed, remaining, resetIn }
-// ----------------------------------------------------------------------------
-
-export interface SearchAllowance {
-  allowed: boolean;
-  remaining: number;
-  limit: number;      // searches a day: 3 plus the profile sections completed
-  bonus: number;      // of which earned by completing profile sections
-  isPro: boolean;
-  // hours until reset (for display)
-  resetInHours: number;
-}
-
-export function computeSearchAllowance(profile: UserProfile): SearchAllowance {
-  // The daily limit follows the subscription alone: "Shaadi24+ for everyone"
-  // (useAuth().hasPro) opens Shaadi24+'s features, not unlimited searches.
-  if (profile.subscriptionTier === 'PRO') {
-    return { allowed: true, remaining: Infinity, limit: Infinity, bonus: 0, isPro: true, resetInHours: 0 };
-  }
-
-  const bonus = profile.searchBonus ?? 0;
-  const limit = DAILY_LIMITS.FREE.searches + bonus;
-  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD UTC
-  const lastDate = profile.lastSearchDate?.slice(0, 10);
-  const used = lastDate === today ? (profile.dailySearchCount ?? 0) : 0;
-  const remaining = Math.max(0, limit - used);
-
-  // Hours until midnight UTC
-  const now = new Date();
-  const tomorrow = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
-  const resetInHours = Math.ceil((tomorrow.getTime() - now.getTime()) / (1000 * 60 * 60));
-
-  return {
-    allowed: remaining > 0,
-    remaining,
-    limit,
-    bonus,
-    isPro: false,
-    resetInHours,
-  };
-}
 
 // ----------------------------------------------------------------------------
 // Verification lockout: 72 hours after account creation, unverified users

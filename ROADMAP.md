@@ -836,6 +836,47 @@ Part 25 done 2026-10-08: **The admin panel, part 4: safety, insights, automatic 
   growth, search insights, success stories), `admin-team` (roles, two-step sign-in with codes worked
   out like an authenticator app's, automatic messages), and the rest of the regression.
 
+Part 26 done 2026-10-08: **Search limits, like Claude's.** Every AI search costs us an AI call, and
+Shaadi24+ searches were unlimited. Now every search counts toward three limits, each with its own
+reset, and a search goes ahead only while none is used up:
+
+| | Every 5 hours | A day | A week |
+|---|---|---|---|
+| Free | 3 | 3, plus 1 for each profile section completed (up to 9) | 30 |
+| Shaadi24+ | 15 | 50 | 200 |
+
+- [x] **The 5 hours** start with a member's first search after their last 5 hours ended (like
+  Claude's). **The day** runs midnight to midnight India time (it was midnight UTC). **The week** starts
+  every **Friday at 6 pm India time**.
+- [x] Find Match says how many are left and until when, in the phone's own time ("2 searches left until
+  4:12 pm", "3 searches every 5 hours", "1 search left today"), and when one is used up, "Out of
+  searches until Friday at 6:00 pm". A search then opens a pop-up saying which limit ("You've used
+  today's searches") and when the next search can be; free members are offered Shaadi24+ (and, for the
+  day's, completing their profile); Shaadi24+ members aren't sold what they have. History's re-run
+  follows the same limits.
+- [x] **Settings → Shaadi24+** shows each limit like Claude's usage page: how many are used of how many,
+  a bar, and when it resets.
+- [x] The server keeps the counts and decides (`search_allowance()`, called by the `search` function);
+  the search answers with all three after each search, and with which one stopped it (429).
+- [x] **Admin → Search insights → Search limits**: the numbers for free and Shaadi24+, and the hours;
+  owners change them (an empty box is no limit; Shaadi24+ below free is refused; in the audit log),
+  the rest of the team sees them. Also: how many members searched this week, and how many a limit
+  stopped in the last 7 days, by which limit.
+- [x] Shaadi24+ is no longer "unlimited searches": the pop-up's list, My Profile, Help, the Terms
+  (clause 9: limits every few hours, a day and a week, shown in Settings; Shaadi24+ has higher ones;
+  we tell Shaadi24+ members before lowering theirs; members accept it again, `terms-v10`) and the store
+  texts (`docs/store/README.md`) say "more AI searches".
+- [x] Database: `20261008230000_search_limits.sql` (`search_limits`, `search_usage`, three settings in
+  `app_settings`). `profiles.daily_search_count` still counts the day, for Admin → Customers.
+- [x] Tests: `search-limits` (the 5 hours, the day, the week and its Friday 6 pm start, the pop-ups,
+  Settings on a computer and a phone, Shaadi24+, the admin card for an owner and a Content admin, and
+  that no member or visitor can read or use anyone's counts), unit tests for the words
+  (`scripts/search-limits.test.mjs`, `supabase/functions/search/limits_test.ts`), and the rest of the
+  regression.
+- [ ] **Owner:** change the four subscription descriptions in App Store Connect and Play Console to
+  the new ones in `docs/store/README.md` ("More AI searches, unlimited likes, …"), and the store
+  listings' Shaadi24+ paragraph.
+
 **Still to do**
 
 - [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.
