@@ -6,8 +6,9 @@ what is left for the owner and a lawyer.
 
 - **Checked:** 6 October 2026, against the laws as they stood that day (the IT Rules 2021 as amended on
   10 February 2026; the DPDP Act 2023 and the DPDP Rules 2025).
-- **Documents now in force:** Terms of Service `terms-v6-2026-10-06`, Privacy Policy `privacy-v12-2026-10-06`,
-  plus the new Grievance Redressal, Community Guidelines and Safety, and Refund and Cancellation pages.
+- **Documents now in force:** Terms of Service `terms-v7-2026-10-08` (v6 with Shaadi24+ for a week, a month,
+  three months or six months, and their prices), Privacy Policy `privacy-v12-2026-10-06`, plus the new Grievance
+  Redressal, Community Guidelines and Safety, and Refund and Cancellation pages.
 
 > **This is not legal advice.** It was prepared to make a lawyer's review quick, not to replace it. Before
 > launch, an advocate practising in Indian technology and consumer law should read the five legal pages

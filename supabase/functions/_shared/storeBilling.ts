@@ -30,7 +30,7 @@ export class StorePurchaseError extends Error {
 }
 
 interface PlanRow {
-  id: 'monthly' | 'yearly';
+  id: 'weekly' | 'monthly' | 'quarterly' | 'halfyearly' | 'yearly';
   google_product_id: string | null;
   google_base_plan_id: string | null;
   apple_product_id: string | null;

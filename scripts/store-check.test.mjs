@@ -38,21 +38,26 @@ function standIn({ subscriptions, groups = ['Shaadi24+'], groupNames = [{ name: 
 
 const full = (price) => ({ price, names: [{ locale: 'en-GB', name: 'Shaadi24+', description: 'Unlimited searches' }], screenshot: 'COMPLETE' });
 
-test('both subscriptions ready: says so, with prices and names', async () => {
+test('all four subscriptions ready: says so, with prices and names', async () => {
   const { ready, lines } = await checkSubscriptions({
     bundleId: 'com.shaadi24.app',
     call: standIn({
       subscriptions: [
+        { productId: 'shaadi24_plus_weekly', state: 'READY_TO_SUBMIT', subscriptionPeriod: 'ONE_WEEK' },
         { productId: 'shaadi24_plus_monthly', state: 'READY_TO_SUBMIT', subscriptionPeriod: 'ONE_MONTH' },
-        { productId: 'shaadi24_plus_yearly', state: 'APPROVED', subscriptionPeriod: 'ONE_YEAR' },
+        { productId: 'shaadi24_plus_quarterly', state: 'APPROVED', subscriptionPeriod: 'THREE_MONTHS' },
+        { productId: 'shaadi24_plus_halfyearly', state: 'WAITING_FOR_REVIEW', subscriptionPeriod: 'SIX_MONTHS' },
       ],
-      details: { s0: full('999'), s1: full('9999') },
+      details: { s0: full('349'), s1: full('999'), s2: full('1999'), s3: full('2999') },
     }),
   });
   assert.equal(ready, true);
   const text = lines.join('\n');
-  assert.match(text, /✓ shaadi24_plus_monthly \(1 month\): ready to submit; India price 999 INR; shown as "Shaadi24\+" \(en-GB\); review screenshot uploaded\./);
-  assert.match(text, /✓ shaadi24_plus_yearly \(1 year\): approved; India price 9999 INR/);
+  assert.match(text, /✓ shaadi24_plus_weekly \(1 week\): ready to submit; India price 349 INR; shown as "Shaadi24\+" \(en-GB\); review screenshot uploaded\./);
+  assert.match(text, /✓ shaadi24_plus_monthly \(1 month\): ready to submit; India price 999 INR/);
+  assert.match(text, /✓ shaadi24_plus_quarterly \(3 months\): approved; India price 1999 INR/);
+  assert.match(text, /✓ shaadi24_plus_halfyearly \(6 months\): waiting for review; India price 2999 INR/);
+  assert.match(text, /All are ready/);
   assert.match(text, /Paid Apps agreement/);
 });
 
@@ -62,7 +67,7 @@ test('one missing, one missing metadata, a wrong length and a wrong ID: not read
     call: standIn({
       subscriptions: [
         { productId: 'shaadi24_plus_monthly', state: 'MISSING_METADATA', subscriptionPeriod: 'ONE_WEEK' },
-        { productId: 'shaadi24plus_yearly', state: 'READY_TO_SUBMIT', subscriptionPeriod: 'ONE_YEAR' },
+        { productId: 'shaadi24plus_quarterly', state: 'READY_TO_SUBMIT', subscriptionPeriod: 'THREE_MONTHS' },
       ],
       groupNames: [],
       details: { s0: { names: [] } },
@@ -72,7 +77,8 @@ test('one missing, one missing metadata, a wrong length and a wrong ID: not read
   const text = lines.join('\n');
   assert.match(text, /no display name yet/);
   assert.match(text, /✗ shaadi24_plus_monthly \(1 week\): missing metadata; its length is 1 week, but the app sells it as 1 month; no price for India yet; no display name or description yet; no review screenshot yet\./);
-  assert.match(text, /✗ shaadi24_plus_yearly: not in App Store Connect \(found: shaadi24_plus_monthly, shaadi24plus_yearly\)\. The product ID must match exactly\./);
+  assert.match(text, /✗ shaadi24_plus_quarterly: not in App Store Connect \(found: shaadi24_plus_monthly, shaadi24plus_quarterly\)\. The product ID must match exactly\./);
+  assert.match(text, /✗ shaadi24_plus_weekly: not in App Store Connect/);
   assert.match(text, /Coming soon/);
 });
 

@@ -648,6 +648,31 @@ Shaadi24+ pop-up ran to the screen's edges, under an orange-to-pink header.
 - [x] The iPhone test checks the pop-up floats clear of the sides with round corners and no colour
   gradient; the purchases, pop-up, accessibility, Android and website tests pass.
 
+Part 19 done 2026-10-08: **Shaadi24+ for a week, a month, 3 months or 6 months, on a page like the
+dating apps' own.** It offered a month or a year in a small pop-up.
+
+- [x] Four plans side by side, sliding sideways on a phone: 1 week (₹349), 1 month (₹999), 3 months
+  (₹1,999) and 6 months (₹2,999). Each card shows the full price first, the price a week under it
+  ("₹154/wk") and what it saves on the week's price ("Save 56%"); 3 months is chosen to start with, and
+  the button says what you get and what it costs ("Get 3 months for ₹1,999.00", or the free trial). The
+  full price stands out more than the price a week, as App Review asks (guideline 3.1.2).
+- [x] A full-screen dark page on a phone (a card on a wide screen): a black-and-white photo of a couple's
+  hands with the headline, the plans, "What you get" with an icon for each, and the button with the
+  store's terms, Terms of Use, Privacy Policy and Restore purchases kept at the bottom.
+- [x] The plans come from the stores: each one shows once it's set up in App Store Connect or Play
+  Console (`shaadi24_plus_weekly`, `_monthly`, `_quarterly`, `_halfyearly`; base plans `weekly`,
+  `monthly`, `quarterly`, `halfyearly`; docs/store/README.md). The yearly plan is no longer sold.
+- [x] Database: the new plans, and the Finance tab counts each plan for a month in its monthly revenue
+  (`supabase/migrations/20261008122539_shaadi24_plus_more_plans.sql`, applied live).
+- [x] The Terms and the Refund page list the new plans and prices (Terms `terms-v7-2026-10-08`, so
+  members accept them again).
+- [x] Tests: buying on Android and iPhone with the store stand-ins (four plans, the prices, the savings,
+  3 months chosen first, the trial), the iPhone layout, the App Store check (`scripts/store-check.mjs`
+  looks for all four), and the pop-up, accessibility, Android, website, legal and consent tests.
+- [ ] **Owner:** in App Store Connect, add `shaadi24_plus_weekly`, `shaadi24_plus_quarterly` and
+  `shaadi24_plus_halfyearly` to the "Shaadi24+" group next to `shaadi24_plus_monthly`, all on one level,
+  and delete `shaadi24_plus_yearly`; in Play Console, the four base plans. Then Actions → App Store check.
+
 **Still to do**
 
 - [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.

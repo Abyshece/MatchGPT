@@ -3,7 +3,7 @@ import { useAuth } from '../lib/AuthContext';
 import { useNow } from '../lib/useNow';
 import { useToast } from '../lib/useToast';
 import {
-  formatDate, formatMoney, getMySubscription, listMyPayments, sellerName, DEFAULT_PLANS,
+  formatDate, formatMoney, getMySubscription, listMyPayments, sellerName, planName as nameOfPlan,
   type Payment, type Subscription,
 } from '../lib/billingService';
 import {
@@ -60,7 +60,6 @@ const SubscriptionSettings: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
-  const plan = sub ? DEFAULT_PLANS.find((p) => p.id === sub.plan_id) : undefined;
   const isPro = profile?.subscriptionTier === 'PRO';
   const store = sub && (sub.provider === 'google_play' || sub.provider === 'app_store') ? sub.provider : null;
   const storeLabel = storeName(store);
@@ -68,7 +67,7 @@ const SubscriptionSettings: React.FC = () => {
   const manageHere = !!store && ((store === 'google_play' && platform === 'android') || (store === 'app_store' && platform === 'ios'));
   const live = !!sub && ['authenticated', 'active', 'pending', 'halted', 'paused'].includes(sub.status);
   const inTrial = !!sub?.trial_ends_at && Date.parse(sub.trial_ends_at) > now && !sub.current_end;
-  const planName = plan?.name ?? 'Shaadi24+';
+  const planName = sub ? nameOfPlan(sub.plan_id) : 'Shaadi24+';
 
   const manage = async () => {
     try {
