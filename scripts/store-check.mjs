@@ -19,12 +19,16 @@ import fs from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { client } from './testflight-testers.mjs';
 
-/** What the app sells (billing_plans.apple_product_id) and for how long. */
+/**
+ * What the app sells (billing_plans.apple_product_id), for how long, and the
+ * India price the Terms give (rupees; lib/billingService.ts DEFAULT_PLANS,
+ * which a test keeps the same).
+ */
 export const EXPECTED = [
-  { productId: 'shaadi24_plus_weekly', period: 'ONE_WEEK' },
-  { productId: 'shaadi24_plus_monthly', period: 'ONE_MONTH' },
-  { productId: 'shaadi24_plus_quarterly', period: 'THREE_MONTHS' },
-  { productId: 'shaadi24_plus_halfyearly', period: 'SIX_MONTHS' },
+  { productId: 'shaadi24_plus_weekly', period: 'ONE_WEEK', price: 449 },
+  { productId: 'shaadi24_plus_monthly', period: 'ONE_MONTH', price: 999 },
+  { productId: 'shaadi24_plus_quarterly', period: 'THREE_MONTHS', price: 1999 },
+  { productId: 'shaadi24_plus_halfyearly', period: 'SIX_MONTHS', price: 2999 },
 ];
 
 // The states in which the App Store gives a subscription to the app
@@ -33,6 +37,25 @@ const READY = new Set(['READY_TO_SUBMIT', 'WAITING_FOR_REVIEW', 'IN_REVIEW', 'PE
 const words = (value) => String(value ?? '?').toLowerCase().replace(/_/g, ' ');
 const PERIODS = { ONE_WEEK: '1 week', ONE_MONTH: '1 month', TWO_MONTHS: '2 months', THREE_MONTHS: '3 months', SIX_MONTHS: '6 months', ONE_YEAR: '1 year' };
 const period = (p) => PERIODS[p] ?? words(p);
+
+/**
+ * The India price in effect today, and one set to start later: Apple keeps
+ * the old price next to a new one until the new one's start date.
+ */
+export function indiaPrices(response, today = new Date().toISOString().slice(0, 10)) {
+  const included = response?.included ?? [];
+  const points = new Map(included.filter((r) => r.type === 'subscriptionPricePoints').map((r) => [r.id, r]));
+  const currency = included.find((r) => r.type === 'territories')?.attributes?.currency ?? 'INR';
+  const prices = (response?.data ?? []).map((p) => ({
+    start: p.attributes?.startDate ?? null,
+    point: points.get(p.relationships?.subscriptionPricePoint?.data?.id) ?? (points.size === 1 ? [...points.values()][0] : null),
+  })).filter((p) => p.point);
+  const byStart = (a, b) => (a.start ?? '').localeCompare(b.start ?? '');
+  const current = prices.filter((p) => !p.start || p.start <= today).sort(byStart).at(-1) ?? null;
+  const next = prices.filter((p) => p.start && p.start > today).sort(byStart)[0] ?? null;
+  const amount = (p) => (p ? Number(p.point.attributes?.customerPrice) : null);
+  return { currency, now: amount(current), next: amount(next), nextStart: next?.start ?? null };
+}
 
 async function tryRead(what, read) {
   try {
@@ -64,6 +87,10 @@ export async function checkSubscriptions({ call, bundleId, expected = EXPECTED }
   }
   const included = groups?.included ?? [];
   const subscriptions = included.filter((r) => r.type === 'subscriptions');
+  // Which group each subscription is in
+  const groupOf = new Map((groups?.data ?? []).flatMap((g) =>
+    (g.relationships?.subscriptions?.data ?? []).map((s) => [s.id, g.attributes?.referenceName ?? g.id])));
+  const prices = [];
   const groupNames = (groups?.data ?? []).map((g) => g.attributes?.referenceName).filter(Boolean);
   const groupLocalizations = included.filter((r) => r.type === 'subscriptionGroupLocalizations');
 
@@ -90,12 +117,19 @@ export async function checkSubscriptions({ call, bundleId, expected = EXPECTED }
       notes.push(`its length is ${period(a.subscriptionPeriod)}, but the app sells it as ${period(want.period)}`);
     }
 
-    const price = await tryRead('its prices', () => call('GET', `/v1/subscriptions/${sub.id}/prices?filter[territory]=IND&include=subscriptionPricePoint,territory&limit=10`));
+    const price = await tryRead('its prices', () => call('GET', `/v1/subscriptions/${sub.id}/prices?filter[territory]=IND&include=subscriptionPricePoint,territory&limit=50`));
     if (price.error) notes.push(price.error);
     else {
-      const point = (price.value?.included ?? []).find((r) => r.type === 'subscriptionPricePoints');
-      const territory = (price.value?.included ?? []).find((r) => r.type === 'territories');
-      notes.push(point ? `India price ${point.attributes?.customerPrice} ${territory?.attributes?.currency ?? 'INR'}` : 'no price for India yet');
+      const p = indiaPrices(price.value);
+      const shown = p.now ?? p.next;
+      if (shown === null) notes.push('no price for India yet');
+      else {
+        notes.push(p.now === null
+          ? `India price ${p.next} ${p.currency} from ${p.nextStart}`
+          : `India price ${p.now} ${p.currency}${p.next !== null ? `, ${p.next} ${p.currency} from ${p.nextStart}` : ''}`);
+        const final = p.next ?? p.now;
+        if (want.price && p.currency === 'INR' && final !== want.price) prices.push(`${want.productId} is ${final} INR, the Terms say ${want.price}`);
+      }
     }
 
     const localizations = await tryRead('its names', () => call('GET', `/v1/subscriptions/${sub.id}/subscriptionLocalizations?limit=50`));
@@ -116,6 +150,19 @@ export async function checkSubscriptions({ call, bundleId, expected = EXPECTED }
     }
 
     lines.push(`${okState ? '✓' : '✗'} ${want.productId} (${period(a.subscriptionPeriod)}): ${words(a.state)}; ${notes.join('; ')}.`);
+  }
+
+  if (prices.length) {
+    lines.push(`⚠ Prices that differ from the Terms: ${prices.join('; ')}. Change them in App Store Connect, or the Terms (lib/billingService.ts DEFAULT_PLANS) to match.`);
+  }
+  const inGroups = [...new Set(expected.map((w) => subscriptions.find((s) => s.attributes?.productId === w.productId))
+    .filter(Boolean).map((s) => groupOf.get(s.id)).filter(Boolean))];
+  if (inGroups.length > 1) {
+    lines.push(`⚠ They're in different groups (${inGroups.join(', ')}): put them all in one group, so nobody can have two Shaadi24+ subscriptions at once.`);
+  }
+  const extra = subscriptions.filter((s) => !expected.some((w) => w.productId === s.attributes?.productId));
+  if (extra.length) {
+    lines.push(`Also there, but not sold by the app: ${extra.map((s) => `${s.attributes?.productId} (${words(s.attributes?.state)})`).join(', ')}. Remove what isn't needed.`);
   }
 
   lines.push(ready

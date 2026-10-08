@@ -683,6 +683,9 @@ Part 20 done 2026-10-08: **Prices that get cheaper the longer you take, with the
   store's prices, so it's right in any currency.
 - [x] The Terms and Refund page show the new price (Terms `terms-v8-2026-10-08`), and `billing_plans`
   has it (`supabase/migrations/20261008131919_shaadi24_plus_weekly_price.sql`, applied live).
+- [x] The App Store check also compares each India price with the Terms (and reads a price change set to
+  start later), and says when the subscriptions are split across groups or one the app doesn't sell is
+  still there (`shaadi24_plus_yearly`).
 - [ ] **Owner:** set `shaadi24_plus_weekly` (and the Play base plan `weekly`) to ₹449.
 
 **Still to do**
