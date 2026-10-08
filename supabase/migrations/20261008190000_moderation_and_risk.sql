@@ -153,8 +153,7 @@ end;
 $$;
 revoke all on function public.capture_profile_for_review() from public, anon, authenticated;
 
-drop trigger if exists profiles_capture_for_review on public.profiles;
-create trigger profiles_capture_for_review
+create or replace trigger profiles_capture_for_review
   after insert or update of photo_urls, description, about_family on public.profiles
   for each row execute function public.capture_profile_for_review();
 

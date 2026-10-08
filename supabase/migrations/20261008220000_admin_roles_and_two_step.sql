@@ -187,52 +187,37 @@ end $$;
 
 -- ---- And every access rule ------------------------------------------------------------------------
 
-drop policy if exists "admins can read audit log" on public.admin_audit;
-create policy "admins can read audit log" on public.admin_audit
-  for select to authenticated using ((select public.admin_can(array['audit', 'dashboard'])));
+-- (ALTER POLICY: each rule keeps its name and what it applies to; only who passes changes)
+alter policy "admins can read audit log" on public.admin_audit
+  using ((select public.admin_can(array['audit', 'dashboard'])));
 
-drop policy if exists "admins can read admin_emails" on public.admin_emails;
-create policy "admins can read admin_emails" on public.admin_emails
-  for select to authenticated using ((select public.admin_can(array['team'])));
+alter policy "admins can read admin_emails" on public.admin_emails
+  using ((select public.admin_can(array['team'])));
 
-drop policy if exists "Admins manage posts" on public.blog_posts;
-create policy "Admins manage posts" on public.blog_posts
-  for all to authenticated
+alter policy "Admins manage posts" on public.blog_posts
   using ((select public.admin_can(array['blog']))) with check ((select public.admin_can(array['blog'])));
 
-drop policy if exists "Admins see visits" on public.blog_views;
-create policy "Admins see visits" on public.blog_views
-  for select to authenticated using ((select public.admin_can(array['blog'])));
+alter policy "Admins see visits" on public.blog_views
+  using ((select public.admin_can(array['blog'])));
 
-drop policy if exists "Admins manage offers" on public.offers;
-create policy "Admins manage offers" on public.offers
-  for all to authenticated
+alter policy "Admins manage offers" on public.offers
   using ((select public.admin_can(array['offers']))) with check ((select public.admin_can(array['offers'])));
 
-drop policy if exists "Admins manage stories" on public.success_stories;
-create policy "Admins manage stories" on public.success_stories
-  for all to authenticated
+alter policy "Admins manage stories" on public.success_stories
   using ((select public.admin_can(array['stories']))) with check ((select public.admin_can(array['stories'])));
 
-drop policy if exists "members see their own reports, admins see all" on public.reports;
-create policy "members see their own reports, admins see all" on public.reports
-  for select to authenticated
+alter policy "members see their own reports, admins see all" on public.reports
   using (reporter_id = (select auth.uid()) or (select public.admin_can(array['reports'])));
 
-drop policy if exists "members see their own verification requests, admins see all" on public.verification_requests;
-create policy "members see their own verification requests, admins see all" on public.verification_requests
-  for select to authenticated
+alter policy "members see their own verification requests, admins see all" on public.verification_requests
   using (user_id = (select auth.uid()) or (select public.admin_can(array['verifications'])));
 
-drop policy if exists "Admins add blog pictures" on storage.objects;
-create policy "Admins add blog pictures" on storage.objects
-  for insert to authenticated with check (bucket_id = 'blog' and (select public.admin_can(array['blog', 'stories'])));
-drop policy if exists "Admins see blog pictures" on storage.objects;
-create policy "Admins see blog pictures" on storage.objects
-  for select to authenticated using (bucket_id = 'blog' and (select public.admin_can(array['blog', 'stories'])));
-drop policy if exists "Admins remove blog pictures" on storage.objects;
-create policy "Admins remove blog pictures" on storage.objects
-  for delete to authenticated using (bucket_id = 'blog' and (select public.admin_can(array['blog', 'stories'])));
+alter policy "Admins add blog pictures" on storage.objects
+  with check (bucket_id = 'blog' and (select public.admin_can(array['blog', 'stories'])));
+alter policy "Admins see blog pictures" on storage.objects
+  using (bucket_id = 'blog' and (select public.admin_can(array['blog', 'stories'])));
+alter policy "Admins remove blog pictures" on storage.objects
+  using (bucket_id = 'blog' and (select public.admin_can(array['blog', 'stories'])));
 
 -- ---- Admin alerts: only to admins whose role covers the section -------------------------------------
 

@@ -323,12 +323,10 @@ create table if not exists public.success_stories (
 );
 alter table public.success_stories enable row level security;
 
-drop policy if exists "Anyone reads published stories" on public.success_stories;
 create policy "Anyone reads published stories" on public.success_stories
   for select to anon, authenticated
   using (published);
 
-drop policy if exists "Admins manage stories" on public.success_stories;
 create policy "Admins manage stories" on public.success_stories
   for all to authenticated
   using ((select public.is_admin()))
@@ -366,8 +364,7 @@ end;
 $$;
 revoke execute on function public.success_stories_audit() from public, anon, authenticated;
 
-drop trigger if exists success_stories_audit on public.success_stories;
-create trigger success_stories_audit before insert or update or delete on public.success_stories
+create or replace trigger success_stories_audit before insert or update or delete on public.success_stories
   for each row execute function public.success_stories_audit();
 
 -- Couples can send their story through the contact form
