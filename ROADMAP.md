@@ -634,6 +634,20 @@ Part 17 done 2026-10-08: **sort Find Match's results, and the Online filter show
 - [x] Tests: `tests/e2e/search-sort.mjs` (a phone screen, light and dark), and the search, filter,
   Android, iPhone and accessibility tests again.
 
+Part 18 done 2026-10-08: **Shaadi24+ in black and white, and its pop-up floats.** On a phone the
+Shaadi24+ pop-up ran to the screen's edges, under an orange-to-pink header.
+
+- [x] The pop-up is a frosted-glass card with round corners, clear of the screen's sides and bottom,
+  in black and white (white and black in dark mode): a black ⚡ tile, black ticks, the chosen plan
+  outlined in black, a black Subscribe button.
+- [x] The rest of Shaadi24+ matches: its badges and buttons were yellow-to-orange (the Super Like and
+  Shaadi24+ badges, the locked compatibility report, Likes You's banner, the filter panel's locks,
+  Settings, Standouts, the menu's "Get Shaadi24+", which was blue). Colours that say something stay:
+  green for online and verified, yellow for a pending verification, red for errors.
+- [x] "Pro" and "Upgrade to Pro" now say Shaadi24+ and "Get Shaadi24+".
+- [x] The iPhone test checks the pop-up floats clear of the sides with round corners and no colour
+  gradient; the purchases, pop-up, accessibility, Android and website tests pass.
+
 **Still to do**
 
 - [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.

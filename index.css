@@ -64,6 +64,18 @@ html.native-ios .max-h-\[95vh\] {
   .popup-backdrop {
     @apply bg-white/25 backdrop-blur-[6px] dark:bg-black/25;
   }
+  /* A frosted-glass panel over the blurred page (the Shaadi24+ pop-up) */
+  .glass-panel {
+    @apply bg-white/80 dark:bg-zinc-900/80 backdrop-blur-2xl backdrop-saturate-150 border border-white/70 dark:border-white/10 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.35)];
+  }
+  /* Shaadi24+ is black and white (white and black in dark mode): its
+     buttons and badges, and its softer panels */
+  .plus-solid {
+    @apply bg-gray-900 text-white dark:bg-white dark:text-gray-900;
+  }
+  .plus-soft {
+    @apply bg-gray-50 border-gray-200 dark:bg-zinc-800/60 dark:border-zinc-700;
+  }
 }
 
 /* A scroll area without a visible scrollbar (the Find Match start screen) */

@@ -363,8 +363,8 @@ const ProfileView: React.FC<{ initialSection?: SectionId }> = ({ initialSection 
     const tier = profile?.subscriptionTier || 'FREE';
     if (tier === 'PRO') {
       return (
-        <div className="flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-bold rounded-md shadow-sm uppercase tracking-widest">
-          <IconZap /> PRO
+        <div className="flex items-center gap-1.5 px-3 py-1 plus-solid text-xs font-bold rounded-md shadow-sm tracking-wide">
+          <IconZap /> Shaadi24+
         </div>
       );
     }

@@ -235,7 +235,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
               {match.otherUser.name}{match.otherUser.age ? `, ${match.otherUser.age}` : ''}
             </h3>
             {match.otherUser.isVerified && <span className="text-blue-500"><IconCheck className="w-3 h-3" /></span>}
-            {match.otherUser.subscriptionTier === 'PRO' && <span className="text-yellow-500"><IconZap /></span>}
+            {match.otherUser.subscriptionTier === 'PRO' && <span className="text-gray-900 dark:text-white" title="Shaadi24+ member"><IconZap /></span>}
           </div>
           <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{match.otherUser.location}</p>
         </div>

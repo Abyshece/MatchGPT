@@ -57,7 +57,7 @@ const LikedYouCard: React.FC<LikedYouCardProps> = ({ like, isPro, onView, onUpgr
 
         {/* Super-Like crown */}
         {like.isSuperLike && (
-          <div className="absolute top-2 left-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg flex items-center gap-1">
+          <div className="absolute top-2 left-2 plus-solid px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg flex items-center gap-1">
             <IconStar /> Super Like
           </div>
         )}
@@ -71,7 +71,7 @@ const LikedYouCard: React.FC<LikedYouCardProps> = ({ like, isPro, onView, onUpgr
 
         {/* Pro badge */}
         {isPro && like.liker.subscriptionTier === 'PRO' && (
-          <div className={`absolute ${like.liker.isVerified ? 'top-9' : 'top-2'} right-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white p-1 rounded-full`} title="Pro user">
+          <div className={`absolute ${like.liker.isVerified ? 'top-9' : 'top-2'} right-2 plus-solid p-1 rounded-full`} title="Shaadi24+ member">
             <IconZap />
           </div>
         )}
@@ -79,8 +79,8 @@ const LikedYouCard: React.FC<LikedYouCardProps> = ({ like, isPro, onView, onUpgr
         {/* Free user upgrade overlay */}
         {!isPro && (
           <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center z-10">
-            <div className="w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg mb-3 animate-bounce">
-              <span className="text-white"><IconZap /></span>
+            <div className="w-12 h-12 plus-solid rounded-full flex items-center justify-center shadow-lg mb-3 animate-bounce">
+              <IconZap />
             </div>
             <button
               onClick={(e) => { e.stopPropagation(); onUpgrade(); }}
@@ -117,7 +117,7 @@ const LikedYouCard: React.FC<LikedYouCardProps> = ({ like, isPro, onView, onUpgr
         ) : (
           <button
             onClick={onUpgrade}
-            className="text-[11px] font-bold text-yellow-700 dark:text-yellow-400 hover:underline"
+            className="text-[11px] font-bold text-gray-900 dark:text-white hover:underline"
           >
             See & Like Back
           </button>

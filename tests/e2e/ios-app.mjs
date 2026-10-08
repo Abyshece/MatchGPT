@@ -158,6 +158,17 @@ try {
   check(await page.getByText('Shaadi24+ is coming to the app soon.').waitFor({ timeout: 8000 }).then(() => true, () => false),
     'Shaadi24+ "coming to the app soon"');
   clear(await rect(page, '[role="dialog"]'), 'the Shaadi24+ sheet');
+  // A card that floats clear of the screen's sides, with round corners all
+  // round, in black and white (no orange or pink gradient)
+  const sheet = await page.getByTestId('upgrade-modal').evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    const cs = getComputedStyle(el);
+    const coloured = [...el.querySelectorAll('*')].some((n) => /gradient/.test(getComputedStyle(n).backgroundImage));
+    return { left: r.left, right: r.right, radius: parseFloat(cs.borderBottomLeftRadius), coloured };
+  });
+  check(sheet.left >= 8 && sheet.right <= SCREEN.width - 8 && sheet.radius >= 20,
+    `the Shaadi24+ sheet floats clear of the sides, corners round (${Math.round(sheet.left)}–${Math.round(sheet.right)}, ${sheet.radius}px)`);
+  check(!sheet.coloured, 'the Shaadi24+ sheet has no colour gradient');
   await page.screenshot({ path: `${OUT}7-shaadi24-plus.png` });
   await page.getByRole('button', { name: 'Maybe later' }).click();
   await page.waitForTimeout(400);

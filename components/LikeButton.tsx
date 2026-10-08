@@ -69,7 +69,7 @@ const LikeButton: React.FC<LikeButtonProps> = ({
   const performLike = async (isSuperLike: boolean) => {
     if (!session?.user.id) return;
     if (atLimit) {
-      showToast(`Daily like limit reached. Upgrade to Pro for unlimited.`, 'info');
+      showToast(`Daily like limit reached. Get Shaadi24+ for unlimited likes.`, 'info');
       onLimitReached?.();
       return;
     }

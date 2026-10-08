@@ -51,45 +51,48 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ reason, resetInHours, onClo
         : 'More searches, more likes, more ways to stand out.';
 
   const closeButton = (label: string) => (
-    <button onClick={onClose} className="w-full bg-black dark:bg-white text-white dark:text-black font-bold py-3 rounded-lg hover:opacity-90">
+    <button onClick={onClose} className="w-full plus-solid font-bold py-3.5 rounded-2xl hover:opacity-90">
       {label}
     </button>
   );
 
   return createPortal(
+    // A frosted-glass card that floats clear of the screen's edges, in black
+    // and white (the page behind stays faintly visible)
     <div
-      className="fixed inset-0 z-[500] flex items-end sm:items-center justify-center sm:p-4 popup-backdrop animate-fade-in"
+      className="fixed inset-0 z-[500] flex items-end sm:items-center justify-center p-3 sm:p-4 popup-backdrop animate-fade-in"
       onClick={paying ? undefined : onClose}
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="upgrade-title"
-        className="bg-white dark:bg-zinc-900 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[92vh] overflow-y-auto border border-gray-200 dark:border-zinc-800 relative"
+        data-testid="upgrade-modal"
+        className="glass-panel rounded-[28px] w-full sm:max-w-md max-h-[92vh] overflow-y-auto relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
           disabled={paying}
-          className="absolute top-3 right-3 z-30 p-1.5 rounded-full text-white/80 hover:text-white hover:bg-white/20 disabled:opacity-40"
+          className="absolute top-3 right-3 z-30 p-2 rounded-full text-gray-500 hover:text-gray-900 hover:bg-black/5 dark:text-gray-400 dark:hover:text-white dark:hover:bg-white/10 disabled:opacity-40"
           aria-label="Close"
         >
           <IconX />
         </button>
 
-        <div className="bg-gradient-to-br from-yellow-500 via-orange-500 to-pink-500 px-6 pt-7 pb-6 text-center text-white">
-          <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
+        <div className="px-6 pt-8 pb-1 text-center">
+          <div className="w-14 h-14 plus-solid rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg [&>svg]:w-6 [&>svg]:h-6">
             <IconZap />
           </div>
-          <h2 id="upgrade-title" className="text-2xl font-bold mb-1">
+          <h2 id="upgrade-title" className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white mb-1.5">
             {done ? 'Welcome to Shaadi24+' : alreadyPro ? 'You have Shaadi24+' : headline}
           </h2>
-          <p className="text-sm text-white/90">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             {done || alreadyPro ? 'Unlimited searches and likes, Super Likes and more.' : subtitle}
           </p>
         </div>
 
-        <div className="p-6">
+        <div className="px-6 pt-5 pb-6">
           {done ? (
             <>
               <p className="text-sm text-gray-700 dark:text-gray-300 text-center mb-5">
@@ -109,7 +112,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ reason, resetInHours, onClo
               <button
                 onClick={onClose}
                 disabled={paying}
-                className="w-full text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 mt-1 py-2 disabled:opacity-40"
+                className="w-full text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mt-1 py-2 disabled:opacity-40"
               >
                 Maybe later
               </button>
@@ -119,7 +122,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ reason, resetInHours, onClo
               <ul className="space-y-2 mb-6">
                 {proBenefits(proForAll).map((f) => (
                   <li key={f} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
-                    <span className="text-green-500 flex-shrink-0 mt-0.5"><IconCheck className="w-4 h-4" /></span>
+                    <span className="text-gray-900 dark:text-white flex-shrink-0 mt-0.5"><IconCheck className="w-4 h-4" /></span>
                     <span>{f}</span>
                   </li>
                 ))}

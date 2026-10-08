@@ -222,17 +222,17 @@ const Sidebar: React.FC<SidebarProps> = ({
         {profile && (
           <div
             onClick={() => (isPro ? onTabChange('settings') : setShowUpgradeModal(true))}
-            className={`rounded-lg border cursor-pointer transition-all duration-300 mb-3 overflow-hidden group bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 border-blue-100 dark:border-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/20 ${
+            className={`rounded-lg border cursor-pointer transition-all duration-300 mb-3 overflow-hidden group plus-soft hover:bg-gray-100 dark:hover:bg-zinc-700/60 ${
               isCollapsed ? 'p-2 flex justify-center items-center' : 'px-3 py-3'
             }`}
             title={isCollapsed ? (isPro ? 'Shaadi24+ active' : 'Get Shaadi24+') : undefined}
           >
             {!isCollapsed ? (
-              <div className="flex items-center gap-2 font-bold text-xs uppercase tracking-wide text-blue-700 dark:text-blue-300">
+              <div className="flex items-center gap-2 font-bold text-xs uppercase tracking-wide text-gray-900 dark:text-white">
                 <IconZap /> {isPro ? 'Shaadi24+ active' : 'Get Shaadi24+'}
               </div>
             ) : (
-              <div className="text-blue-600 dark:text-blue-400">
+              <div className="text-gray-900 dark:text-white">
                 <IconZap />
               </div>
             )}
