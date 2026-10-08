@@ -4,6 +4,7 @@ import { IconX, IconCheck } from '../constants';
 import { useAuth } from '../lib/AuthContext';
 import { FEATURES_FREE_NOW, proBenefits, formatDate } from '../lib/billingService';
 import { isNativeApp } from '../lib/nativeApp';
+import { APPLE_APP_ID } from '../lib/storeLinks';
 import StoreBadges from './StoreBadges';
 import { PlanCards, PlanSaving, StoreTerms, buyLabel, useStoreUpgrade } from './StoreUpgrade';
 
@@ -181,6 +182,19 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ reason, resetInHours, onClo
                 >
                   {store.restoring ? 'Restoring…' : 'Restore purchases'}
                 </button>
+              )}
+              {store.available && (
+                // An offer code (the website's banner, Admin → Offers) is redeemed in the store itself
+                <a
+                  href={store.platform === 'ios'
+                    ? `https://apps.apple.com/redeem?ctx=offercodes&id=${APPLE_APP_ID}`
+                    : 'https://play.google.com/redeem'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full text-center text-xs font-medium text-gray-500 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-white"
+                >
+                  Have an offer code? Redeem it
+                </a>
               )}
             </>
           ) : (

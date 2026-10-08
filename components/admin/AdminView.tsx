@@ -9,6 +9,11 @@ import { isNativeApp } from '../../lib/nativeApp';
 import { isAppPreview } from '../../lib/appPreview';
 import type { PlatformStats, ReportRow, AdminAuditRow } from '../../lib/adminService';
 import AdminCustomersTab from './AdminCustomersTab';
+import AdminProfilesTab from './AdminProfilesTab';
+import AdminMessagesTab from './AdminMessagesTab';
+import AdminOffersTab from './AdminOffersTab';
+import AdminEnquiriesTab from './AdminEnquiriesTab';
+import { fetchEnquiries } from '../../lib/adminGrowth';
 import AdminReportsTab from './AdminReportsTab';
 import AdminGrievancesTab from './AdminGrievancesTab';
 import AdminVerificationsTab from './AdminVerificationsTab';
@@ -26,7 +31,12 @@ import AdminAppTab from './AdminAppTab';
 //   People:   Customers          every member in one row (AdminCustomersTab)
 //             Verification       requests waiting, each with whether it's
 //                                likely to pass (AdminVerificationsTab)
+//             Profiles           how complete profiles are, and a message
+//                                to those who haven't filled in a section
 //   Safety:   Reports, Complaints (to the Grievance Officer, with deadlines)
+//   Growth:   Messages           in-app messages and notifications
+//             Offers             a code in a banner on the home page
+//   Inbox:    Enquiries          the website's contact form
 //   Business: Finance            subscribers, revenue, every charge (CSV)
 //   System:   Errors, Audit log, App preview (the members' app, website only)
 //
@@ -35,14 +45,15 @@ import AdminAppTab from './AdminAppTab';
 // denied", and the admin RPCs refuse them anyway.
 // ============================================================================
 
-export type AdminTab = 'dashboard' | 'customers' | 'verifications' | 'reports' | 'grievances' | 'finance' | 'errors' | 'audit' | 'app';
+export type AdminTab = 'dashboard' | 'customers' | 'verifications' | 'profiles' | 'reports' | 'grievances' | 'messages' | 'offers'
+  | 'enquiries' | 'finance' | 'errors' | 'audit' | 'app';
 
 interface Section {
   id: AdminTab;
   label: string;
   description: string;
   icon: React.ReactNode;
-  count?: (stats: PlatformStats | null) => number;
+  count?: (stats: PlatformStats | null, extra: { newEnquiries: number }) => number;
   wide?: boolean;   // uses the whole width (a wide table)
 }
 
@@ -57,6 +68,10 @@ const SECTIONS: Record<AdminTab, Section> = {
   dashboard: { id: 'dashboard', label: 'Overview', description: 'How Shaadi24 is doing, and what needs you.', icon: icon('M3 3h7v9H3z|M14 3h7v5h-7z|M14 12h7v9h-7z|M3 16h7v5H3z') },
   customers: { id: 'customers', label: 'Customers', description: 'Every member, one row each. Open a member to act on their account.', icon: icon('M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2|M9 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8|M22 21v-2a4 4 0 0 0-3-3.87|M16 3.13a4 4 0 0 1 0 7.75'), wide: true },
   verifications: { id: 'verifications', label: 'Verification', description: 'Members waiting to be verified, with whether each is likely to pass.', icon: icon('M9 12l2 2 4-4|M12 2l2.4 1.8 3 .2.9 2.8 2.4 1.8-1 2.8 1 2.8-2.4 1.8-.9 2.8-3 .2L12 22l-2.4-1.8-3-.2-.9-2.8L3.3 15.4l1-2.8-1-2.8 2.4-1.8.9-2.8 3-.2z'), count: (s) => s?.pending_verifications ?? 0 },
+  profiles: { id: 'profiles', label: 'Profiles', description: 'How much members have filled in, section by section, and a message to those who haven’t.', icon: icon('M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z|M14 2v6h6|M8 13h8|M8 17h5') },
+  messages: { id: 'messages', label: 'Messages', description: 'In-app messages and notifications to a group of members.', icon: icon('M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z') },
+  offers: { id: 'offers', label: 'Offers', description: 'A code for Shaadi24+ in a banner on the website’s home page.', icon: icon('M20 12v10H4V12|M2 7h20v5H2z|M12 22V7|M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z|M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z') },
+  enquiries: { id: 'enquiries', label: 'Enquiries', description: 'Messages from the contact form on the website.', icon: icon('M22 12h-6l-2 3h-4l-2-3H2|M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z'), count: (_s, x) => x.newEnquiries },
   reports: { id: 'reports', label: 'Reports', description: 'Members reported by other members.', icon: icon('M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z|M4 22v-7'), count: (s) => s?.pending_reports ?? 0 },
   grievances: { id: 'grievances', label: 'Complaints', description: 'Complaints to the Grievance Officer, with their legal deadlines.', icon: icon('M12 3v18|M5 7l7-4 7 4|M2 14l3-7 3 7a3.5 3.5 0 0 1-6 0|M16 14l3-7 3 7a3.5 3.5 0 0 1-6 0|M8 21h8') },
   finance: { id: 'finance', label: 'Finance', description: 'Subscribers, revenue by month and store, every charge.', icon: icon('M3 7h18v13H3z|M16 13h2|M3 7l3-4h12l3 4'), wide: true },
@@ -69,8 +84,10 @@ const SECTIONS: Record<AdminTab, Section> = {
 // apps and the preview itself, admins are in the members' app already
 const GROUPS: { label: string | null; items: AdminTab[] }[] = [
   { label: null, items: ['dashboard'] },
-  { label: 'People', items: ['customers', 'verifications'] },
+  { label: 'People', items: ['customers', 'verifications', 'profiles'] },
   { label: 'Safety', items: ['reports', 'grievances'] },
+  { label: 'Growth', items: ['messages', 'offers'] },
+  { label: 'Inbox', items: ['enquiries'] },
   { label: 'Business', items: ['finance'] },
   { label: 'System', items: isNativeApp() || isAppPreview() ? ['errors', 'audit'] : ['errors', 'audit', 'app'] },
 ];
@@ -86,6 +103,10 @@ const AdminView: React.FC<{ initialTab?: AdminTab }> = ({ initialTab }) => {
   const [recentReports, setRecentReports] = useState<ReportRow[]>([]);
   const [recentAudit, setRecentAudit] = useState<AdminAuditRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [newEnquiries, setNewEnquiries] = useState(0);
+  const countEnquiries = useCallback(() => {
+    void fetchEnquiries('open').then(({ enquiries }) => setNewEnquiries(enquiries.filter((e) => e.status === 'new').length));
+  }, []);
 
   const loadDashboard = useCallback(async () => {
     setLoading(true);
@@ -109,6 +130,7 @@ const AdminView: React.FC<{ initialTab?: AdminTab }> = ({ initialTab }) => {
   useEffect(() => {
     if (isAdmin && tab === 'dashboard') loadDashboard();
   }, [isAdmin, tab, loadDashboard]);
+  useEffect(() => { if (isAdmin) countEnquiries(); }, [isAdmin, countEnquiries]);
 
   // ---- Access control ----
   if (!profile) return null;
@@ -132,7 +154,7 @@ const AdminView: React.FC<{ initialTab?: AdminTab }> = ({ initialTab }) => {
   const section = SECTIONS[tab];
   const navButton = (id: AdminTab, phone: boolean) => {
     const item = SECTIONS[id];
-    const count = item.count?.(stats) ?? 0;
+    const count = item.count?.(stats, { newEnquiries }) ?? 0;
     const on = tab === id;
     return (
       <button
@@ -196,8 +218,12 @@ const AdminView: React.FC<{ initialTab?: AdminTab }> = ({ initialTab }) => {
           )}
           {tab === 'customers' && <AdminCustomersTab onAuditUpdate={loadDashboard} />}
           {tab === 'verifications' && <AdminVerificationsTab onAuditUpdate={loadDashboard} />}
+          {tab === 'profiles' && <AdminProfilesTab />}
           {tab === 'reports' && <AdminReportsTab onAuditUpdate={loadDashboard} />}
           {tab === 'grievances' && <AdminGrievancesTab onAuditUpdate={loadDashboard} />}
+          {tab === 'messages' && <AdminMessagesTab />}
+          {tab === 'offers' && <AdminOffersTab />}
+          {tab === 'enquiries' && <AdminEnquiriesTab onChanged={countEnquiries} />}
           {tab === 'finance' && <AdminFinanceTab />}
           {tab === 'errors' && <AdminErrorsTab onAuditUpdate={loadDashboard} />}
           {tab === 'audit' && <AuditLog />}

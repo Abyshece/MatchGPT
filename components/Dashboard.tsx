@@ -17,6 +17,7 @@ import { firstCelebration } from '../lib/matchCelebration';
 import { setErrorScreen } from '../lib/errorReports';
 import RulesReminder from './RulesReminder';
 import ProfileRewardsPopup from './ProfileRewardsPopup';
+import MemberMessages from './MemberMessages';
 import type { SectionId } from '../lib/profileRewards';
 
 // ============================================================================
@@ -136,9 +137,21 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
     } else if (data.event_type === 'super_like' || data.deep_link === '/likes') {
       setPendingMatchOpenId(null);
       setActiveTab('likes');
-    } else if (data.event_type === 'admin_report' || data.event_type === 'admin_verification' || data.event_type === 'admin_grievance') {
+    } else if (data.event_type === 'admin_message') {
+      // A message from the team: it shows as a card when the app opens; its
+      // button's place too, if it's in My Profile
       setPendingMatchOpenId(null);
-      const tab = data.admin_tab === 'verifications' ? 'verifications' : data.admin_tab === 'grievances' ? 'grievances' : 'reports';
+      const target = typeof data.target === 'string' ? data.target : '';
+      if (target.startsWith('profile')) {
+        const section = target.split(':')[1] as SectionId | undefined;
+        setProfileOpen((o) => ({ section, key: o.key + 1 }));
+        setActiveTab('profile');
+      }
+    } else if (data.event_type === 'admin_report' || data.event_type === 'admin_verification' || data.event_type === 'admin_grievance'
+      || data.event_type === 'admin_enquiry') {
+      setPendingMatchOpenId(null);
+      const tab = data.admin_tab === 'verifications' ? 'verifications' : data.admin_tab === 'grievances' ? 'grievances'
+        : data.admin_tab === 'enquiries' ? 'enquiries' : 'reports';
       setAdminOpen((o) => ({ tab, key: o.key + 1 }));
       setActiveTab('admin');
     }
@@ -203,6 +216,11 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
       <ProfileRewardsPopup onOpenSection={(section) => {
         setProfileOpen((o) => ({ section, key: o.key + 1 }));
         handleTabChange('profile');
+      }} />
+      {/* Messages from the Shaadi24 team (Admin → Messages) */}
+      <MemberMessages onGo={(to) => {
+        if (to.tab === 'profile') setProfileOpen((o) => ({ section: to.section, key: o.key + 1 }));
+        handleTabChange(to.tab);
       }} />
       {isMobileMenuOpen && (
         <div

@@ -50,7 +50,9 @@ const NotAnAdmin: React.FC<{ email: string; onSignOut: () => void }> = ({ email,
 interface PushData { event_type?: string; admin_tab?: string }
 const tabFor = (data: PushData): AdminTab | null =>
   data.event_type === 'admin_report' || data.event_type === 'admin_verification' || data.event_type === 'admin_grievance'
-    ? (data.admin_tab === 'verifications' ? 'verifications' : data.admin_tab === 'grievances' ? 'grievances' : 'reports')
+    || data.event_type === 'admin_enquiry'
+    ? (data.admin_tab === 'verifications' ? 'verifications' : data.admin_tab === 'grievances' ? 'grievances'
+      : data.admin_tab === 'enquiries' ? 'enquiries' : 'reports')
     : null;
 
 const AdminShell: React.FC<{ email: string; onSignOut: () => void }> = ({ email, onSignOut }) => {
