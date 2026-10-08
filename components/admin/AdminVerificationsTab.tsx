@@ -4,11 +4,15 @@ import {
   fetchPendingVerifications, reviewVerificationRequest,
 } from '../../lib/verificationService';
 import type { PendingVerification } from '../../lib/verificationService';
+import {
+  assessVerification, fetchVerificationSignals, VERDICT_LABEL, type Assessment, type VerificationSignals,
+} from '../../lib/verificationChecks';
 
 // ============================================================================
 // AdminVerificationsTab
 //
 // Lists pending verification requests for admin review. Each request shows:
+//   - Whether it's likely to pass, and why (lib/verificationChecks.ts)
 //   - The user's name, email, primary photo
 //   - All 4 social media links (clickable, opens in new tab)
 //   - User's notes (if any)
@@ -23,6 +27,7 @@ interface AdminVerificationsTabProps {
 const AdminVerificationsTab: React.FC<AdminVerificationsTabProps> = ({ onAuditUpdate }) => {
   const { showToast } = useToast();
   const [requests, setRequests] = useState<PendingVerification[]>([]);
+  const [signals, setSignals] = useState<Map<string, VerificationSignals>>(new Map());
   const [loading, setLoading] = useState(true);
   const [reviewModal, setReviewModal] = useState<{
     req: PendingVerification;
@@ -31,12 +36,14 @@ const AdminVerificationsTab: React.FC<AdminVerificationsTabProps> = ({ onAuditUp
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { requests, error } = await fetchPendingVerifications();
+    const [{ requests, error }, checks] = await Promise.all([fetchPendingVerifications(), fetchVerificationSignals()]);
     setLoading(false);
     if (error) {
       showToast(`Couldn't load: ${error}`, 'error');
       return;
     }
+    if (checks.error) showToast(`Couldn't load the checks: ${checks.error}`, 'error');
+    setSignals(checks.signals);
     setRequests(requests);
   }, [showToast]);
 
@@ -74,10 +81,12 @@ const AdminVerificationsTab: React.FC<AdminVerificationsTabProps> = ({ onAuditUp
         </div>
       ) : (
         <div className="space-y-3">
+          <VerdictSummary assessments={requests.map((req) => assessVerification(req, signals.get(req.request_id)))} />
           {requests.map((req) => (
             <VerificationCard
               key={req.request_id}
               req={req}
+              assessment={assessVerification(req, signals.get(req.request_id))}
               onApprove={() => setReviewModal({ req, decision: 'approved' })}
               onReject={() => setReviewModal({ req, decision: 'rejected' })}
             />
@@ -101,11 +110,28 @@ const AdminVerificationsTab: React.FC<AdminVerificationsTabProps> = ({ onAuditUp
 // VerificationCard
 // ============================================================================
 
+const VERDICT_STYLE: Record<Assessment['verdict'], string> = {
+  likely: 'bg-green-50 border-green-200 text-green-900 dark:bg-green-900/20 dark:border-green-900/50 dark:text-green-200',
+  check: 'bg-amber-50 border-amber-200 text-amber-900 dark:bg-amber-900/20 dark:border-amber-900/50 dark:text-amber-200',
+  unlikely: 'bg-red-50 border-red-200 text-red-900 dark:bg-red-900/20 dark:border-red-900/50 dark:text-red-200',
+};
+const MARK = { pass: '✓', warn: '!', fail: '✕' } as const;
+
+const VerdictSummary: React.FC<{ assessments: Assessment[] }> = ({ assessments }) => {
+  const count = (v: Assessment['verdict']) => assessments.filter((a) => a.verdict === v).length;
+  return (
+    <p className="text-sm text-gray-600 dark:text-zinc-300" data-testid="verification-summary">
+      {assessments.length} waiting · {count('likely')} likely to pass · {count('check')} to check closely · {count('unlikely')} unlikely
+    </p>
+  );
+};
+
 const VerificationCard: React.FC<{
   req: PendingVerification;
+  assessment: Assessment;
   onApprove: () => void;
   onReject: () => void;
-}> = ({ req, onApprove, onReject }) => {
+}> = ({ req, assessment, onApprove, onReject }) => {
   const links: { label: string; icon: string; url: string | null }[] = [
     { label: 'LinkedIn', icon: '💼', url: req.linkedin_url },
     { label: 'Instagram', icon: '📷', url: req.instagram_url },
@@ -133,6 +159,19 @@ const VerificationCard: React.FC<{
             Requested {new Date(req.requested_at).toLocaleString()} · {linkCount} link{linkCount === 1 ? '' : 's'}
           </p>
         </div>
+      </div>
+
+      {/* Will it pass? */}
+      <div className={`rounded-md border p-3 mb-3 ${VERDICT_STYLE[assessment.verdict]}`} data-testid="verification-check">
+        <p className="text-sm font-semibold">{VERDICT_LABEL[assessment.verdict]}</p>
+        <ul className="mt-1.5 space-y-0.5 text-xs">
+          {assessment.checks.map((c) => (
+            <li key={c.text} className="flex gap-2">
+              <span aria-hidden="true" className="w-3 flex-none font-bold">{MARK[c.level]}</span>
+              <span>{c.text}</span>
+            </li>
+          ))}
+        </ul>
       </div>
 
       {/* Social links */}

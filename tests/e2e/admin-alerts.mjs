@@ -81,8 +81,9 @@ function reset() {
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
 const appears = (locator, ms = 10000) => locator.first().waitFor({ state: 'visible', timeout: ms }).then(() => true, () => false);
 // The Admin tab that's open (its button is underlined), once there is one
-const adminTabOpen = (page, tab, ms = 15000) => page.waitForFunction((t) => [...document.querySelectorAll('button')]
-  .some((b) => b.textContent.trim() === t && b.className.includes('border-blue-500')), tab, { timeout: ms }).then(() => true, () => false);
+// The admin section shown (its sidebar button is the current page)
+const adminTabOpen = (page, tab, ms = 15000) => page.waitForFunction((t) => !!document.querySelector(`[data-section="${t}"][aria-current="page"]`),
+  tab, { timeout: ms }).then(() => true, () => false);
 
 async function signInOnPage(page, email) {
   await page.getByRole('button', { name: 'Sign in' }).first().click();

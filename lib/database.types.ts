@@ -1661,6 +1661,10 @@ export type Database = {
         Args: { reason: string; target_id: string }
         Returns: undefined
       }
+      admin_customers: {
+        Args: { p_filter?: string; p_limit?: number; p_offset?: number; p_query?: string; p_sort?: string }
+        Returns: Json
+      }
       admin_finance_summary: {
         Args: { p_mode?: string; p_months?: number }
         Returns: Json
@@ -1748,6 +1752,7 @@ export type Database = {
       }
       admin_mark_error_fixed: { Args: { p_id: number }; Returns: undefined }
       admin_platform_stats: { Args: never; Returns: Json }
+      admin_verification_signals: { Args: never; Returns: Json }
       admin_review_verification: {
         Args: { decision: string; notes: string; request_id: string }
         Returns: undefined

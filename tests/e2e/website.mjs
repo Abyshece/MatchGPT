@@ -39,8 +39,9 @@ const sql = (q) => execSync(`docker exec -i ${DB} psql -U postgres -At -v ON_ERR
 let failures = 0;
 const check = (ok, what) => { log(ok ? '  ok  ' : '  FAIL', what); if (!ok) failures++; };
 const appears = (locator, ms = 10000) => locator.first().waitFor({ state: 'visible', timeout: ms }).then(() => true, () => false);
-const adminTabOpen = (page, tab, ms = 15000) => page.waitForFunction((t) => [...document.querySelectorAll('button')]
-  .some((b) => b.textContent.trim() === t && b.className.includes('border-blue-500')), tab, { timeout: ms }).then(() => true, () => false);
+// The admin section shown (its sidebar button is the current page)
+const adminTabOpen = (page, tab, ms = 15000) => page.waitForFunction((t) => !!document.querySelector(`[data-section="${t}"][aria-current="page"]`),
+  tab, { timeout: ms }).then(() => true, () => false);
 
 const admin = (path, init = {}) => fetch(`${API}/auth/v1/admin/${path}`, {
   ...init, headers: { apikey: SERVICE, Authorization: `Bearer ${SERVICE}`, 'Content-Type': 'application/json' },

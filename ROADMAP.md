@@ -703,6 +703,31 @@ Part 21 done 2026-10-08: **A plain Shaadi24+ page in the app's own colours.**
 - [x] Tests: the iPhone test checks a white card in light mode and a dark one in dark mode, the logo, no
   photo and no colour; the purchase, popup and accessibility tests pass in both.
 
+Part 22 done 2026-10-08: **The admin panel, part 1: a sidebar, Customers and verification checks.**
+
+- [x] Sections in a sidebar on the left, Notion-like (a wrapping row of buttons on a phone): Overview;
+  People: Customers, Verification; Safety: Reports, Complaints; Business: Finance; System: Errors,
+  Audit log, App preview. Each section has its title and what it's for.
+- [x] **Customers** (it replaces Users): every member in one row with everything about them (phone,
+  gender, age and date of birth, who the profile is for, marital status, height, location, religion,
+  community, mother tongue, education, occupation, income, joined, last active, how they sign in, their
+  phones, verification, plan and renewal, how complete the profile is, photos, likes sent and received,
+  matches, messages, reports, blocks, status). The name stays in view while the row scrolls sideways.
+  Search by name, email, phone, city or ID; filters (new this week, Shaadi24+, free, verified, waiting
+  for verification, not verified, profile not complete, inactive 30 days, paused, banned); sorting;
+  50 to a page; Export CSV. A row opens the member, grouped, with Verify, Date of birth, Ban or Unban
+  and Copy ID (`admin_customers()`).
+- [x] **Verification**: each request says whether it's likely to pass, and why: two working profile
+  links (a post or another site doesn't count), their name in a link, photos, sections complete, how
+  long ago they joined, a confirmed email or Apple/Google sign-in, reports, blocks, earlier rejections,
+  and links another member has given too (`admin_verification_signals()`, `lib/verificationChecks.ts`).
+- [x] **Audit log**: every admin action, newest first.
+- [x] Database: `supabase/migrations/20261008160000_admin_customers_and_verification_checks.sql`
+  (applied live); both for admins only, refused to anyone else.
+- [x] Tests: `admin-tabs` (the sidebar, Customers with 50 to a page and every column, search, a member
+  under 21 corrected from the member panel, the Audit log, a request unlikely to pass and why), and the
+  accessibility, admin alerts, app preview, website, finance, errors and complaints tests.
+
 **Still to do**
 
 - [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.
