@@ -6,7 +6,9 @@ import { updateProfile } from '../lib/profileService';
 import { addPhoto, removePhoto, replacePhoto } from '../lib/photoService';
 import { supabase } from '../lib/supabase';
 import VerificationRequestModal from './VerificationRequestModal';
-import { ChipsField, ChoiceField, DateOfBirthField, ageFromDateOfBirth, formatDateOfBirth } from './ProfileInputs';
+import {
+  ChipsField, DateOfBirthField, PILL_LIMIT, PillPicker, SheetPicker, ageFromDateOfBirth, formatDateOfBirth,
+} from './ProfileInputs';
 import {
   IconCheck, IconUpload, IconEdit, IconX, IconZap, IconShield, IconClock,
 } from '../constants';
@@ -81,6 +83,10 @@ const ProfileView: React.FC<{ initialSection?: SectionId }> = ({ initialSection 
   const [editValue, setEditValue] = useState<string | number>('');
   const [savingField, setSavingField] = useState<string | null>(null);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
+  // A long list being picked from, in a sheet (SheetPicker)
+  const [sheet, setSheet] = useState<{
+    field: keyof UserProfile; label: string; options?: string[]; groups?: OptionGroup[]; allowCustom?: boolean; hint?: string;
+  } | null>(null);
 
   const [isEditingSummary, setIsEditingSummary] = useState(false);
   const [summaryEditValue, setSummaryEditValue] = useState('');
@@ -161,11 +167,24 @@ const ProfileView: React.FC<{ initialSection?: SectionId }> = ({ initialSection 
     setEditValue('');
   };
 
+  // A required answer can be changed, not removed (state only in India)
+  const isRequired = (field: keyof UserProfile) => field in REQUIRED_LABELS
+    && (field !== 'state' || (profile?.country ?? 'India') === 'India');
+
+  // The answer being edited, saved with its tick (text, numbers, dates)
   const saveField = async () => {
-    if (!editingField || !session?.user.id) return;
-    // A required answer can be changed, not removed (state only in India)
-    const required = editingField in REQUIRED_LABELS
-      && (editingField !== 'state' || (profile?.country ?? 'India') === 'India');
+    if (editingField) await commit(editingField, editValue);
+  };
+
+  // Saves one answer: from the tick, or straight from a pill or the sheet
+  const commit = async (editingField: keyof UserProfile, editValue: string | number) => {
+    if (!session?.user.id) return;
+    // The same answer again (the chosen pill tapped): nothing to save
+    if (String(editValue ?? '') === String(profile?.[editingField] ?? '')) {
+      setEditingField(null);
+      return;
+    }
+    const required = isRequired(editingField);
     if (required && String(editValue ?? '').trim() === '') {
       showToast(`${REQUIRED_LABELS[editingField as keyof typeof REQUIRED_LABELS]} is required`, 'error');
       return;
@@ -300,9 +319,24 @@ const ProfileView: React.FC<{ initialSection?: SectionId }> = ({ initialSection 
     icon?: React.ReactNode,
     inputType: 'text' | 'number' | 'textarea' | 'select' = 'text',
     options: string[] = [],
-    extra: { editor?: React.ReactNode; display?: string; editable?: boolean; hint?: string; draft?: () => string } = {},
+    extra: {
+      editor?: React.ReactNode; display?: string; editable?: boolean; hint?: string; draft?: () => string;
+      onEdit?: () => void;   // instead of editing in the row (the sheet for long lists)
+    } = {},
   ) => {
     if (!profile) return null;
+    // A short list: pills in the row, saved on the tap (no tick)
+    const pills = inputType === 'select' && options.length > 0 && !extra.editor;
+    const editor = pills ? (
+      <PillPicker
+        value={String(profile[field] ?? '')}
+        options={options}
+        label={label}
+        allowClear={!isRequired(field)}
+        busy={savingField === field}
+        onPick={(v) => { void commit(field, v); }}
+      />
+    ) : extra.editor;
     // Some answers are shown or hidden together: country, state and city with
     // the location, the date of birth with the age
     const visibilityKey = VISIBILITY_KEY[field] ?? field;
@@ -320,12 +354,14 @@ const ProfileView: React.FC<{ initialSection?: SectionId }> = ({ initialSection 
         label={label}
         value={(profile[field] as string | number | null) ?? null}
         displayValue={extra.display}
-        editor={editingField === field ? extra.editor : undefined}
+        editor={editingField === field ? editor : undefined}
         icon={icon}
         isEditable={extra.editable ?? true}
         isEditing={editingField === field}
         editValue={editValue}
-        onEdit={() => startEditing(field, profile[field])}
+        onEdit={extra.onEdit ?? (() => startEditing(field, profile[field]))}
+        autoSave={pills}
+        tapToEdit={pills || !!extra.onEdit}
         onEditChange={(val) => setEditValue(val)}
         onCancel={cancelEditing}
         onSave={saveField}
@@ -338,30 +374,25 @@ const ProfileView: React.FC<{ initialSection?: SectionId }> = ({ initialSection 
     );
   };
 
-  // A list you can type into (long lists, or ones that take a typed answer)
+  // One answer from a list: pills when it's short, otherwise a sheet with a
+  // search box (and a typed answer where the list allows one)
   const renderChoice = (
     field: keyof UserProfile,
     label: string,
     list: { options?: string[]; groups?: OptionGroup[]; allowCustom?: boolean },
     display?: string,
     hint?: string,
-  ) => renderRow(field, label, undefined, 'select', [], {
-    display,
-    hint,
-    editor: (
-      <ChoiceField
-        value={String(editValue ?? '')}
-        onChange={(v) => setEditValue(v)}
-        options={list.options}
-        groups={list.groups}
-        allowCustom={list.allowCustom}
-        size="compact"
-        clearLabel="Clear"
-        autoFocus
-        ariaLabel={label}
-      />
-    ),
-  });
+  ) => {
+    const short = !list.groups && !list.allowCustom && (list.options?.length ?? 0) <= PILL_LIMIT;
+    if (short) return renderRow(field, label, undefined, 'select', list.options ?? [], { display, hint });
+    return renderRow(field, label, undefined, 'select', [], {
+      display,
+      onEdit: () => {
+        setEditingField(null);
+        setSheet({ field, label, options: list.options, groups: list.groups, allowCustom: list.allowCustom, hint });
+      },
+    });
+  };
 
   // Several answers, tapped on and off
   const renderChips = (field: keyof UserProfile, label: string, list: { options?: string[]; groups?: OptionGroup[] }) =>
@@ -713,6 +744,23 @@ const ProfileView: React.FC<{ initialSection?: SectionId }> = ({ initialSection 
         </div>
       </div>
       {showVerifyModal && <VerificationRequestModal onClose={() => setShowVerifyModal(false)} />}
+      {sheet && (
+        <SheetPicker
+          title={sheet.label}
+          value={String(profile[sheet.field] ?? '')}
+          options={sheet.options}
+          groups={sheet.groups}
+          allowCustom={sheet.allowCustom}
+          allowClear={!isRequired(sheet.field)}
+          hint={sheet.hint}
+          onClose={() => setSheet(null)}
+          onPick={(v) => {
+            const field = sheet.field;
+            setSheet(null);
+            void commit(field, v);
+          }}
+        />
+      )}
     </div>
   );
 };

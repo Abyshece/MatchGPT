@@ -112,6 +112,8 @@ interface PropertyRowProps {
   editor?: React.ReactNode;       // replaces the built-in input while editing
   displayValue?: string;          // shown instead of value when not editing
   editorNote?: React.ReactNode;   // under the input while editing (a hint, a draft button)
+  autoSave?: boolean;             // the editor saves by itself (pills): no tick, just close
+  tapToEdit?: boolean;            // the answer itself opens the editor (or a picker)
 }
 
 export const PropertyRow: React.FC<PropertyRowProps> = React.memo(({ 
@@ -130,10 +132,13 @@ export const PropertyRow: React.FC<PropertyRowProps> = React.memo(({
   editor,
   displayValue,
   editorNote,
+  autoSave = false,
+  tapToEdit = false,
 }) => {
   const isEmpty = value === null || value === undefined || value === '';
-  // A long answer being written gets the whole width on a phone, under its label
-  const stacked = isEditing && inputType === 'textarea';
+  // A long answer being written, or pills to tap, get the whole width on a
+  // phone, under the label
+  const stacked = isEditing && (inputType === 'textarea' || autoSave);
 
   return (
     // The label takes 2/5 of a phone's width (a fixed column on wider screens);
@@ -196,10 +201,19 @@ export const PropertyRow: React.FC<PropertyRowProps> = React.memo(({
             {editorNote}
             </div>
             <div className="flex-none flex items-center gap-1 pt-1">
-              <button onClick={onSave} aria-label="Save" title="Save" className="p-1 hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 dark:text-green-400 rounded">
-                  <IconCheck />
-              </button>
-              <button onClick={onCancel} aria-label="Cancel" title="Cancel" className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 rounded">
+              {!autoSave && (
+                <button onClick={onSave} aria-label="Save" title="Save" className="p-1 hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 dark:text-green-400 rounded">
+                    <IconCheck />
+                </button>
+              )}
+              <button
+                onClick={onCancel}
+                aria-label={autoSave ? 'Close' : 'Cancel'}
+                title={autoSave ? 'Close' : 'Cancel'}
+                className={`p-1 rounded ${autoSave
+                  ? 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-800 dark:hover:text-gray-200'
+                  : 'hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400'}`}
+              >
                   <IconX />
               </button>
             </div>
@@ -207,7 +221,18 @@ export const PropertyRow: React.FC<PropertyRowProps> = React.memo(({
         ) : (
           <>
             <span className={`flex-1 min-w-0 flex flex-wrap items-center gap-x-2 gap-y-1 pt-1.5 break-words ${inputType === 'textarea' ? 'whitespace-pre-wrap' : ''}`}>
-              <span className="min-w-0 break-words">{(displayValue || value) || <span className="text-gray-500 dark:text-gray-400 italic text-xs">Empty</span>}</span>
+              {tapToEdit && isEditable ? (
+                <button
+                  type="button"
+                  onClick={onEdit}
+                  aria-label={(displayValue || value) ? `${label}: ${displayValue || value}. Change` : `${label}: not answered. Choose`}
+                  className="min-w-0 break-words text-left hover:underline decoration-gray-300 dark:decoration-zinc-600 underline-offset-4"
+                >
+                  {(displayValue || value) || <span className="text-gray-500 dark:text-gray-400 italic text-xs">Choose</span>}
+                </button>
+              ) : (
+                <span className="min-w-0 break-words">{(displayValue || value) || <span className="text-gray-500 dark:text-gray-400 italic text-xs">Empty</span>}</span>
+              )}
               {isHidden && <span className="text-[10px] bg-gray-200 dark:bg-zinc-700 text-gray-500 dark:text-gray-300 px-1.5 rounded">Hidden</span>}
             </span>
             <div className={`flex-none flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity pt-1`}>

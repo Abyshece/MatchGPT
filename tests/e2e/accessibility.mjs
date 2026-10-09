@@ -11,7 +11,8 @@
 //   - app: the landing and sign-in screens; signed in (an onboarded account,
 //     password TestPass!2026): the free-searches pop-up, Find Match with results,
 //     its Sort menu and filter chips, filters, a profile,
-//     Likes You, Matches and a chat, Standouts, My Profile, Settings,
+//     Likes You, Matches and a chat, Standouts, My Profile (with its pills
+//     and its search sheet open), Settings,
 //     Shaadi24+, the phone menu
 // Usage: node accessibility.mjs <admin email> <member email>   (DB_CONTAINER as the other tests)
 import { chromium } from 'playwright';
@@ -231,6 +232,18 @@ try {
     for (const [label, name] of [['Likes You', 'likes you'], ['Matches', 'matches'], ['Standouts', 'standouts'], ['My Profile', 'my profile'], ['Settings', 'settings']]) {
       await openMenu(label);
       await audit(page, `${name} (${scheme})`);
+      if (label !== 'My Profile') continue;
+      // A short list as pills, then a long one in the sheet with its search box
+      const row = (l) => page.locator(`div.group[data-label="${l}"]`).first();
+      await row('Diet').getByRole('button', { name: /\. (Change|Choose)$/ }).click();
+      await row('Diet').getByTestId('pill-picker').waitFor();
+      await audit(page, `profile pills (${scheme})`);
+      await row('Diet').getByRole('button', { name: 'Close' }).click();
+      await row('Mother tongue').getByRole('button', { name: /\. (Change|Choose)$/ }).click();
+      await page.getByTestId('picker-sheet').getByRole('searchbox').fill('ta');
+      await audit(page, `profile sheet (${scheme})`);
+      await page.getByTestId('picker-sheet').getByRole('button', { name: 'Done' }).click();
+      await page.getByTestId('picker-sheet').waitFor({ state: 'detached' });
     }
     await page.getByRole('button', { name: 'Menu', exact: true }).first().click();
     await page.waitForTimeout(500);
