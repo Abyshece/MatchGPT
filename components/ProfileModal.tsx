@@ -174,7 +174,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
             {/* LEFT — main photo + thumbnails */}
             <div className="space-y-3">
               <div
-                className="aspect-[3/4] rounded-lg overflow-hidden bg-gray-100 dark:bg-zinc-800 relative cursor-pointer group"
+                className={`aspect-[3/4] rounded-lg overflow-hidden bg-gray-100 dark:bg-zinc-800 relative group ${photos.length ? 'cursor-pointer' : ''}`}
                 onClick={() => photos.length && setLightbox({ open: true, idx: photoIdx })}
                 {...(photos.length ? {
                   role: 'button', tabIndex: 0, 'aria-label': `View ${candidate.name}'s photos`,
