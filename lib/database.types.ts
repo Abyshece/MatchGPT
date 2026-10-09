@@ -2244,6 +2244,7 @@ export type Database = {
         Returns: string
       }
       sync_pro_status: { Args: { p_user_id: string }; Returns: undefined }
+      trending_searches: { Args: never; Returns: Json }
       unmatch: { Args: { p_match_id: string }; Returns: undefined }
       unregister_push_device: { Args: { p_token: string }; Returns: undefined }
       vapid_public_key: { Args: never; Returns: string }

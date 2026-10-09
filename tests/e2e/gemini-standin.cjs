@@ -1,7 +1,9 @@
 // Stand-in for Google's Gemini API, for testing AI search locally without a
 // real key. Answers generateContent calls with a search plan built from a few
 // cues in the prompt (girl/woman, Pune, near me, online, under 30, smoking,
-// vegetarian, book), using the profile answers listed in the request, and
+// vegetarian, book; in Hinglish or Hindi ladki/लड़की, ladka/लड़का and Mumbai,
+// with the language and a line back in it), using the profile answers listed
+// in the request, and
 // returns "out of quota" (429) for prompts containing "quota". Blog requests
 // (supabase/functions/blog-ai) get a fixed answer for each task: ideas, a
 // draft, the search fields, or the text rewritten in capitals.
@@ -72,7 +74,14 @@ http.createServer((req, res) => {
     }
     const plan = { gender: 'any', age_min: 0, age_max: 0, near_me: false, city: '', online_now: false,
       recently_active: false, verified_only: false, avoid: [], preferences: [], keywords: [] };
-    if (/girl|woman|women/i.test(prompt)) plan.gender = 'woman';
+    if (/girl|woman|women|ladki|लड़की/i.test(prompt)) plan.gender = 'woman';
+    if (/ladka|लड़का/i.test(prompt)) plan.gender = 'man';
+    if (/mumbai|bambai|मुंबई/i.test(prompt)) plan.city = 'Mumbai';
+    // A search in Hindi or Hinglish: the language, and who will be looked for, in it
+    const hindi = /[\u0900-\u097F]/.test(prompt);
+    const hinglish = /\b(ladka|ladki|dhundho|mere liye|rehta|rehti|rehne|wali|wala)\b/i.test(prompt);
+    plan.language = hindi ? 'Hindi' : hinglish ? 'Hinglish' : 'English';
+    plan.summary = hindi ? 'मुंबई में रहने वाली लड़कियां' : hinglish ? 'Mumbai me rehne wali ladkiyan' : '';
     if (/pune/i.test(prompt)) plan.city = 'Pune';
     if (/near me|nearby/i.test(prompt)) plan.near_me = true;
     if (/online/i.test(prompt)) plan.online_now = true;

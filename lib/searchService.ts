@@ -23,6 +23,7 @@ export interface SearchOutput {
   allowance?: SearchAllowance;    // all three limits, after this search
   understood: string[];           // what the prompt was taken to mean ("Women", "Doesn't smoke", ...)
   understoodBy: 'ai' | 'rules';   // Gemini, or the rule-based fallback
+  said?: string | null;           // for a search in Hindi, Tamil…: who will be looked for, in that language
 }
 
 export type SearchErrorCode =

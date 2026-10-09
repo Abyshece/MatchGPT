@@ -1,8 +1,9 @@
 // ============================================================================
 // Matching: filters, prompt understanding and compatibility scoring.
 //
-// Used by the `search` edge function. No imports, so it can be tested on its
-// own. (Until Phase 9 this ran in the browser, in lib/matchingService.ts.)
+// Used by the `search` edge function. Its one import (indic.ts, searches in
+// Indian languages) has none, so it can be tested on its own. (Until Phase 9
+// this ran in the browser, in lib/matchingService.ts.)
 //
 // The prompt is understood either by Gemini (ai.ts, turned into the same
 // shape by planToParsed) or, when Gemini isn't available, by parsePrompt.
@@ -29,6 +30,8 @@
 // docs/research/profile-questions.md) are left out of every profile here, so
 // nothing reads them.
 // ============================================================================
+
+import { toEnglishWords } from './indic.ts';
 
 export type Row = Record<string, unknown> & { id: string };
 // A profile with camelCase keys; empty and hidden fields are left out.
@@ -474,6 +477,7 @@ export interface ParsedPrompt {
   gender: Gender | null;
   ageRange: [number, number] | null;
   heightRange: [number, number] | null;  // cm
+  said?: string | null;                   // Gemini's line back in the search's own language
 }
 
 // Heights in the prompt: 5'8", 5 ft 8 in, 6 feet, 170 cm, with "taller than",
@@ -580,7 +584,8 @@ for (const intent of INTENTS) {
 }
 
 export function parsePrompt(prompt: string): ParsedPrompt {
-  const height = takeHeight(prompt.slice(0, 500));
+  // Hindi, Hinglish, Tamil and the rest: the words the rules know, in English
+  const height = takeHeight(toEnglishWords(prompt.slice(0, 500)));
   let text = normalize(height.text);
 
   const age = takeAge(text);
@@ -720,6 +725,8 @@ export interface SearchPlan {
   avoid: Habit[];                                                        // left out, like "doesn't smoke"
   preferences: { field: string; answers: string[]; negated: boolean }[];  // snake_case profile answers
   keywords: { words: string[]; negated: boolean }[];                     // looked for in bios, hobbies, jobs
+  language?: string | null;   // the search's language ("Hinglish"); plans saved before then have none
+  said?: string | null;       // who will be looked for, in that language, when it isn't English
 }
 
 // Profile answers Gemini may choose from: the ones people in the pool have.
@@ -795,6 +802,7 @@ export function planToParsed(plan: SearchPlan): ParsedPrompt {
     gender: plan.gender,
     ageRange: hasAge ? [plan.ageMin ?? 18, plan.ageMax ?? 99] : null,
     heightRange: hasHeight ? [plan.heightMinCm || HEIGHT_CM_MIN, plan.heightMaxCm || HEIGHT_CM_MAX] : null,
+    said: plan.said ?? null,
   };
 }
 

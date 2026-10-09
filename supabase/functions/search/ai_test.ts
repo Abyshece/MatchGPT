@@ -19,7 +19,7 @@ const reply = (plan: unknown) =>
 
 const emptyPlan = {
   gender: 'any', age_min: 0, age_max: 0, height_min_cm: 0, height_max_cm: 0, near_me: false, city: '', online_now: false,
-  recently_active: false, verified_only: false, avoid: [], preferences: [], keywords: [],
+  recently_active: false, verified_only: false, avoid: [], preferences: [], keywords: [], language: 'English', summary: '',
 };
 
 Deno.test('request: model in the URL, key in a header, answers and prompt in the text', async () => {
@@ -74,7 +74,41 @@ Deno.test('readPlan: keeps what makes sense, drops the rest', () => {
       { field: 'religion', answers: ['Hindu'], negated: true },
     ],
     keywords: [{ words: ['doctor', 'MBBS'], negated: false }],
+    language: 'English', said: null,
   });
+});
+
+// Gemini's answer with only these parts filled in
+const answer = (parts: Record<string, unknown>) => ({
+  candidates: [{ content: { parts: [{ text: JSON.stringify({ ...emptyPlan, language: 'English', summary: '', ...parts }) }] } }],
+});
+
+Deno.test('readPlan: a search in Hindi or Tamil gets its place in English and a line back in its language', () => {
+  const hinglish = readPlan(answer({
+    gender: 'man', height_min_cm: 180, height_max_cm: 186, city: 'London', language: 'Hinglish',
+    keywords: [{ words: ['finance', 'banking'], negated: false }],
+    summary: 'London me rehne wale, lagbhag 6 foot ke ladke jo finance me kaam karte hain',
+  }), 'Mere liye 6 foot ka ladka dhundho jo landan me rehta ho or finance me kaam karta ho', catalog);
+  assertEquals([hinglish?.gender, hinglish?.heightMinCm, hinglish?.heightMaxCm, hinglish?.city, hinglish?.language],
+    ['man', 180, 186, 'London', 'Hinglish'], '"landan" is London');
+  assertEquals(hinglish?.said, 'London me rehne wale, lagbhag 6 foot ke ladke jo finance me kaam karte hain');
+
+  const devanagari = readPlan(answer({ city: 'London', language: 'Hindi', summary: 'लंदन में रहने वाले लड़के' }),
+    'लंदन में रहने वाला लड़का', catalog);
+  assertEquals([devanagari?.city, devanagari?.said], ['London', 'लंदन में रहने वाले लड़के']);
+
+  const tamil = readPlan(answer({ city: 'Chennai', language: 'Tamil', summary: 'சென்னையில் உள்ள மருத்துவர்கள்' }),
+    'சென்னையில் ஒரு டாக்டர்', catalog);
+  assertEquals(tamil?.city, 'Chennai');
+});
+
+Deno.test('readPlan: English gets no line back, and still no place it didn\'t name', () => {
+  const english = readPlan(answer({ city: 'Mumbai', summary: 'Doctors in Mumbai' }), 'a doctor in Pune', catalog);
+  assertEquals([english?.city, english?.said], [null, null]);
+  const odd = readPlan(answer({ city: 'लंदन', language: 'Hindi' }), 'लंदन में लड़का', catalog);
+  assertEquals(odd?.city, null, 'a place in another script is not a place name profiles have');
+  const long = readPlan(answer({ language: 'Hindi', summary: 'x'.repeat(201) }), 'लड़का', catalog);
+  assertEquals(long?.said, null, 'too long');
 });
 
 Deno.test('readPlan: heights between 120 and 230 cm, the lower one first', () => {
