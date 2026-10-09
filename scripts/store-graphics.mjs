@@ -61,17 +61,22 @@ const ANDROID_FOREGROUND = { circle: 64 / 108 };
 const LAUNCH = { size: 0.24 };
 
 // ---- Store and link-preview graphics ------------------------------------------------------
+// The brand as in the apps and on the website: white, near-black type, the
+// ring with its pale blue diamond, and a thin line of that blue
+const INK = '#111111';
+const MUTED = '#52525b';
+const DIAMOND = '#9cc9ec';  // the diamond's pale blue
 const feature = (icon) => `<!doctype html><html><head><meta charset="utf-8"><style>
   html, body { margin: 0; }
   body {
     width: 1024px; height: 500px; box-sizing: border-box; padding: 0 80px;
-    display: flex; align-items: center; gap: 56px;
-    background: linear-gradient(135deg, #ec4899 0%, #f05a6e 45%, #f97316 100%);
-    color: #fff; font-family: 'Helvetica Neue', 'Liberation Sans', Arial, sans-serif;
+    display: flex; align-items: center; gap: 56px; position: relative;
+    background: #fff; color: ${INK}; font-family: 'Helvetica Neue', 'Liberation Sans', Arial, sans-serif;
   }
-  .icon { width: 230px; height: 230px; flex: none; border-radius: 52px; box-shadow: 0 12px 32px rgba(0,0,0,.18); }
+  body::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 10px; background: ${DIAMOND}; }
+  .icon { width: 230px; height: 230px; flex: none; border-radius: 52px; border: 2px solid #e5e7eb; box-shadow: 0 10px 30px rgba(17,17,17,.08); }
   h1 { margin: 0; font-size: 86px; font-weight: 700; letter-spacing: -2px; }
-  p { margin: 18px 0 0; font-size: 34px; line-height: 1.3; }
+  p { margin: 18px 0 0; font-size: 34px; line-height: 1.3; color: ${MUTED}; }
 </style></head><body><img class="icon" src="${icon}" alt=""><div><h1>${TITLE}</h1><p>${TAGLINE}</p></div></body></html>`;
 
 // The link preview: the same, larger, with a line saying what Shaadi24 is
@@ -80,7 +85,7 @@ const preview = (icon) => feature(icon)
   .replace('.icon { width: 230px; height: 230px; flex: none; border-radius: 52px;', '.icon { width: 280px; height: 280px; flex: none; border-radius: 63px;')
   .replace('h1 { margin: 0; font-size: 86px;', 'h1 { margin: 0; font-size: 100px;')
   .replace('p { margin: 18px 0 0; font-size: 34px;', 'p { margin: 18px 0 0; font-size: 40px;')
-  .replace(`<h1>${TITLE}</h1>`, `<div style="font-size:30px;font-weight:700;letter-spacing:3px;text-transform:uppercase;opacity:.85;margin-bottom:10px">${PREVIEW_LINE}</div><h1>${TITLE}</h1>`);
+  .replace(`<h1>${TITLE}</h1>`, `<div style="font-size:28px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:${MUTED};margin-bottom:12px">${PREVIEW_LINE}</div><h1>${TITLE}</h1>`);
 
 // A PNG from RGBA pixels: with its alpha channel (colour type 6; Google Play
 // asks for a 32-bit PNG) or without (colour type 2; the App Store's icon may

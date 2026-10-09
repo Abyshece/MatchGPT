@@ -80,7 +80,7 @@ export function headTags(h: Head): string {
     m('property', 'og:title', h.title),
     m('property', 'og:description', h.description),
     m('property', 'og:url', h.url),
-    m('property', 'og:image', h.image || `${SITE_URL}/og-image.png`),
+    m('property', 'og:image', h.image || `${SITE_URL}/og-image.png?v=2`),
     h.image ? m('property', 'og:image:alt', h.imageAlt ?? '') : m('property', 'og:image:alt', 'Shaadi24: matrimony for India'),
     h.published ? m('property', 'article:published_time', h.published) : '',
     m('name', 'twitter:card', 'summary_large_image'),
