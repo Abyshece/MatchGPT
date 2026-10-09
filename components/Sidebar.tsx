@@ -161,7 +161,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       <nav className="flex-1 space-y-1 px-3 overflow-y-auto overflow-x-hidden">
         {item('search', 'Find Match', <IconSearch />)}
-        {item('history', 'Chat History', <IconHistory />)}
+        {item('history', 'Search History', <IconHistory />)}
         {item('likes', 'Likes You', <IconHeart />, likesCount)}
         {item('matches', 'Matches', <IconMessageCircle />, unreadMatches)}
         {item('standouts', 'Standouts', <IconStar />)}

@@ -109,7 +109,7 @@ function standin(platform) {
       'NativePurchases.isBillingSupported': { isBillingSupported: true },
       'FirebaseMessaging.checkPermissions': { receive: 'granted' },
       'FirebaseMessaging.requestPermissions': { receive: 'granted' },
-      'FirebaseMessaging.getToken': { token: 'click-through-token' },
+      'FirebaseMessaging.getToken': { token: 'click-through-' + 'x'.repeat(140) },  // as long as a real one
       'App.getInfo': { name: 'Shaadi24', id: 'com.shaadi24.app', build: '1', version: '1.0.0' },
     };
     // The store's payment sheet, closed by the person: nothing bought
@@ -119,7 +119,8 @@ function standin(platform) {
     };
     function answer(call) {
       window.__native.push({ plugin: call.pluginId, method: call.methodName, at: Date.now() });
-      if (call.callbackId === '-1' || call.methodName === 'addListener') return;  // listeners wait for events
+      // Listeners wait for events; the phone never answers removeListener (Capacitor passes it the listener)
+      if (call.callbackId === '-1' || call.methodName === 'addListener' || call.methodName === 'removeListener') return;
       const key = call.pluginId + '.' + call.methodName;
       setTimeout(() => window.Capacitor.fromNative(Object.assign(
         { callbackId: call.callbackId, pluginId: call.pluginId, methodName: call.methodName, success: !ERRORS[key] },
@@ -139,10 +140,11 @@ function standin(platform) {
     window.confirm = (text) => { (window.__confirms ||= []).push(String(text)); return false; };
     // Links a tap follows (or that open outside the app: a new window, the mail app)
     window.__links = [];
+    // (caught on the way down: popups stop clicks from bubbling up; followed unless prevented)
     window.addEventListener('click', (e) => {
       const a = e.target instanceof Element && e.target.closest('a[href]');
-      if (a && !e.defaultPrevented && !a.getAttribute('href').startsWith('#')) window.__links.push(a.href);
-    });
+      if (a && !a.getAttribute('href').startsWith('#')) setTimeout(() => { if (!e.defaultPrevented) window.__links.push(a.href); });
+    }, true);
     const open = window.open;
     window.open = function (url, ...rest) { window.__links.push(String(url)); return open.call(window, url, ...rest); };
     window.alert = (text) => { (window.__alerts ||= []).push(String(text)); };
@@ -230,12 +232,14 @@ const SNAP = () => {
   const states = [...document.querySelectorAll('[aria-checked], [aria-pressed], [aria-expanded], [aria-selected], input, select, textarea')]
     .map((el) => `${el.getAttribute('aria-checked')}${el.getAttribute('aria-pressed')}${el.getAttribute('aria-expanded')}${el.getAttribute('aria-selected')}${el.value ?? ''}${el.checked ?? ''}`).join(',');
   const scrolls = [...document.querySelectorAll('*')].filter((el) => el.scrollTop > 0).map((el) => Math.round(el.scrollTop)).join(',');
+  // The photos showing (a carousel or a thumbnail changes only which)
+  const photos = [...document.images].filter((i) => i.getClientRects().length).map((i) => i.currentSrc || i.src).join('|');
   let text = document.body.innerText;
   let h = 0;
   for (let i = 0; i < text.length; i++) h = (h * 31 + text.charCodeAt(i)) | 0;
   let s = 0;
   for (let i = 0; i < states.length; i++) s = (s * 31 + states.charCodeAt(i)) | 0;
-  return { url: location.pathname + location.hash, header, popups, text: h, states: s, scrolls, focus: document.activeElement?.tagName,
+  return { url: location.pathname + location.hash, header, popups, text: h, states: s, scrolls, photos, focus: document.activeElement?.tagName,
     textLen: text.length, native: (window.__native || []).length, confirms: (window.__confirms || []).length,
     links: (window.__links || []).length };
 };
@@ -323,7 +327,7 @@ async function runPlatform(platform) {
     { name: 'Find Match', open: async () => { await signIn(); await menu('Find Match'); } },
     { name: 'Search results', open: async () => { await signIn(); await search(); } },
     { name: 'Menu', open: async () => { await signIn(); await page.getByRole('button', { name: 'Menu', exact: true }).first().click(); await settle(); } },
-    { name: 'Chat History', open: async () => { await signIn(); await menu('Chat History'); } },
+    { name: 'Search History', open: async () => { await signIn(); await menu('Search History'); } },
     { name: 'Likes You', open: async () => { await signIn(); await menu('Likes You'); } },
     { name: 'Matches', open: async () => { await signIn(); await menu('Matches'); } },
     { name: 'Standouts', open: async () => { await signIn(); await menu('Standouts'); } },
@@ -405,6 +409,7 @@ async function runPlatform(platform) {
         if (!opened.length && !closed.length && after.header === before.header) {
           if (after.text !== before.text) what.push(`changed the screen (${after.textLen - before.textLen >= 0 ? '+' : ''}${after.textLen - before.textLen} chars)`);
           else if (after.states !== before.states) what.push('changed a control');
+          else if (after.photos !== before.photos) what.push('changed the photo');
           else if (after.scrolls !== before.scrolls) what.push('scrolled');
         }
       }
