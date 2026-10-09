@@ -176,6 +176,12 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
               <div
                 className="aspect-[3/4] rounded-lg overflow-hidden bg-gray-100 dark:bg-zinc-800 relative cursor-pointer group"
                 onClick={() => photos.length && setLightbox({ open: true, idx: photoIdx })}
+                {...(photos.length ? {
+                  role: 'button', tabIndex: 0, 'aria-label': `View ${candidate.name}'s photos`,
+                  onKeyDown: (e: React.KeyboardEvent) => {
+                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setLightbox({ open: true, idx: photoIdx }); }
+                  },
+                } : {})}
               >
                 {photos[photoIdx] ? (
                   <>
@@ -202,12 +208,15 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                   {photos.slice(0, 4).map((url, i) => (
                     <button
                       key={i}
+                      type="button"
                       onClick={() => setPhotoIdx(i)}
+                      aria-label={`Photo ${i + 1} of ${photos.length}`}
+                      aria-pressed={i === photoIdx}
                       className={`aspect-square rounded-lg overflow-hidden hover:opacity-80 transition-opacity border-2 ${
                         i === photoIdx ? 'border-black dark:border-white' : 'border-transparent'
                       }`}
                     >
-                      <img src={url} alt={`thumb ${i}`} className="w-full h-full object-cover" loading="lazy" />
+                      <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" />
                     </button>
                   ))}
                 </div>
@@ -451,6 +460,9 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
         <div
           className="fixed inset-0 z-[300] bg-black flex items-center justify-center animate-fade-in"
           data-popup
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${candidate.name}'s photos`}
           onClick={(e) => { e.stopPropagation(); setLightbox({ open: false, idx: 0 }); }}
         >
           <button
@@ -481,7 +493,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
           )}
           <img
             src={photos[lightbox.idx]}
-            alt="Full screen"
+            alt={`Photo ${lightbox.idx + 1} of ${photos.length}`}
             className="max-w-full max-h-full object-contain p-4 select-none touch-pan-y"
             onClick={(e) => e.stopPropagation()}
             onTouchStart={(e) => { touchStartX.current = e.targetTouches[0].clientX; }}
