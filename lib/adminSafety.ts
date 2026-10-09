@@ -126,7 +126,7 @@ export async function fingerprintAllPhotos(progress: (done: number, left: number
 
 // ---- Alerts ------------------------------------------------------------------------------
 
-export type RiskSignal = 'same_photo' | 'money_talk' | 'copy_paste' | 'many_likes' | 'many_reports' | 'banned_back';
+export type RiskSignal = 'same_photo' | 'money_talk' | 'copy_paste' | 'many_likes' | 'many_reports' | 'many_blocks' | 'banned_back';
 
 export interface RiskAlert {
   user_id: string;
@@ -153,6 +153,7 @@ export const SIGNAL_LABELS: Record<RiskSignal, string> = {
   copy_paste: 'Same message to many people',
   many_likes: 'Likes by the dozen',
   many_reports: 'Reported by several members',
+  many_blocks: 'Blocked by several members',
   banned_back: 'A banned member back',
 };
 

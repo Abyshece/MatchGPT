@@ -8,7 +8,8 @@
 //   4. "Approve before others see it" off: a change shows at once and still waits in the queue;
 //      back on; Select all + Approve
 //   5. Scam alerts: "Check every photo" finds the same photo on two accounts; money talk in a chat;
-//      "Reviewed" moves an alert away; "Open" opens the member
+//      "Reviewed" moves an alert away; "Open" opens the member; a member blocked by three others shows
+//      "Blocked by several members" with a reason, and their timeline gives each block's reason
 //   6. Members can't use any of it
 // Usage: node admin-safety.mjs <admin email> <member email> <other member email>
 // (SERVICE_ROLE_KEY for the storage upload and clean-up)
@@ -76,6 +77,7 @@ const hadMatch = sql(`select count(*) from matches where user_a_id = least('${a}
 const STARTED = sql('select now();');
 const svc = { apikey: SERVICE, Authorization: `Bearer ${SERVICE}` };
 let otherPhotoPath = null;
+let blockers = [];
 
 const reset = () => sql(`
   delete from moderation_items where user_id in ('${a}', '${b}');
@@ -252,6 +254,29 @@ try {
   check(await admin.getByTestId('member-panel').waitFor({ timeout: 10000 }).then(() => true, () => false), '"Open" opens the member');
   await admin.getByTestId('member-panel').getByRole('button', { name: 'Close' }).click();
 
+  // Blocked by three members
+  blockers = sql(`select id from profiles where id not in ('${a}', '${b}') and onboarding_complete
+                    and not exists (select 1 from blocks x where x.blocker_id = profiles.id and x.blocked_id = '${a}')
+                  order by account_created limit 3;`).split('\n').filter(Boolean);
+  check(blockers.length === 3, 'three members to block the first one');
+  sql(blockers.map((id, i) => `insert into blocks (blocker_id, blocked_id, reason) values ('${id}', '${a}', ${i === 2 ? "'Test block: asked for my bank details'" : 'null'});`).join('\n'));
+  // Away and back, so the alerts are read again
+  const adminNav = admin.getByTestId('admin-sidebar');
+  await adminNav.getByRole('button', { name: /^Moderation/ }).click();
+  await adminNav.getByRole('button', { name: /^Scam alerts/ }).click();
+  await risk.waitFor({ timeout: 15000 });
+  const blockedAlert = risk.locator('[data-testid="risk-alert"][data-signal="many_blocks"]', { hasText: 'asked for my bank details' });
+  check(await blockedAlert.waitFor({ timeout: 15000 }).then(() => true, () => false), '"Blocked by several members" shows, with the latest reason');
+  check(/Blocked by 3 members/.test(await blockedAlert.innerText().catch(() => '')), '…and how many');
+  await blockedAlert.getByRole('button', { name: 'Open' }).click();
+  const panel = admin.getByTestId('member-panel');
+  await panel.getByRole('tab', { name: 'Timeline' }).click();
+  const blockEvent = panel.getByTestId('timeline-event').filter({ hasText: 'asked for my bank details' });
+  check(await blockEvent.first().waitFor({ timeout: 10000 }).then(() => true, () => false), 'the timeline gives the reason for the block');
+  check(/Blocked by /.test(await blockEvent.first().innerText().catch(() => '')), '…as "Blocked by <name>"');
+  await admin.screenshot({ path: `${OUT}4-blocked.png`, fullPage: true });
+  await panel.getByRole('button', { name: 'Close' }).click();
+
   // ---- 6. Members can't -----------------------------------------------------------------------
   log('6. Only admins');
   const as = { apikey: ANON, Authorization: `Bearer ${memberToken}`, 'Content-Type': 'application/json' };
@@ -275,6 +300,8 @@ try {
   sql(`update profiles set description = ${lit(saved.a.d)}, photo_urls = ${arr(saved.a.p)} where id = '${a}';
        update profiles set description = ${lit(saved.b.d)}, photo_urls = ${arr(saved.b.p)} where id = '${b}';
        delete from messages where content like 'Test: my visa is stuck%';
+       ${blockers.length ? `delete from blocks where blocked_id = '${a}' and blocker_id in (${blockers.map((id) => `'${id}'`).join(', ')});` : ''}
+       delete from risk_reviews where user_id = '${a}' and signal = 'many_blocks';
        ${hadMatch ? '' : `delete from matches where user_a_id = least('${a}'::uuid, '${b}'::uuid) and user_b_id = greatest('${a}'::uuid, '${b}'::uuid);`}`);
   reset();
   if (otherPhotoPath) await fetch(`${API}/storage/v1/object/photos`, { method: 'DELETE', headers: { ...svc, 'Content-Type': 'application/json' }, body: JSON.stringify({ prefixes: [otherPhotoPath] }) }).catch(() => {});

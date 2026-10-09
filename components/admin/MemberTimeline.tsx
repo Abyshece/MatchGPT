@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { KIND_ICONS, TIMELINE_GROUPS, fetchTimeline, type TimelineEvent } from '../../lib/adminInsights';
+import { TIMELINE_GROUPS, fetchTimeline, type TimelineEvent, type TimelineKind } from '../../lib/adminInsights';
+import {
+  IconCheck, IconEdit, IconFlag, IconHeart, IconMail, IconMessageCircle, IconPhone, IconSearch, IconShield, IconUser, IconUsers,
+} from '../../constants';
+
+// The sidebar's flat icons, one for each kind of event (₹ for Shaadi24+)
+const KIND_ICONS: Record<TimelineKind, React.ReactNode> = {
+  account: <IconUser />, search: <IconSearch />, like: <IconHeart />, match: <IconUsers />, message: <IconMessageCircle />,
+  safety: <IconFlag />, verification: <IconCheck />, profile: <IconEdit />, money: '₹', team: <IconMail />, admin: <IconShield />,
+  device: <IconPhone />,
+};
 
 // ============================================================================
 // A member's timeline (the member panel's second tab): everything they did and
@@ -60,7 +70,7 @@ const MemberTimeline: React.FC<{ userId: string }> = ({ userId }) => {
               <ul className="space-y-1.5">
                 {d.items.map((e, i) => (
                   <li key={`${e.at}-${i}`} className="flex gap-2.5 text-sm" data-testid="timeline-event" data-kind={e.kind}>
-                    <span aria-hidden="true" className="flex-none w-6 h-6 rounded-full bg-gray-100 dark:bg-zinc-800 flex items-center justify-center text-[11px]">{KIND_ICONS[e.kind]}</span>
+                    <span aria-hidden="true" className="flex-none w-6 h-6 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 flex items-center justify-center text-[11px] font-semibold [&>svg]:w-3.5 [&>svg]:h-3.5">{KIND_ICONS[e.kind]}</span>
                     <div className="min-w-0 flex-1">
                       <p className="text-gray-900 dark:text-zinc-100 break-words">{e.title}</p>
                       {e.detail && (

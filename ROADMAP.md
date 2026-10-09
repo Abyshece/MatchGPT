@@ -1011,6 +1011,15 @@ Link previews (WhatsApp and the rest) and the Google Play feature graphic are in
 the ring with its blue diamond, near-black type and a thin line of the diamond's blue, instead of the old
 pink-to-orange (`scripts/store-graphics.mjs`; the image's address has `?v=2`, so apps fetch the new one).
 
+Report and Block, checked end to end: both work (the browser tests `final-steps`, `legal-pages` and
+`admin-safety`), and both reach the admin panel. A report goes to Admin → Reports with its deadline,
+alerts the admins, and shows in the member's timeline and in Scam alerts once two members report the
+same person. A block counts in Customers → "Blocked by", shows in the timeline with its reason (new), and
+three blocks in 30 days raise a Scam alert, "Blocked by several members", quoting the latest reason (new;
+`20261009160000_blocks_in_admin.sql`). The menus use the sidebar's flat icons instead of emojis: Report
+(flag), Block (no-entry sign), Unmatch (broken heart), the "more" button, the Report/Block popup (black
+"Submit Report"), the admin panel's ban and report labels, the member timeline and the sidebar's Admin item.
+
 **Still to do**
 
 - [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.

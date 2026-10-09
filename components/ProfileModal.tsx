@@ -3,7 +3,7 @@ import CompatibilityReport from './CompatibilityReport';
 import LikeButton from './LikeButton';
 import { SuperInterestButton } from './SuperInterestSheet';
 import BlockReportModal from './BlockReportModal';
-import { IconX, IconCheck, IconChevronLeft, IconChevronRight, IconUser } from '../constants';
+import { IconX, IconCheck, IconChevronLeft, IconChevronRight, IconUser, IconFlag, IconBan, IconMore } from '../constants';
 import { SECT_LABEL, formatBirthTime, formatChildren, formatSiblings, profileManagedBy } from '../lib/profileDisplay';
 import { isNativeApp } from '../lib/nativeApp';
 import { playExit } from '../lib/likeExit';
@@ -136,7 +136,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                   className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500 dark:text-gray-300 transition-colors"
                   aria-label="More options"
                 >
-                  <span className="block w-5 h-5 leading-5 text-center font-bold">⋯</span>
+                  <span className="block w-5 h-5 [&>svg]:w-5 [&>svg]:h-5" aria-hidden="true"><IconMore /></span>
                 </button>
                 {showOverflowMenu && (
                   <div
@@ -147,13 +147,13 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                       onClick={() => { setShowOverflowMenu(false); setShowBlockReport('report'); }}
                       className="w-full px-3 py-2.5 text-sm text-left text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2"
                     >
-                      🚩 Report
+                      <span className="flex-none w-4 h-4 [&>svg]:w-4 [&>svg]:h-4" aria-hidden="true"><IconFlag /></span> Report
                     </button>
                     <button
                       onClick={() => { setShowOverflowMenu(false); setShowBlockReport('block'); }}
                       className="w-full px-3 py-2.5 text-sm text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
                     >
-                      🚫 Block user
+                      <span className="flex-none w-4 h-4 [&>svg]:w-4 [&>svg]:h-4" aria-hidden="true"><IconBan /></span> Block user
                     </button>
                   </div>
                 )}
