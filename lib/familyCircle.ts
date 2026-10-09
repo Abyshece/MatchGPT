@@ -4,7 +4,7 @@
 // The member (with Shaadi24+) invites up to 5 people: each gets a private
 // link (website /family/<link>, FamilyPage.tsx) to the people the member
 // liked or matched with, shown as other members see them, never chats or
-// contact details. Family react 👍 / 🤔 / 👎 with a short note; the member
+// contact details. Family react Yes / Maybe / No with a short note; the member
 // sees it here and gets a notification. Members who'd rather not be shown to
 // families say so in Settings → Privacy (family_can_view).
 // The database does the checking (supabase/migrations/…_family_circle.sql).
@@ -28,12 +28,16 @@ export const RELATIONS: { id: Relation; label: string; suggested: string }[] = [
   { id: 'friend', label: 'Friend', suggested: '' },
 ];
 
-export const REACTIONS: { id: Reaction; emoji: string; label: string; hindi: string }[] = [
-  { id: 'yes', emoji: '👍', label: 'Yes', hindi: 'हाँ' },
-  { id: 'maybe', emoji: '🤔', label: 'Maybe', hindi: 'शायद' },
-  { id: 'no', emoji: '👎', label: 'No', hindi: 'नहीं' },
+// Shown with a flat icon each (ReactionIcon in constants.tsx)
+export const REACTIONS: { id: Reaction; label: string; hindi: string }[] = [
+  { id: 'yes', label: 'Yes', hindi: 'हाँ' },
+  { id: 'maybe', label: 'Maybe', hindi: 'शायद' },
+  { id: 'no', label: 'No', hindi: 'नहीं' },
 ];
-export const reactionEmoji = (r: Reaction) => REACTIONS.find((x) => x.id === r)?.emoji ?? '';
+export const reactionLabel = (r: Reaction, lang: 'en' | 'hi' = 'en') => {
+  const x = REACTIONS.find((y) => y.id === r);
+  return x ? (lang === 'hi' ? x.hindi : x.label) : '';
+};
 
 export interface FamilyMember {
   id: string;

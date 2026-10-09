@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '../NotionUI';
-import { IconChevronRight } from '../../constants';
+import { IconChevronRight, BrandMark, IconCheck } from '../../constants';
 import { useAuth } from '../../lib/AuthContext';
 import { recordSignupConsent, TERMS_VERSION, PRIVACY_VERSION } from '../../lib/consentService';
 import { LEGAL, type LegalPageName } from '../../lib/legalInfo';
@@ -80,7 +80,7 @@ const StepConsent: React.FC<StepConsentProps> = ({ onShowLegal }) => {
   return (
     <div className="max-w-xl w-full mx-auto py-8 px-6 animate-fade-in" data-testid="consent-screen">
       <div className="mb-6">
-        <div className="text-5xl mb-6" aria-hidden="true">💍</div>
+        <BrandMark className="w-14 h-14 mb-6" />
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">
           {isUpdate ? "We've updated our Terms" : 'Before you start'}
         </h1>
@@ -117,7 +117,7 @@ const StepConsent: React.FC<StepConsentProps> = ({ onShowLegal }) => {
       <form onSubmit={(e) => { e.preventDefault(); save(); }} className="space-y-4">
         {acceptedAtSignup ? (
           <p className="text-sm text-gray-700 dark:text-gray-300" data-testid="consent-terms-done">
-            ✓ You agreed to the {legalLink('terms', 'Terms of Service')} and {legalLink('privacy', 'Privacy Policy')} when you
+            <span aria-hidden="true" className="inline-block mr-1 align-[-3px] text-green-600 dark:text-green-400 [&>svg]:w-4 [&>svg]:h-4"><IconCheck /></span>You agreed to the {legalLink('terms', 'Terms of Service')} and {legalLink('privacy', 'Privacy Policy')} when you
             signed up.
           </p>
         ) : (

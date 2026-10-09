@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../../lib/database.types';
 import { setErrorScreen } from '../../lib/errorReports';
+import { BrandMark } from '../../constants';
 
 // ============================================================================
 // AppPreview: /app-preview, the members' app for admins (lib/appPreview.ts)
@@ -47,7 +48,7 @@ const AppPreview: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-white dark:bg-[#191919] text-gray-900 dark:text-gray-100">
       <div className="max-w-sm text-center" data-testid="app-preview-refused">
-        <div className="text-4xl" aria-hidden="true">💍</div>
+        <BrandMark className="w-10 h-10 mx-auto" />
         <h1 className="mt-3 text-xl font-bold tracking-tight">The app preview is for Shaadi24's admins</h1>
         <p className="mt-3 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
           {access === 'signed-out'

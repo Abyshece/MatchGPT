@@ -4,6 +4,7 @@ import { SITE_URL } from '../../lib/blogSeo';
 import { setPageMeta } from '../../lib/pageMeta';
 import StoreBadges from '../StoreBadges';
 import { SiteFooter, SiteHeader } from './SiteChrome';
+import { BrandMark } from '../../constants';
 
 // ============================================================================
 // Success stories on the website (Admin → Success stories): a few on the home
@@ -20,7 +21,7 @@ const StoryCard: React.FC<{ story: Story }> = ({ story }) => (
       <img src={story.photo_url} alt={story.photo_alt} loading="lazy" className="w-full aspect-[4/3] object-cover" />
     ) : (
       <div className="w-full aspect-[4/3] flex items-center justify-center bg-gradient-to-br from-rose-50 to-amber-50 dark:from-zinc-800 dark:to-zinc-900" aria-hidden="true">
-        <span className="text-4xl">💍</span>
+        <BrandMark className="w-12 h-12" />
       </div>
     )}
     <div className="p-5">

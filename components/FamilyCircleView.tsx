@@ -2,12 +2,13 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { useToast } from '../lib/useToast';
 import {
-  RELATIONS, fetchMyFamily, inviteFamily, reactedCards, reactionEmoji, removeFamily, shareInvite,
+  RELATIONS, fetchMyFamily, inviteFamily, reactedCards, reactionLabel, removeFamily, shareInvite,
   type FamilyMember, type FamilyReaction, type Relation,
 } from '../lib/familyCircle';
 import ProfileModal from './ProfileModal';
 import UpgradeModal from './UpgradeModal';
 import type { MatchCandidate } from '../types';
+import { IconUser, ReactionIcon } from '../constants';
 
 // ============================================================================
 // Family Circle (lib/familyCircle.ts): invite family with a WhatsApp link,
@@ -167,12 +168,12 @@ const FamilyCircleView: React.FC = () => {
                     <button type="button" onClick={() => setOpen(c)} data-testid="family-reaction"
                       className="w-full text-left flex gap-3 p-3 rounded-xl border border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-800/50">
                       {c.imageUrls[0] ? <img src={c.imageUrls[0]} alt="" className="w-14 h-14 rounded-lg object-cover flex-shrink-0" />
-                        : <span className="w-14 h-14 rounded-lg bg-gray-100 dark:bg-zinc-800 flex items-center justify-center" aria-hidden="true">👤</span>}
+                        : <span className="w-14 h-14 rounded-lg bg-gray-100 dark:bg-zinc-800 text-gray-400 flex items-center justify-center [&_svg]:w-7 [&_svg]:h-7" aria-hidden="true"><IconUser /></span>}
                       <span className="min-w-0 flex-1">
                         <span className="block font-medium text-gray-900 dark:text-white">{c.name}{c.age ? `, ${c.age}` : ''}</span>
                         {list.map((r) => (
                           <span key={r.family_member_id} className="block text-sm text-gray-600 dark:text-gray-300">
-                            {r.name} {reactionEmoji(r.reaction)}{r.note ? ` "${r.note}"` : ''}
+                            {r.name} <span aria-hidden="true" className="inline-block mx-0.5 align-[-2px] [&>svg]:w-3.5 [&>svg]:h-3.5"><ReactionIcon reaction={r.reaction} /></span>{reactionLabel(r.reaction)}{r.note ? ` "${r.note}"` : ''}
                           </span>
                         ))}
                       </span>

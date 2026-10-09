@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { IconMail, IconGoogle, IconChevronRight, IconX } from '../constants';
+import { IconMail, IconGoogle, IconChevronRight, IconX, BrandMark } from '../constants';
 import { supabase } from '../lib/supabase';
 import { TERMS_VERSION, PRIVACY_VERSION } from '../lib/consentService';
 import { GOOGLE_CLIENT_ID } from '../lib/googleSignIn';
@@ -208,7 +208,7 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
         )}
 
         <div className="mb-6 flex flex-col items-center text-center">
-          <div className="text-4xl mb-2">💍</div>
+          <BrandMark className="w-10 h-10 mb-2" />
           <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white leading-tight mb-0.5">Shaadi24</h1>
           <p className="text-gray-500 dark:text-gray-400 text-[10px] font-medium uppercase tracking-wide">
             {mode === 'SIGNUP' ? 'Create your account' : mode === 'FORGOT' || mode === 'RESET_CODE' ? 'Reset your password' : forAdmins ? 'Admin sign-in' : mode === 'MENU' ? 'Welcome' : 'Welcome back'}

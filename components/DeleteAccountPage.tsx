@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import { BrandMark } from '../constants';
 
 // ============================================================================
 // DeleteAccountPage: /delete-account on the website
@@ -116,7 +117,7 @@ const DeleteAccountPage: React.FC = () => {
     <div className="min-h-screen bg-white dark:bg-[#191919] text-gray-900 dark:text-gray-100 font-sans">
       <main className="max-w-xl mx-auto px-5 py-10 sm:py-16">
         <a href="/" className="inline-flex items-center gap-2 text-sm font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
-          <span aria-hidden="true">💍</span> Shaadi24
+          <BrandMark className="w-5 h-5" /> Shaadi24
         </a>
         <h1 className="mt-6 text-3xl font-bold tracking-tight">Delete your Shaadi24 account</h1>
         <p className="mt-3 text-sm leading-relaxed text-gray-600 dark:text-gray-300">

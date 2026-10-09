@@ -4,6 +4,7 @@ import {
   AUDIENCES, TARGETS, audienceLabel, countAudience, sendMessage,
   type Audience, type MessageDraft, type MessageTarget,
 } from '../../lib/adminGrowth';
+import { BrandMark, IconX } from '../../constants';
 
 // ============================================================================
 // Writing an in-app message to a group of members (Admin → Messages, and
@@ -20,7 +21,7 @@ const labelClass = 'block text-xs font-medium text-gray-600 dark:text-zinc-300 m
 export const MessagePreview: React.FC<{ title: string; body: string; ctaLabel?: string | null }> = ({ title, body, ctaLabel }) => (
   <div className="rounded-2xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-4 shadow-sm">
     <div className="flex items-start gap-3">
-      <span className="text-xl" aria-hidden="true">💍</span>
+      <BrandMark className="w-6 h-6 flex-none" />
       <div className="min-w-0">
         <p className="text-sm font-semibold text-gray-900 dark:text-white">{title || 'Title'}</p>
         <p className="mt-0.5 text-sm text-gray-600 dark:text-zinc-300 whitespace-pre-line">{body || 'Your message'}</p>
@@ -81,7 +82,7 @@ const MessageComposer: React.FC<{ initial: MessageDraft; onClose: () => void; on
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-zinc-800">
           <h2 id="composer-title" className="text-base font-semibold text-gray-900 dark:text-white">New in-app message</h2>
-          <button type="button" onClick={onClose} disabled={sending} aria-label="Close" className="w-8 h-8 rounded-md text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800">✕</button>
+          <button type="button" onClick={onClose} disabled={sending} aria-label="Close" className="w-8 h-8 rounded-md inline-flex items-center justify-center text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800 [&>svg]:w-4 [&>svg]:h-4"><IconX /></button>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-5 p-5">

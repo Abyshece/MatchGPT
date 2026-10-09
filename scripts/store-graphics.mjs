@@ -22,6 +22,8 @@
 //   docs/store/graphics/play-feature-graphic.jpg  Google Play, 1024 × 500
 //   public/og-image.png                            the picture in link previews
 //   public/apple-touch-icon.png, favicon-32.png    the website's icons
+//   public/logo.png                                the logo in the apps and on the website
+//                                   (the ring on a transparent background, 192 × 192)
 // Change the sizes or the words below, or the picture, and run again to
 // remake them all.
 //
@@ -222,6 +224,7 @@ try {
   await png(path.join(OUT, 'play-icon-512.png'), APP_ICON, 512);
   await png(path.join(PUBLIC, 'apple-touch-icon.png'), APP_ICON, 180);
   await png(path.join(PUBLIC, 'favicon-32.png'), { size: 0.86, background: '#fff', radius: 224, border: '#e5e7eb' }, 32);
+  await png(path.join(PUBLIC, 'logo.png'), { size: 0.96 }, 192);
 
   const icon = `data:image/png;base64,${encodePng(560, 560, await pixels(APP_ICON, 560)).toString('base64')}`;
   await page.setViewportSize({ width: 1024, height: 500 });

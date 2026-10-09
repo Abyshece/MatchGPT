@@ -3,6 +3,7 @@ import { useToast } from '../../lib/useToast';
 import { BLANK_POST, BLOG_URL, fetchAllPosts, formatDate, isLive, postState, type AdminPost, type PostDraft } from '../../lib/blog';
 import { IdeasDialog } from './BlogAiDialogs';
 import BlogEditor from './BlogEditor';
+import { IconSparkles } from '../../constants';
 
 // ============================================================================
 // Admin → Blog: every post (drafts, scheduled and published, with visits),
@@ -63,7 +64,7 @@ const AdminBlogTab: React.FC = () => {
         </div>
         <div className="ml-auto flex gap-2">
           <a href={BLOG_URL} target="_blank" rel="noopener noreferrer" className="h-9 px-3 inline-flex items-center rounded-md text-sm text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800">View blog ↗</a>
-          <button type="button" onClick={() => setIdeas(true)} className="h-9 px-3 rounded-md border border-gray-200 dark:border-zinc-700 text-sm font-medium hover:bg-gray-50 dark:hover:bg-zinc-800">✨ Ideas</button>
+          <button type="button" onClick={() => setIdeas(true)} className="h-9 px-3 inline-flex items-center gap-1.5 rounded-md border border-gray-200 dark:border-zinc-700 text-sm font-medium hover:bg-gray-50 dark:hover:bg-zinc-800"><span aria-hidden="true" className="[&>svg]:w-4 [&>svg]:h-4"><IconSparkles /></span>Ideas</button>
           <button type="button" onClick={() => setEditing({ post: { ...BLANK_POST }, ai: null })} className="h-9 px-4 rounded-md bg-gray-900 text-white dark:bg-white dark:text-gray-900 text-sm font-semibold">New post</button>
         </div>
       </div>

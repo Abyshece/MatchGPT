@@ -4,6 +4,7 @@ import { SITE_URL } from '../../lib/blogSeo';
 import { setPageMeta } from '../../lib/pageMeta';
 import StoreBadges from '../StoreBadges';
 import { SiteFooter, SiteHeader } from './SiteChrome';
+import { BrandMark, IconUser } from '../../constants';
 
 // ============================================================================
 // /b/<link>: the page a shared biodata's QR code and link open
@@ -68,7 +69,7 @@ const BiodataPage: React.FC<{ token: string }> = ({ token }) => {
           <div className="h-64 rounded-2xl bg-gray-100 dark:bg-zinc-800 animate-pulse" />
         ) : !preview.found ? (
           <div className="text-center py-12" data-testid="biodata-gone">
-            <p className="text-4xl" aria-hidden="true">💍</p>
+            <BrandMark className="w-10 h-10 mx-auto" />
             <h1 className="mt-4 text-xl font-bold">This biodata link isn't available</h1>
             <p className="mt-2 text-gray-600 dark:text-gray-300">
               The member may have turned it off. You can still find your match on Shaadi24.
@@ -81,7 +82,7 @@ const BiodataPage: React.FC<{ token: string }> = ({ token }) => {
               <img src={preview.photo} alt={preview.name ?? 'Profile photo'} className="w-full aspect-[4/5] object-cover" />
             ) : (
               <div className="w-full aspect-[4/3] flex items-center justify-center bg-gradient-to-br from-rose-50 to-amber-50 dark:from-zinc-800 dark:to-zinc-900" aria-hidden="true">
-                <span className="text-5xl">👤</span>
+                <span className="text-gray-400 [&_svg]:w-14 [&_svg]:h-14" aria-hidden="true"><IconUser /></span>
               </div>
             )}
             <div className="p-6">

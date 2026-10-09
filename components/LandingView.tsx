@@ -3,6 +3,7 @@ import type { LegalPageName } from '../lib/legalInfo';
 import { lazyScreen } from '../lib/lazyScreen';
 import { isNativeApp } from '../lib/nativeApp';
 import NativeSignInButtons from './NativeSignInButtons';
+import { BrandMark } from '../constants';
 
 // The sign-in popup loads when it opens, and quietly before that, once the
 // page has drawn, so it's there when someone taps to sign in
@@ -48,7 +49,7 @@ const LandingView: React.FC<LandingViewProps> = ({ onSignupInitiated, onShowLega
         {/* The name sits at the same height whichever buttons the phone offers
             (they appear once Supabase has said which are on) */}
         <div className="flex-1 flex flex-col items-center px-8 pt-[18vh] pb-10 text-center select-none animate-fade-in">
-          <div className="text-5xl mb-4" aria-hidden="true">💍</div>
+          <BrandMark className="w-14 h-14 mb-4" />
           <h1 className="text-[40px] leading-none font-bold tracking-tight text-gray-900 dark:text-white">Shaadi24</h1>
           <p className="mt-4 max-w-[19rem] text-[17px] leading-snug text-gray-500 dark:text-gray-400 text-balance">
             Find your life partner by personality, not just biodata.

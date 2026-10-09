@@ -3,6 +3,7 @@ import { fetchMyMessages, markMyMessage, type MessageTarget, type MyMessage } fr
 import type { SectionId } from '../lib/profileRewards';
 import UpgradeModal from './UpgradeModal';
 import VerificationRequestModal from './VerificationRequestModal';
+import { BrandMark } from '../constants';
 
 // ============================================================================
 // Messages from the Shaadi24 team (Admin → Messages and Profiles): the newest
@@ -54,7 +55,7 @@ const MemberMessages: React.FC<{ onGo: (to: MessageGoTo) => void }> = ({ onGo })
         <div className="fixed inset-x-3 bottom-3 sm:inset-x-auto sm:right-5 sm:bottom-5 sm:w-[380px] z-[200] animate-fade-in" data-popup>
           <div role="dialog" aria-labelledby="member-message-title" data-testid="member-message" className="rounded-2xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-4 shadow-2xl">
             <div className="flex items-start gap-3">
-              <span className="text-xl" aria-hidden="true">💍</span>
+              <BrandMark className="w-6 h-6 flex-none" />
               <div className="min-w-0 flex-1">
                 <p id="member-message-title" className="text-sm font-semibold text-gray-900 dark:text-white">{message.title}</p>
                 <p className="mt-0.5 text-sm text-gray-600 dark:text-zinc-300 whitespace-pre-line">{message.body}</p>

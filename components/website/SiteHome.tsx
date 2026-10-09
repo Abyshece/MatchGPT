@@ -6,6 +6,7 @@ import StoreBadges from '../StoreBadges';
 import OfferBanner from './OfferBanner';
 import { SiteFooter, SiteHeader } from './SiteChrome';
 import { StoriesStrip } from './StoriesPages';
+import { IconSparkles, IconShield, IconUsers, IconMessageCircle } from '../../constants';
 
 // ============================================================================
 // SiteHome: the website's home page
@@ -19,22 +20,22 @@ import { StoriesStrip } from './StoriesPages';
 
 const FEATURES = [
   {
-    icon: '✨',
+    icon: <IconSparkles />,
     title: "Say what you're looking for",
     text: 'Describe the person you hope to marry in your own words. Shaadi24 finds the people who fit you best, and says why.',
   },
   {
-    icon: '✅',
+    icon: <IconShield />,
     title: 'Verified badges, and reports that count',
     text: 'Members can get a Verified badge by linking their social profiles, which our team checks, and every report is reviewed within 24 hours.',
   },
   {
-    icon: '👪',
+    icon: <IconUsers />,
     title: 'What families ask about',
     text: 'Community, mother tongue, family and horoscope, and you choose what to show: any answer can be hidden.',
   },
   {
-    icon: '💬',
+    icon: <IconMessageCircle />,
     title: 'Matches go both ways',
     text: "When you both like each other, it's a match, and you can chat.",
   },
@@ -162,7 +163,7 @@ const SiteHome: React.FC = () => {
         <section aria-label="What Shaadi24 does" className="max-w-4xl mx-auto px-5 pb-16 grid gap-4 sm:grid-cols-2">
           {FEATURES.map((f) => (
             <div key={f.title} className="rounded-xl border border-gray-200 dark:border-zinc-800 p-5">
-              <div className="text-2xl" aria-hidden="true">{f.icon}</div>
+              <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-white flex items-center justify-center [&>svg]:w-5 [&>svg]:h-5" aria-hidden="true">{f.icon}</div>
               <h2 className="mt-3 font-semibold text-gray-900 dark:text-white">{f.title}</h2>
               <p className="mt-1.5 text-sm leading-relaxed text-gray-600 dark:text-gray-300">{f.text}</p>
             </div>

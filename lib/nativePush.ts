@@ -206,6 +206,9 @@ let openChat: string | null = null;
 let listeners: Promise<PluginListenerHandle | null>[] = [];
 
 const dataOf = (n: Notification): PushData => (n.data && typeof n.data === 'object' ? n.data as PushData : {});
+// The app's toasts show no emoji: "💬 Priya sent you a message" shows as "Priya sent you a message"
+const EMOJI = /^[\p{Extended_Pictographic}\uFE0F\u200D\s]+|[\s\p{Extended_Pictographic}\uFE0F\u200D]+$/gu;
+export const withoutEmoji = (s: string) => s.replace(EMOJI, '');
 
 /** The screen to open when a notification is tapped (Dashboard). A tap before it's ready waits for it. */
 export function onNotificationOpened(handler: OpenHandler): () => void {
@@ -253,7 +256,7 @@ async function start(userId: string): Promise<void> {
       FirebaseMessaging.addListener('notificationReceived', ({ notification }) => {
         const data = dataOf(notification);
         if (data.event_type === 'new_message' && data.match_id && data.match_id === openChat) return;
-        showHandler?.({ title: notification.title ?? '', body: notification.body ?? '', data });
+        showHandler?.({ title: withoutEmoji(notification.title ?? ''), body: withoutEmoji(notification.body ?? ''), data });
       }),
       FirebaseMessaging.addListener('tokenReceived', ({ token }) => {
         if (currentUser && token && token !== currentToken) void register(currentUser);

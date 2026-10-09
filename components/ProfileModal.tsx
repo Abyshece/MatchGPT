@@ -3,7 +3,9 @@ import CompatibilityReport from './CompatibilityReport';
 import LikeButton from './LikeButton';
 import { SuperInterestButton } from './SuperInterestSheet';
 import BlockReportModal from './BlockReportModal';
-import { IconX, IconCheck, IconChevronLeft, IconChevronRight, IconUser, IconFlag, IconBan, IconMore } from '../constants';
+import {
+  IconX, IconCheck, IconChevronLeft, IconChevronRight, IconUser, IconFlag, IconBan, IconMore, IconMapPin,
+} from '../constants';
 import { SECT_LABEL, formatBirthTime, formatChildren, formatSiblings, profileManagedBy } from '../lib/profileDisplay';
 import { isNativeApp } from '../lib/nativeApp';
 import { playExit } from '../lib/likeExit';
@@ -200,7 +202,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                     </div>
                   </>
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-6xl text-gray-300 dark:text-zinc-700">👤</div>
+                  <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-zinc-700 [&_svg]:w-16 [&_svg]:h-16"><IconUser /></div>
                 )}
               </div>
 
@@ -247,7 +249,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                     {candidate.name}{candidate.age ? `, ${candidate.age}` : ''}
                   </h3>
                   <p className="text-gray-500 dark:text-gray-400 flex items-center gap-1.5 mt-1 text-sm">
-                    <span className="text-base">📍</span> {candidate.location}
+                    <span aria-hidden="true" className="flex-none [&>svg]:w-4 [&>svg]:h-4"><IconMapPin /></span> {candidate.location}
                   </p>
                   {candidate.jobTitle && (
                     <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 truncate">

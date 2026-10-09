@@ -6,6 +6,7 @@ import { setPageMeta } from '../../lib/pageMeta';
 import Markdown from '../Markdown';
 import StoreBadges from '../StoreBadges';
 import { SiteFooter, SiteHeader } from './SiteChrome';
+import { BrandMark } from '../../constants';
 
 // ============================================================================
 // The website's blog: /blog lists the published posts (newest first, with a
@@ -20,7 +21,7 @@ const Cover: React.FC<{ post: Pick<BlogPost, 'cover_url' | 'cover_alt'>; classNa
     <img src={post.cover_url} alt={post.cover_alt} loading="lazy" className={`w-full aspect-[1200/630] object-cover ${className}`} />
   ) : (
     <div className={`w-full aspect-[1200/630] flex items-center justify-center bg-gradient-to-br from-rose-50 to-amber-50 dark:from-zinc-800 dark:to-zinc-900 ${className}`} aria-hidden="true">
-      <span className="text-4xl">💍</span>
+      <BrandMark className="w-12 h-12" />
     </div>
   );
 
@@ -48,7 +49,7 @@ const PostCard: React.FC<{ post: BlogPost; big?: boolean }> = ({ post, big }) =>
 
 const GetTheApp: React.FC = () => (
   <aside className="mt-12 rounded-2xl border border-gray-200 dark:border-zinc-800 p-6 sm:p-8 text-center" data-testid="blog-cta">
-    <p className="text-2xl" aria-hidden="true">💍</p>
+    <BrandMark className="w-8 h-8 mx-auto" />
     <h2 className="mt-2 text-xl font-semibold text-gray-900 dark:text-white">Describe the person you hope to marry</h2>
     <p className="mt-2 text-sm text-gray-600 dark:text-gray-300 max-w-md mx-auto">
       Shaadi24 finds the people who fit you best, by values, family, lifestyle and plans. Free to join.

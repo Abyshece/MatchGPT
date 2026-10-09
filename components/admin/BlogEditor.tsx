@@ -7,6 +7,7 @@ import {
 import { readingMinutes, wordCount } from '../../lib/markdown';
 import Markdown from '../Markdown';
 import { DraftDialog, Spinner, field, labelClass } from './BlogAiDialogs';
+import { IconSparkles, IconCheck, IconCircle } from '../../constants';
 
 // ============================================================================
 // Admin → Blog → a post: the title and the text (Markdown, with a toolbar, a
@@ -55,7 +56,7 @@ const TOOLS: { id: ToolId; label: string; title: string }[] = [
 
 const REWRITES = ['Make it clearer', 'Make it shorter', 'Make it warmer', 'Add an example', 'Fix grammar and spelling'];
 
-const btn = 'h-9 px-3 rounded-md border border-gray-200 dark:border-zinc-700 text-sm font-medium hover:bg-gray-50 dark:hover:bg-zinc-800 disabled:opacity-40';
+const btn = 'h-9 px-3 inline-flex items-center justify-center gap-1.5 rounded-md border border-gray-200 dark:border-zinc-700 text-sm font-medium hover:bg-gray-50 dark:hover:bg-zinc-800 disabled:opacity-40';
 const primary = 'h-9 px-4 rounded-md bg-gray-900 text-white dark:bg-white dark:text-gray-900 text-sm font-semibold disabled:opacity-40';
 
 const BlogEditor: React.FC<{ initial: PostDraft; startWithAi?: { topic: string; keyword: string } | null; onBack: () => void; onSaved: () => void }> = ({
@@ -255,8 +256,8 @@ const BlogEditor: React.FC<{ initial: PostDraft; startWithAi?: { topic: string; 
               </button>
             ))}
             <span className="mx-1 h-5 w-px bg-gray-200 dark:bg-zinc-700" aria-hidden="true" />
-            <button type="button" onClick={startRewrite} disabled={preview || !!busy} className="h-8 px-2 rounded-md text-sm font-medium text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 disabled:opacity-30">
-              ✨ Rewrite selection
+            <button type="button" onClick={startRewrite} disabled={preview || !!busy} className="h-8 px-2 inline-flex items-center gap-1.5 rounded-md text-sm font-medium text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 disabled:opacity-30">
+              <span aria-hidden="true" className="[&>svg]:w-4 [&>svg]:h-4"><IconSparkles /></span>Rewrite selection
             </button>
             <div className="ml-auto flex rounded-md border border-gray-200 dark:border-zinc-700 p-0.5 text-xs" role="group" aria-label="View">
               {(['Write', 'Preview'] as const).map((v) => (
@@ -330,9 +331,9 @@ const BlogEditor: React.FC<{ initial: PostDraft; startWithAi?: { topic: string; 
           </Panel>
 
           <Panel title="AI writing">
-            <button type="button" onClick={() => setDraftAi({ topic: p.title, keyword: p.focus_keyword })} disabled={!!busy} className={`${btn} w-full`}>✨ Write with AI</button>
+            <button type="button" onClick={() => setDraftAi({ topic: p.title, keyword: p.focus_keyword })} disabled={!!busy} className={`${btn} w-full`}><span aria-hidden="true" className="[&>svg]:w-4 [&>svg]:h-4"><IconSparkles /></span>Write with AI</button>
             <button type="button" onClick={fillSeo} disabled={!!busy || !p.title.trim() || p.content.trim().length < 50} className={`${btn} w-full`}>
-              {busy === 'seo' ? <Spinner /> : '✨ Fill search fields with AI'}
+              {busy === 'seo' ? <Spinner /> : <><span aria-hidden="true" className="[&>svg]:w-4 [&>svg]:h-4"><IconSparkles /></span>Fill search fields with AI</>}
             </button>
             <p className="text-[11px] text-gray-500 dark:text-zinc-400 leading-relaxed">Select a passage and use “Rewrite selection” to improve it. Always read AI text before publishing.</p>
           </Panel>
@@ -410,7 +411,7 @@ const BlogEditor: React.FC<{ initial: PostDraft; startWithAi?: { topic: string; 
             <ul className="space-y-1.5 pt-1" data-testid="seo-checks">
               {checks.map((c) => (
                 <li key={c.id} className="flex items-start gap-2 text-xs" title={c.tip}>
-                  <span aria-hidden="true" className={c.ok ? 'text-green-600 dark:text-green-400' : 'text-gray-300 dark:text-zinc-600'}>{c.ok ? '✓' : '○'}</span>
+                  <span aria-hidden="true" className={`flex-none mt-px [&>svg]:w-3.5 [&>svg]:h-3.5 ${c.ok ? 'text-green-600 dark:text-green-400' : 'text-gray-300 dark:text-zinc-600'}`}>{c.ok ? <IconCheck /> : <IconCircle />}</span>
                   <span className={c.ok ? 'text-gray-700 dark:text-zinc-300' : 'text-gray-500 dark:text-zinc-400'}>
                     <span className="sr-only">{c.ok ? 'Done: ' : 'To do: '}</span>{c.label}
                   </span>

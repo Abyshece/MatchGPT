@@ -14,15 +14,15 @@ import { SUPPORT_EMAIL } from './helpTopics';
 import { openLegalPage as openLegal, type LegalPageName } from '../lib/legalInfo';
 import { setMarketingConsent } from '../lib/consentService';
 import {
-  IconMoon, IconSun, IconUser, IconLogOut, IconChevronRight, IconTrash, IconX,
+  IconMoon, IconSun, IconUser, IconLogOut, IconChevronRight, IconTrash, IconX, IconPhone, IconAlert,
 } from '../constants';
 import type { UserSettings } from '../types';
 
 // Settings → Appearance: Automatic (the phone's mode) first, the default
 const THEME_CHOICES = [
-  { mode: 'system', label: 'Automatic', icon: '📱' },
-  { mode: 'light', label: 'Light', icon: '☀️' },
-  { mode: 'dark', label: 'Dark', icon: '🌙' },
+  { mode: 'system', label: 'Automatic', icon: <IconPhone /> },
+  { mode: 'light', label: 'Light', icon: <IconSun /> },
+  { mode: 'dark', label: 'Dark', icon: <IconMoon /> },
 ] as const;
 
 interface SettingsViewProps {
@@ -162,7 +162,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
     setShowDeleteModal(false);
     showToast(result.appStoreRenews
       ? `Account deleted. Your App Store subscription is still on: cancel it ${storeManageHint('app_store')}.`
-      : 'Account deleted. Goodbye 👋', result.appStoreRenews ? 'info' : 'success');
+      : 'Account deleted. Goodbye', result.appStoreRenews ? 'info' : 'success');
     // AuthContext picks up the session-cleared state and redirects to Auth
   };
 
@@ -258,7 +258,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
                       }`}
                     >
                       <div className="flex flex-col items-center gap-1">
-                        <span className="text-lg" aria-hidden="true">{icon}</span>
+                        <span className="[&>svg]:w-5 [&>svg]:h-5" aria-hidden="true">{icon}</span>
                         <span>{label}</span>
                       </div>
                     </button>
@@ -387,7 +387,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
             ) : (
               <div className="space-y-6">
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 p-4 rounded-lg text-sm text-red-800 dark:text-red-200">
-                  <p className="font-bold mb-1">⚠ Warning: This action cannot be undone.</p>
+                  <p className="font-bold mb-1 flex items-center gap-1.5"><span aria-hidden="true" className="flex-none [&>svg]:w-4 [&>svg]:h-4"><IconAlert /></span>Warning: This action cannot be undone.</p>
                   <p className="text-xs leading-relaxed">
                     Your account, profile, photos, matches, messages, likes, and all other data will be permanently deleted,
                     except the few records Indian law requires us to keep for a limited time (Privacy Policy, section 6).

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../lib/AuthContext';
-import { IconHeart, IconMessageCircle, IconX } from '../constants';
+import { IconHeart, IconMessageCircle, IconX, IconUser } from '../constants';
 import type { MatchCandidate } from '../types';
 
 // ============================================================================
@@ -42,7 +42,7 @@ const MatchCelebrationModal: React.FC<MatchCelebrationModalProps> = ({
         {HEARTS.map(({ top, left }, i) => (
           <div
             key={i}
-            className="absolute text-white/20 text-4xl animate-pulse"
+            className="absolute text-white/20 animate-pulse [&>svg]:w-9 [&>svg]:h-9 [&>svg]:fill-current"
             style={{
               top: `${top}%`,
               left: `${left}%`,
@@ -50,7 +50,7 @@ const MatchCelebrationModal: React.FC<MatchCelebrationModalProps> = ({
               animationDuration: '2s',
             }}
           >
-            ❤
+            <IconHeart />
           </div>
         ))}
       </div>
@@ -78,14 +78,14 @@ const MatchCelebrationModal: React.FC<MatchCelebrationModalProps> = ({
             {myPhoto ? (
               <img src={myPhoto} alt="You" className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-3xl text-gray-500 dark:text-gray-400">👤</div>
+              <div className="w-full h-full flex items-center justify-center text-gray-500 dark:text-gray-400 [&_svg]:w-9 [&_svg]:h-9"><IconUser /></div>
             )}
           </div>
           <div className="absolute right-0 top-1/2 -translate-y-1/2 w-32 h-40 rounded-2xl overflow-hidden border-4 border-white shadow-2xl rotate-[8deg] bg-gray-200">
             {theirPhoto ? (
               <img src={theirPhoto} alt={matchedWith.name} className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-3xl text-gray-500 dark:text-gray-400">👤</div>
+              <div className="w-full h-full flex items-center justify-center text-gray-500 dark:text-gray-400 [&_svg]:w-9 [&_svg]:h-9"><IconUser /></div>
             )}
           </div>
           {/* Heart in the middle */}

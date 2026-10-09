@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { SORTS, levelLabel, type LevelId, type MatchLevel, type SortId } from '../lib/searchResults';
+import { IconCheck } from '../constants';
 
 // ============================================================================
 // ResultsSortMenu — the Sort button above Find Match's results. Opens a small
@@ -88,7 +89,7 @@ const ResultsSortMenu: React.FC<ResultsSortMenuProps> = ({ sort, level, levels, 
                 className={optionClass(s.id === sort)}
               >
                 {s.label}
-                {s.id === sort && <span aria-hidden="true">✓</span>}
+                {s.id === sort && <span aria-hidden="true" className="[&>svg]:w-4 [&>svg]:h-4"><IconCheck /></span>}
               </button>
             ))}
           </div>
@@ -113,7 +114,7 @@ const ResultsSortMenu: React.FC<ResultsSortMenuProps> = ({ sort, level, levels, 
                   </span>
                   <span className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 font-medium">
                     {l.count}
-                    {l.id === level && <span aria-hidden="true" className="text-gray-900 dark:text-white">✓</span>}
+                    {l.id === level && <span aria-hidden="true" className="text-gray-900 dark:text-white [&>svg]:w-4 [&>svg]:h-4"><IconCheck /></span>}
                   </span>
                 </button>
               );

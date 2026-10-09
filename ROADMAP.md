@@ -1020,6 +1020,15 @@ three blocks in 30 days raise a Scam alert, "Blocked by several members", quotin
 (flag), Block (no-entry sign), Unmatch (broken heart), the "more" button, the Report/Block popup (black
 "Submit Report"), the admin panel's ban and report labels, the member timeline and the sidebar's Admin item.
 
+No more emojis in the app, the website or the admin panel: the same flat line icons everywhere
+(`constants.tsx`). The 💍 logo is the ring from the app icon (`public/logo.png`, `BrandMark`); missing
+photos show a person outline; empty screens, page headers, the date-proposal card and its ideas, the
+compatibility report, Help Center, Settings (Automatic/Light/Dark), search (Instagram/LinkedIn filters,
+"Understood by AI"), My Profile, toasts, the Spotlight badge, Family Circle reactions (thumbs up, question
+mark, thumbs down, with Yes/Maybe/No), the landing page's features and offer banner, and the admin's
+verification checks and social links. Kept on purpose: country flags, the biodata's religious symbols and
+border, the WhatsApp invite's 🙏, notification titles, and chat messages already saved with an emoji.
+
 **Still to do**
 
 - [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.

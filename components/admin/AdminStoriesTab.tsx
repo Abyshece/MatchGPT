@@ -3,6 +3,7 @@ import { useToast } from '../../lib/useToast';
 import { BLANK_STORY, deleteStory, fetchStories, saveStory, uploadStoryPhoto, type Story, type StoryDraft } from '../../lib/adminInsights';
 import { Dialog, Spinner, field, labelClass } from './BlogAiDialogs';
 import { Pill } from './adminUi';
+import { BrandMark } from '../../constants';
 
 // ============================================================================
 // Admin → Success stories: couples who met on Shaadi24, for the website's
@@ -157,7 +158,7 @@ const AdminStoriesTab: React.FC = () => {
           {stories.map((s) => (
             <li key={s.id} className="rounded-lg border border-gray-200 dark:border-zinc-800 overflow-hidden flex flex-col" data-testid="story-card">
               {s.photo_url ? <img src={s.photo_url} alt={s.photo_alt} className="w-full aspect-[4/3] object-cover" loading="lazy" />
-                : <div className="w-full aspect-[4/3] flex items-center justify-center bg-gray-50 dark:bg-zinc-900 text-3xl" aria-hidden="true">💍</div>}
+                : <div className="w-full aspect-[4/3] flex items-center justify-center bg-gray-50 dark:bg-zinc-900" aria-hidden="true"><BrandMark className="w-10 h-10" /></div>}
               <div className="p-3 flex-1 flex flex-col">
                 <div className="flex items-center justify-between gap-2">
                   <p className="font-medium text-gray-900 dark:text-white truncate">{s.names}</p>

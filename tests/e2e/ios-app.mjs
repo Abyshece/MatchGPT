@@ -168,13 +168,13 @@ try {
     const coloured = [...el.querySelectorAll('*')].some((n) => /gradient/.test(getComputedStyle(n).backgroundImage));
     const button = el.querySelector('[data-testid="upgrade-button"]').getBoundingClientRect();
     return { left: r.left, right: r.right, top: r.top, bg: css.backgroundColor, radius: parseFloat(css.borderTopLeftRadius),
-      coloured, buttonBottom: button.bottom, bottom: r.bottom, logo: el.textContent.includes('💍'), images: el.querySelectorAll('img').length };
+      coloured, buttonBottom: button.bottom, bottom: r.bottom, logo: !!el.querySelector('img[src="/logo.png"]'), images: el.querySelectorAll('img:not([src="/logo.png"])').length };
   });
   const sheet = await sheetLook();
   check(sheet.left >= 8 && SCREEN.width - sheet.right >= 8 && sheet.radius >= 20,
     `the Shaadi24+ card floats clear of the sides with round corners (${Math.round(sheet.left)}–${Math.round(sheet.right)}, ${sheet.radius}px)`);
   check(sheet.bg === 'rgb(255, 255, 255)', `light mode: a white card, not a dark page (${sheet.bg})`);
-  check(sheet.logo && sheet.images === 0, 'the 💍 Shaadi24 logo on top, and no photo');
+  check(sheet.logo && sheet.images === 0, 'the Shaadi24 ring logo on top, and no photo');
   check(!sheet.coloured, 'no colour gradient');
   check(sheet.bottom - sheet.buttonBottom < 80, 'its button sits at the bottom');
   await page.screenshot({ path: `${OUT}7-shaadi24-plus.png` });

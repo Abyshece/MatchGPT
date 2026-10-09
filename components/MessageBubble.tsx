@@ -1,6 +1,6 @@
 import React from 'react';
 import DateProposalCard from './DateProposalCard';
-import { IconCheck } from '../constants';
+import { IconCheck, IconUser } from '../constants';
 import type { Message } from '../lib/chatService';
 
 // ============================================================================
@@ -68,7 +68,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
           {showAvatar && otherPhoto ? (
             <img src={otherPhoto} alt="" className="w-7 h-7 rounded-full object-cover" />
           ) : showAvatar ? (
-            <div className="w-7 h-7 rounded-full bg-gray-200 dark:bg-zinc-700 flex items-center justify-center text-xs">👤</div>
+            <div className="w-7 h-7 rounded-full bg-gray-200 dark:bg-zinc-700 text-gray-500 flex items-center justify-center [&_svg]:w-4 [&_svg]:h-4"><IconUser /></div>
           ) : null}
         </div>
       )}

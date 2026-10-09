@@ -1,6 +1,6 @@
 import React from 'react';
 import { PageHeader, InfoSection, Toggle } from './NotionUI';
-import { IconBook } from '../constants';
+import { IconBook, IconCheck, IconX, IconHelpCircle, IconSearch, IconMessageCircle, IconShield } from '../constants';
 import { Capacitor } from '@capacitor/core';
 import { helpTopics, SUPPORT_EMAIL, type HelpPlatform } from './helpTopics';
 
@@ -12,7 +12,7 @@ import { helpTopics, SUPPORT_EMAIL, type HelpPlatform } from './helpTopics';
 
 const Example: React.FC<{ good: boolean; children: React.ReactNode }> = ({ good, children }) => (
   <li className="flex gap-2">
-    <span className={good ? 'text-green-500' : 'text-red-500'}>{good ? '✓' : '✕'}</span>
+    <span aria-hidden="true" className={`flex-none mt-0.5 [&>svg]:w-4 [&>svg]:h-4 ${good ? 'text-green-500' : 'text-red-500'}`}>{good ? <IconCheck /> : <IconX />}</span>
     <span>{children}</span>
   </li>
 );
@@ -21,7 +21,7 @@ const HelpCenter: React.FC = () => {
   return (
     <div className="h-full overflow-y-auto bg-white dark:bg-[#191919]">
         <div className="max-w-4xl mx-auto py-12 px-6 animate-fade-in">
-            <PageHeader title="Help Center" icon="❓" />
+            <PageHeader title="Help Center" icon={<IconHelpCircle />} />
 
             <div className="grid gap-8">
 
@@ -35,17 +35,17 @@ const HelpCenter: React.FC = () => {
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div className="bg-white dark:bg-zinc-800 p-3 rounded-lg border border-gray-200 dark:border-zinc-700 shadow-sm">
-                            <div className="text-2xl mb-1">🔍</div>
+                            <div className="mb-2 text-gray-700 dark:text-gray-300 [&>svg]:w-6 [&>svg]:h-6" aria-hidden="true"><IconSearch /></div>
                             <h3 className="font-bold text-xs uppercase text-gray-500 dark:text-gray-400">Search in your words</h3>
                             <p className="text-xs text-gray-800 dark:text-gray-200 mt-1">Say who you're looking for; the best fits come first.</p>
                         </div>
                         <div className="bg-white dark:bg-zinc-800 p-3 rounded-lg border border-gray-200 dark:border-zinc-700 shadow-sm">
-                            <div className="text-2xl mb-1">💬</div>
+                            <div className="mb-2 text-gray-700 dark:text-gray-300 [&>svg]:w-6 [&>svg]:h-6" aria-hidden="true"><IconMessageCircle /></div>
                             <h3 className="font-bold text-xs uppercase text-gray-500 dark:text-gray-400">Like, match, chat</h3>
                             <p className="text-xs text-gray-800 dark:text-gray-200 mt-1">When you both like each other, it's a match and you can chat.</p>
                         </div>
                         <div className="bg-white dark:bg-zinc-800 p-3 rounded-lg border border-gray-200 dark:border-zinc-700 shadow-sm">
-                            <div className="text-2xl mb-1">🛡️</div>
+                            <div className="mb-2 text-gray-700 dark:text-gray-300 [&>svg]:w-6 [&>svg]:h-6" aria-hidden="true"><IconShield /></div>
                             <h3 className="font-bold text-xs uppercase text-gray-500 dark:text-gray-400">Verified</h3>
                             <p className="text-xs text-gray-800 dark:text-gray-200 mt-1">The badge means our team has checked who they are.</p>
                         </div>

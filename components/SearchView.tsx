@@ -14,7 +14,7 @@ import VerificationBanner from './VerificationBanner';
 import UpgradeModal from './UpgradeModal';
 import MatchCelebrationModal from './MatchCelebrationModal';
 import ResultsSortMenu from './ResultsSortMenu';
-import { IconX, IconCheck } from '../constants';
+import { IconX, IconCheck, IconSparkles, IconInstagram, IconLinkedin, IconSearch } from '../constants';
 import type { MatchCandidate, FilterOptions } from '../types';
 import { firstCelebration } from '../lib/matchCelebration';
 import {
@@ -301,7 +301,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
         {/* Search header — sparkle hero on landing, simple title once searched */}
         {!hasSearched ? (
           <div className="text-center mb-6 [@media(max-height:700px)]:mb-4 sm:mb-10 animate-fade-in">
-            <div className="text-4xl sm:text-6xl mb-2 sm:mb-4 [@media(max-height:700px)]:hidden" aria-hidden="true">✨</div>
+            <div className="flex justify-center mb-2 sm:mb-4 text-gray-900 dark:text-white [&>svg]:w-10 [&>svg]:h-10 sm:[&>svg]:w-14 sm:[&>svg]:h-14 [@media(max-height:700px)]:hidden" aria-hidden="true"><IconSparkles /></div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-1.5 sm:mb-2">
               Find your life partner
             </h1>
@@ -326,8 +326,8 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
             {[
               { key: 'isOnline', label: 'Online Now', icon: <div className="w-2 h-2 bg-green-500 rounded-full" />, active: filters.isOnline },
               { key: 'isVerified', label: 'Verified Only', icon: <IconCheck className="w-3 h-3" />, active: filters.isVerified },
-              { key: 'hasInstagram', label: 'Has Instagram', icon: <span>📷</span>, active: filters.hasInstagram },
-              { key: 'hasLinkedin', label: 'Has LinkedIn', icon: <span>💼</span>, active: filters.hasLinkedin },
+              { key: 'hasInstagram', label: 'Has Instagram', icon: <IconInstagram />, active: filters.hasInstagram },
+              { key: 'hasLinkedin', label: 'Has LinkedIn', icon: <IconLinkedin />, active: filters.hasLinkedin },
             ].filter((s) => !s.active).map((s) => (
               <button
                 key={s.key}
@@ -493,13 +493,14 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
             {/* A search in Hindi, Tamil or another language: the AI answers in it */}
             {!searching && understood?.said && (
               <p className="text-center text-sm text-gray-700 dark:text-gray-200 mb-2 animate-fade-in" data-testid="ai-said">
-                <span aria-hidden="true">✨ </span>{understood.said}
+                <span aria-hidden="true" className="inline-block mr-1 align-[-2px] [&>svg]:w-3.5 [&>svg]:h-3.5"><IconSparkles /></span>{understood.said}
               </p>
             )}
             {!searching && understood && understood.labels.length > 0 && (
               <div className="flex flex-wrap items-center justify-center gap-1.5 mb-6 animate-fade-in" data-testid="understood">
-                <span className="text-xs text-gray-500 dark:text-gray-400 mr-1">
-                  {understood.byAi ? '✨ Understood by AI:' : 'Understood:'}
+                <span className="text-xs text-gray-500 dark:text-gray-400 mr-1 inline-flex items-center gap-1">
+                  {understood.byAi && <span aria-hidden="true" className="[&>svg]:w-3.5 [&>svg]:h-3.5"><IconSparkles /></span>}
+                  {understood.byAi ? 'Understood by AI:' : 'Understood:'}
                 </span>
                 {understood.labels.map((label) => (
                   <span key={label} className="px-2.5 py-1 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 text-xs rounded-full font-medium">
@@ -516,7 +517,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
               </div>
             ) : results.length === 0 ? (
               <div className="text-center py-20 bg-gray-50 dark:bg-zinc-900/50 rounded-xl border border-gray-100 dark:border-zinc-800">
-                <div className="text-5xl mb-4">🔍</div>
+                <div className="mb-4 flex justify-center text-gray-300 dark:text-zinc-600 [&>svg]:w-12 [&>svg]:h-12" aria-hidden="true"><IconSearch /></div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No matches found</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">
                   {activeFilterCount > 0
@@ -529,7 +530,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
                 {/* Above the first card: how many, and the Sort button */}
                 <div className="flex items-center justify-between gap-2 mb-4">
                   <h2 className="text-sm font-bold text-gray-700 dark:text-gray-200 flex items-center gap-2 min-w-0 whitespace-nowrap">
-                    <span className="text-lg" aria-hidden="true">✨</span>
+                    <span className="[&>svg]:w-4 [&>svg]:h-4" aria-hidden="true"><IconSparkles /></span>
                     {/* Short on a phone, so the Sort button fits beside it */}
                     <span className="sm:hidden">Results</span>
                     <span className="hidden sm:inline">Results for you</span>

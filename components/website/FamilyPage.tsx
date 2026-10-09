@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { SITE_URL } from '../../lib/blogSeo';
 import { setPageMeta } from '../../lib/pageMeta';
-import { REACTIONS, familyReact, fetchFamilyView, type FamilyCard, type FamilyView, type Reaction } from '../../lib/familyCircle';
+import { REACTIONS, familyReact, reactionLabel, fetchFamilyView, type FamilyCard, type FamilyView, type Reaction } from '../../lib/familyCircle';
 import StoreBadges from '../StoreBadges';
 import { SiteFooter, SiteHeader } from './SiteChrome';
+import { IconUser, ReactionIcon, IconUsers } from '../../constants';
 
 // ============================================================================
 // /family/<link>: Family Circle for the family (lib/familyCircle.ts)
 //
 // A parent, sibling or relative the member invited sees the people the member
-// liked or matched with, as members see them, and reacts 👍 / 🤔 / 👎 with a
+// liked or matched with, as members see them, and reacts Yes / Maybe / No with a
 // note. No account; in English or Hindi. Not for search engines.
 // ============================================================================
 
@@ -58,7 +59,7 @@ const Card: React.FC<{ card: FamilyCard; token: string; member: string; lang: La
     <article className="rounded-2xl border border-gray-200 dark:border-zinc-800 overflow-hidden" data-testid="family-card">
       <div className="flex gap-4 p-4">
         {card.photo ? <img src={card.photo} alt="" className="w-24 h-28 rounded-xl object-cover flex-shrink-0" />
-          : <span className="w-24 h-28 rounded-xl bg-gray-100 dark:bg-zinc-800 flex items-center justify-center text-3xl" aria-hidden="true">👤</span>}
+          : <span className="w-24 h-28 rounded-xl bg-gray-100 dark:bg-zinc-800 text-gray-400 flex items-center justify-center [&_svg]:w-10 [&_svg]:h-10" aria-hidden="true"><IconUser /></span>}
         <div className="min-w-0">
           <h2 className="font-semibold text-lg">
             {card.name ?? '—'}{card.age ? `, ${card.age}` : ''}
@@ -71,7 +72,7 @@ const Card: React.FC<{ card: FamilyCard; token: string; member: string; lang: La
       {others.length > 0 && (
         <ul className="px-4 pt-3 text-sm text-gray-600 dark:text-gray-300">
           {others.map((o) => (
-            <li key={o.by}>{o.by} {t.said} {REACTIONS.find((x) => x.id === o.reaction)?.emoji}{o.note ? ` "${o.note}"` : ''}</li>
+            <li key={o.by}>{o.by} {t.said} <span aria-hidden="true" className="inline-block mx-0.5 align-[-2px] [&>svg]:w-3.5 [&>svg]:h-3.5"><ReactionIcon reaction={o.reaction} /></span>{reactionLabel(o.reaction, lang)}{o.note ? ` "${o.note}"` : ''}</li>
           ))}
         </ul>
       )}
@@ -82,7 +83,7 @@ const Card: React.FC<{ card: FamilyCard; token: string; member: string; lang: La
               className={`flex-1 py-2 rounded-xl border text-sm font-semibold ${reaction === r.id
                 ? 'bg-gray-900 text-white border-gray-900 dark:bg-white dark:text-black dark:border-white'
                 : 'border-gray-300 dark:border-zinc-700'}`}>
-              <span aria-hidden="true">{r.emoji}</span> {lang === 'hi' ? r.hindi : r.label}
+              <span className="inline-flex items-center justify-center gap-1.5"><span aria-hidden="true" className="[&>svg]:w-4 [&>svg]:h-4"><ReactionIcon reaction={r.id} /></span>{lang === 'hi' ? r.hindi : r.label}</span>
             </button>
           ))}
         </div>
@@ -132,7 +133,7 @@ const FamilyPage: React.FC<{ token: string }> = ({ token }) => {
           <div className="h-64 rounded-2xl bg-gray-100 dark:bg-zinc-800 animate-pulse" />
         ) : !view.found ? (
           <div className="text-center py-12" data-testid="family-gone">
-            <p className="text-4xl" aria-hidden="true">👪</p>
+            <div className="flex justify-center text-gray-300 dark:text-zinc-600 [&>svg]:w-12 [&>svg]:h-12" aria-hidden="true"><IconUsers /></div>
             <h1 className="mt-4 text-xl font-bold">{t.gone}</h1>
             <p className="mt-2 text-gray-600 dark:text-gray-300">{t.goneSub}</p>
           </div>

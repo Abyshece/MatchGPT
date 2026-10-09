@@ -3,6 +3,7 @@ import { Button } from './NotionUI';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
 import { useToast } from '../lib/useToast';
+import { IconKey } from '../constants';
 
 // ============================================================================
 // SetNewPassword
@@ -45,7 +46,7 @@ const SetNewPassword: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#191919] p-6">
       <div className="max-w-sm w-full">
-        <div className="text-5xl mb-6">🔑</div>
+        <div className="w-14 h-14 mb-6 rounded-2xl bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-white flex items-center justify-center [&>svg]:w-7 [&>svg]:h-7" aria-hidden="true"><IconKey /></div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">Set a new password</h1>
         <p className="text-gray-500 dark:text-gray-400 mb-8">Choose a new password for your Shaadi24 account.</p>
 

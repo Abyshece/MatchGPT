@@ -1,5 +1,5 @@
 import React from 'react';
-import { IconCheck, IconZap } from '../constants';
+import { IconCheck, IconZap, IconUser, IconMessageCircle, IconWave, IconCalendar } from '../constants';
 import type { MatchSummary } from '../lib/matchesService';
 
 // ============================================================================
@@ -51,7 +51,7 @@ const ChatList: React.FC<ChatListProps> = ({
   if (matches.length === 0) {
     return (
       <div className="p-6 text-center">
-        <div className="text-4xl mb-3">💬</div>
+        <div className="mb-3 flex justify-center text-gray-300 dark:text-zinc-600 [&>svg]:w-10 [&>svg]:h-10" aria-hidden="true"><IconMessageCircle /></div>
         <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1">No matches yet</h3>
         <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
           Start liking people from the Find Match tab. When you both like each other, the chat opens here.
@@ -69,15 +69,18 @@ const ChatList: React.FC<ChatListProps> = ({
 
         // Preview text — handle date proposals specially
         let preview: string;
+        let previewIcon: React.ReactNode = null;
         let previewItalic = false;
         if (!lastMsg) {
-          preview = '👋 Say hello!';
+          preview = 'Say hello!';
+          previewIcon = <IconWave />;
           previewItalic = true;
         } else if (lastMsg.content.startsWith('{') && lastMsg.content.includes('activity')) {
           // Likely a date proposal
           try {
             const p = JSON.parse(lastMsg.content);
-            preview = `📅 ${p.activity ?? 'Date proposal'}`;
+            preview = p.activity ?? 'Date proposal';
+            previewIcon = <IconCalendar />;
           } catch { preview = lastMsg.content; }
         } else {
           preview = lastMsg.content;
@@ -103,7 +106,7 @@ const ChatList: React.FC<ChatListProps> = ({
                 {photo ? (
                   <img src={photo} alt={m.otherUser.name} className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-lg">👤</div>
+                  <div className="w-full h-full flex items-center justify-center text-gray-400 [&_svg]:w-5 [&_svg]:h-5"><IconUser /></div>
                 )}
               </div>
               {/* Pro badge mini */}
@@ -134,6 +137,7 @@ const ChatList: React.FC<ChatListProps> = ({
                       ? 'italic text-gray-500 dark:text-gray-400'
                       : 'text-gray-500 dark:text-gray-400'
                 }`}>
+                  {previewIcon && <span aria-hidden="true" className="inline-block mr-1 align-[-2px] [&>svg]:w-3.5 [&>svg]:h-3.5">{previewIcon}</span>}
                   {preview}
                 </p>
                 {m.unreadCount > 0 && (

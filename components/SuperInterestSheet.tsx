@@ -59,7 +59,7 @@ const SuperInterestSheet: React.FC<{
       setError(result.error ?? 'Could not send it. Please try again.');
       return;
     }
-    showToast(`Super Interest sent to ${name} ⭐`, 'success');
+    showToast(`Super Interest sent to ${name}`, 'success');
     void refreshProfile();
     onSent(result.matched && result.matchId ? result.matchId : null);
   };

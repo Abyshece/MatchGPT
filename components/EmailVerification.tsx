@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from './NotionUI';
-import { IconChevronLeft, IconCheck } from '../constants';
+import { IconChevronLeft, IconCheck, IconMail } from '../constants';
 import { supabase } from '../lib/supabase';
 
 interface EmailVerificationProps {
@@ -95,7 +95,7 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({ email, onVerified
       <div className="flex-1 flex flex-col items-center pt-8 pb-20 px-6">
         <div className="max-w-[420px] w-full">
           <div className="mb-10">
-            <div className="text-5xl mb-6">📧</div>
+            <div className="w-14 h-14 mb-6 rounded-2xl bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-white flex items-center justify-center [&>svg]:w-7 [&>svg]:h-7" aria-hidden="true"><IconMail /></div>
             <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">Check your inbox</h1>
             <p className="text-lg text-gray-500 dark:text-gray-400 leading-relaxed">
               We sent a 6-digit code to <span className="font-semibold text-gray-900 dark:text-white">{email}</span>.

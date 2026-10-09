@@ -78,7 +78,7 @@ export const Button: React.FC<{
 };
 
 // Notion-style Header
-export const PageHeader: React.FC<{ icon?: string; coverImage?: string; title: React.ReactNode }> = ({ icon, coverImage, title }) => (
+export const PageHeader: React.FC<{ icon?: React.ReactNode; coverImage?: string; title: React.ReactNode }> = ({ icon, coverImage, title }) => (
   <div className="mb-8 group">
     {coverImage && (
       <div className="h-40 w-full overflow-hidden rounded-t-lg mb-8 relative">
@@ -86,7 +86,7 @@ export const PageHeader: React.FC<{ icon?: string; coverImage?: string; title: R
       </div>
     )}
     <div className="relative px-2">
-      {icon && <div className={`text-6xl mb-4 relative z-10 ${coverImage ? '-mt-16' : ''}`}>{icon}</div>}
+      {icon && <div aria-hidden="true" className={`text-6xl mb-4 relative z-10 text-gray-800 dark:text-gray-100 [&>svg]:w-12 [&>svg]:h-12 ${coverImage ? '-mt-16' : ''}`}>{icon}</div>}
       <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 dark:text-gray-100 tracking-tight">{title}</h1>
       <div className="h-[1px] bg-gray-200 dark:bg-zinc-800 mt-4 w-full"></div>
     </div>
@@ -293,7 +293,12 @@ export const InfoSection = ({ title, badge, badgeTone = 'new', id, children }: {
     <div className="mb-8 scroll-mt-4" id={id}>
         <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3 border-b border-gray-100 dark:border-zinc-800 pb-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
           <span>{title}</span>
-          {badge && <span className={`normal-case tracking-normal text-[10px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap ${BADGE_TONE[badgeTone]}`}>{badge}</span>}
+          {badge && (
+            <span className={`normal-case tracking-normal text-[10px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap inline-flex items-center gap-1 ${BADGE_TONE[badgeTone]}`}>
+              {badgeTone === 'done' && <span aria-hidden="true" className="[&>svg]:w-3 [&>svg]:h-3"><IconCheck /></span>}
+              {badge}
+            </span>
+          )}
         </h4>
         <div className="space-y-0.5">
             {children}

@@ -8,7 +8,7 @@
 //     link turned off opens nothing, and the next biodata gets a new one
 //  3. Family Circle: Mummy is invited (WhatsApp opens with her link); her page
 //     shows who the member liked, but not someone who said no to families;
-//     in Hindi; her 👍 with a note is saved, the member gets a notification
+//     in Hindi; her Yes with a note is saved, the member gets a notification
 //     and sees it in the app; removed, her link opens nothing; without
 //     Shaadi24+ nobody can be invited
 //  4. Admin → Growth counts biodatas and Family Circle
@@ -161,13 +161,14 @@ try {
   await card.getByRole('status').filter({ hasText: 'भेज दिया' }).waitFor({ timeout: 10000 });
   await mum.screenshot({ path: `${OUT}5-family-page.png` });
   check(sql(`select reaction || '|' || note from family_reactions r join family_members f on f.id = r.family_member_id
-    where f.member_id = '${me}' and r.profile_id = '${liked}';`) === 'yes|Achha parivaar lagta hai', 'her 👍 and note are saved');
+    where f.member_id = '${me}' and r.profile_id = '${liked}';`) === 'yes|Achha parivaar lagta hai', 'her Yes and note are saved');
   check(sql(`select count(*) from push_queue where user_id = '${me}' and event_type = 'family_reaction';`) === '1', 'the member gets a notification');
   await menu(page, 'Find Match');
   await menu(page, 'Family Circle');
   await page.getByTestId('family-reaction').first().waitFor({ timeout: 10000 });
   const seen = await page.getByTestId('family-reaction').first().innerText();
-  check(seen.includes('Mummy 👍') && seen.includes('Achha parivaar lagta hai'), 'the member sees "Mummy 👍" and her note');
+  check(/Mummy\s+Yes/.test(seen) && seen.includes('Achha parivaar lagta hai') && await page.getByTestId('family-reaction').first().locator('svg').count() > 0,
+    'the member sees "Mummy [thumbs up] Yes" and her note');
   check(/Looked today · 1 reaction/.test(await page.getByTestId('family-member').first().innerText()), 'and that she looked today');
   await page.waitForTimeout(500);  // the menu closing
   await page.screenshot({ path: `${OUT}6-family-reactions.png` });

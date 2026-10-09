@@ -1,6 +1,7 @@
 import React, { useEffect, useEffectEvent, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { OptionGroup } from '../lib/matrimonyOptions';
+import { IconCheck } from '../constants';
 
 // ============================================================================
 // Inputs for profile answers (Phase 12), used in onboarding and My Profile:
@@ -496,7 +497,7 @@ export const SheetPicker: React.FC<SheetPickerProps> = ({
       }`}
     >
       <span className="min-w-0 break-words">{text}</span>
-      {on && <span aria-hidden="true" className="flex-none text-gray-900 dark:text-white">✓</span>}
+      {on && <span aria-hidden="true" className="flex-none text-gray-900 dark:text-white [&>svg]:w-4 [&>svg]:h-4"><IconCheck /></span>}
     </button>
   );
 
