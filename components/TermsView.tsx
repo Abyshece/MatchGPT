@@ -1,6 +1,6 @@
 import React from 'react';
 import { IconBook } from '../constants';
-import { pricesInWords } from '../lib/billingService';
+import { pricesInWords, spotlightPrice, superInterestPrices } from '../lib/billingService';
 import { TERMS_VERSION } from '../lib/consentService';
 import { DAILY_LIMITS } from '../lib/profileService';
 import { LEGAL, orPending } from '../lib/legalInfo';
@@ -205,6 +205,13 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => (
           and the price that follows before you start, and you are not charged if you cancel before it ends.</li>
         <li>If we change the price, the store tells you before the new price applies to a renewal, and you can cancel
           before it does.</li>
+        <li><strong>Spotlight and Super Interest</strong> are bought one at a time in the apps, the same way, with or
+          without Shaadi24+, and don't renew. A Spotlight ({spotlightPrice()}) shows your profile first, marked
+          Spotlight, to members searching in your city or state for 24 hours from when you start it; it doesn't
+          promise likes or matches. A Super Interest ({superInterestPrices()}) is a like with a short note that shows
+          your profile and the note to that person even if they don't have Shaadi24+; Shaadi24+ includes 3 a week.
+          Notes must follow section 5. Each is used once; ones you haven't used stay in your account, and are lost if
+          the account is deleted or suspended for breaking these Terms.</li>
         <li>Refunds: see our <a className={linkClass} href="/refunds">Refund and Cancellation Policy</a>.</li>
       </List>
     </Section>

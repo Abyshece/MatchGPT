@@ -1377,8 +1377,15 @@ function toCandidate(row: Row, c: Profile, me: Profile, parsed: ParsedPrompt, no
   return candidate;
 }
 
+// Spotlight (bought by the member, 24 hours): up to this many people in
+// Spotlight go first, marked, when they live near the searcher, passed every
+// filter and are at least a fair match
+export const SPOTLIGHT_SLOTS = 3;
+export const SPOTLIGHT_MIN_SCORE = 50;
+
 // Rank the pool for the searcher: filters, then score, best first. Ties keep
-// the pool's order (most recently active first).
+// the pool's order (most recently active first). `spotlit`: who is in
+// Spotlight now.
 export function rankCandidates(
   meRow: Row,
   pool: Row[],
@@ -1387,13 +1394,19 @@ export function rankCandidates(
   limit: number,
   now = Date.now(),
   parsed: ParsedPrompt = parsePrompt(prompt),
+  spotlit: ReadonlySet<string> = new Set(),
 ): { candidates: MatchCandidate[]; poolSize: number } {
   const me = ownProfile(meRow);
   const survivors = pool
     .map((row) => ({ row, c: asSeenByOthers(row) }))
     .filter(({ row, c }) => passesFilters(row, c, me, filters, parsed, now));
   const ranked = survivors
-    .map(({ row, c }) => toCandidate(row, c, me, parsed, now))
-    .sort((a, b) => b.compatibilityScore - a.compatibilityScore);
-  return { candidates: ranked.slice(0, limit), poolSize: survivors.length };
+    .map(({ row, c }) => ({ candidate: toCandidate(row, c, me, parsed, now), near: spotlit.has(String(row.id)) && nearby(me, c) }))
+    .sort((a, b) => b.candidate.compatibilityScore - a.candidate.compatibilityScore);
+  const first = ranked
+    .filter((r) => r.near && r.candidate.compatibilityScore >= SPOTLIGHT_MIN_SCORE)
+    .slice(0, SPOTLIGHT_SLOTS);
+  for (const r of first) r.candidate.spotlight = true;
+  const order = [...first, ...ranked.filter((r) => !first.includes(r))].map((r) => r.candidate);
+  return { candidates: order.slice(0, limit), poolSize: survivors.length };
 }

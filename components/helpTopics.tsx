@@ -30,7 +30,7 @@ export function helpTopics(platform: HelpPlatform): HelpTopic[] {
       q: 'Is Shaadi24 free?',
       a: <>Yes. A free account can make a profile, use the AI search (a few searches every few hours, a day and
         a week; more a day with a complete profile), send 15 likes a day, see 5 Standouts a day, match and chat.
-        Shaadi24+ adds more searches, unlimited likes, Super Likes, everyone who has liked you,
+        Shaadi24+ adds more searches, unlimited likes, 3 Super Interests a week, everyone who has liked you,
         more search filters (religion, mother tongue, community, Manglik, height, diet, education and more), the
         full compatibility report and date proposals in chat.</>,
     },

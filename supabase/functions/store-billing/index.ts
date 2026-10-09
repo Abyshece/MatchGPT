@@ -4,7 +4,8 @@
 // For the signed-in user (the function checks the access token itself):
 //   POST { action: 'config' }
 //     → { plans: [{ id, name, amount, currency, period, googleProductId,
-//          googleBasePlanId, appleProductId }], googlePlay: boolean }
+//          googleBasePlanId, appleProductId }], packs: [{ id, kind, quantity,
+//          amount, currency, googleProductId, appleProductId }], googlePlay }
 //     The store products for each plan; the app asks the store for prices.
 //     googlePlay is false until GOOGLE_PLAY_SERVICE_ACCOUNT is set.
 //   POST { action: 'verify', platform: 'android', purchaseToken }
@@ -17,6 +18,12 @@
 //   POST { action: 'restore', platform: 'ios', jws: [...] }
 //     → { restored, pro }
 //     "Restore purchases": the same, for every purchase the store still has.
+//   POST { action: 'pack', platform: 'android', productId, purchaseToken }
+//   POST { action: 'pack', platform: 'ios', jws }
+//     → { granted, kind, balance }
+//     A Spotlight or Super Interest pack: checked with the store, its credits
+//     added once (the app then finishes the purchase). An App Store pack
+//     reported with 'verify' is handled the same way.
 //
 // store-notifications keeps them up to date afterwards (renewals, refunds).
 // Deployed with JWT verification off; the function checks the user itself.
@@ -26,7 +33,9 @@ import { withCors } from '../_shared/cors.ts';
 import { errorText, getUserId, rest, serviceConfigured } from '../_shared/serviceRest.ts';
 import { googlePlayConfig, GooglePlayError } from '../_shared/googlePlay.ts';
 import { AppleJwsError, verifyAppleJws, type AppleTransaction } from '../_shared/appleStore.ts';
-import { applyAppleTransaction, applyGooglePurchase, StorePurchaseError } from '../_shared/storeBilling.ts';
+import {
+  applyApplePack, applyAppleTransaction, applyGooglePack, applyGooglePurchase, isApplePack, StorePurchaseError, type PackGrant,
+} from '../_shared/storeBilling.ts';
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -39,10 +48,17 @@ async function config(): Promise<Response> {
   const plans = await rest<Record<string, unknown>[]>(
     'billing_plans?is_active=is.true&order=amount.asc&select=id,name,amount,currency,period,google_product_id,google_base_plan_id,apple_product_id',
   );
+  const packs = await rest<Record<string, unknown>[]>(
+    'boost_products?is_active=is.true&order=sort.asc&select=id,kind,quantity,amount,currency,google_product_id,apple_product_id',
+  );
   return json({
     plans: plans.map((p) => ({
       id: p.id, name: p.name, amount: p.amount, currency: p.currency, period: p.period,
       googleProductId: p.google_product_id, googleBasePlanId: p.google_base_plan_id, appleProductId: p.apple_product_id,
+    })),
+    packs: packs.map((p) => ({
+      id: p.id, kind: p.kind, quantity: p.quantity, amount: p.amount, currency: p.currency,
+      googleProductId: p.google_product_id, appleProductId: p.apple_product_id,
     })),
     googlePlay: !!googlePlayConfig(),
   });
@@ -72,7 +88,8 @@ async function verifyOne(userId: string, platform: string, token: string): Promi
     await applyGooglePurchase(cfg, token, userId);
   } else if (platform === 'ios') {
     const tx = await verifyAppleJws<AppleTransaction>(token);
-    await applyAppleTransaction(tx, null, userId);
+    if (isApplePack(tx)) await applyApplePack(tx, userId);
+    else await applyAppleTransaction(tx, null, userId);
   } else {
     throw new StorePurchaseError('Unknown platform', 'BAD_REQUEST');
   }
@@ -104,6 +121,27 @@ Deno.serve(withCors(async (req: Request): Promise<Response> => {
         await verifyOne(userId, platform, token);
         return json(await standing(userId));
       }
+      case 'pack': {
+        let grant: PackGrant | null;
+        if (platform === 'android') {
+          const cfg = googlePlayConfig();
+          if (!cfg) throw new StorePurchaseError('Google Play purchases are not set up yet.', 'NOT_CONFIGURED');
+          const productId = text(body.productId);
+          const token = text(body.purchaseToken);
+          if (!productId || !token) return json({ error: 'Missing purchase', code: 'BAD_REQUEST' }, 400);
+          grant = await applyGooglePack(cfg, productId, token, userId);
+        } else if (platform === 'ios') {
+          const jws = text(body.jws);
+          if (!jws) return json({ error: 'Missing purchase', code: 'BAD_REQUEST' }, 400);
+          const tx = await verifyAppleJws<AppleTransaction>(jws);
+          if (!isApplePack(tx)) return json({ error: 'Not a pack', code: 'UNKNOWN_PRODUCT' }, 400);
+          grant = await applyApplePack(tx, userId);
+        } else {
+          return json({ error: 'Unknown platform', code: 'BAD_REQUEST' }, 400);
+        }
+        if (!grant) return json({ error: 'This purchase was refunded.', code: 'REFUNDED' }, 400);
+        return json(grant);
+      }
       case 'restore': {
         const tokens = platform === 'android' ? list(body.purchaseTokens) : list(body.jws);
         let restored = 0;
@@ -123,7 +161,7 @@ Deno.serve(withCors(async (req: Request): Promise<Response> => {
     }
   } catch (e) {
     if (e instanceof StorePurchaseError) {
-      return json({ error: e.message, code: e.code }, e.code === 'NOT_CONFIGURED' ? 503 : 400);
+      return json({ error: e.message, code: e.code }, e.code === 'NOT_CONFIGURED' ? 503 : e.code === 'PENDING' ? 409 : 400);
     }
     if (e instanceof AppleJwsError) return json({ error: 'That purchase could not be checked with Apple.', code: 'INVALID_PURCHASE' }, 400);
     if (e instanceof GooglePlayError && (e.status === 400 || e.status === 404 || e.status === 410)) {

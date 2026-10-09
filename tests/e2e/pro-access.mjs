@@ -1,12 +1,12 @@
 // One rule for Shaadi24+ (migration …_phase10_pro_access), against the local stack:
 //   - while "Shaadi24+ for everyone" is on, free accounts get every Shaadi24+
-//     feature on the server: Super Likes, date proposals, who liked them, the
+//     feature on the server: Super Interests (3 a week), date proposals, who liked them, the
 //     Shaadi24+ filters, compatibility reports, refreshing Standouts
 //   - the switch can only be read by signed-in members and changed by admins
 //     (has_pro and app_settings stay out of reach)
 //   - turned off, each of those is refused or held back for free accounts,
 //     and a subscriber still gets them; the daily limits apply either way
-//   - in the website: Likes You, the filters and Super Like follow the switch,
+//   - in the website: Likes You, the filters and the free Super Interests follow the switch,
 //     and admins turn it off and on in Admin → Dashboard (in the audit log)
 // The switch is put back as it was.
 // Usage: ANON_KEY=… node pro-access.mjs <admin email> <email A> <email B>
@@ -101,7 +101,7 @@ try {
 
   log('2. Switch on: free accounts get every Shaadi24+ feature');
   let r = await superLike();
-  check(r.status === 201, `a free account Super Likes (${r.status})`);
+  check(r.status === 201, `a free account sends a Super Interest (${r.status})`);
   let likes = await likesOfB();
   check(likes.length === 1 && likes[0].liker_id === A && !!likes[0].liker_name && Array.isArray(likes[0].liker_photos),
     'Likes You shows who it was, with their name and photos');
@@ -125,7 +125,7 @@ try {
   check((await rest(jwtA, 'POST', 'rpc/pro_for_all', {})).body === false, 'members read: off');
   clearAB();
   r = await superLike();
-  check(r.status >= 400 && /Super Likes are a Pro feature/.test(JSON.stringify(r.body)), `Super Like refused for a free account (${r.status})`);
+  check(r.status >= 400 && /no Super Interests left/.test(JSON.stringify(r.body)), `Super Interest refused for a free account with none bought (${r.status})`);
   check(sql(`select count(*) from likes where liker_id = '${A}' and liked_id = '${B}';`) === '0', 'nothing was saved');
   r = await rest(jwtA, 'POST', 'likes', { liker_id: A, liked_id: B, is_super_like: false });
   check(r.status === 201, 'an ordinary like still goes through');

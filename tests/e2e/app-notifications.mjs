@@ -261,8 +261,8 @@ try {
   await page.waitForTimeout(800);
   check(!(await page.getByText('💬 From the open chat').isVisible().catch(() => false)), "no toast for the chat that's on screen");
   await page.evaluate(() => window.__fire('notificationActionPerformed', { actionId: 'tap', notification: {
-    title: '⭐ Someone super-liked you!', body: 'Open Shaadi24 to see who.', data: { event_type: 'super_like', deep_link: '/likes' } } }));
-  check(await appears(page.getByRole('heading', { name: /Likes You/ }), 8000), 'tapping a super-like opens Likes You');
+    title: '⭐ Someone sent you a Super Interest', body: 'Open Likes You to see their profile.', data: { event_type: 'super_like', deep_link: '/likes' } } }));
+  check(await appears(page.getByRole('heading', { name: /Likes You/ }), 8000), 'tapping a Super Interest opens Likes You');
 
   // ======================================================================================
   log('4. Signing out');

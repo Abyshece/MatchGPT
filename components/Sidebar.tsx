@@ -12,7 +12,7 @@ import {
   IconShield, IconClock, IconBook, IconUsers,
 } from '../constants';
 
-type Tab = 'search' | 'history' | 'likes' | 'matches' | 'standouts' | 'profile' | 'biodata' | 'family' | 'settings' | 'admin';
+type Tab = 'search' | 'history' | 'likes' | 'matches' | 'standouts' | 'profile' | 'biodata' | 'family' | 'spotlight' | 'settings' | 'admin';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -168,6 +168,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         {item('profile', 'My Profile', <IconUser />)}
         {item('biodata', 'My Biodata', <IconBook />)}
         {item('family', 'Family Circle', <IconUsers />)}
+        {item('spotlight', 'Spotlight', <IconZap />)}
         {item('settings', 'Settings', <IconSettings />)}
         {isAdmin && (
           <>

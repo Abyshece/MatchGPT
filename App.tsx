@@ -8,6 +8,7 @@ import CookieBanner from './components/CookieBanner';
 import { BACK, isNativeApp, setNativeTheme, useBackHandler } from './lib/nativeApp';
 import { isAppPreview } from './lib/appPreview';
 import { startStoreSync, stopStoreSync } from './lib/storePurchases';
+import { syncPacks } from './lib/boosts';
 import { onNotificationWhileOpen, startNativePush, stopNativePush } from './lib/nativePush';
 import { setErrorScreen } from './lib/errorReports';
 import { missingRequired } from './lib/profileRewards';
@@ -117,6 +118,8 @@ const AppRouter: React.FC<{
     const sync = () => {
       if (document.visibilityState !== 'visible') return;
       startStoreSync(userId).then((synced) => { if (synced) refreshProfile(); });
+      // Spotlight and Super Interest packs bought but not added yet
+      void syncPacks(userId);
     };
     sync();
     document.addEventListener('visibilitychange', sync);

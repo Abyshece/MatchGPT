@@ -116,8 +116,8 @@ const WebPushSetup: React.FC<{ forAdmins: boolean }> = ({ forAdmins }) => {
           {forAdmins
             ? 'A notification for each new report and verification request.'
             : subscribed
-              ? 'You\'ll get pushes for new matches, super-likes, and messages.'
-              : 'Get notified about new matches, super-likes, and messages.'}
+              ? 'You\'ll get pushes for new matches, Super Interests, and messages.'
+              : 'Get notified about new matches, Super Interests, and messages.'}
         </p>
       </div>
       <button
@@ -216,8 +216,8 @@ const PhonePushSetup: React.FC = () => {
         </h4>
         <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
           {on
-            ? "You'll be notified about new matches, super-likes and messages."
-            : 'Get notified about new matches, super-likes and messages.'}
+            ? "You'll be notified about new matches, Super Interests and messages."
+            : 'Get notified about new matches, Super Interests and messages.'}
         </p>
       </div>
       <span

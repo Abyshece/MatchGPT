@@ -262,6 +262,7 @@ export interface MatchCandidate {
   isLiked?: boolean;
   joinedDate?: string;
   hiddenFields?: string[];
+  spotlight?: boolean;          // in Spotlight near the searcher (lib/boosts.ts): shown first, marked
 
   // Detailed profile fields used by ProfileModal — same shape as UserProfile
   jobTitle?: string;

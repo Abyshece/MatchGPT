@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { EXPECTED, checkSubscriptions, indiaPrices } from './store-check.mjs';
+import { EXPECTED, PACKS, checkPacks, checkSubscriptions, indiaPrices } from './store-check.mjs';
 
 // Answers by path, like App Store Connect for one app
 // (inGroup: each subscription's group, by index; all in the first by default.
@@ -200,4 +200,25 @@ test('a key without access to subscriptions: says which role it needs', async ()
   const { ready, lines } = await checkSubscriptions({ bundleId: 'com.shaadi24.app', call: standIn({ subscriptions: [], groupsStatus: 403 }) });
   assert.equal(ready, false);
   assert.match(lines[0], /App Manager or Admin role/);
+});
+
+test('packs: the three Consumables, ready or what each still needs', async () => {
+  const call = (iaps) => async (method, path) => {
+    if (path.startsWith('/v1/apps?')) return { data: [{ id: 'app1', type: 'apps' }] };
+    if (path.startsWith('/v1/apps/app1/inAppPurchasesV2')) return { data: iaps.map((a, i) => ({ id: `i${i}`, type: 'inAppPurchases', attributes: a })) };
+    throw new Error(`unexpected ${path}`);
+  };
+  const all = PACKS.map((p) => ({ productId: p.productId, name: p.productId, inAppPurchaseType: 'CONSUMABLE', state: 'READY_TO_SUBMIT' }));
+  const ok = await checkPacks({ call: call(all), bundleId: 'com.shaadi24.app' });
+  assert.equal(ok.ready, true);
+  assert.match(ok.lines.at(-1), /ready for the app/);
+
+  const some = await checkPacks({ call: call([
+    { ...all[0], state: 'MISSING_METADATA' },
+    { ...all[1], inAppPurchaseType: 'NON_CONSUMABLE' },
+  ]), bundleId: 'com.shaadi24.app' });
+  assert.equal(some.ready, false);
+  assert.match(some.lines[0], /✗ shaadi24_spotlight_24h .*missing metadata/);
+  assert.match(some.lines[1], /must be a Consumable/);
+  assert.match(some.lines[2], /✗ shaadi24_super_interest_5: not in App Store Connect .*₹199/);
 });

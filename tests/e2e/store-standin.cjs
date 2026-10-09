@@ -28,6 +28,14 @@
 //   POST /__google/signin {ok}            ok false: the Play service account's sign-in is
 //                                         refused, and the tokens it was given stop working
 //   GET  /__google/purchase/<token>       what Google would answer
+//   Spotlight and Super Interest packs (one-time products, consumed once added):
+//   POST /__google/buyitem {userId, product, pending}  a pack bought in the app
+//                                         (pending: the payment hasn't gone through) → {purchaseToken, orderId}
+//   POST /__google/payitem/<token>        a pending payment went through (ONE_TIME_PRODUCT_PURCHASED)
+//   POST /__google/refunditem/<token>     refunded (voided purchase, productType 2)
+//   GET  /__google/item/<token>           what Google would answer, and whether it was consumed
+//   POST /__apple/buyitem {userId, product}  a consumable bought in the app → {jws, transactionId}
+//   POST /__apple/refunditem/<id>         refunded (REFUND with the consumable's transaction)
 //   POST /__apple/purchase {userId, product, trial, environment}  a purchase in the app
 //                                         → {jws, transactionId, originalTransactionId}
 //   POST /__apple/renew/<orig>            the next period is charged (DID_RENEW) → {jws, transactionId}
@@ -93,6 +101,9 @@ const KEYS_FILE = process.env.KEYS_FILE || path.join(process.cwd(), 'store-stand
 const ENV_OUT = process.env.ENV_OUT || path.join(process.cwd(), 'store-standin.env');
 
 const DAY = 86_400_000;
+// Spotlight and Super Interest packs: Google Play product → price (paise); App Store ids add a prefix
+const PACKS = { spotlight_24h: 14900, super_interest_1: 4900, super_interest_5: 19900 };
+const applePack = (product) => PACKS[String(product).replace(/^shaadi24_/, '')];
 const PRICES = { weekly: 49900, monthly: 99900, quarterly: 199900, halfyearly: 299900, yearly: 999900 };  // paise
 const APPLE_PRODUCTS = Object.fromEntries(Object.keys(PRICES).map((plan) => [`shaadi24_plus_${plan}`, plan]));
 
@@ -179,6 +190,8 @@ async function loadKeys() {
 
 const google = new Map();   // purchase token → purchase
 const apple = new Map();    // original transaction id → subscription
+const items = new Map();    // Google one-time purchase token → pack purchase
+const appleItems = new Map();  // App Store transaction id → consumable purchase
 const calls = [];
 const tokens = new Map();   // access tokens handed out → their scope
 let playSignin = true;      // false: the Play account's sign-in is refused
@@ -295,6 +308,28 @@ async function googleHook(action, token, body, res) {
     const { token: t, g } = newGooglePurchase(body);
     return send(res, 200, { purchaseToken: t, orderId: g.orders[0] ?? null });
   }
+  if (action === 'buyitem') {
+    const token = `${crypto.randomBytes(20).toString('base64url')}.AO-J1O${crypto.randomBytes(30).toString('base64url')}`;
+    const it = { productId: body.product || 'super_interest_1', userId: body.userId, test: body.test !== false,
+      state: body.pending ? 2 : 0, consumed: false, orderId: body.pending ? null : newOrderId(), time: Date.now() };
+    if (!PACKS[it.productId]) return send(res, 400, { error: 'not a pack' });
+    items.set(token, it);
+    return send(res, 200, { purchaseToken: token, orderId: it.orderId });
+  }
+  if (action === 'item' || action === 'payitem' || action === 'refunditem') {
+    const it = items.get(token);
+    if (!it) return send(res, 404, { error: 'no such pack purchase' });
+    if (action === 'item') return send(res, 200, it);
+    if (action === 'payitem') {
+      it.state = 0;
+      it.orderId = it.orderId ?? newOrderId();
+      const r = await rtdn({ oneTimeProductNotification: { version: '1.0', notificationType: 1, purchaseToken: token, sku: it.productId } });
+      return send(res, 200, { notified: r, orderId: it.orderId });
+    }
+    it.state = 1;
+    const r = await rtdn({ voidedPurchaseNotification: { purchaseToken: token, orderId: it.orderId, productType: 2, refundType: 1 } });
+    return send(res, 200, { notified: r });
+  }
   if (action === 'signin') {
     playSignin = body.ok !== false;
     if (!playSignin) {
@@ -364,7 +399,37 @@ async function googleHook(action, token, body, res) {
   return send(res, 200, { notified: r, purchase: googleResource(g) });
 }
 
+// purchases.products.get / :consume / :acknowledge, for a pack
+function googleItemApi(method, url, res) {
+  const m = url.pathname.match(/\/purchases\/products\/([^/]+)\/tokens\/([^/:]+)(?::(\w+))?$/);
+  if (!m) return false;
+  const [, productId, rawToken, verb] = m;
+  const it = items.get(decodeURIComponent(rawToken));
+  if (!it || it.productId !== decodeURIComponent(productId)) {
+    send(res, 400, { error: { code: 400, message: 'The purchase token is no longer valid.', status: 'INVALID_ARGUMENT' } });
+    return true;
+  }
+  if (method === 'GET' && !verb) {
+    send(res, 200, {
+      kind: 'androidpublisher#productPurchase', purchaseTimeMillis: String(it.time), purchaseState: it.state,
+      consumptionState: it.consumed ? 1 : 0, orderId: it.orderId, acknowledgementState: it.consumed ? 1 : 0,
+      ...(it.test ? { purchaseType: 0 } : {}), obfuscatedExternalAccountId: it.userId, regionCode: 'IN', quantity: 1,
+    });
+  } else if (method === 'POST' && verb === 'consume') {
+    if (it.state !== 0) send(res, 400, { error: { code: 400, message: 'The purchase is not in a valid state to perform the desired operation.' } });
+    else { it.consumed = true; send(res, 200, undefined); }
+  } else {
+    send(res, 404, { error: { code: 404, message: 'Not found' } });
+  }
+  return true;
+}
+
 function googleApi(method, url, auth, res) {
+  if (url.pathname.includes('/purchases/products/')) {
+    calls.push({ method, path: url.pathname, ok: true });
+    if (!auth.startsWith('Bearer ') || tokens.get(auth.slice(7)) !== 'https://www.googleapis.com/auth/androidpublisher') return send(res, 401, { error: { code: 401, message: 'Request had invalid authentication credentials.' } });
+    if (googleItemApi(method, url, res)) return;
+  }
   const m = url.pathname.match(/^\/androidpublisher\/v3\/applications\/([^/]+)\/purchases\/(subscriptionsv2|subscriptions)\/(?:([^/]+)\/)?tokens\/([^/:]+)(?::(\w+))?$/);
   calls.push({ method, path: url.pathname, ok: !!m });
   if (!auth.startsWith('Bearer ') || tokens.get(auth.slice(7)) !== 'https://www.googleapis.com/auth/androidpublisher') return send(res, 401, { error: { code: 401, message: 'Request had invalid authentication credentials.' } });
@@ -475,6 +540,32 @@ async function appleHook(action, orig, url, body, res) {
     };
     apple.set(id, a);
     return send(res, 200, { jws: await sign(appleTx(a, a.txs[0])), transactionId: id, originalTransactionId: id });
+  }
+  if (action === 'buyitem' || action === 'refunditem') {
+    let it;
+    if (action === 'buyitem') {
+      if (!applePack(body.product)) return send(res, 400, { error: 'not a pack' });
+      const id = newTxId();
+      it = { id, product: body.product, userId: body.userId, purchaseDate: Date.now(), environment: body.environment || 'Sandbox' };
+      appleItems.set(id, it);
+    } else {
+      it = appleItems.get(orig);
+      if (!it) return send(res, 404, { error: 'no such pack purchase' });
+      it.revocationDate = Date.now();
+    }
+    const tx = {
+      transactionId: it.id, originalTransactionId: it.id, bundleId: BUNDLE, productId: it.product, purchaseDate: it.purchaseDate,
+      originalPurchaseDate: it.purchaseDate, quantity: 1, type: 'Consumable', inAppOwnershipType: 'PURCHASED',
+      ...(it.userId ? { appAccountToken: it.userId } : {}), signedDate: Date.now(), environment: it.environment,
+      transactionReason: 'PURCHASE', storefront: 'IND', storefrontId: '143467', price: (applePack(it.product) / 100) * 1000, currency: 'INR',
+      ...(it.revocationDate ? { revocationDate: it.revocationDate, revocationReason: 0 } : {}),
+    };
+    if (action === 'buyitem') return send(res, 200, { jws: await sign(tx), transactionId: it.id });
+    const payload = {
+      notificationType: 'REFUND', notificationUUID: crypto.randomUUID(), version: '2.0', signedDate: Date.now(),
+      data: { appAppleId: 6700000001, bundleId: BUNDLE, bundleVersion: '1', environment: it.environment, signedTransactionInfo: await sign(tx), status: 1 },
+    };
+    return send(res, 200, { notified: await post(`${NOTIFY_URL}?provider=apple`, { signedPayload: await sign(payload) }) });
   }
   if (action === 'sign') return send(res, 200, { jws: await sign(body.payload, body.chain === 'other' ? 'other' : 'apple') });
   if (action === 'notify') {

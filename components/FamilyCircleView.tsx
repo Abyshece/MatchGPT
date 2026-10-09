@@ -111,7 +111,7 @@ const FamilyCircleView: React.FC = () => {
               className="mt-1 w-full rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-base" />
           </label>
           <button type="button" onClick={invite} disabled={busy || !name.trim() || (members?.length ?? 0) >= 5}
-            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#25D366] text-white font-semibold disabled:opacity-50">
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#25D366] text-black font-semibold disabled:opacity-50">
             {busy ? 'Making the link…' : 'Invite on WhatsApp'}
           </button>
           {!hasPro && <p className="text-xs text-gray-500 dark:text-gray-400">Family Circle comes with Shaadi24+.</p>}

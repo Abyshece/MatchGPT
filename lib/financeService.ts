@@ -235,3 +235,35 @@ export function chargesCsv(charges: Charge[]): string {
   for (const c of charges) lines.push(CSV_COLUMNS.map(([, get]) => cell(get(c))).join(','));
   return `\uFEFF${lines.join('\r\n')}\r\n`;
 }
+
+// ---- Spotlight and Super Interest packs (lib/boosts.ts) -------------------------------------
+
+export interface PackSales {
+  id: string;           // spotlight_24h, super_interest_1, super_interest_5
+  kind: 'spotlight' | 'super_interest';
+  quantity: number;
+  price: number;        // our list price, paise
+  active: boolean;
+  sold: number;
+  refunded: number;
+  gross: number;        // INR paise
+  net: number;
+}
+
+export interface BoostStats {
+  mode: FinanceMode;
+  days: number;
+  products: PackSales[];
+  buyers: number;
+  repeat_buyers: number;
+  spotlights: { on_now: number; started: number; avg_views: number; avg_likes: number };
+  super_interests: { sent: number; with_plan: number; with_credit: number; with_note: number; matched: number };
+  likes_matched_pct: number | null;   // ordinary likes that became matches, to compare
+  unused: { spotlight: number; super_interest: number };
+}
+
+export async function fetchBoostStats(days: number, mode: FinanceMode): Promise<{ stats: BoostStats | null; error: string | null }> {
+  const { data, error } = await supabase.rpc('admin_boost_stats', { p_days: days, p_mode: mode });
+  if (error) return { stats: null, error: error.message };
+  return { stats: data as unknown as BoostStats, error: null };
+}

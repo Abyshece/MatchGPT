@@ -68,8 +68,8 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => (
         <Item what="Device and technical data: the internet (IP) addresses and devices you sign in from and use to set up your profile, the app's version, and a notification token if you turn notifications on"
           why="To keep accounts secure, prevent fraud and fake profiles, send notifications you asked for, and keep the records Indian law requires (section 6)." />
         <Item what="Error reports" why="When something goes wrong in the app, we get what went wrong, on which screen, and the kind of device, without your name, email or account; email addresses and phone numbers in it are removed first." />
-        <Item what="Purchases of Shaadi24+: the store's order number, the plan, the price, dates and refunds (never your card, UPI or bank details)"
-          why="To give you Shaadi24+ and keep the accounts that tax law requires." />
+        <Item what="Purchases of Shaadi24+, Spotlight and Super Interests: the store's order number, the plan or pack, the price, dates and refunds (never your card, UPI or bank details)"
+          why="To give you what you bought and keep the accounts that tax law requires. While your Spotlight is on, we count how many searches it was shown in, to tell you how it went." />
         <Item what="Complaints and requests you send us, and the consents you give (which documents, when)"
           why="To answer them, and to show what you agreed to." />
       </ul>
@@ -91,7 +91,9 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => (
       <List>
         <li><strong>Other members</strong> see your profile and photos, except answers you hide and your date of birth
           (they see your age), and can filter searches by the answers you show. Whether you're online shows only if
-          Active Status is on. Messages are seen by the person you send them to.</li>
+          Active Status is on. Messages are seen by the person you send them to. When you send a Super Interest, that
+          person sees your profile and your note even without Shaadi24+. While your Spotlight is on, you're shown first,
+          marked Spotlight, to members searching near you.</li>
         <li><strong>People you share a link with.</strong> If you share your biodata, anyone with its link or QR code
           can open a page that shows what other members see of your profile (never what you hid, your email or a phone
           number), until you turn the link off in My Biodata. If you invite family to Family Circle, each person you

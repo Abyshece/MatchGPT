@@ -229,7 +229,8 @@ try {
       await page.getByRole('button', { name: new RegExp(`^${label}`) }).filter({ visible: true }).first().click();
       await page.waitForTimeout(800);
     };
-    for (const [label, name] of [['Likes You', 'likes you'], ['Matches', 'matches'], ['Standouts', 'standouts'], ['My Profile', 'my profile'], ['Settings', 'settings']]) {
+    for (const [label, name] of [['Likes You', 'likes you'], ['Matches', 'matches'], ['Standouts', 'standouts'], ['My Biodata', 'my biodata'],
+      ['Family Circle', 'family circle'], ['Spotlight', 'spotlight'], ['My Profile', 'my profile'], ['Settings', 'settings']]) {
       await openMenu(label);
       await audit(page, `${name} (${scheme})`);
       if (label !== 'My Profile') continue;

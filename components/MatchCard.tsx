@@ -133,8 +133,14 @@ const MatchCard: React.FC<MatchCardProps> = ({
       {/* Body */}
       <div className="p-4 flex-1 flex flex-col">
         {/* Badges */}
-        {(candidate.isVerified || candidate.isPremium) && (
+        {(candidate.isVerified || candidate.isPremium || candidate.spotlight) && (
           <div className="flex flex-wrap gap-2 mb-2">
+            {candidate.spotlight && (
+              <div data-testid="spotlight-badge" title="In Spotlight near you"
+                className="inline-flex items-center gap-1 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border border-amber-200 dark:border-amber-800">
+                <span aria-hidden="true">✨</span> Spotlight
+              </div>
+            )}
             {candidate.isVerified && (
               <div className="inline-flex items-center gap-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border border-green-200 dark:border-green-800">
                 <IconCheck className="w-3 h-3" /> Verified
@@ -178,7 +184,6 @@ const MatchCard: React.FC<MatchCardProps> = ({
                 candidate={candidate}
                 size="md"
                 variant="wide"
-                showSuperLike={false}
                 onMatched={onMatched}
                 onLimitReached={onLimitReached}
                 onLiked={onLiked && (() => leave('like', onLiked))}

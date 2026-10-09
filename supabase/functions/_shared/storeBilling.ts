@@ -15,10 +15,10 @@
 // ============================================================================
 
 import {
-  acknowledgeSubscription, cancelSubscription, getSubscription, googlePlayConfig, googleState,
-  type GooglePlayConfig, type StoreState,
+  acknowledgeSubscription, cancelSubscription, consumeProductPurchase, getProductPurchase, getSubscription, googlePlayConfig,
+  googleState, type GooglePlayConfig, type StoreState,
 } from './googlePlay.ts';
-import { appleBundleId, appleState, type AppleRenewalInfo, type AppleTransaction } from './appleStore.ts';
+import { appleBundleId, applePriceToMinor, appleState, type AppleRenewalInfo, type AppleTransaction } from './appleStore.ts';
 import { errorText, rest, rpc } from './serviceRest.ts';
 
 export type StoreProvider = 'google_play' | 'app_store';
@@ -260,6 +260,105 @@ export async function applyAppleTransaction(
   await syncPro(row.user_id);
   return row.user_id;
 }
+
+// ---- Packs: Spotlight and Super Interests ---------------------------------------------------
+// Consumable one-time purchases. grant_boost_purchase (the database) saves the
+// charge once per store order and adds the credits; a refund takes them back
+// (a trigger on payments).
+
+interface PackRow {
+  id: string;
+  kind: 'spotlight' | 'super_interest';
+  quantity: number;
+  amount: number;
+  currency: string;
+}
+
+export interface PackGrant {
+  granted: boolean;   // false: this purchase was added before
+  kind: PackRow['kind'];
+  balance: number;
+}
+
+async function packFor(provider: StoreProvider, storeProductId: string | null | undefined): Promise<PackRow | null> {
+  if (!storeProductId) return null;
+  const column = provider === 'google_play' ? 'google_product_id' : 'apple_product_id';
+  const [p] = await rest<PackRow[]>(`boost_products?${column}=eq.${enc(storeProductId)}&select=id,kind,quantity,amount,currency`);
+  return p ?? null;
+}
+
+async function grantPack(
+  owner: string, pack: PackRow, provider: StoreProvider, orderId: string, price: { amount: number; currency: string },
+  mode: 'test' | 'live', paidAt: Date,
+): Promise<PackGrant> {
+  try {
+    return await rpc<PackGrant>('grant_boost_purchase', {
+      p_user: owner, p_product: pack.id, p_provider: provider, p_order_id: orderId,
+      p_amount: price.amount, p_currency: price.currency,
+      p_fee: Math.round((price.amount * storeFeePercent(provider)) / 100),
+      p_mode: mode, p_paid_at: paidAt.toISOString(),
+    });
+  } catch (e) {
+    if (/OTHER_ACCOUNT|another Shaadi24 account/.test(errorText(e))) {
+      throw new StorePurchaseError('This purchase belongs to another Shaadi24 account.', 'OTHER_ACCOUNT');
+    }
+    throw e;
+  }
+}
+
+/**
+ * A pack bought on Google Play: checks it with Google, adds the credits to the
+ * account the app passed with it (once), then consumes it so it can be bought
+ * again. `caller`: the signed-in user reporting it (null for a store
+ * notification). Returns null when there's nobody to give it to.
+ */
+export async function applyGooglePack(
+  cfg: GooglePlayConfig, productId: string, purchaseToken: string, caller: string | null,
+): Promise<PackGrant | null> {
+  const pack = await packFor('google_play', productId);
+  if (!pack) throw new StorePurchaseError(`Not a Shaadi24 pack: ${productId}`, 'UNKNOWN_PRODUCT');
+  const p = await getProductPurchase(cfg, productId, purchaseToken);
+  if (p.purchaseState === 2) {
+    throw new StorePurchaseError('Google Play is still waiting for the payment. Your pack is added once it goes through.', 'PENDING');
+  }
+  if (p.purchaseState !== 0) throw new StorePurchaseError('This purchase was cancelled.', 'CANCELLED');
+  const owner = await ownerOf(null, p.obfuscatedExternalAccountId ?? null, caller);
+  if (!owner) return null;
+  // Google doesn't say a one-time purchase's price: the pack's, as set in Play Console
+  const grant = await grantPack(owner, pack, 'google_play', p.orderId || purchaseToken, { amount: pack.amount, currency: pack.currency },
+    p.purchaseType === 0 ? 'test' : 'live', new Date(Number(p.purchaseTimeMillis) || Date.now()));
+  if (p.consumptionState !== 1) {
+    try {
+      await consumeProductPurchase(cfg, productId, purchaseToken);
+    } catch (e) {
+      // The app consumes it too
+      console.warn('[store] consuming failed:', errorText(e));
+    }
+  }
+  return grant;
+}
+
+/**
+ * A pack bought on the App Store (a Consumable transaction, already verified):
+ * adds the credits once, or for a refunded one takes them back. Returns null
+ * for a refund or when there's nobody to give it to.
+ */
+export async function applyApplePack(tx: AppleTransaction, caller: string | null): Promise<PackGrant | null> {
+  if (tx.bundleId !== appleBundleId()) throw new StorePurchaseError(`Another app's purchase: ${tx.bundleId}`, 'WRONG_APP');
+  const pack = await packFor('app_store', tx.productId);
+  if (!pack) throw new StorePurchaseError(`Not a Shaadi24 pack: ${tx.productId}`, 'UNKNOWN_PRODUCT');
+  if (tx.revocationDate) {
+    await refundCharge('app_store', tx.transactionId, new Date(tx.revocationDate));
+    return null;
+  }
+  const owner = await ownerOf(null, tx.appAccountToken ?? null, caller);
+  if (!owner) return null;
+  const price = applePriceToMinor(tx.price, tx.currency) ?? { amount: pack.amount, currency: pack.currency };
+  return await grantPack(owner, pack, 'app_store', tx.transactionId, price, tx.environment === 'Production' ? 'live' : 'test',
+    new Date(tx.purchaseDate ?? Date.now()));
+}
+
+export const isApplePack = (tx: AppleTransaction) => tx.type === 'Consumable';
 
 // ---- Deleting an account ------------------------------------------------------------------
 

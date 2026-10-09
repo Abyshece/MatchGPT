@@ -40,8 +40,8 @@ in the apps, through Google Play and the App Store.
 
   | Function | What it does |
   |---|---|
-  | `search` | Search and matching: typed searches (understood by Google Gemini, or by rules without its key), filters, scores, the daily limit |
-  | `store-billing`, `store-notifications` | Shaadi24+ in the apps: purchases checked with Google Play and the App Store, and the stores' notifications |
+  | `search` | Search and matching: typed searches in English or any Indian language (understood by Google Gemini, or by rules without its key), filters, scores, Spotlight first, the limits |
+  | `store-billing`, `store-notifications` | Shaadi24+, Spotlight and Super Interests in the apps: purchases checked with Google Play and the App Store, and the stores' notifications (renewals, payments that go through later, refunds) |
   | `send-push` | Notifications: phones through Firebase Cloud Messaging, and admin alerts in browsers through Web Push. A cron job runs it every minute |
   | `delete-account` | Deletes an account and everything kept about it, stopping its Google Play renewal first; keeps only the registration record Indian law asks for, for a year |
   | `apple-sign-in` | Keeps the Sign in with Apple token, so deleting the account also ends it at Apple |
@@ -68,6 +68,16 @@ in the apps, through Google Play and the App Store.
   features while it's on; only the daily limits (3 to 9 AI searches, 15 likes) stay for free accounts. The
   server (`has_pro()` in the database) and the apps (`useAuth().hasPro`) follow it at once, with no
   new app release.
+- **Growing by word of mouth, and earning without a plan.**
+  - *Trending searches*: the pills under Find Match's box are what members near you searched
+    (`trending_searches()`, `lib/trendingSearches.ts`).
+  - *Search in your own language*: Hindi, Hinglish, Tamil and the rest (`supabase/functions/search/ai.ts`
+    and, without the AI, `indic.ts`).
+  - *My Biodata*: a marriage biodata made from the profile in 6 languages, shared on WhatsApp, whose QR
+    code opens the member's page on the website, `/b/<link>` (`lib/biodata.ts`).
+  - *Family Circle*: family see the shortlist on a private page, `/family/<link>`, and react
+    (`lib/familyCircle.ts`).
+  - *Spotlight and Super Interest*: bought one at a time in the apps (`lib/boosts.ts`).
 - **The admin panel** (`components/admin/`, at `/admin` on the website and under Admin in the apps).
   A sidebar like Notion's: Overview; People (Customers, with each member's timeline; Verification;
   Profiles); Safety (Moderation of new photos and text before others see them; Reports; Scam alerts;
