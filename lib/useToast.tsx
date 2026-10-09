@@ -11,6 +11,7 @@
 // ============================================================================
 
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { IconCheck, IconX } from '../constants';
 
 export type ToastVariant = 'success' | 'error' | 'info';
 
@@ -77,8 +78,8 @@ const ToastViewport: React.FC<{ toasts: Toast[] }> = ({ toasts }) => (
             : 'bg-gray-50 dark:bg-zinc-800 text-gray-800 dark:text-gray-100 border-gray-200 dark:border-zinc-700'
         }`}
       >
-        {t.variant === 'success' && <span aria-hidden="true" className="flex-none">✓</span>}
-        {t.variant === 'error' && <span aria-hidden="true" className="flex-none">✕</span>}
+        {t.variant === 'success' && <span aria-hidden="true" className="flex-none mt-0.5 [&>svg]:w-4 [&>svg]:h-4"><IconCheck /></span>}
+        {t.variant === 'error' && <span aria-hidden="true" className="flex-none mt-0.5 [&>svg]:w-4 [&>svg]:h-4"><IconX /></span>}
         <span className="min-w-0">{t.message}</span>
       </div>
     ))}

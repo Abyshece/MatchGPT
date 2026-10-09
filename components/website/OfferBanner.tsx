@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { fetchCurrentOffer, redeemLinks, type Offer } from '../../lib/adminGrowth';
+import { IconGift, IconCheck } from '../../constants';
 
 // ============================================================================
 // The offer running now, as a banner across the top of the website's home
@@ -21,7 +22,7 @@ export const OfferBannerView: React.FC<{ offer: BannerOffer }> = ({ offer }) => 
   return (
     <div className="w-full bg-gray-900 text-white dark:bg-white dark:text-gray-900" data-testid="offer-banner">
       <div className="max-w-5xl mx-auto px-4 py-2.5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-sm text-center">
-        <span aria-hidden="true">🎁</span>
+        <span aria-hidden="true" className="[&>svg]:w-4 [&>svg]:h-4"><IconGift /></span>
         <span className="font-medium">{offer.banner_text}</span>
         <span className="inline-flex items-center gap-2">
           <span className="opacity-80">Use code</span>
@@ -31,7 +32,7 @@ export const OfferBannerView: React.FC<{ offer: BannerOffer }> = ({ offer }) => 
             title="Copy the code"
             className="font-mono font-semibold tracking-wider px-2 py-0.5 rounded border border-white/40 dark:border-gray-900/30 hover:bg-white/10 dark:hover:bg-black/5"
           >
-            {copied ? 'Copied ✓' : offer.code}
+            {copied ? <span className="inline-flex items-center gap-1"><span aria-hidden="true" className="[&>svg]:w-3.5 [&>svg]:h-3.5"><IconCheck /></span>Copied</span> : offer.code}
           </button>
         </span>
         {(links.appStore || links.googlePlay) && (

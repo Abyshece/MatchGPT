@@ -1,5 +1,6 @@
 import React from 'react';
 import { LEGAL } from '../../lib/legalInfo';
+import { BrandMark } from '../../constants';
 
 // ============================================================================
 // The website's header and footer (the home page and the blog)
@@ -11,7 +12,7 @@ const footerLink = 'hover:text-gray-900 dark:hover:text-white underline-offset-2
 export const SiteHeader: React.FC = () => (
   <header className="flex items-center justify-between px-5 sm:px-8 py-4 border-b border-gray-100 dark:border-zinc-800">
     <a href="/" className="flex items-center gap-2.5 select-none">
-      <span className="text-2xl" aria-hidden="true">💍</span>
+      <BrandMark className="w-7 h-7" />
       <span className="text-lg font-bold tracking-tight">Shaadi24</span>
     </a>
     <nav aria-label="Website" className="flex items-center gap-1">

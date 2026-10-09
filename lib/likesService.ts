@@ -238,7 +238,7 @@ export function likeReceivedToCandidate(like: LikeReceived): MatchCandidate {
     age: like.liker.age ?? 0,
     location: like.liker.location,
     compatibilityScore: 0, // unknown from this view; ProfileModal won't show report
-    tags: like.isSuperLike ? ['Super Liked you ⭐'] : ['Liked you ❤️'],
+    tags: like.isSuperLike ? ['Super Interest'] : ['Liked you'],
     bio: like.liker.description,
     imageUrls: like.liker.photos,
     isVerified: like.liker.isVerified,

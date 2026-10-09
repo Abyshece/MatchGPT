@@ -5,6 +5,7 @@ import { banUser, correctDateOfBirth, unbanUser, verifyUser } from '../../lib/ad
 import { BanModal, DateOfBirthModal } from './MemberModals';
 import MemberTimeline from './MemberTimeline';
 import { Pill, ago, dash, date, planPill, profileCell, verificationPill } from './adminUi';
+import { IconX } from '../../constants';
 
 // ============================================================================
 // One member, opened from Customers, Moderation or Scam alerts: everything
@@ -71,7 +72,7 @@ export const MemberPanel: React.FC<{ member: CustomerRow; onClose: () => void; o
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white truncate">{who}</h2>
               <p className="text-xs text-gray-500 dark:text-zinc-400 truncate">{m.email}</p>
             </div>
-            <button type="button" onClick={onClose} aria-label="Close" className="w-8 h-8 rounded-md text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800">✕</button>
+            <button type="button" onClick={onClose} aria-label="Close" className="w-8 h-8 rounded-md inline-flex items-center justify-center text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800 [&>svg]:w-4 [&>svg]:h-4"><IconX /></button>
           </div>
           <div className="flex flex-wrap gap-1.5 mt-3">
             {verificationPill(m)} {planPill(m)}

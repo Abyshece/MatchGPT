@@ -10,7 +10,7 @@ import {
   ChipsField, DateOfBirthField, PILL_LIMIT, PillPicker, SheetPicker, ageFromDateOfBirth, formatDateOfBirth,
 } from './ProfileInputs';
 import {
-  IconCheck, IconUpload, IconEdit, IconX, IconZap, IconShield, IconClock,
+  IconCheck, IconUpload, IconEdit, IconX, IconZap, IconShield, IconClock, IconSparkles, IconMail, IconLightbulb,
 } from '../constants';
 import { profileCompletion } from '../lib/profileCompletion';
 import { draftAboutFamily, draftAboutMe, hasFamilyDetails } from '../lib/aboutDrafts';
@@ -151,7 +151,7 @@ const ProfileView: React.FC<{ initialSection?: SectionId }> = ({ initialSection 
   const rewardBadge = (id: SectionId): { badge?: string; badgeTone?: 'done' | 'todo' } => {
     const s = sections?.sections.find((x) => x.id === id);
     if (!s) return {};
-    if (s.complete) return { badge: '✓ +1 search a day', badgeTone: 'done' };
+    if (s.complete) return { badge: '+1 search a day', badgeTone: 'done' };
     const left = s.needed - s.answered;
     return { badge: `${left} more for +1 search a day`, badgeTone: 'todo' };
   };
@@ -535,7 +535,7 @@ const ProfileView: React.FC<{ initialSection?: SectionId }> = ({ initialSection 
                         onClick={() => { setSummaryEditValue(draftAboutMe(profile)); setIsEditingSummary(true); }}
                         className="text-xs font-bold bg-black dark:bg-white text-white dark:text-black px-3 py-1.5 rounded-full hover:opacity-90 transition-opacity"
                       >
-                        ✨ Write a draft for me
+                        <span className="inline-flex items-center gap-1"><span aria-hidden="true" className="[&>svg]:w-3.5 [&>svg]:h-3.5"><IconSparkles /></span>Write a draft for me</span>
                       </button>
                       <button
                         onClick={() => { setSummaryEditValue(''); setIsEditingSummary(true); }}
@@ -681,7 +681,7 @@ const ProfileView: React.FC<{ initialSection?: SectionId }> = ({ initialSection 
                   )}
                 </div>
                 <div className="flex items-center justify-between text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-zinc-800 p-2 rounded">
-                  <span className="flex items-center gap-2">📧 Email</span>
+                  <span className="flex items-center gap-2"><span aria-hidden="true" className="[&>svg]:w-4 [&>svg]:h-4"><IconMail /></span>Email</span>
                   <span className="text-green-600 dark:text-green-400 font-bold text-xs flex items-center gap-1"><IconCheck /> Verified</span>
                 </div>
               </div>
@@ -737,7 +737,7 @@ const ProfileView: React.FC<{ initialSection?: SectionId }> = ({ initialSection 
             </p>
 
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/30 rounded-lg p-4 text-xs text-blue-800 dark:text-blue-200">
-              <p className="font-bold mb-1">💡 Privacy tip</p>
+              <p className="font-bold mb-1 flex items-center gap-1.5"><span aria-hidden="true" className="flex-none [&>svg]:w-4 [&>svg]:h-4"><IconLightbulb /></span>Privacy tip</p>
               <p>Click the eye icon next to any field to hide it from your profile. Hidden answers still help pick your matches, but nobody sees them or can search by them.</p>
             </div>
           </div>
@@ -771,9 +771,9 @@ const DraftButton: React.FC<{ onClick: () => void; replacing: boolean }> = ({ on
   <button
     type="button"
     onClick={onClick}
-    className="self-start text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+    className="self-start inline-flex items-center gap-1 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
   >
-    ✨ {replacing ? 'Start again from a draft' : 'Write a draft for me'}
+    <span aria-hidden="true" className="[&>svg]:w-3.5 [&>svg]:h-3.5"><IconSparkles /></span>{replacing ? 'Start again from a draft' : 'Write a draft for me'}
   </button>
 );
 

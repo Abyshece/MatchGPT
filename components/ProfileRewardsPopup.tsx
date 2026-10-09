@@ -1,6 +1,6 @@
 import React, { useEffect, useEffectEvent, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { IconChevronRight, IconX } from '../constants';
+import { IconChevronRight, IconX, IconFileText, IconGift } from '../constants';
 import { useAuth } from '../lib/AuthContext';
 import { needsRulesReminder } from '../lib/consentService';
 import { DAILY_LIMITS } from '../lib/profileService';
@@ -78,7 +78,7 @@ const ProfileRewardsPopup: React.FC<{ onOpenSection: (id: SectionId) => void }> 
           <IconX />
         </button>
 
-        <div className="text-3xl mb-2" aria-hidden="true">{isPro ? '📝' : '🎁'}</div>
+        <div className="mb-3 w-12 h-12 rounded-2xl bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-white flex items-center justify-center [&>svg]:w-6 [&>svg]:h-6" aria-hidden="true">{isPro ? <IconFileText /> : <IconGift />}</div>
         <h2 id="nudge-title" className="pr-8 text-xl font-bold text-gray-900 dark:text-white">
           {isPro ? `Complete ${whose} profile` : 'Unlock more free searches'}
         </h2>

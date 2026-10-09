@@ -142,7 +142,7 @@ const StandoutsView: React.FC<StandoutsViewProps> = ({ onNavigateToMatches }) =>
           </div>
         ) : candidates.length === 0 ? (
           <div className="text-center py-20 bg-gray-50 dark:bg-zinc-900/50 rounded-xl border border-gray-100 dark:border-zinc-800">
-            <div className="text-5xl mb-4">🌟</div>
+            <div className="mb-4 flex justify-center text-gray-300 dark:text-zinc-600 [&>svg]:w-12 [&>svg]:h-12" aria-hidden="true"><IconStar /></div>
             {allLiked ? (
               <>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">You've liked all of today's picks</h3>

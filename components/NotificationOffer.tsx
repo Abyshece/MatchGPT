@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { useToast } from '../lib/useToast';
 import { dismissNativePushOffer, shouldOfferNativePush, turnOnNativePush } from '../lib/nativePush';
+import { IconBell } from '../constants';
 
 // ============================================================================
 // NotificationOffer: in the phone apps, asks once whether to turn on
@@ -49,7 +50,7 @@ const NotificationOffer: React.FC = () => {
       data-testid="notification-offer"
       className="flex-none flex items-center gap-3 px-4 py-3 border-b border-orange-100 dark:border-orange-900/30 bg-orange-50 dark:bg-orange-500/10"
     >
-      <span className="text-xl" aria-hidden="true">🔔</span>
+      <span className="flex-none text-orange-600 dark:text-orange-400 [&>svg]:w-5 [&>svg]:h-5" aria-hidden="true"><IconBell /></span>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-gray-900 dark:text-white">Turn on notifications?</p>
         <p className="text-xs text-gray-600 dark:text-gray-300">Know when someone likes you, matches with you or sends a message.</p>

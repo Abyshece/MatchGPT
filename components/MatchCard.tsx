@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { IconCheck, IconZap, IconHeart, IconX } from '../constants';
+import { IconCheck, IconZap, IconHeart, IconX, IconUser, IconSparkles } from '../constants';
 import LikeButton from './LikeButton';
 import { playExit, type ExitKind } from '../lib/likeExit';
 import type { MatchCandidate } from '../types';
@@ -78,7 +78,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
             className="w-full h-full object-cover select-none"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-4xl text-gray-300 dark:text-zinc-700">👤</div>
+          <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-zinc-700 [&_svg]:w-12 [&_svg]:h-12"><IconUser /></div>
         )}
 
         {/* Carousel arrows (desktop hover only) */}
@@ -138,7 +138,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
             {candidate.spotlight && (
               <div data-testid="spotlight-badge" title="In Spotlight near you"
                 className="inline-flex items-center gap-1 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border border-amber-200 dark:border-amber-800">
-                <span aria-hidden="true">✨</span> Spotlight
+                <span aria-hidden="true" className="[&>svg]:w-3 [&>svg]:h-3"><IconSparkles /></span> Spotlight
               </div>
             )}
             {candidate.isVerified && (

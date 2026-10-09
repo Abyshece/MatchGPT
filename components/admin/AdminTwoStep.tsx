@@ -4,6 +4,7 @@ import {
   removeTwoStep, startTwoStep, twoStepState, verifyTwoStep, type Enrolment, type TwoStepState,
 } from '../../lib/adminTeam';
 import { Spinner } from './BlogAiDialogs';
+import { IconLock } from '../../constants';
 
 // ============================================================================
 // Two-step sign-in for admins (lib/adminTeam.ts): set it up with an
@@ -96,7 +97,7 @@ export const TwoStepGate: React.FC<{ onDone: () => void }> = ({ onDone }) => {
   return (
     <div className="h-full flex items-center justify-center p-6" data-testid="two-step-gate">
       <div className="w-full max-w-md rounded-2xl border border-gray-200 dark:border-zinc-800 p-6">
-        <p className="text-2xl" aria-hidden="true">🔐</p>
+        <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-white flex items-center justify-center [&>svg]:w-5 [&>svg]:h-5" aria-hidden="true"><IconLock /></div>
         <h1 className="mt-2 text-lg font-semibold text-gray-900 dark:text-white">Two-step sign-in</h1>
         {!state ? <div className="mt-4 h-24 rounded-lg bg-gray-50 dark:bg-zinc-800 animate-pulse" /> : state.factorId ? (
           <>

@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { LEGAL } from '../lib/legalInfo';
 import { minimumAge } from '../lib/legalAge';
+import { BrandMark } from '../constants';
 
 // ============================================================================
 // For members younger than the legal age to marry in India (lib/legalAge.ts):
@@ -15,7 +16,7 @@ const UnderAgeScreen: React.FC = () => {
   return (
     <div className="min-h-screen bg-white dark:bg-[#191919] flex items-center justify-center px-6" data-testid="under-age">
       <div className="max-w-md text-center">
-        <div className="text-4xl mb-4" aria-hidden="true">💍</div>
+        <BrandMark className="w-10 h-10 mx-auto mb-4" />
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">Shaadi24 is for {age} and over</h1>
         <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
           {LEGAL.brand} is a matrimony service, so it follows India's legal ages to marry: 21 for men and 18 for women.

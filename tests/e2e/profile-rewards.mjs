@@ -95,7 +95,7 @@ try {
   check(bonus() === '1', 'the database counts the section');
   check(await appears(card.getByTestId('daily-searches').getByText('4', { exact: true })), 'the card says 4');
   check(await appears(family.getByText('+1 search a day')), 'Family: +1 search a day');
-  check(await appears(heading.getByText('✓ +1 search a day')), 'and its heading');
+  check(await appears(heading.getByText('+1 search a day', { exact: true })) && await heading.locator('svg').count() > 0, 'and its heading, with a tick');
   await page.screenshot({ path: `${OUT}2-complete.png` });
 
   log('3. Required answers stay');

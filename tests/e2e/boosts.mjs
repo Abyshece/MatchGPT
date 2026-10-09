@@ -263,7 +263,7 @@ try {
   await sheet.getByRole('textbox').fill('Namaste! We both love trekking. Would love to talk.');
   await page.screenshot({ path: `${OUT}4-super-interest-note.png` });
   await sheet.getByRole('button', { name: 'Send Super Interest' }).click();
-  await page.getByText(`Super Interest sent to ${hisFullName} ⭐`).waitFor({ timeout: 10000 });
+  await page.getByText(`Super Interest sent to ${hisFullName}`).waitFor({ timeout: 10000 });
   check(sql(`select super_source || '|' || note from likes where liker_id = '${me}' and liked_id = '${him}';`) === 'credit|Namaste! We both love trekking. Would love to talk.'
     && credits('super_interest') === 4, 'sent with a bought one (4 left), the note saved');
   check(/sent you a Super Interest/.test(sql(`select title from push_queue where user_id = '${him}' and event_type = 'super_like' order by created_at desc limit 1;`)),

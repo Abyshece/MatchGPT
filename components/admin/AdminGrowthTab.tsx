@@ -188,7 +188,7 @@ const AdminGrowthTab: React.FC = () => {
               sub={Object.entries(family.by_relation).map(([r, n]) => `${n} ${r}`).join(', ') || undefined} />
             <Tile label={`Family who looked in ${days} days`} value={family.visited_in_period} />
             <Tile label="Reactions" value={family.reactions}
-              sub={`👍 ${fmt(family.by_reaction.yes ?? 0)} · 🤔 ${fmt(family.by_reaction.maybe ?? 0)} · 👎 ${fmt(family.by_reaction.no ?? 0)}`} />
+              sub={`Yes ${fmt(family.by_reaction.yes ?? 0)} · Maybe ${fmt(family.by_reaction.maybe ?? 0)} · No ${fmt(family.by_reaction.no ?? 0)}`} />
           </div>
         </section>
       )}

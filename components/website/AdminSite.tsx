@@ -5,6 +5,7 @@ import { useAuth } from '../../lib/AuthContext';
 import { useIsAdmin } from '../../lib/useIsAdmin';
 import type { AdminTab } from '../admin/AdminView';
 import StoreBadges from '../StoreBadges';
+import { BrandMark } from '../../constants';
 
 const Auth = lazyScreen(() => import('../Auth'));
 const AdminView = lazyScreen(() => import('../admin/AdminView'));
@@ -29,7 +30,7 @@ const Spinner: React.FC<{ label: string }> = ({ label }) => (
 const NotAnAdmin: React.FC<{ email: string; onSignOut: () => void }> = ({ email, onSignOut }) => (
   <div className="min-h-screen flex items-center justify-center p-6">
     <div className="max-w-md text-center" data-testid="not-an-admin">
-      <div className="text-4xl" aria-hidden="true">💍</div>
+      <BrandMark className="w-10 h-10 mx-auto" />
       <h1 className="mt-3 text-2xl font-bold tracking-tight">Shaadi24 is used in the app</h1>
       <p className="mt-3 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
         You're signed in as <strong className="text-gray-900 dark:text-white">{email}</strong>. The website's sign-in is
@@ -80,7 +81,7 @@ const AdminShell: React.FC<{ email: string; onSignOut: () => void }> = ({ email,
     <div className="h-screen flex flex-col">
       <header className="flex-none flex items-center justify-between gap-3 px-4 sm:px-6 py-3 border-b border-gray-100 dark:border-zinc-800">
         <a href="/" className="flex items-center gap-2 select-none min-w-0">
-          <span className="text-xl" aria-hidden="true">💍</span>
+          <BrandMark className="w-6 h-6" />
           <span className="font-bold tracking-tight">Shaadi24</span>
           <span className="text-[10px] font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-zinc-700 rounded px-1.5 py-0.5">Admin</span>
         </a>

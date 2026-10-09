@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { aiDraft, aiIdeas, type AiDraft, type DraftRequest, type Idea } from '../../lib/blog';
+import { IconX } from '../../constants';
 
 // ============================================================================
 // AI writing in Admin → Blog (supabase/functions/blog-ai): "Ideas" suggests
@@ -32,7 +33,7 @@ export const Dialog: React.FC<{ title: string; onClose: () => void; busy?: boole
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-zinc-800">
           <h2 id={id} className="text-base font-semibold text-gray-900 dark:text-white">{title}</h2>
-          <button type="button" onClick={onClose} disabled={busy} aria-label="Close" className="w-8 h-8 rounded-md text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800">✕</button>
+          <button type="button" onClick={onClose} disabled={busy} aria-label="Close" className="w-8 h-8 rounded-md inline-flex items-center justify-center text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800 [&>svg]:w-4 [&>svg]:h-4"><IconX /></button>
         </div>
         <div className="p-5">{children}</div>
         {footer && <div className="flex justify-end gap-2 px-5 py-4 border-t border-gray-100 dark:border-zinc-800">{footer}</div>}

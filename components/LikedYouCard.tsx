@@ -1,5 +1,5 @@
 import React from 'react';
-import { IconCheck, IconStar, IconZap, IconClock } from '../constants';
+import { IconCheck, IconStar, IconZap, IconClock, IconUser } from '../constants';
 import LikeButton from './LikeButton';
 import { likeReceivedToCandidate } from '../lib/likesService';
 import type { LikeReceived } from '../lib/likesService';
@@ -55,7 +55,7 @@ const LikedYouCard: React.FC<LikedYouCardProps> = ({ like, isPro, onView, onUpgr
             }`}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-4xl text-gray-300 dark:text-zinc-700">👤</div>
+          <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-zinc-700 [&_svg]:w-12 [&_svg]:h-12"><IconUser /></div>
         )}
 
         {/* Super-Like crown */}

@@ -142,7 +142,7 @@ try {
     await page.getByRole('button', { name: /^Meeting the family/ }).click();
     await page.getByTestId('blog-editor').waitFor({ timeout: 5000 });
     await audit(page, `admin blog editor (${scheme})`);
-    await page.getByRole('button', { name: '✨ Write with AI' }).click();
+    await page.getByRole('button', { name: 'Write with AI', exact: true }).click();
     await page.getByTestId('blog-draft-ai').waitFor({ timeout: 5000 });
     await audit(page, `admin blog AI draft (${scheme})`);
     await page.getByTestId('blog-draft-ai').getByRole('button', { name: 'Cancel' }).click();

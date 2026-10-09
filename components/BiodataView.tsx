@@ -84,7 +84,7 @@ const BiodataCard = forwardRef<HTMLDivElement, CardProps>(({ profile, photoUrl, 
           <div style={{ minWidth: 0 }}>
             <p style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>{t('scan')}</p>
             {url && <p style={{ margin: '2px 0 0', fontSize: 14, color: theme.muted, wordBreak: 'break-all' }}>{url.replace(/^https?:\/\//, '')}</p>}
-            <p style={{ margin: '6px 0 0', fontSize: 13, color: theme.muted }}>💍 {t('made')}</p>
+            <p style={{ margin: '6px 0 0', fontSize: 13, color: theme.muted }}><img src="/logo.png" alt="" style={{ width: 15, height: 15, verticalAlign: '-3px', marginRight: 4 }} />{t('made')}</p>
           </div>
         </div>
       </div>

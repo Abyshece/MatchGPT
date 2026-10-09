@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from './NotionUI';
-import { IconChevronRight } from '../constants';
+import { IconChevronRight, IconFileText } from '../constants';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
 import type { TablesUpdate } from '../lib/database.types';
@@ -148,7 +148,7 @@ const RequiredDetails: React.FC = () => {
   return (
     <div className="min-h-screen bg-white dark:bg-[#191919] animate-fade-in" data-testid="required-details">
       <div className="max-w-xl mx-auto py-10 px-6">
-        <div className="text-4xl mb-4" aria-hidden="true">📝</div>
+        <div className="w-14 h-14 mb-4 rounded-2xl bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-white flex items-center justify-center [&>svg]:w-7 [&>svg]:h-7" aria-hidden="true"><IconFileText /></div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">A few details to finish</h1>
         <p className="text-gray-500 dark:text-gray-400 mb-6">
           Shaadi24 now asks every member for these, so the right people can find you. It takes a minute.

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import VerificationRequestModal from './VerificationRequestModal';
-import { IconShield } from '../constants';
+import { IconShield, IconIdCard } from '../constants';
 import type { VerificationStatus } from '../lib/profileService';
 
 // ============================================================================
@@ -61,7 +61,7 @@ const VerificationBanner: React.FC<VerificationBannerProps> = ({ verification })
                 onClick={() => setShowModal(true)}
                 className="bg-red-600 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-sm hover:bg-red-700 inline-flex items-center gap-1.5"
               >
-                🪪 Get verified
+                <span aria-hidden="true" className="[&>svg]:w-4 [&>svg]:h-4"><IconIdCard /></span> Get verified
               </button>
               <p className="text-[11px] text-red-700 dark:text-red-400 mt-2">
                 Provide links to at least 2 of your social media profiles. Reviewed in 24-48 hours.

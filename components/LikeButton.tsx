@@ -93,7 +93,7 @@ const LikeButton: React.FC<LikeButtonProps> = ({
       // It's a match — caller handles the celebration
       onMatched?.(result.matchId, candidate);
     } else {
-      showToast(`Liked ${candidate.name} ❤️`, 'success');
+      showToast(`Liked ${candidate.name}`, 'success');
     }
     // The card or profile leaves now, without waiting for the refresh below
     onLiked?.();

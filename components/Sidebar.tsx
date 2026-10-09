@@ -7,9 +7,7 @@ import VerificationRequestModal from './VerificationRequestModal';
 import UpgradeModal from './UpgradeModal';
 import { openLegalPage, type LegalPageName } from '../lib/legalInfo';
 import {
-  IconSearch, IconHistory, IconHeart, IconMessageCircle, IconStar, IconUser,
-  IconX, IconZap, IconLogOut, IconSettings, IconChevronLeft, IconChevronRight,
-  IconShield, IconClock, IconBook, IconUsers,
+  IconSearch, IconHistory, IconHeart, IconMessageCircle, IconStar, IconUser, IconX, IconZap, IconLogOut, IconSettings, IconChevronLeft, IconChevronRight, IconShield, IconClock, IconBook, IconUsers, BrandMark,
 } from '../constants';
 
 type Tab = 'search' | 'history' | 'likes' | 'matches' | 'standouts' | 'profile' | 'biodata' | 'family' | 'spotlight' | 'settings' | 'admin';
@@ -144,11 +142,11 @@ const Sidebar: React.FC<SidebarProps> = ({
       <div className={`relative flex items-center mb-6 pt-6 pb-2 ${isCollapsed ? 'justify-center px-3' : 'px-6'}`}>
         {!isCollapsed ? (
           <div className="flex items-center gap-3 select-none w-full">
-            <span className="flex-shrink-0 text-2xl">💍</span>
+            <BrandMark className="flex-shrink-0 w-7 h-7" />
             <span className="text-xl font-bold text-gray-800 dark:text-gray-100 tracking-tight">Shaadi24</span>
           </div>
         ) : (
-          <div onClick={toggleCollapse} className="text-2xl cursor-pointer">💍</div>
+          <div onClick={toggleCollapse} className="cursor-pointer"><BrandMark className="w-7 h-7" /></div>
         )}
         <button
           onClick={() => setIsOpen(false)}

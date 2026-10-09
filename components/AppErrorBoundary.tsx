@@ -1,6 +1,7 @@
 import React from 'react';
 import { SUPPORT_EMAIL } from './helpTopics';
 import { reportError } from '../lib/errorReports';
+import { BrandMark } from '../constants';
 
 // ============================================================================
 // AppErrorBoundary: when something breaks while drawing a screen, a way out
@@ -28,7 +29,7 @@ class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, St
     if (!this.state.failed) return this.props.children;
     return (
       <div role="alert" className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 text-center bg-white dark:bg-[#191919] text-gray-900 dark:text-gray-100">
-        <div className="text-4xl" aria-hidden="true">💍</div>
+        <BrandMark className="w-10 h-10" />
         <h1 className="text-xl font-bold">Something went wrong</h1>
         <p className="text-sm text-gray-600 dark:text-gray-300 max-w-sm">
           Shaadi24 couldn't show this screen. Reloading usually fixes it. If it keeps happening, write to{' '}

@@ -1,6 +1,6 @@
 import React, { useEffect, useEffectEvent, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { IconX, IconCheck } from '../constants';
+import { IconX, IconCheck, BrandMark } from '../constants';
 import { useAuth } from '../lib/AuthContext';
 import { FEATURES_FREE_NOW, proBenefits, formatDate } from '../lib/billingService';
 import { limitTitle, whenText, type SearchAllowance } from '../lib/searchLimits';
@@ -112,7 +112,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ reason, limit, onClose }) =
           {/* The Shaadi24 logo, and what the moment calls for */}
           <div className="pt-9 text-center">
             <div className="inline-flex items-center gap-2 select-none">
-              <span className="text-3xl" aria-hidden="true">💍</span>
+              <BrandMark className="w-8 h-8" />
               <span className="text-xl font-bold tracking-tight">Shaadi24+</span>
             </div>
             <h2 id="upgrade-title" className="mt-5 text-[22px] leading-snug font-bold">{headline}</h2>

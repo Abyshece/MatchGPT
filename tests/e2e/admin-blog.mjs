@@ -78,7 +78,7 @@ try {
   await page.getByTestId('admin-blog').waitFor({ timeout: 20000 });
   check(await page.getByRole('heading', { name: 'Blog' }).isVisible(), 'Blog is a section under Growth');
 
-  await page.getByRole('button', { name: '✨ Ideas' }).click();
+  await page.getByRole('button', { name: 'Ideas', exact: true }).click();
   const ideas = page.getByTestId('blog-ideas');
   await ideas.getByRole('button', { name: 'Suggest' }).click();
   await ideas.getByText('Questions to ask before marriage', { exact: true }).waitFor({ timeout: 20000 });
@@ -121,7 +121,7 @@ try {
     ta.focus();
     ta.setSelectionRange(i, i + '## Money'.length);
   });
-  await editor.getByRole('button', { name: '✨ Rewrite selection' }).click();
+  await editor.getByRole('button', { name: 'Rewrite selection', exact: true }).click();
   const rewrite = page.getByTestId('blog-rewrite');
   await rewrite.getByLabel('Rewrite the selected text:').fill('Make it louder');
   await rewrite.getByRole('button', { name: 'Rewrite' }).click();
@@ -130,7 +130,7 @@ try {
   check(rewritten.includes('## MONEY') && !rewritten.includes('## Money') && rewritten.includes('## Family'), 'the selected passage, and only it, is rewritten');
 
   await page.locator('#post-seo-title').fill('');
-  await editor.getByRole('button', { name: '✨ Fill search fields with AI' }).click();
+  await editor.getByRole('button', { name: 'Fill search fields with AI', exact: true }).click();
   await page.getByText('Search fields filled in').waitFor({ timeout: 20000 });
   check((await page.locator('#post-seo-title').inputValue()).length > 0, '"Fill search fields" writes the search title again');
 

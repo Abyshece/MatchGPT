@@ -7,6 +7,9 @@ import type { PendingVerification } from '../../lib/verificationService';
 import {
   assessVerification, fetchVerificationSignals, VERDICT_LABEL, type Assessment, type VerificationSignals,
 } from '../../lib/verificationChecks';
+import {
+  IconUser, IconCheck, IconAlert, IconX, IconIdCard, IconLinkedin, IconInstagram, IconFacebook, IconTwitter,
+} from '../../constants';
 
 // ============================================================================
 // AdminVerificationsTab
@@ -60,7 +63,7 @@ const AdminVerificationsTab: React.FC<AdminVerificationsTabProps> = ({ onAuditUp
       return;
     }
 
-    showToast(`${req.user_name} ${decision === 'approved' ? 'verified ✓' : 'rejected'}`, 'success');
+    showToast(`${req.user_name} ${decision === 'approved' ? 'verified' : 'rejected'}`, 'success');
     onAuditUpdate();
     load();
   };
@@ -75,7 +78,7 @@ const AdminVerificationsTab: React.FC<AdminVerificationsTabProps> = ({ onAuditUp
         </div>
       ) : requests.length === 0 ? (
         <div className="text-center py-12 bg-white dark:bg-zinc-800 rounded-lg border border-gray-100 dark:border-zinc-700">
-          <div className="text-4xl mb-2">🪪</div>
+          <div className="mb-2 flex justify-center text-gray-300 dark:text-zinc-600 [&>svg]:w-10 [&>svg]:h-10" aria-hidden="true"><IconIdCard /></div>
           <p className="text-sm font-bold text-gray-900 dark:text-white">No pending verifications</p>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">All caught up.</p>
         </div>
@@ -115,7 +118,7 @@ const VERDICT_STYLE: Record<Assessment['verdict'], string> = {
   check: 'bg-amber-50 border-amber-200 text-amber-900 dark:bg-amber-900/20 dark:border-amber-900/50 dark:text-amber-200',
   unlikely: 'bg-red-50 border-red-200 text-red-900 dark:bg-red-900/20 dark:border-red-900/50 dark:text-red-200',
 };
-const MARK = { pass: '✓', warn: '!', fail: '✕' } as const;
+const MARK = { pass: <IconCheck />, warn: <IconAlert />, fail: <IconX /> };
 
 const VerdictSummary: React.FC<{ assessments: Assessment[] }> = ({ assessments }) => {
   const count = (v: Assessment['verdict']) => assessments.filter((a) => a.verdict === v).length;
@@ -132,11 +135,11 @@ const VerificationCard: React.FC<{
   onApprove: () => void;
   onReject: () => void;
 }> = ({ req, assessment, onApprove, onReject }) => {
-  const links: { label: string; icon: string; url: string | null }[] = [
-    { label: 'LinkedIn', icon: '💼', url: req.linkedin_url },
-    { label: 'Instagram', icon: '📷', url: req.instagram_url },
-    { label: 'Facebook', icon: '👥', url: req.facebook_url },
-    { label: 'Twitter', icon: '🐦', url: req.twitter_url },
+  const links: { label: string; icon: React.ReactNode; url: string | null }[] = [
+    { label: 'LinkedIn', icon: <IconLinkedin />, url: req.linkedin_url },
+    { label: 'Instagram', icon: <IconInstagram />, url: req.instagram_url },
+    { label: 'Facebook', icon: <IconFacebook />, url: req.facebook_url },
+    { label: 'Twitter', icon: <IconTwitter />, url: req.twitter_url },
   ];
   const linkCount = links.filter((l) => l.url).length;
   const photo = req.user_photo_urls?.[0];
@@ -149,7 +152,7 @@ const VerificationCard: React.FC<{
           {photo ? (
             <img src={photo} alt={req.user_name} className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-2xl">👤</div>
+            <div className="w-full h-full flex items-center justify-center text-gray-400 [&_svg]:w-7 [&_svg]:h-7"><IconUser /></div>
           )}
         </div>
         <div className="flex-1 min-w-0">
@@ -167,7 +170,7 @@ const VerificationCard: React.FC<{
         <ul className="mt-1.5 space-y-0.5 text-xs">
           {assessment.checks.map((c) => (
             <li key={c.text} className="flex gap-2">
-              <span aria-hidden="true" className="w-3 flex-none font-bold">{MARK[c.level]}</span>
+              <span aria-hidden="true" className="flex-none mt-px [&>svg]:w-3.5 [&>svg]:h-3.5">{MARK[c.level]}</span>
               <span>{c.text}</span>
             </li>
           ))}
@@ -185,7 +188,7 @@ const VerificationCard: React.FC<{
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-zinc-900/50 border border-gray-200 dark:border-zinc-700 rounded text-xs hover:border-blue-400 dark:hover:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
             >
-              <span>{l.icon}</span>
+              <span aria-hidden="true" className="flex-none [&>svg]:w-3.5 [&>svg]:h-3.5">{l.icon}</span>
               <span className="font-medium text-gray-700 dark:text-gray-300 truncate flex-1">{l.label}</span>
               <span className="text-blue-500">↗</span>
             </a>
@@ -194,7 +197,7 @@ const VerificationCard: React.FC<{
               key={l.label}
               className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-zinc-900/50 border border-dashed border-gray-200 dark:border-zinc-700 rounded text-xs opacity-50"
             >
-              <span>{l.icon}</span>
+              <span aria-hidden="true" className="flex-none [&>svg]:w-3.5 [&>svg]:h-3.5">{l.icon}</span>
               <span className="font-medium text-gray-500 dark:text-gray-400 truncate">{l.label}</span>
               <span className="text-[10px] text-gray-500 dark:text-gray-400">—</span>
             </div>
@@ -220,9 +223,9 @@ const VerificationCard: React.FC<{
         </button>
         <button
           onClick={onApprove}
-          className="flex-1 py-2 text-xs font-bold bg-blue-600 text-white rounded hover:bg-blue-700 shadow-sm"
+          className="flex-1 py-2 inline-flex items-center justify-center gap-1 text-xs font-bold bg-blue-600 text-white rounded hover:bg-blue-700 shadow-sm"
         >
-          ✓ Approve
+          <span aria-hidden="true" className="[&>svg]:w-3.5 [&>svg]:h-3.5"><IconCheck /></span>Approve
         </button>
       </div>
     </div>
@@ -284,7 +287,7 @@ const ReviewModal: React.FC<{
               decision === 'approved' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-orange-600 hover:bg-orange-700'
             }`}
           >
-            {decision === 'approved' ? '✓ Approve' : 'Reject'}
+            {decision === 'approved' ? 'Approve' : 'Reject'}
           </button>
         </div>
       </div>

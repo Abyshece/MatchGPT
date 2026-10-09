@@ -6,7 +6,7 @@ import LikedYouCard from './LikedYouCard';
 import ProfileModal from './ProfileModal';
 import UpgradeModal from './UpgradeModal';
 import MatchCelebrationModal from './MatchCelebrationModal';
-import { IconZap } from '../constants';
+import { IconZap, IconSparkles, IconHeart } from '../constants';
 import type { LikeReceived } from '../lib/likesService';
 import type { MatchCandidate } from '../types';
 import { firstCelebration } from '../lib/matchCelebration';
@@ -115,7 +115,7 @@ const LikesView: React.FC<{ onNavigateToMatches?: (matchId: string) => void; onO
         {!loading && onOpenSpotlight && (
           <button type="button" onClick={onOpenSpotlight} data-testid="likes-spotlight"
             className="mb-6 w-full text-left flex items-center gap-3 p-4 rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50/70 dark:bg-amber-900/10 hover:bg-amber-50 dark:hover:bg-amber-900/20">
-            <span className="text-2xl" aria-hidden="true">✨</span>
+            <span className="flex-none text-amber-600 dark:text-amber-400 [&>svg]:w-6 [&>svg]:h-6" aria-hidden="true"><IconSparkles /></span>
             <span className="min-w-0 flex-1">
               <span className="block font-semibold text-gray-900 dark:text-white">Get more likes with Spotlight</span>
               <span className="block text-sm text-gray-600 dark:text-gray-300">Be shown first to people searching near you, for 24 hours.</span>
@@ -132,7 +132,7 @@ const LikesView: React.FC<{ onNavigateToMatches?: (matchId: string) => void; onO
           </div>
         ) : likes.length === 0 ? (
           <div className="text-center py-20 bg-gray-50 dark:bg-zinc-900/50 rounded-xl border border-gray-100 dark:border-zinc-800 border-dashed">
-            <div className="text-5xl mb-4">💌</div>
+            <div className="mb-4 flex justify-center text-gray-300 dark:text-zinc-600 [&>svg]:w-12 [&>svg]:h-12" aria-hidden="true"><IconHeart /></div>
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No likes yet</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">
               Complete your profile and start liking others. The more active you are, the more visible you become.

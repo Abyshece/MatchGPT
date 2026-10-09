@@ -6,7 +6,7 @@ import {
   type Boosts, type Pack, type PackOffer,
 } from '../lib/boosts';
 import { storeName, storePlatform } from '../lib/storePurchases';
-import { IconStar } from '../constants';
+import { IconStar, IconSparkles } from '../constants';
 
 // ============================================================================
 // Spotlight & Super Interest (lib/boosts.ts), bought one at a time in the
@@ -51,7 +51,7 @@ const BoostsView: React.FC<{ onOpenSearch?: () => void }> = ({ onOpenSearch }) =
     const { error } = await startSpotlight();
     setBusy(null);
     if (error) showToast(error, 'error');
-    else showToast(`Your Spotlight is on for ${SPOTLIGHT_HOURS} hours ✨`, 'success');
+    else showToast(`Your Spotlight is on for ${SPOTLIGHT_HOURS} hours`, 'success');
     await load();
   };
 
@@ -65,7 +65,7 @@ const BoostsView: React.FC<{ onOpenSearch?: () => void }> = ({ onOpenSearch }) =
       } else if (outcome.status === 'done' && offer.pack.kind === 'spotlight' && !boosts?.spotlight.active) {
         // Bought to use: on straight away
         const { error } = await startSpotlight();
-        showToast(error ?? `Your Spotlight is on for ${SPOTLIGHT_HOURS} hours ✨`, error ? 'error' : 'success');
+        showToast(error ?? `Your Spotlight is on for ${SPOTLIGHT_HOURS} hours`, error ? 'error' : 'success');
       } else if (outcome.status === 'done') {
         showToast(offer.pack.kind === 'spotlight' ? 'Spotlight added' : `${plural(offer.pack.quantity, 'Super Interest')} added`, 'success');
       }
@@ -120,7 +120,7 @@ const BoostsView: React.FC<{ onOpenSearch?: () => void }> = ({ onOpenSearch }) =
               className="rounded-2xl border border-amber-200 dark:border-amber-900/50 bg-gradient-to-br from-amber-50 to-rose-50 dark:from-amber-950/30 dark:to-rose-950/20 p-5 space-y-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <h2 id="spotlight-title" className="text-lg font-bold text-gray-900 dark:text-white">✨ Spotlight</h2>
+                  <h2 id="spotlight-title" className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2"><span aria-hidden="true" className="text-amber-600 dark:text-amber-400 [&>svg]:w-5 [&>svg]:h-5"><IconSparkles /></span>Spotlight</h2>
                   <p className="text-sm text-gray-600 dark:text-gray-300">
                     For {SPOTLIGHT_HOURS} hours you're shown first, marked Spotlight, to people searching in your city or
                     state whose search you fit.

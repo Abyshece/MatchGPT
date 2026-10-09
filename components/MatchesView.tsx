@@ -9,6 +9,7 @@ import ChatWindow from './ChatWindow';
 import UpgradeModal from './UpgradeModal';
 import { BACK, useBackHandler } from '../lib/nativeApp';
 import type { MatchSummary } from '../lib/matchesService';
+import { IconMessageCircle } from '../constants';
 
 // ============================================================================
 // MatchesView
@@ -173,7 +174,7 @@ const MatchesView: React.FC<MatchesViewProps> = ({ initialMatchId }) => {
         ) : (
           <div className="hidden md:flex flex-1 items-center justify-center bg-gray-50/50 dark:bg-[#0f0f0f]">
             <div className="text-center max-w-sm px-6">
-              <div className="text-6xl mb-4">💬</div>
+              <div className="mb-4 flex justify-center text-gray-300 dark:text-zinc-600 [&>svg]:w-14 [&>svg]:h-14" aria-hidden="true"><IconMessageCircle /></div>
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
                 {matches.length === 0 ? 'No matches yet' : 'Select a match to start chatting'}
               </h3>

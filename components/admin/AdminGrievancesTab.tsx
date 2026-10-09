@@ -4,6 +4,7 @@ import { useToast } from '../../lib/useToast';
 import { useNow } from '../../lib/useNow';
 import type { Tables } from '../../lib/database.types';
 import { GRIEVANCE_CATEGORIES } from '../../lib/grievances';
+import { IconInbox } from '../../constants';
 
 // ============================================================================
 // AdminGrievancesTab: complaints to the Grievance Officer (GrievancesView's
@@ -82,7 +83,7 @@ const AdminGrievancesTab: React.FC<{ onAuditUpdate: () => void }> = ({ onAuditUp
         <div className="h-24 rounded-xl bg-gray-50 dark:bg-zinc-800/50 animate-pulse" aria-hidden="true" />
       ) : rows.length === 0 ? (
         <div className="rounded-xl border border-gray-200 dark:border-zinc-800 p-10 text-center">
-          <div className="text-4xl mb-2" aria-hidden="true">📮</div>
+          <div className="mb-2 flex justify-center text-gray-300 dark:text-zinc-600 [&>svg]:w-10 [&>svg]:h-10" aria-hidden="true"><IconInbox /></div>
           <p className="font-semibold text-gray-900 dark:text-white">No open complaints</p>
           <p className="text-sm text-gray-500 dark:text-gray-400">All caught up.</p>
         </div>

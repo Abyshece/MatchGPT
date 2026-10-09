@@ -214,7 +214,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
               </div>
             ) : liked.length === 0 ? (
               <div className="text-center py-20 bg-gray-50 dark:bg-zinc-900/50 rounded-xl border border-gray-100 dark:border-zinc-800">
-                <div className="text-5xl mb-4">💖</div>
+                <div className="mb-4 flex justify-center text-gray-300 dark:text-zinc-600 [&>svg]:w-12 [&>svg]:h-12" aria-hidden="true"><IconHeart /></div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No likes yet</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">
                   Profiles you like will appear here. Start exploring from Find Match.
@@ -222,7 +222,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
               </div>
             ) : filteredLiked.length === 0 ? (
               <div className="text-center py-20 bg-gray-50 dark:bg-zinc-900/50 rounded-xl border border-gray-100 dark:border-zinc-800">
-                <div className="text-5xl mb-4">⏱️</div>
+                <div className="mb-4 flex justify-center text-gray-300 dark:text-zinc-600 [&>svg]:w-12 [&>svg]:h-12" aria-hidden="true"><IconClock /></div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No likes in this window</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Try switching to "All time".</p>
               </div>

@@ -7,7 +7,9 @@ import {
 import { unmatch } from '../lib/matchesService';
 import MessageBubble from './MessageBubble';
 import BlockReportModal from './BlockReportModal';
-import { IconChevronLeft, IconCheck, IconX, IconZap, IconFlag, IconBan, IconHeartOff, IconMore } from '../constants';
+import {
+  IconChevronLeft, IconCheck, IconX, IconZap, IconFlag, IconBan, IconHeartOff, IconMore, IconUser, IconMessageCircle, IconCalendar, IconCoffee, IconUtensils, IconGlass, IconFootprints, IconFilm, IconPalette,
+} from '../constants';
 import { isNativeApp } from '../lib/nativeApp';
 import { setOpenChat } from '../lib/nativePush';
 import type { Message } from '../lib/chatService';
@@ -171,7 +173,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       showToast(`Couldn't accept: ${error}`, 'error');
       return;
     }
-    showToast('Accepted! 🎉', 'success');
+    showToast('Accepted!', 'success');
   };
 
   const handleDeclineDate = async (msgId: string) => {
@@ -227,7 +229,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           {otherPhoto ? (
             <img src={otherPhoto} alt={match.otherUser.name} className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-lg">👤</div>
+            <div className="w-full h-full flex items-center justify-center text-gray-400 [&_svg]:w-5 [&_svg]:h-5"><IconUser /></div>
           )}
         </div>
 
@@ -291,7 +293,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           </div>
         ) : messages.length === 0 ? (
           <div className="text-center py-12 max-w-md mx-auto">
-            <div className="text-5xl mb-3">💬</div>
+            <div className="mb-3 flex justify-center text-gray-300 dark:text-zinc-600 [&>svg]:w-12 [&>svg]:h-12" aria-hidden="true"><IconMessageCircle /></div>
             <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1">
               You matched with {match.otherUser.name}
             </h3>
@@ -333,7 +335,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                 : 'bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-gray-400'
             }`}
           >
-            <span className="text-lg" aria-hidden="true">📅</span>
+            <span aria-hidden="true" className="[&>svg]:w-5 [&>svg]:h-5"><IconCalendar /></span>
           </button>
 
           <textarea
@@ -446,7 +448,10 @@ interface DateProposalBuilderProps {
   onClose: () => void;
 }
 
-const DATE_IDEAS = ['☕ Coffee', '🍽️ Dinner', '🥂 Drinks', '🚶 Walk', '🎬 Movie', '🎨 Activity'];
+const DATE_IDEAS: { label: string; icon: React.ReactNode }[] = [
+  { label: 'Coffee', icon: <IconCoffee /> }, { label: 'Dinner', icon: <IconUtensils /> }, { label: 'Drinks', icon: <IconGlass /> },
+  { label: 'Walk', icon: <IconFootprints /> }, { label: 'Movie', icon: <IconFilm /> }, { label: 'Activity', icon: <IconPalette /> },
+];
 
 const DateProposalBuilder: React.FC<DateProposalBuilderProps> = ({ onSend, onClose }) => {
   const [activity, setActivity] = useState('');
@@ -476,7 +481,7 @@ const DateProposalBuilder: React.FC<DateProposalBuilderProps> = ({ onSend, onClo
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-5 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white">📅 Propose a date</h3>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2"><span aria-hidden="true" className="[&>svg]:w-5 [&>svg]:h-5"><IconCalendar /></span>Propose a date</h3>
           <button type="button" onClick={onClose} aria-label="Close" className="text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white">
             <IconX />
           </button>
@@ -495,11 +500,12 @@ const DateProposalBuilder: React.FC<DateProposalBuilderProps> = ({ onSend, onClo
             <div className="mt-2 flex flex-wrap gap-1.5">
               {DATE_IDEAS.map((idea) => (
                 <button
-                  key={idea}
-                  onClick={() => setActivity(idea)}
-                  className="text-[11px] px-2.5 py-1 rounded-full bg-pink-50 dark:bg-pink-900/20 text-pink-700 dark:text-pink-300 border border-pink-100 dark:border-pink-900/40 hover:bg-pink-100 dark:hover:bg-pink-900/30"
+                  key={idea.label}
+                  type="button"
+                  onClick={() => setActivity(idea.label)}
+                  className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full bg-pink-50 dark:bg-pink-900/20 text-pink-700 dark:text-pink-300 border border-pink-100 dark:border-pink-900/40 hover:bg-pink-100 dark:hover:bg-pink-900/30"
                 >
-                  {idea}
+                  <span aria-hidden="true" className="[&>svg]:w-3 [&>svg]:h-3">{idea.icon}</span>{idea.label}
                 </button>
               ))}
             </div>

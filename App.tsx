@@ -15,6 +15,7 @@ import { missingRequired } from './lib/profileRewards';
 import { LEGAL_PAGES, type LegalPageName } from './lib/legalInfo';
 import { needsConsent } from './lib/consentService';
 import { belowMarriageAge } from './lib/legalAge';
+import { IconAlert, IconWave } from './constants';
 
 // Screens a first visit doesn't need load when they're shown, so the first
 // download is small; the signed-in app starts loading as soon as there's a
@@ -385,7 +386,7 @@ const ProfileErrorScreen: React.FC<{
   return (
     <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#191919] p-6">
       <div className="max-w-md w-full bg-white dark:bg-zinc-900 border border-red-200 dark:border-red-900/40 rounded-xl shadow-sm p-6 text-center">
-        <div className="w-12 h-12 mx-auto mb-4 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center text-2xl">⚠️</div>
+        <div className="w-12 h-12 mx-auto mb-4 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center [&>svg]:w-6 [&>svg]:h-6" aria-hidden="true"><IconAlert /></div>
         <h1 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Couldn't load your profile</h1>
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{error}</p>
         {hint && <p className="text-xs text-gray-500 dark:text-gray-400 mb-4 italic">{hint}</p>}
@@ -433,7 +434,7 @@ const ProfileMissingScreen: React.FC<{
   return (
     <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#191919] p-6">
       <div className="max-w-md w-full bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl shadow-sm p-6 text-center">
-        <div className="w-12 h-12 mx-auto mb-4 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 rounded-full flex items-center justify-center text-2xl">👋</div>
+        <div className="w-12 h-12 mx-auto mb-4 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 rounded-full flex items-center justify-center [&>svg]:w-6 [&>svg]:h-6" aria-hidden="true"><IconWave /></div>
         <h1 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Let's finish setting you up</h1>
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-5">
           Your account is verified but a profile hasn't been created yet. Click below to create one and start onboarding.

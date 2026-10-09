@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNow } from '../../lib/useNow';
-import { IconBan } from '../../constants';
+import { IconBan, IconShield } from '../../constants';
 import { REPORT_DEADLINE_HOURS } from '../../lib/blocksService';
 import { useToast } from '../../lib/useToast';
 import {
@@ -135,7 +135,7 @@ const AdminReportsTab: React.FC<AdminReportsTabProps> = ({ onAuditUpdate }) => {
         </div>
       ) : reports.length === 0 ? (
         <div className="text-center py-12 bg-white dark:bg-zinc-800 rounded-lg border border-gray-100 dark:border-zinc-700">
-          <div className="text-4xl mb-2">✨</div>
+          <div className="mb-2 flex justify-center text-gray-300 dark:text-zinc-600 [&>svg]:w-10 [&>svg]:h-10" aria-hidden="true"><IconShield /></div>
           <p className="text-sm font-bold text-gray-900 dark:text-white">No {filter === 'pending' ? 'pending ' : ''}reports</p>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             Either everyone's playing nice, or you've caught up. Nice work.

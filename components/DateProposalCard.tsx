@@ -1,5 +1,5 @@
 import React from 'react';
-import { IconCheck, IconX } from '../constants';
+import { IconCheck, IconX, IconCalendar, IconMapPin, IconClock, IconMessageCircle } from '../constants';
 
 // ============================================================================
 // DateProposalCard
@@ -44,7 +44,7 @@ const DateProposalCard: React.FC<DateProposalCardProps> = ({
           ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-900 dark:text-blue-100 border-blue-200 dark:border-blue-800 rounded-br-md'
           : 'bg-blue-50 dark:bg-blue-900/20 text-blue-900 dark:text-blue-100 border-blue-200 dark:border-blue-800 rounded-bl-md'
       }`}>
-        <div className="font-bold text-xs uppercase tracking-wider mb-1">📅 Date proposal</div>
+        <div className="font-bold text-xs uppercase tracking-wider mb-1 flex items-center gap-1.5"><span aria-hidden="true" className="[&>svg]:w-3.5 [&>svg]:h-3.5"><IconCalendar /></span>Date proposal</div>
         <div className="whitespace-pre-wrap">{content}</div>
       </div>
     );
@@ -65,7 +65,7 @@ const DateProposalCard: React.FC<DateProposalCardProps> = ({
     }`}>
       <div className="p-4">
         <div className="text-[10px] uppercase font-bold tracking-widest text-pink-600 dark:text-pink-400 mb-2 flex items-center gap-1.5">
-          📅 Date Proposal
+          <span aria-hidden="true" className="[&>svg]:w-3.5 [&>svg]:h-3.5"><IconCalendar /></span>Date Proposal
           {status === 'accepted' && <span className="text-green-600 dark:text-green-400">· Accepted</span>}
           {status === 'declined' && <span className="text-gray-500 dark:text-gray-400">· Declined</span>}
         </div>
@@ -74,16 +74,16 @@ const DateProposalCard: React.FC<DateProposalCardProps> = ({
 
         <div className="space-y-1.5 text-sm text-gray-700 dark:text-gray-300">
           <div className="flex items-center gap-2">
-            <span className="text-base">📍</span>
+            <span aria-hidden="true" className="flex-none text-gray-500 [&>svg]:w-4 [&>svg]:h-4"><IconMapPin /></span>
             <span>{payload.location}</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-base">🗓️</span>
+            <span aria-hidden="true" className="flex-none text-gray-500 [&>svg]:w-4 [&>svg]:h-4"><IconClock /></span>
             <span>{dateStr} at {timeStr}</span>
           </div>
           {payload.notes && (
             <div className="flex items-start gap-2 pt-1">
-              <span className="text-base mt-0.5">💭</span>
+              <span aria-hidden="true" className="flex-none mt-0.5 text-gray-500 [&>svg]:w-4 [&>svg]:h-4"><IconMessageCircle /></span>
               <span className="text-xs text-gray-600 dark:text-gray-400 italic">{payload.notes}</span>
             </div>
           )}
