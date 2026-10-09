@@ -392,7 +392,9 @@ async function runPlatform(platform) {
       if (!now || now.header !== before0.header || JSON.stringify(now.popups) !== JSON.stringify(before0.popups) || now.url !== before0.url) {
         if (!(await replay(root, path))) break;
       }
-      const list = await page.evaluate(FIND);
+      let list = await page.evaluate(FIND);
+      // (a tap can leave for a screen with the same header: from a chat back to Matches)
+      if (!list.some((x) => x.id === c.id) && await replay(root, path)) list = await page.evaluate(FIND);
       const target = list.find((x) => x.id === c.id);
       if (!target) { results.push({ where, ...c, outcome: 'gone before its turn' }); continue; }
       const before = await page.evaluate(SNAP);
