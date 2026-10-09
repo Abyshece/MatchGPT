@@ -249,7 +249,7 @@ try {
   log('3. Notifications while the app is open, and taps');
   await page.evaluate((m) => window.__fire('notificationReceived', { notification: {
     title: '💬 Priya sent you a message', body: 'Open Shaadi24 to read it', data: { event_type: 'new_message', match_id: m } } }), matchId);
-  check(await appears(page.getByText('💬 Priya sent you a message'), 4000), 'a notification while the app is open shows as a toast');
+  check(await appears(page.getByText('Priya sent you a message', { exact: true }), 4000), 'a notification while the app is open shows as a toast, without its emoji');
   await page.screenshot({ path: `${OUT}4-toast.png` });
   await page.evaluate((m) => window.__fire('notificationActionPerformed', { actionId: 'tap', notification: {
     title: 'x', body: 'y', data: { event_type: 'new_message', match_id: m, deep_link: '/matches' } } }), matchId);
@@ -259,7 +259,7 @@ try {
   await page.evaluate((m) => window.__fire('notificationReceived', { notification: {
     title: '💬 From the open chat', body: 'Open Shaadi24 to read it', data: { event_type: 'new_message', match_id: m } } }), matchId);
   await page.waitForTimeout(800);
-  check(!(await page.getByText('💬 From the open chat').isVisible().catch(() => false)), "no toast for the chat that's on screen");
+  check(!(await page.getByText('From the open chat').isVisible().catch(() => false)), "no toast for the chat that's on screen");
   await page.evaluate(() => window.__fire('notificationActionPerformed', { actionId: 'tap', notification: {
     title: '⭐ Someone sent you a Super Interest', body: 'Open Likes You to see their profile.', data: { event_type: 'super_like', deep_link: '/likes' } } }));
   check(await appears(page.getByRole('heading', { name: /Likes You/ }), 8000), 'tapping a Super Interest opens Likes You');
