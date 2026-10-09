@@ -968,6 +968,45 @@ Part 31 done 2026-10-09: **Search in your own language; Biodata and Family Circl
 - [x] Tests: `search-languages`, `biodata-family`, and the search function's unit tests for the
   language reader.
 
+Part 32 done 2026-10-09: **Spotlight and Super Interest, bought one at a time.** For members who
+won't take a plan, and Shaadi24+ members who want more. Sold in the apps only, through Google Play and
+the App Store (consumable in-app products); our server checks every purchase with the store.
+
+- [x] **Spotlight (₹149, 24 hours):** Menu → Spotlight. While it's on, the member is shown first,
+  marked ✨ Spotlight, to people searching in their city or state whose search they fit (at least a
+  fair match, at most 3 Spotlights at the top of a search). The screen shows the time left, how many
+  searches it was shown in and the likes that came in. It starts as soon as it's bought.
+- [x] **Super Interest (₹49, or 5 for ₹199):** the ⭐ Super Interest button on a profile. A like with a
+  note (up to 200 letters, checked by the word filter) that goes to the top of the other person's Likes
+  You and shows who sent it, even if they don't have Shaadi24+, with a notification naming the sender.
+  Shaadi24+ includes 3 a week; more are bought in the sheet.
+  It replaces the old Super Like: the star next to Like is gone, and the help, the Shaadi24+ page, the
+  notification settings and the store listings say "3 Super Interests a week".
+- [x] **Likes You:** Super Interests show the sender and the note to everyone; a Spotlight banner.
+- [x] **Payments:** a purchase is added once, to the account that bought it; the app finishes it only
+  after our server has added it, and sends any it couldn't (no signal, the app closed) when it next opens.
+  A payment that goes through later (some UPI and cash payments) is added by Google's notification.
+  A refund takes the pack back; a Spotlight that's on ends.
+- [x] **Admin → Finance:** a "Spotlight and Super Interest" card (packs sold and refunded, net,
+  Spotlights and how they did, Super Interests sent and how many became matches next to ordinary
+  likes); packs in the charges list by name; store test purchases kept out of the real figures.
+  Members see the pack's name in their own payments (Settings → Shaadi24+).
+- [x] Terms (section 9), the Refund policy and the Privacy Policy cover the packs; members accept the
+  new versions.
+- [x] Store kit: the products to create in Play Console and App Store Connect (docs/store/README.md,
+  "Spotlight and Super Interest").
+- [x] Tests: `boosts` (both stores, through the stand-in) and the search function's Spotlight ranking.
+
+**Owner:** create the three products in each store (docs/store/README.md, steps 6.4 and 7.4). Until
+then the app shows "not on sale yet" and nothing else changes.
+
+On the live database the old Likes You function was set aside rather than deleted (renamed
+`get_likes_received_before_notes`, callable by no one). **Owner, optional:** remove it in the SQL Editor
+with `drop function public.get_likes_received_before_notes(uuid);`.
+
+Also fixed: the WhatsApp buttons in My Biodata and Family Circle have dark text, readable on the green;
+the search-limits test accepts "tomorrow at …" when the 5 hours run past midnight in India.
+
 **Still to do**
 
 - [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.

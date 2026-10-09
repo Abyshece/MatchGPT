@@ -7,12 +7,15 @@
 //   { message: { data: base64(JSON), messageId }, subscription }
 //   A subscription notification (renewed, cancelled, on hold, recovered,
 //   expired, revoked, …) re-reads the purchase from Google and saves it; a
-//   voided purchase notification marks that charge refunded.
+//   voided purchase notification marks that charge refunded (a pack's credits
+//   are taken back); a one-time product notification adds a pack whose
+//   payment went through later (some UPI and cash payments).
 // App Store (App Store Server Notifications, version 2):
 //   POST /store-notifications?provider=apple
 //   { signedPayload }   signed by Apple, checked like a transaction
 //   Saves the transaction and renewal record it carries (renewals, renewal
-//   turned off/on, grace period, expiry, refund, revocation).
+//   turned off/on, grace period, expiry, refund, revocation); for a pack
+//   (ONE_TIME_CHARGE, REFUND) adds or takes back its credits.
 //
 // Each delivery is handled once (billing_events). Answers 200 when done or
 // when there's nothing to do, so the store stops resending; 500 for a
@@ -36,7 +39,9 @@ import {
   AppleJwsError, appleBundleId, verifyAppleJws,
   type AppleNotification, type AppleRenewalInfo, type AppleTransaction,
 } from '../_shared/appleStore.ts';
-import { applyAppleTransaction, applyGooglePurchase, refundCharge, StorePurchaseError } from '../_shared/storeBilling.ts';
+import {
+  applyApplePack, applyAppleTransaction, applyGooglePack, applyGooglePurchase, isApplePack, refundCharge, StorePurchaseError,
+} from '../_shared/storeBilling.ts';
 
 const ok = (note = 'ok') => new Response(note, { status: 200 });
 const retry = (note: string) => new Response(note, { status: 500 });
@@ -58,6 +63,7 @@ interface GoogleMessage {
   packageName?: string;
   eventTimeMillis?: string;
   subscriptionNotification?: { notificationType?: number; purchaseToken?: string; subscriptionId?: string };
+  oneTimeProductNotification?: { notificationType?: number; purchaseToken?: string; sku?: string };
   voidedPurchaseNotification?: { purchaseToken?: string; orderId?: string; productType?: number };
   testNotification?: unknown;
 }
@@ -81,7 +87,10 @@ async function google(req: Request, url: URL): Promise<Response> {
   if (msg.packageName && msg.packageName !== cfg.packageName) return ok('another app');
 
   const eventId = `google:${messageId}`;
-  if (!(await firstTime(eventId, msg.voidedPurchaseNotification ? 'voided' : `subscription.${msg.subscriptionNotification?.notificationType ?? '?'}`))) {
+  const kind = msg.voidedPurchaseNotification ? 'voided'
+    : msg.oneTimeProductNotification ? `one_time.${msg.oneTimeProductNotification.notificationType ?? '?'}`
+    : `subscription.${msg.subscriptionNotification?.notificationType ?? '?'}`;
+  if (!(await firstTime(eventId, kind))) {
     return ok('already handled');
   }
   const at = new Date(Number(msg.eventTimeMillis) || Date.now());
@@ -94,6 +103,9 @@ async function google(req: Request, url: URL): Promise<Response> {
     }
     const token = msg.subscriptionNotification?.purchaseToken;
     if (token) await applyGooglePurchase(cfg, token, null, at);
+    // ONE_TIME_PRODUCT_PURCHASED: a pack, perhaps paid for after the app gave up waiting
+    const pack = msg.oneTimeProductNotification;
+    if (pack?.notificationType === 1 && pack.purchaseToken && pack.sku) await applyGooglePack(cfg, pack.sku, pack.purchaseToken, null);
     return ok();
   } catch (e) {
     if (e instanceof StorePurchaseError || (e instanceof GooglePlayError && [400, 404, 410].includes(e.status))) {
@@ -125,6 +137,10 @@ async function apple(req: Request): Promise<Response> {
   try {
     if (!note.data?.signedTransactionInfo) return ok('no transaction');
     const tx = await verifyAppleJws<AppleTransaction>(note.data.signedTransactionInfo);
+    if (isApplePack(tx)) {
+      await applyApplePack(tx, null);
+      return ok();
+    }
     const renewal = note.data.signedRenewalInfo ? await verifyAppleJws<AppleRenewalInfo>(note.data.signedRenewalInfo) : null;
     await applyAppleTransaction(tx, renewal, null, new Date(note.signedDate ?? Date.now()));
     return ok();

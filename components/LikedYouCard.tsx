@@ -9,7 +9,8 @@ import type { MatchCandidate } from '../types';
 // LikedYouCard
 //
 // Card on the Likes-You tab. Free users see blurred photos with name hidden;
-// Pro users see everything clearly.
+// Pro users see everything clearly. A Super Interest (lib/boosts.ts) shows
+// who sent it, and their note, to everyone.
 // ============================================================================
 
 interface LikedYouCardProps {
@@ -35,20 +36,22 @@ const formatRelativeTime = (iso: string): string => {
 const LikedYouCard: React.FC<LikedYouCardProps> = ({ like, isPro, onView, onUpgrade, onMatched }) => {
   const photo = like.liker.photos?.[0];
   const candidate = likeReceivedToCandidate(like);
+  // Shown in full: with Shaadi24+, or when they sent a Super Interest
+  const open = isPro || like.isSuperLike;
 
   return (
     <div className="group relative bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl overflow-hidden hover:shadow-md transition-all">
       <div
         className="aspect-[3/4] bg-gray-100 dark:bg-zinc-800 overflow-hidden relative cursor-pointer"
-        onClick={() => isPro ? onView(candidate) : onUpgrade()}
+        onClick={() => open ? onView(candidate) : onUpgrade()}
       >
         {photo ? (
           <img
             src={photo}
-            alt={isPro ? like.liker.name : 'Liked you'}
+            alt={open ? like.liker.name : 'Liked you'}
             loading="lazy"
             className={`w-full h-full object-cover transition-all ${
-              isPro ? 'group-hover:scale-[1.02]' : 'blur-xl scale-110 opacity-70'
+              open ? 'group-hover:scale-[1.02]' : 'blur-xl scale-110 opacity-70'
             }`}
           />
         ) : (
@@ -58,26 +61,26 @@ const LikedYouCard: React.FC<LikedYouCardProps> = ({ like, isPro, onView, onUpgr
         {/* Super-Like crown */}
         {like.isSuperLike && (
           <div className="absolute top-2 left-2 plus-solid px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg flex items-center gap-1">
-            <IconStar /> Super Like
+            <IconStar /> Super Interest
           </div>
         )}
 
         {/* Verified */}
-        {isPro && like.liker.isVerified && (
+        {open && like.liker.isVerified && (
           <div className="absolute top-2 right-2 bg-blue-500 text-white p-1 rounded-full" title="Verified">
             <IconCheck className="w-3 h-3" />
           </div>
         )}
 
         {/* Pro badge */}
-        {isPro && like.liker.subscriptionTier === 'PRO' && (
+        {open && like.liker.subscriptionTier === 'PRO' && (
           <div className={`absolute ${like.liker.isVerified ? 'top-9' : 'top-2'} right-2 plus-solid p-1 rounded-full`} title="Shaadi24+ member">
             <IconZap />
           </div>
         )}
 
         {/* Free user upgrade overlay */}
-        {!isPro && (
+        {!open && (
           <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center z-10">
             <div className="w-12 h-12 plus-solid rounded-full flex items-center justify-center shadow-lg mb-3 animate-bounce">
               <IconZap />
@@ -92,7 +95,7 @@ const LikedYouCard: React.FC<LikedYouCardProps> = ({ like, isPro, onView, onUpgr
         )}
 
         {/* Bottom info — hidden for free users */}
-        {isPro && (
+        {open && (
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 pt-8">
             <h3 className="text-white font-bold text-base truncate">
               {like.liker.name}{like.liker.age ? `, ${like.liker.age}` : ''}
@@ -102,16 +105,21 @@ const LikedYouCard: React.FC<LikedYouCardProps> = ({ like, isPro, onView, onUpgr
         )}
       </div>
 
+      {like.isSuperLike && like.note && (
+        <p className="px-3 pt-3 text-sm italic text-gray-700 dark:text-gray-200 break-words" data-testid="super-interest-note">
+          “{like.note}”
+        </p>
+      )}
+
       {/* Footer */}
       <div className="p-3 flex items-center justify-between">
         <span className="text-[11px] text-gray-500 dark:text-gray-400 flex items-center gap-1">
           <IconClock /> {formatRelativeTime(like.likedAt)}
         </span>
-        {isPro ? (
+        {open ? (
           <LikeButton
             candidate={candidate}
             size="sm"
-            showSuperLike={false}
             onMatched={onMatched}
           />
         ) : (

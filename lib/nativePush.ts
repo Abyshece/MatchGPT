@@ -91,7 +91,7 @@ async function ensureChannels(): Promise<void> {
   const channels = [
     { id: 'messages', name: 'Messages', description: 'New messages from your matches', importance: Importance.High },
     { id: 'matches', name: 'Matches', description: 'When you and someone like each other', importance: Importance.High },
-    { id: 'likes', name: 'Likes', description: 'When someone super-likes you', importance: Importance.Default },
+    { id: 'likes', name: 'Likes', description: 'When someone sends you a Super Interest', importance: Importance.Default },
   ];
   await Promise.all(channels.map((c) => FirebaseMessaging.createChannel({ ...c, lights: true, vibration: true }).catch(() => {})));
 }

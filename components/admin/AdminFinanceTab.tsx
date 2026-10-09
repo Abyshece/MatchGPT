@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useToast } from '../../lib/useToast';
-import { formatMoney, formatRupees } from '../../lib/billingService';
+import { chargeName, formatMoney, formatRupees } from '../../lib/billingService';
+import AdminPacksCard from './AdminPacksCard';
 import {
   SELLERS, SELLER_LABEL, addMonths, chargeStatus, chargesCsv, fetchAllCharges, fetchCharges, fetchFinanceSummary,
   indiaMonth, indiaTime, isSeller, monthBounds, monthLabel, rupeesShort,
@@ -335,6 +336,8 @@ const AdminFinanceTab: React.FC = () => {
         </div>
       )}
 
+      <AdminPacksCard mode={mode} refreshed={refreshed} />
+
       {/* Every charge */}
       <section>
         <div className="flex flex-wrap items-end gap-2 mb-3">
@@ -422,7 +425,7 @@ const AdminFinanceTab: React.FC = () => {
                         style={{ background: isSeller(c.provider) ? SELLER_COLOR[c.provider] : 'transparent' }} />
                       {isSeller(c.provider) ? SELLER_LABEL[c.provider] : c.provider}
                     </td>
-                    <td className="px-3 py-2 whitespace-nowrap text-gray-700 dark:text-gray-200 capitalize">{c.plan_id ?? '—'}</td>
+                    <td className="px-3 py-2 whitespace-nowrap text-gray-700 dark:text-gray-200">{c.plan_id ? chargeName(null, c.plan_id) : '—'}</td>
                     <td className="px-3 py-2">
                       <span className="font-mono text-[11px] text-gray-500 dark:text-gray-400 block max-w-[150px] truncate" title={c.order_id ?? ''}>
                         {c.order_id}

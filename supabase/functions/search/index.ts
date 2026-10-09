@@ -139,6 +139,17 @@ async function understand(prompt: string, pool: Row[]): Promise<{ parsed: Parsed
   return { parsed: planToParsed(result.plan), by: 'ai' };
 }
 
+// Who is in Spotlight now (lib/boosts.ts); nobody if that can't be read
+async function spotlightsNow(): Promise<Set<string>> {
+  try {
+    const rows = await rest(`spotlights?ends_at=gt.${encodeURIComponent(new Date().toISOString())}&select=user_id`) as { user_id: string }[];
+    return new Set(rows.map((r) => r.user_id));
+  } catch (e) {
+    console.warn('[search] spotlights not read:', e);
+    return new Set();
+  }
+}
+
 async function search(me: Row, body: Record<string, unknown>): Promise<Response> {
   const hoursSinceSignup = (Date.now() - Date.parse(String(me.account_created))) / 3_600_000;
   if (me.is_verified !== true && hoursSinceSignup >= LOCKOUT_HOURS) {
@@ -158,7 +169,12 @@ async function search(me: Row, body: Record<string, unknown>): Promise<Response>
   // Nobody the user already liked: search is for finding new people
   const pool = await rpc('search_candidates', { p_user_id: me.id, p_exclude_liked: true }) as Row[];
   const { parsed, by } = await understand(prompt, pool);
-  const { candidates, poolSize } = rankCandidates(me, pool, prompt, filters, limit, Date.now(), parsed);
+  const spotlit = await spotlightsNow();
+  const { candidates, poolSize } = rankCandidates(me, pool, prompt, filters, limit, Date.now(), parsed, spotlit);
+  const shown = candidates.filter((c) => c.spotlight).map((c) => c.id);
+  if (shown.length) {
+    await rpc('note_spotlight_views', { p_ids: shown }).catch((e) => console.warn('[search] spotlight views not counted:', e));
+  }
   // The allowance after this search: whether the next one can go ahead
   const after = { ...allowance, allowed: !allowance.limited_by };
   return json({

@@ -3,7 +3,7 @@ import { useAuth } from '../lib/AuthContext';
 import { useNow } from '../lib/useNow';
 import { useToast } from '../lib/useToast';
 import {
-  formatDate, formatMoney, getMySubscription, listMyPayments, sellerName, planName as nameOfPlan,
+  chargeName, formatDate, formatMoney, getMySubscription, listMyPayments, sellerName, planName as nameOfPlan,
   type Payment, type Subscription,
 } from '../lib/billingService';
 import {
@@ -205,6 +205,7 @@ const SubscriptionSettings: React.FC = () => {
                 <li key={p.id} className="flex items-center justify-between gap-3 py-2 text-sm">
                   <span className="text-gray-700 dark:text-gray-300">
                     {formatDate(p.paid_at)}
+                    {p.product_id && <span className="ml-2">{chargeName(p.product_id)}</span>}
                     <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">{sellerName(p.provider)}</span>
                   </span>
                   <span className="flex items-center gap-3">

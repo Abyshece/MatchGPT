@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import CompatibilityReport from './CompatibilityReport';
 import LikeButton from './LikeButton';
+import { SuperInterestButton } from './SuperInterestSheet';
 import BlockReportModal from './BlockReportModal';
 import { IconX, IconCheck, IconChevronLeft, IconChevronRight, IconUser } from '../constants';
 import { SECT_LABEL, formatBirthTime, formatChildren, formatSiblings, profileManagedBy } from '../lib/profileDisplay';
@@ -441,15 +442,24 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
               </button>}
             </div>
 
-            <div className="min-w-[180px]">
-              <LikeButton
+            <div className="flex items-center gap-2">
+              <SuperInterestButton
                 candidate={candidate}
-                variant="wide"
-                showSuperLike={false}
-                onMatched={onMatched}
-                onLiked={likedHere}
-                onLimitReached={onUpgrade}
+                onUpgrade={onUpgrade}
+                onSent={(matchId) => {
+                  if (matchId) onMatched?.(matchId, candidate);
+                  likedHere();
+                }}
               />
+              <div className="min-w-[180px]">
+                <LikeButton
+                  candidate={candidate}
+                  variant="wide"
+                  onMatched={onMatched}
+                  onLiked={likedHere}
+                  onLimitReached={onUpgrade}
+                />
+              </div>
             </div>
           </div>
         )}

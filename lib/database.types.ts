@@ -585,6 +585,8 @@ export type Database = {
           is_super_like: boolean | null
           liked_id: string
           liker_id: string
+          note: string | null
+          super_source: string | null
         }
         Insert: {
           created_at?: string
@@ -592,6 +594,8 @@ export type Database = {
           is_super_like?: boolean | null
           liked_id: string
           liker_id: string
+          note?: string | null
+          super_source?: string | null
         }
         Update: {
           created_at?: string
@@ -599,6 +603,8 @@ export type Database = {
           is_super_like?: boolean | null
           liked_id?: string
           liker_id?: string
+          note?: string | null
+          super_source?: string | null
         }
         Relationships: [
           {
@@ -762,8 +768,11 @@ export type Database = {
           fee_estimated: boolean
           id: string
           method: string | null
+          mode: string | null
           paid_at: string
+          product_id: string | null
           provider: string
+          quantity: number | null
           refunded_amount: number
           refunded_at: string | null
           status: string
@@ -779,8 +788,11 @@ export type Database = {
           fee_estimated?: boolean
           id?: string
           method?: string | null
+          mode?: string | null
           paid_at?: string
+          product_id?: string | null
           provider: string
+          quantity?: number | null
           refunded_amount?: number
           refunded_at?: string | null
           status: string
@@ -796,8 +808,11 @@ export type Database = {
           fee_estimated?: boolean
           id?: string
           method?: string | null
+          mode?: string | null
           paid_at?: string
+          product_id?: string | null
           provider?: string
+          quantity?: number | null
           refunded_amount?: number
           refunded_at?: string | null
           status?: string
@@ -2133,6 +2148,7 @@ export type Database = {
           liker_name: string
           liker_photos: string[]
           liker_subscription_tier: string
+          note: string | null
         }[]
       }
       get_matches_with_profile: {
@@ -2258,6 +2274,9 @@ export type Database = {
       family_circle_view: { Args: { p_token: string }; Returns: Json }
       family_react: { Args: { p_token: string; p_profile_id: string; p_reaction: string; p_note?: string }; Returns: Json }
       admin_family_stats: { Args: { p_days?: number }; Returns: Json }
+      my_boosts: { Args: never; Returns: Json }
+      start_spotlight: { Args: never; Returns: Json }
+      admin_boost_stats: { Args: { p_days?: number; p_mode?: string }; Returns: Json }
       unmatch: { Args: { p_match_id: string }; Returns: undefined }
       unregister_push_device: { Args: { p_token: string }; Returns: undefined }
       vapid_public_key: { Args: never; Returns: string }

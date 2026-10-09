@@ -343,7 +343,7 @@ const ProForAllSwitch: React.FC<{ onChanged: () => void }> = ({ onChanged }) => 
 
   const toggle = async () => {
     const on = !proForAll;
-    if (!on && !window.confirm('Turn off Shaadi24+ for everyone? Members without a subscription lose Likes You, Super Likes, the extra filters, compatibility reports and date proposals straight away.')) return;
+    if (!on && !window.confirm('Turn off Shaadi24+ for everyone? Members without a subscription lose Likes You, the 3 free Super Interests a week, the extra filters, compatibility reports and date proposals straight away.')) return;
     setSaving(true);
     const { error } = await setProForAll(on);
     if (!error) await refreshProfile();
@@ -362,7 +362,7 @@ const ProForAllSwitch: React.FC<{ onChanged: () => void }> = ({ onChanged }) => 
         <h2 id="pro-for-all-label" className="text-sm font-bold text-gray-900 dark:text-white">Shaadi24+ for everyone</h2>
         <p id="pro-for-all-description" className="text-xs text-gray-500 dark:text-gray-400 mt-1">
           {proForAll
-            ? 'On: every member gets Likes You, Super Likes, refreshing Standouts, every filter, compatibility reports and date proposals for free. Free accounts keep the free limits (AI searches as set under Search insights, and 15 likes a day). Turn it off when Shaadi24+ goes on sale.'
+            ? 'On: every member gets Likes You, 3 Super Interests a week, refreshing Standouts, every filter, compatibility reports and date proposals for free. Free accounts keep the free limits (AI searches as set under Search insights, and 15 likes a day). Turn it off when Shaadi24+ goes on sale.'
             : 'Off: only subscribers get Shaadi24+\'s features.'}
         </p>
       </div>
@@ -441,7 +441,7 @@ const DashboardTab: React.FC<{
           <StatCard label="Total matches" value={stats.total_matches} />
           <StatCard label="Matches today" value={stats.matches_today} />
           <StatCard label="Messages today" value={stats.messages_today} />
-          <StatCard label="Total likes" value={stats.total_likes} subtle={`${stats.super_likes} super-likes`} />
+          <StatCard label="Total likes" value={stats.total_likes} subtle={`${stats.super_likes} Super Interests`} />
         </div>
       </div>
 

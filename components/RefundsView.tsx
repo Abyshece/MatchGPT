@@ -1,12 +1,12 @@
 import React from 'react';
 import { IconBook } from '../constants';
-import { pricesInWords } from '../lib/billingService';
+import { pricesInWords, spotlightPrice, superInterestPrices } from '../lib/billingService';
 import { LEGAL } from '../lib/legalInfo';
 import { HindiSummary, LegalLayout, List, Mail, Section, Summary, linkClass } from './legal/LegalLayout';
 
 // ============================================================================
-// Refund and Cancellation Policy for Shaadi24+, which is sold only in the apps
-// through Google Play and the App Store. The Consumer Protection (E-Commerce)
+// Refund and Cancellation Policy for Shaadi24+, Spotlight and Super Interests,
+// which are sold only in the apps through Google Play and the App Store. The Consumer Protection (E-Commerce)
 // Rules 2020 ask sellers to state cancellation and refund terms clearly, and
 // the Dark Patterns Guidelines 2023 forbid making a subscription hard to cancel.
 // ============================================================================
@@ -23,6 +23,8 @@ const RefundsView: React.FC<{ onBack: () => void }> = ({ onBack }) => (
       <p>Shaadi24+ is a subscription of one week, one month, three months or six months ({pricesInWords()} in India),
         that renews automatically until you cancel. The store shows you the final price, including GST and any other taxes, and any free trial, before
         you confirm. {LEGAL.brand} itself is free to use.</p>
+      <p>Spotlight ({spotlightPrice()}) and Super Interests ({superInterestPrices()}) are bought one at a time in the
+        apps the same way. They don't renew, so there is nothing to cancel; ones you haven't used stay in your account.</p>
     </Section>
 
     <Section title="2. Cancelling">
@@ -49,6 +51,11 @@ const RefundsView: React.FC<{ onBack: () => void }> = ({ onBack }) => (
         <li><strong>App Store</strong>: Apple handles refunds. Ask at{' '}
           <a className={linkClass} href="https://reportaproblem.apple.com" target="_blank" rel="noreferrer">reportaproblem.apple.com</a>;
           we can't refund App Store purchases ourselves, but write to us and we'll help.</li>
+        <li>A Spotlight that has run, or a Super Interest that was sent, isn't refunded except where the law requires
+          it. If one you paid for wasn't added to your account or didn't start because of a fault on our side, write to
+          us and we'll add it again or refund it.</li>
+        <li>When a store refunds a Spotlight or Super Interest, it is taken back from your account, and a Spotlight
+          that is on ends.</li>
         <li>A refund goes back to the way you paid, usually within 5 to 10 working days of the store approving it.</li>
       </List>
     </Section>

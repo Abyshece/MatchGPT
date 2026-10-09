@@ -135,7 +135,8 @@ try {
   let l = await lineSays(page, /^2 searches every 5 hours$/);
   check(l.ok, `before searching: "${l.said}"`);
   check(await search(page) === 200, 'the first search goes ahead');
-  l = await lineSays(page, /^1 search left until \d{1,2}:\d{2} [ap]m$/);
+  // ("tomorrow at …" when the 5 hours run past midnight in India)
+  l = await lineSays(page, /^1 search left until (tomorrow at )?\d{1,2}:\d{2} [ap]m$/);
   check(l.ok, `then: "${l.said}"`);
   const resetsAt = sql(`select to_char((window_started_at + interval '5 hours') at time zone 'Asia/Kolkata', 'FMHH12:MI am')
                           from search_usage where user_id = '${me}';`).toLowerCase();
@@ -147,7 +148,8 @@ try {
   await page.getByTestId('find-match-box').press('Enter');
   const modal = page.getByTestId('upgrade-modal');
   check(await appears(modal.getByText("You've used your searches for now")), 'a third: "You\'ve used your searches for now"');
-  check(await appears(modal.getByText(`You can search again at ${resetsAt}.`)), `"You can search again at ${resetsAt}."`);
+  const again = new RegExp(`You can search again (tomorrow )?at ${resetsAt}\\.`);
+  check(await appears(modal.getByText(again)), `"You can search again at ${resetsAt}."`);
   check(await appears(modal.getByText('Shaadi24+ gives you more searches.')), 'and Shaadi24+ gives more');
   await page.screenshot({ path: `${OUT}1-window.png` });
   await closeModal(page);
@@ -212,7 +214,7 @@ try {
   const usage = page.getByTestId('search-usage');
   check(await appears(usage), 'Settings shows the AI searches');
   check((await usage.getByTestId('usage-window').innerText()).includes('1 of 2 used'), `every 5 hours: ${(await usage.getByTestId('usage-window').innerText()).replace(/\s+/g, ' ')}`);
-  check(/Resets at \d{1,2}:\d{2} [ap]m/.test(await usage.getByTestId('usage-window').innerText()), 'with when it resets');
+  check(/Resets (tomorrow )?at \d{1,2}:\d{2} [ap]m/.test(await usage.getByTestId('usage-window').innerText()), 'with when it resets');
   const dayRow = (await usage.getByTestId('usage-day').innerText()).replace(/\s+/g, ' ');
   check(dayRow.includes(`1 of ${DAY} used`) && dayRow.includes('Resets at midnight'), `today: ${dayRow}`);
   const weekRow = (await usage.getByTestId('usage-week').innerText()).replace(/\s+/g, ' ');

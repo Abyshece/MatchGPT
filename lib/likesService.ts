@@ -13,8 +13,9 @@ import type { MatchCandidate } from '../types';
 export interface LikeReceived {
   likeId: string;
   likerId: string;
-  isSuperLike: boolean;
+  isSuperLike: boolean;        // a Super Interest: who sent it shows to everyone
   likedAt: string;
+  note: string | null;         // a Super Interest's note
   liker: {
     id: string;
     name: string;
@@ -33,6 +34,7 @@ export interface LikeResult {
   matched: boolean;          // true if a match was created (mutual like)
   matchId?: string;
   error?: string;
+  code?: string;             // NO_SUPER_INTEREST, NOTE_REFUSED (lib/boosts.ts)
 }
 
 // ----------------------------------------------------------------------------
@@ -42,15 +44,19 @@ export interface LikeResult {
 export async function likeUser(
   likerId: string,
   likedId: string,
-  isSuperLike = false
+  isSuperLike = false,
+  note?: string,
 ): Promise<LikeResult> {
-  // Insert the like row. Trigger auto-creates a match if mutual.
+  // Insert the like row. Trigger auto-creates a match if mutual. A Super
+  // Interest uses one included with Shaadi24+ or a bought one (the database
+  // decides, and refuses when there are none).
   const { error: insertError } = await supabase
     .from('likes')
     .insert({
       liker_id: likerId,
       liked_id: likedId,
       is_super_like: isSuperLike,
+      ...(isSuperLike && note?.trim() ? { note: note.trim() } : {}),
     });
 
   if (insertError) {
@@ -58,7 +64,7 @@ export async function likeUser(
     if (insertError.code === '23505') {
       return { success: false, matched: false, error: 'Already liked this user' };
     }
-    return { success: false, matched: false, error: insertError.message };
+    return { success: false, matched: false, error: insertError.message, code: insertError.hint || undefined };
   }
 
   // Check if a match row exists now (the trigger inserts one when mutual)
@@ -202,6 +208,7 @@ export async function listLikesReceived(userId: string): Promise<{ likes: LikeRe
     likerId: row.liker_id as string,
     isSuperLike: row.is_super_like as boolean,
     likedAt: row.liked_at as string,
+    note: (row.note as string | null) ?? null,
     liker: {
       id: row.liker_id as string,
       name: displayName(row.liker_name as string | null),

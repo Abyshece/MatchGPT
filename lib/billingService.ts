@@ -34,9 +34,9 @@ export const PERIODS: Record<PlanPeriod, { label: string; every: string; weeks: 
 
 export type Subscription = Tables<'subscriptions'>;
 // What members may read of their own payments (not the fees we paid)
-const MY_PAYMENT_COLUMNS = 'id,user_id,subscription_id,provider,store_order_id,amount,currency,status,method,paid_at,refunded_amount,refunded_at,created_at';
+const MY_PAYMENT_COLUMNS = 'id,user_id,subscription_id,product_id,provider,store_order_id,amount,currency,status,method,paid_at,refunded_amount,refunded_at,created_at';
 export type Payment = Pick<Tables<'payments'>,
-  'id' | 'user_id' | 'subscription_id' | 'provider' | 'store_order_id' | 'amount' | 'currency' | 'status' | 'method'
+  'id' | 'user_id' | 'subscription_id' | 'product_id' | 'provider' | 'store_order_id' | 'amount' | 'currency' | 'status' | 'method'
   | 'paid_at' | 'refunded_amount' | 'refunded_at' | 'created_at'>;
 
 // The prices in the Terms (the stores show their own, in the buyer's currency):
@@ -52,6 +52,25 @@ export const DEFAULT_PLANS: BillingPlan[] = [
 export const planName = (id: string | null | undefined) =>
   DEFAULT_PLANS.find((p) => p.id === id)?.name ?? (id === 'yearly' ? 'Shaadi24+ 1 year' : 'Shaadi24+');
 
+// Spotlight and Super Interest packs (lib/boosts.ts), bought one at a time
+const PACK_NAMES: Record<string, string> = {
+  spotlight_24h: 'Spotlight (24 hours)', super_interest_1: '1 Super Interest', super_interest_5: '5 Super Interests',
+};
+
+// Our prices in India for the packs, as set in the stores (boost_products in the database)
+export const PACK_PRICES = { spotlight_24h: 14900, super_interest_1: 4900, super_interest_5: 19900 };
+
+/** "₹149 for 24 hours" */
+export const spotlightPrice = () => `${formatRupees(PACK_PRICES.spotlight_24h)} for 24 hours`;
+
+/** "₹49 each, or 5 for ₹199" */
+export const superInterestPrices = () =>
+  `${formatRupees(PACK_PRICES.super_interest_1)} each, or 5 for ${formatRupees(PACK_PRICES.super_interest_5)}`;
+
+/** What a charge was for: a pack, or Shaadi24+ */
+export const chargeName = (productId: string | null | undefined, plan?: string | null) =>
+  (productId && PACK_NAMES[productId]) || (plan && PACK_NAMES[plan]) || planName(plan);
+
 /** The Terms' prices in words: "₹499 a week, ₹999 a month, ₹1,999 for 3 months and ₹2,999 for 6 months" */
 export function pricesInWords(): string {
   const each = DEFAULT_PLANS.map((p) => p.period === 'weekly' || p.period === 'monthly'
@@ -63,7 +82,7 @@ export function pricesInWords(): string {
 // What Shaadi24+ adds (each is enforced by the server): more searches and
 // unlimited likes, which take a subscription...
 export interface ProBenefit {
-  key: 'searches' | 'likes' | 'likes-you' | 'super-likes' | 'filters' | 'reports' | 'dates' | 'standouts';
+  key: 'searches' | 'likes' | 'likes-you' | 'super-interests' | 'filters' | 'reports' | 'dates' | 'standouts';
   title: string;
   detail?: string;
 }
@@ -76,7 +95,7 @@ const limitsLifted = (plans?: { free: PlanLimits; plus: PlanLimits }, hours?: nu
 // everyone" is on (useAuth().proForAll; app_settings)
 const FEATURES: ProBenefit[] = [
   { key: 'likes-you', title: 'See everyone who liked you' },
-  { key: 'super-likes', title: 'Super Likes, to stand out' },
+  { key: 'super-interests', title: '3 Super Interests a week', detail: 'A like with a note, at the top of their Likes You' },
   { key: 'filters', title: 'Every search filter', detail: 'Religion, community, height and more' },
   { key: 'reports', title: 'Compatibility reports', detail: 'Why you match' },
   { key: 'dates', title: 'Propose dates in chat' },
@@ -89,7 +108,7 @@ export function proBenefits(proForAll: boolean, plans?: { free: PlanLimits; plus
 }
 
 /** Said under the benefits while Shaadi24+'s features are everyone's. */
-export const FEATURES_FREE_NOW = 'Likes You, Super Likes, every filter, compatibility reports and date proposals are free for everyone right now.';
+export const FEATURES_FREE_NOW = 'Likes You, 3 Super Interests a week, every filter, compatibility reports and date proposals are free for everyone right now.';
 
 const LIVE = ['authenticated', 'active', 'pending', 'paused'];
 

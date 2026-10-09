@@ -98,6 +98,26 @@ export const cancelSubscription = (cfg: GooglePlayConfig, purchaseToken: string)
     cancellationContext: { cancellationType: 'DEVELOPER_REQUESTED_STOP_PAYMENTS' },
   });
 
+// ---- A one-time product purchase (Spotlight, Super Interests) ---------------------------
+
+export interface GoogleProductPurchase {
+  purchaseTimeMillis?: string;
+  purchaseState?: number;          // 0 purchased, 1 cancelled, 2 pending (some UPI and cash payments)
+  consumptionState?: number;       // 0 not consumed yet, 1 consumed
+  orderId?: string;
+  purchaseType?: number;           // 0 a test purchase (license testers), 1 promo code, 2 rewarded
+  acknowledgementState?: number;
+  obfuscatedExternalAccountId?: string;
+  quantity?: number;
+}
+
+export const getProductPurchase = (cfg: GooglePlayConfig, productId: string, purchaseToken: string) =>
+  api<GoogleProductPurchase>(cfg, 'GET', `/purchases/products/${encodeURIComponent(productId)}/tokens/${encodeURIComponent(purchaseToken)}`);
+
+// Consuming acknowledges the purchase and lets the person buy the pack again
+export const consumeProductPurchase = (cfg: GooglePlayConfig, productId: string, purchaseToken: string) =>
+  api<unknown>(cfg, 'POST', `/purchases/products/${encodeURIComponent(productId)}/tokens/${encodeURIComponent(purchaseToken)}:consume`);
+
 // ---- Our view of it --------------------------------------------------------------------
 
 export interface StoreState {

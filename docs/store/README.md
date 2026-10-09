@@ -159,6 +159,11 @@ then test it and add iPad screenshots.)
    next billing date"**: the new plan applies straight away and its price is charged on the date the
    current one would have renewed, so nobody pays twice. ("Charge immediately" also works: the new price
    is charged at once and the rest of the current plan is credited.)
+   **Monetize with Play → Products → One-time products** (Spotlight and Super Interest, bought one at a
+   time; "Spotlight and Super Interest" below): `spotlight_24h` (₹149), `super_interest_1` (₹49) and
+   `super_interest_5` (₹199), each active, with the name and description from the table below. The app
+   consumes each purchase once our server has added it, so they can be bought again. A product not made
+   yet shows as "not on sale yet" in the app.
 5. **Users and permissions**: invite the Google Cloud service account whose key is
    `GOOGLE_PLAY_SERVICE_ACCOUNT`, with "View financial data" and "Manage orders and subscriptions".
 6. **Monetization setup → Real-time developer notifications**: the Pub/Sub topic whose push subscription
@@ -198,6 +203,10 @@ then test it and add iPad screenshots.)
    submitted). Optionally a 1-week free trial as the introductory offer. Actions → App Store check
    (`scripts/store-check.mjs`) says what each still needs.
    The first subscriptions are reviewed with the app: tick them on the version page before submitting.
+   **Monetization → In-App Purchases**: three **Consumables**, `shaadi24_spotlight_24h` (₹149),
+   `shaadi24_super_interest_1` (₹49) and `shaadi24_super_interest_5` (₹199), each with the display
+   name, description and a review screenshot (Menu → Spotlight in the app). Tick them on the version page
+   too. Apple tells our server about each purchase and refund (the notifications address above).
 5. **App Privacy**: the Privacy Policy address and the answers below.
 6. **Pricing and Availability**: free; the same countries as Google Play.
 7. **TestFlight**: add yourself as a tester, install the build, and go through step 8. Purchases there
@@ -282,6 +291,32 @@ The subscriptions' names and descriptions (App Store: 30 and 45 characters at mo
 
 ---
 
+## Spotlight and Super Interest
+
+For members who won't take a plan (and Shaadi24+ members who want more): bought one at a time, never
+renewing. The app shows the store's own prices.
+
+| Pack | Google Play | App Store | Price | You keep* | What it does |
+|---|---|---|---|---|---|
+| Spotlight | `spotlight_24h` | `shaadi24_spotlight_24h` | ₹149 | ~₹107 | Shown first, marked "Spotlight", to people searching nearby, for 24 hours |
+| 1 Super Interest | `super_interest_1` | `shaadi24_super_interest_1` | ₹49 | ~₹35 | A like with a note, top of their Likes You, seen even without Shaadi24+ |
+| 5 Super Interests | `super_interest_5` | `shaadi24_super_interest_5` | ₹199 | ~₹143 | The same, five (save ₹46) |
+
+\* After 18% GST and the stores' 15%.
+
+Why these: ₹49 is an impulse price (less than a coffee), the 5-pack makes each about ₹40, and a
+Spotlight costs under a third of the 1-week plan (₹499), so it's the step before a plan. Shaadi24+
+includes 3 Super Interests a week, which makes the plan worth more.
+Change the prices in the stores, then `boost_products.amount` (the finance figures use it for Google
+Play, which doesn't say a one-time purchase's price) and `PACK_PRICES` in `lib/billingService.ts` (the
+Terms and Refunds pages; bump `TERMS_VERSION`).
+
+| Product | Display name | Description |
+|---|---|---|
+| Spotlight | Spotlight (24 hours) | Be shown first to people near you for a day |
+| 1 Super Interest | 1 Super Interest | A like with a note that stands out |
+| 5 Super Interests | 5 Super Interests | Five likes with a note that stand out |
+
 ## Google Play store listing
 
 **App name** (30 characters): `Shaadi24: Indian Matrimony`
@@ -321,7 +356,10 @@ SAFE AND RESPECTFUL
 • For adults 18 and over
 
 SHAADI24+
-A free account can make a few AI searches every 5 hours (more a day with a complete profile) and send 15 likes a day. Shaadi24+ adds more searches, unlimited likes, Super Likes, everyone who has liked you, more search filters (religion, mother tongue, community, Manglik, height, diet, education and more), the full compatibility report and date proposals in chat. It's a subscription for a week, a month, 3 months or 6 months through Google Play that renews until you cancel it in Google Play.
+A free account can make a few AI searches every 5 hours (more a day with a complete profile) and send 15 likes a day. Shaadi24+ adds more searches, unlimited likes, 3 Super Interests a week, everyone who has liked you, more search filters (religion, mother tongue, community, Manglik, height, diet, education and more), the full compatibility report and date proposals in chat. It's a subscription for a week, a month, 3 months or 6 months through Google Play that renews until you cancel it in Google Play.
+
+SPOTLIGHT AND SUPER INTEREST
+No plan needed: put yourself first in searches near you for 24 hours with Spotlight, or send a Super Interest, a like with a note that goes to the top of their Likes You. Bought one at a time in the app.
 
 Making a profile for a son, daughter, brother, sister or friend? Welcome, with their permission.
 
@@ -377,7 +415,10 @@ SAFE AND RESPECTFUL
 • For adults 18 and over
 
 SHAADI24+
-A free account can make a few AI searches every 5 hours (more a day with a complete profile) and send 15 likes a day. Shaadi24+ adds more searches, unlimited likes, Super Likes, everyone who has liked you, more search filters (religion, mother tongue, community, Manglik, height, diet, education and more), the full compatibility report and date proposals in chat.
+A free account can make a few AI searches every 5 hours (more a day with a complete profile) and send 15 likes a day. Shaadi24+ adds more searches, unlimited likes, 3 Super Interests a week, everyone who has liked you, more search filters (religion, mother tongue, community, Manglik, height, diet, education and more), the full compatibility report and date proposals in chat.
+
+SPOTLIGHT AND SUPER INTEREST
+No plan needed: put yourself first in searches near you for 24 hours with Spotlight, or send a Super Interest, a like with a note that goes to the top of their Likes You. Bought one at a time in the app.
 
 Shaadi24+ is an auto-renewing subscription for 1 week, 1 month, 3 months or 6 months. Payment is charged to your Apple Account when you confirm the purchase. It renews automatically unless you turn off auto-renewal at least 24 hours before the end of the current period, and your account is charged for the renewal within 24 hours before the period ends. Manage or cancel it in your Apple Account settings. If a free trial is offered, any unused part of it ends when you buy a subscription.
 
@@ -490,6 +531,7 @@ On the first screen tap "Sign in or create account", then "Continue with Email",
 
 IN-APP PURCHASES
 Shaadi24+ is an auto-renewable subscription (group "Shaadi24+": shaadi24_plus_weekly, shaadi24_plus_monthly, shaadi24_plus_quarterly and shaadi24_plus_halfyearly). Open it from the menu ("Get Shaadi24+") or Settings → Shaadi24+, which also has Restore purchases and Manage subscription. Our server checks every purchase with the App Store. The app offers no other way to pay.
+Spotlight and Super Interest are consumables, bought one at a time from the menu ("Spotlight"): shaadi24_spotlight_24h (shows the member first in nearby searches for 24 hours, started when bought) and shaadi24_super_interest_1 / shaadi24_super_interest_5 (a like with a note, sent from the Super Interest button on any profile).
 
 SIGN IN WITH APPLE is on the first screen, above Google.
 

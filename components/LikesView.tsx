@@ -24,7 +24,10 @@ import { firstCelebration } from '../lib/matchCelebration';
 type SortOption = 'Recent' | 'Last Active' | 'Nearby';
 
 // onNavigateToMatches: opens the chat of a match made here (Dashboard)
-const LikesView: React.FC<{ onNavigateToMatches?: (matchId: string) => void }> = ({ onNavigateToMatches }) => {
+// onOpenSpotlight: the Spotlight & Super Interest screen (BoostsView)
+const LikesView: React.FC<{ onNavigateToMatches?: (matchId: string) => void; onOpenSpotlight?: () => void }> = ({
+  onNavigateToMatches, onOpenSpotlight,
+}) => {
   const { profile, session, hasPro } = useAuth();
   const { showToast } = useToast();
 
@@ -54,6 +57,8 @@ const LikesView: React.FC<{ onNavigateToMatches?: (matchId: string) => void }> =
   }
 
   const isPro = hasPro;
+  // Super Interests show who sent them to everyone; the rest need Shaadi24+
+  const hidden = isPro ? 0 : likes.filter((l) => !l.isSuperLike).length;
 
   const handleMatched = (matchId: string, candidate: MatchCandidate) => {
     setSelectedCandidate(null);
@@ -85,7 +90,7 @@ const LikesView: React.FC<{ onNavigateToMatches?: (matchId: string) => void }> =
           )}
         </div>
 
-        {!isPro && !loading && likes.length > 0 && (
+        {!isPro && !loading && hidden > 0 && (
           <div className="mb-8 plus-soft border rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm animate-fade-in">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 flex-shrink-0 plus-solid rounded-full flex items-center justify-center">
@@ -94,7 +99,7 @@ const LikesView: React.FC<{ onNavigateToMatches?: (matchId: string) => void }> =
               <div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white">See who liked you</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Get Shaadi24+ to reveal all {likes.length} {likes.length === 1 ? 'person' : 'people'} and sort them.
+                  Get Shaadi24+ to reveal {hidden === likes.length ? 'all ' : ''}{hidden} {hidden === 1 ? 'person' : 'people'} and sort them.
                 </p>
               </div>
             </div>
@@ -105,6 +110,18 @@ const LikesView: React.FC<{ onNavigateToMatches?: (matchId: string) => void }> =
               Get Shaadi24+
             </button>
           </div>
+        )}
+
+        {!loading && onOpenSpotlight && (
+          <button type="button" onClick={onOpenSpotlight} data-testid="likes-spotlight"
+            className="mb-6 w-full text-left flex items-center gap-3 p-4 rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50/70 dark:bg-amber-900/10 hover:bg-amber-50 dark:hover:bg-amber-900/20">
+            <span className="text-2xl" aria-hidden="true">✨</span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-semibold text-gray-900 dark:text-white">Get more likes with Spotlight</span>
+              <span className="block text-sm text-gray-600 dark:text-gray-300">Be shown first to people searching near you, for 24 hours.</span>
+            </span>
+            <span className="text-sm font-semibold text-amber-700 dark:text-amber-300 whitespace-nowrap">See how</span>
+          </button>
         )}
 
         {loading ? (

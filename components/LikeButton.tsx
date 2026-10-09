@@ -4,13 +4,14 @@ import { useAuth } from '../lib/AuthContext';
 import { useToast } from '../lib/useToast';
 import { likeUser, hasLiked, unlikeUser } from '../lib/likesService';
 import { DAILY_LIMITS } from '../lib/profileService';
-import { IconHeart, IconStar } from '../constants';
+import { IconHeart } from '../constants';
 import type { MatchCandidate } from '../types';
 
 // ============================================================================
 // LikeButton
 //
-// A pair of buttons: regular Like (heart) and Super Like (star, Pro only).
+// The Like (heart). A Super Interest, a like with a note, is sent from the
+// profile (SuperInterestSheet).
 //
 // Behavior:
 //   - Free user: clicking heart shows confirmation with the likes left today
@@ -24,21 +25,20 @@ interface LikeButtonProps {
   candidate: MatchCandidate;
   size?: 'sm' | 'md' | 'lg';
   variant?: 'icon' | 'wide';   // 'icon' = round button (default), 'wide' = pill bar for cards
-  showSuperLike?: boolean;
   onMatched?: (matchId: string, candidate: MatchCandidate) => void;
   onLiked?: () => void;
   onLimitReached?: () => void;
 }
 
 const LikeButton: React.FC<LikeButtonProps> = ({
-  candidate, size = 'md', variant = 'icon', showSuperLike = true, onMatched, onLiked, onLimitReached,
+  candidate, size = 'md', variant = 'icon', onMatched, onLiked, onLimitReached,
 }) => {
-  const { profile, session, refreshProfile, hasPro } = useAuth();
+  const { profile, session, refreshProfile } = useAuth();
   const { showToast } = useToast();
 
   const [liked, setLiked] = useState<boolean | null>(null); // null = unknown yet
   const [busy, setBusy] = useState(false);
-  const [showConfirm, setShowConfirm] = useState<null | 'like' | 'super'>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   // Check on mount whether we've already liked this person
   useEffect(() => {
@@ -52,10 +52,8 @@ const LikeButton: React.FC<LikeButtonProps> = ({
 
   if (!profile || !session?.user.id) return null;
 
-  // The daily limit follows the subscription; Super Likes follow Shaadi24+'s
-  // one rule (hasPro: also everyone's while Shaadi24+ for everyone is on)
+  // The daily limit follows the subscription
   const unlimited = profile.subscriptionTier === 'PRO';
-  const superLikes = hasPro;
 
   // Daily limit check (free accounts; subscribers are unlimited)
   const today = new Date().toISOString().slice(0, 10);
@@ -66,26 +64,20 @@ const LikeButton: React.FC<LikeButtonProps> = ({
 
   // ---- handlers -----------------------------------------------------------
 
-  const performLike = async (isSuperLike: boolean) => {
+  const performLike = async () => {
     if (!session?.user.id) return;
     if (atLimit) {
       showToast(`Daily like limit reached. Get Shaadi24+ for unlimited likes.`, 'info');
       onLimitReached?.();
       return;
     }
-    if (isSuperLike && !superLikes) {
-      showToast('Super Likes are a Pro feature', 'info');
-      onLimitReached?.();
-      return;
-    }
-
     setBusy(true);
-    setShowConfirm(null);
+    setShowConfirm(false);
 
     // Optimistic UI
     setLiked(true);
 
-    const result = await likeUser(session.user.id, candidate.id, isSuperLike);
+    const result = await likeUser(session.user.id, candidate.id, false);
 
     if (!result.success) {
       // Revert
@@ -101,7 +93,7 @@ const LikeButton: React.FC<LikeButtonProps> = ({
       // It's a match — caller handles the celebration
       onMatched?.(result.matchId, candidate);
     } else {
-      showToast(isSuperLike ? `Super liked ${candidate.name} ⭐` : `Liked ${candidate.name} ❤️`, 'success');
+      showToast(`Liked ${candidate.name} ❤️`, 'success');
     }
     // The card or profile leaves now, without waiting for the refresh below
     onLiked?.();
@@ -115,21 +107,10 @@ const LikeButton: React.FC<LikeButtonProps> = ({
     if (liked || busy) return;
     // Free likes are counted, so each one is confirmed first
     if (unlimited) {
-      performLike(false);
+      performLike();
     } else {
-      setShowConfirm('like');
+      setShowConfirm(true);
     }
-  };
-
-  const handleSuperLikeClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (liked || busy) return;
-    if (!superLikes) {
-      showToast('Super Likes are a Pro feature', 'info');
-      onLimitReached?.();
-      return;
-    }
-    performLike(true);
   };
 
   const handleUnlike = async (e: React.MouseEvent) => {
@@ -158,7 +139,7 @@ const LikeButton: React.FC<LikeButtonProps> = ({
   // ---- render -------------------------------------------------------------
 
   // Wide variant: a single pill-shaped bar that fills its container. Used in
-  // MatchCard footer. Never shows super-like (cards have limited space).
+  // MatchCard footer.
   if (variant === 'wide') {
     return (
       <>
@@ -188,7 +169,7 @@ const LikeButton: React.FC<LikeButtonProps> = ({
     return createPortal(
       <div
         className="fixed inset-0 z-[300] flex items-center justify-center p-4 popup-backdrop animate-fade-in"
-        onClick={(e) => { e.stopPropagation(); setShowConfirm(null); }}
+        onClick={(e) => { e.stopPropagation(); setShowConfirm(false); }}
       >
         <div
           className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl w-full max-w-sm overflow-hidden border border-gray-200 dark:border-zinc-800 p-6"
@@ -206,13 +187,13 @@ const LikeButton: React.FC<LikeButtonProps> = ({
             </p>
             <div className="flex gap-2">
               <button
-                onClick={() => setShowConfirm(null)}
+                onClick={() => setShowConfirm(false)}
                 className="flex-1 py-2.5 border border-gray-300 dark:border-zinc-700 rounded-lg text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800"
               >
                 Cancel
               </button>
               <button
-                onClick={() => performLike(false)}
+                onClick={() => performLike()}
                 className="flex-1 py-2.5 bg-pink-500 text-white rounded-lg text-sm font-bold shadow-sm hover:bg-pink-600 disabled:opacity-50"
                 disabled={busy}
               >
@@ -232,22 +213,6 @@ const LikeButton: React.FC<LikeButtonProps> = ({
   return (
     <>
       <div className="flex gap-2 items-center" onClick={(e) => e.stopPropagation()}>
-        {showSuperLike && (
-          <button
-            onClick={liked ? undefined : handleSuperLikeClick}
-            disabled={busy || liked === true}
-            title={superLikes ? 'Super Like' : 'Super Like (Pro)'}
-            className={`${sizes.btn} flex items-center justify-center rounded-full shadow-sm transition-all ${
-              liked
-                ? 'bg-gray-100 dark:bg-zinc-800 text-gray-300 dark:text-zinc-600 cursor-not-allowed'
-                : superLikes
-                  ? 'bg-white dark:bg-zinc-800 text-blue-500 hover:scale-110 hover:bg-blue-50 dark:hover:bg-blue-900/30 border border-gray-200 dark:border-zinc-700'
-                  : 'bg-white dark:bg-zinc-800 text-gray-500 dark:text-gray-400 hover:text-gray-600 hover:bg-gray-50 dark:hover:bg-zinc-700 border border-gray-200 dark:border-zinc-700'
-            }`}
-          >
-            <span className={sizes.icon}><IconStar /></span>
-          </button>
-        )}
         <button
           onClick={liked ? handleUnlike : handleHeartClick}
           disabled={busy || liked === null}

@@ -263,7 +263,7 @@ const BiodataView: React.FC<{ onEditProfile?: () => void }> = ({ onEditProfile }
 
         <div className="flex flex-wrap gap-2">
           <button type="button" onClick={() => run('share')} disabled={!link || !!busy}
-            className="flex-1 min-w-[10rem] px-4 py-3 rounded-xl bg-[#25D366] text-white font-semibold disabled:opacity-50">
+            className="flex-1 min-w-[10rem] px-4 py-3 rounded-xl bg-[#25D366] text-black font-semibold disabled:opacity-50">
             {busy === 'share' ? 'Making the picture…' : 'Share on WhatsApp'}
           </button>
           <button type="button" onClick={() => run('save')} disabled={!link || !!busy}

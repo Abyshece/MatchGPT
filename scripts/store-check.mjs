@@ -1,6 +1,6 @@
 // ============================================================================
 // Shaadi24+ in App Store Connect: are the subscriptions the app sells there,
-// and ready for the app to show? (.github/workflows/store-check.yml runs this;
+// and ready for the app to show? And the Spotlight and Super Interest packs? (.github/workflows/store-check.yml runs this;
 // Actions → App Store check → Run workflow.)
 //
 // The iPhone app asks the App Store for the products in billing_plans
@@ -29,6 +29,13 @@ export const EXPECTED = [
   { productId: 'shaadi24_plus_monthly', period: 'ONE_MONTH', price: 999 },
   { productId: 'shaadi24_plus_quarterly', period: 'THREE_MONTHS', price: 1999 },
   { productId: 'shaadi24_plus_halfyearly', period: 'SIX_MONTHS', price: 2999 },
+];
+
+/** Spotlight and Super Interest packs (boost_products.apple_product_id), Consumables */
+export const PACKS = [
+  { productId: 'shaadi24_spotlight_24h', price: 149 },
+  { productId: 'shaadi24_super_interest_1', price: 49 },
+  { productId: 'shaadi24_super_interest_5', price: 199 },
 ];
 
 // The states in which the App Store gives a subscription to the app
@@ -241,17 +248,58 @@ export async function checkSubscriptions({ call, bundleId, expected = EXPECTED }
   return { ready, lines };
 }
 
+// The in-app purchases' states the App Store gives to the app
+const IAP_READY = new Set(['READY_TO_SUBMIT', 'WAITING_FOR_REVIEW', 'IN_REVIEW', 'PENDING_BINARY_APPROVAL', 'APPROVED']);
+
+/**
+ * Spotlight and Super Interest: are the three Consumables there and ready?
+ * (Their prices are set in App Store Connect; the app shows the store's.)
+ */
+export async function checkPacks({ call, bundleId, expected = PACKS }) {
+  const apps = await call('GET', `/v1/apps?filter[bundleId]=${encodeURIComponent(bundleId)}&fields[apps]=bundleId,name`);
+  const app = apps?.data?.[0];
+  if (!app) return { ready: false, lines: [`No app with the bundle ID ${bundleId} in App Store Connect.`] };
+  const found = await tryRead('in-app purchases', () => call('GET', `/v1/apps/${app.id}/inAppPurchasesV2?limit=200`));
+  if (found.error) return { ready: false, lines: [`Spotlight and Super Interest: ${found.error}`] };
+  const iaps = found.value?.data ?? [];
+  const lines = [];
+  let ready = true;
+  for (const want of expected) {
+    const iap = iaps.find((i) => i.attributes?.productId === want.productId);
+    if (!iap) {
+      ready = false;
+      lines.push(`✗ ${want.productId}: not in App Store Connect (Monetization → In-App Purchases, a Consumable at ₹${want.price}).`);
+      continue;
+    }
+    const a = iap.attributes ?? {};
+    const notes = [words(a.state)];
+    if (a.inAppPurchaseType && a.inAppPurchaseType !== 'CONSUMABLE') notes.push(`it's ${words(a.inAppPurchaseType)}, but it must be a Consumable`);
+    const ok = IAP_READY.has(a.state) && (!a.inAppPurchaseType || a.inAppPurchaseType === 'CONSUMABLE');
+    if (!ok) ready = false;
+    lines.push(`${ok ? '✓' : '✗'} ${want.productId} (${a.name ?? 'no name'}): ${notes.join('; ')}.`);
+  }
+  lines.push(ready
+    ? 'Spotlight and Super Interests are ready for the app.'
+    : 'The app shows each pack that shows ✓; the rest say "not on sale yet". "Missing metadata" means a price, a name and description, or the review screenshot is still missing.');
+  return { ready, lines };
+}
+
 async function main() {
   const { ASC_ISSUER_ID: issuerId, ASC_KEY_ID: keyId, ASC_KEY: key, BUNDLE_ID: bundleId = 'com.shaadi24.app' } = process.env;
   if (!issuerId || !keyId || !key) {
     console.log('::warning::No App Store Connect API key here (APP_STORE_CONNECT_* secrets), so nothing was checked.');
     return;
   }
-  const result = await checkSubscriptions({ call: client({ issuerId, keyId, key }), bundleId });
+  const call = client({ issuerId, keyId, key });
+  const result = await checkSubscriptions({ call, bundleId });
   for (const line of result.lines) console.log(line);
   if (!result.ready) console.log('::warning::Shaadi24+ isn\'t ready in App Store Connect yet: see the summary.');
+  const packs = await checkPacks({ call, bundleId });
+  for (const line of packs.lines) console.log(line);
+  if (!packs.ready) console.log('::warning::Spotlight and Super Interest aren\'t ready in App Store Connect yet: see the summary.');
   if (process.env.GITHUB_STEP_SUMMARY) {
     fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `### Shaadi24+ in App Store Connect\n${result.lines.map((l) => `- ${l}`).join('\n')}\n`);
+    fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `### Spotlight and Super Interest\n${packs.lines.map((l) => `- ${l}`).join('\n')}\n`);
   }
 }
 

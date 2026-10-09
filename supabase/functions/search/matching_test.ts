@@ -377,3 +377,21 @@ Deno.test('without Shaadi24+: age, place and the switches stay, Shaadi24+\'s fil
   // The filters given are left as they were
   assertEquals(all.religion, 'Hindu');
 });
+
+Deno.test('Spotlight: a fair match near the searcher goes first, marked; one far away or a poor match does not', () => {
+  const match = { religion: 'Hindu', dietary_preferences: 'Vegetarian', smoking: 'No' };
+  const pool = [
+    person('best', { ...match, education_level: "Master's", family_values: 'Moderate' }),
+    person('lit', match),
+    person('far', { ...match, location: 'London, United Kingdom' }),
+  ];
+  const plain = rankCandidates(me, pool, '', {}, 50, NOW).candidates;
+  const lit = rankCandidates(me, pool, '', {}, 50, NOW, undefined, new Set(['lit', 'far'])).candidates;
+  assertEquals(lit[0].id, 'lit', 'in Spotlight and nearby: first');
+  assertEquals([lit[0].spotlight, lit.find((c) => c.id === 'far')?.spotlight], [true, undefined], 'only the one nearby is marked');
+  assertEquals(plain.some((c) => c.spotlight), false, 'nobody marked without Spotlight');
+  const poor = person('poor', { location: 'Mumbai, MH', religion: 'Muslim', dietary_preferences: 'Non-Vegetarian', smoking: 'Yes',
+    drinking: 'Regularly', age: 45 });
+  const [c] = rankCandidates(me, [poor], '', {}, 50, NOW, undefined, new Set(['poor'])).candidates;
+  assertEquals([c.compatibilityScore < 50, c.spotlight], [true, undefined], 'a poor match is not marked or pushed up');
+});

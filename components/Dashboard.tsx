@@ -44,11 +44,12 @@ const StandoutsView = lazyScreen(() => import('./StandoutsView'));
 const ProfileView = lazyScreen(() => import('./ProfileView'));
 const BiodataView = lazyScreen(() => import('./BiodataView'));
 const FamilyCircleView = lazyScreen(() => import('./FamilyCircleView'));
+const BoostsView = lazyScreen(() => import('./BoostsView'));
 const SettingsView = lazyScreen(() => import('./SettingsView'));
 const HelpCenter = lazyScreen(() => import('./HelpCenter'));
 const AdminView = lazyScreen(() => import('./admin/AdminView'));
 
-type Tab = 'search' | 'history' | 'likes' | 'matches' | 'standouts' | 'profile' | 'biodata' | 'family' | 'settings' | 'help' | 'admin';
+type Tab = 'search' | 'history' | 'likes' | 'matches' | 'standouts' | 'profile' | 'biodata' | 'family' | 'spotlight' | 'settings' | 'help' | 'admin';
 
 interface DashboardProps {
   isDarkMode: boolean;
@@ -260,6 +261,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
                 : activeTab === 'profile' ? 'My Profile'
                 : activeTab === 'biodata' ? 'My Biodata'
                 : activeTab === 'family' ? 'Family Circle'
+                : activeTab === 'spotlight' ? 'Spotlight'
                 : activeTab === 'history' ? 'Search History'
                 : activeTab === 'likes' ? 'Likes You'
                 : activeTab === 'matches' ? 'Matches'
@@ -301,11 +303,12 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
                 }}
               />
             )}
-            {activeTab === 'likes' && <LikesView onNavigateToMatches={handleNavigateToMatches} />}
+            {activeTab === 'likes' && <LikesView onNavigateToMatches={handleNavigateToMatches} onOpenSpotlight={() => setActiveTab('spotlight')} />}
             {activeTab === 'matches' && <MatchesView initialMatchId={pendingMatchOpenId} />}
             {activeTab === 'standouts' && <StandoutsView onNavigateToMatches={handleNavigateToMatches} />}
             {activeTab === 'profile' && <ProfileView key={profileOpen.key} initialSection={profileOpen.section} />}
             {activeTab === 'family' && <FamilyCircleView />}
+            {activeTab === 'spotlight' && <BoostsView onOpenSearch={() => setActiveTab('search')} />}
             {activeTab === 'biodata' && (
               <BiodataView onEditProfile={() => { setProfileOpen((o) => ({ section: 'family', key: o.key + 1 })); setActiveTab('profile'); }} />
             )}

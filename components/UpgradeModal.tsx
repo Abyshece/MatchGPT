@@ -59,14 +59,14 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ reason, limit, onClose }) =
         : reason === 'like_limit' ? "You've used today's likes"
           : reason === 'compatibility_report' ? 'See exactly why you match'
             : 'Find your life partner sooner';
-  const subtitle = done ? 'More searches, unlimited likes, Super Likes and more.'
+  const subtitle = done ? 'More searches, unlimited likes, 3 Super Interests a week and more.'
     : searchLimit
       ? alreadyPro
         ? nextSearch || 'Your searches come back soon.'
         : [nextSearch,
             limit?.limited_by === 'day' && (profile?.searchBonus ?? 0) < 6 ? 'Each profile section you complete adds a search a day.' : '',
             'Shaadi24+ gives you more searches.'].filter(Boolean).join(' ')
-      : alreadyPro ? 'More searches, unlimited likes, Super Likes and more.'
+      : alreadyPro ? 'More searches, unlimited likes, 3 Super Interests a week and more.'
         : reason === 'like_limit' ? `Free accounts get ${DAILY_LIMITS.FREE.likes} likes a day; more come tomorrow. Shaadi24+ has unlimited likes.`
           : reason === 'compatibility_report' ? 'Which traits align, and where there might be friction.'
             : 'More searches, unlimited likes and every feature.';
