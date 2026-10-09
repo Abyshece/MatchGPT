@@ -522,7 +522,10 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
 
         <div className="mt-6 pt-4 border-t border-gray-100 dark:border-zinc-800 text-center">
           <p className="text-[9px] text-gray-500 dark:text-gray-400 max-w-xs mx-auto leading-relaxed">
-            By continuing, you agree to our <a href="#" className="hover:text-gray-600 dark:hover:text-gray-300 underline">Terms</a> & <a href="#" className="hover:text-gray-600 dark:hover:text-gray-300 underline">Privacy Policy</a>.
+            By continuing, you agree to our{' '}
+            <button type="button" onClick={() => onShowLegal?.('terms')} className="hover:text-gray-600 dark:hover:text-gray-300 underline">Terms</button>
+            {' '}&amp;{' '}
+            <button type="button" onClick={() => onShowLegal?.('privacy')} className="hover:text-gray-600 dark:hover:text-gray-300 underline">Privacy Policy</button>.
           </p>
         </div>
       </div>
