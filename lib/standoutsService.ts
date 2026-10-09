@@ -4,8 +4,8 @@
 // Daily curated picks, chosen by the server (the `search` edge function): on
 // the first visit of the day it picks the 5 most compatible people you haven't
 // liked yet and saves them in `standouts`; later visits that day show the same
-// picks, in the same order. Anyone who has since paused, been banned or
-// blocked drops out.
+// picks, in the same order. Anyone liked since, or who has since paused,
+// been banned or blocked, drops out.
 //
 // Day rolls over at 00:00 UTC.
 // ============================================================================

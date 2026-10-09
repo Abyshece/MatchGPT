@@ -95,9 +95,6 @@ const LikeButton: React.FC<LikeButtonProps> = ({
       return;
     }
 
-    // The database counted this like; refresh so "likes left today" updates.
-    await refreshProfile();
-
     setBusy(false);
 
     if (result.matched && result.matchId) {
@@ -106,7 +103,11 @@ const LikeButton: React.FC<LikeButtonProps> = ({
     } else {
       showToast(isSuperLike ? `Super liked ${candidate.name} ⭐` : `Liked ${candidate.name} ❤️`, 'success');
     }
+    // The card or profile leaves now, without waiting for the refresh below
     onLiked?.();
+
+    // The database counted this like; refresh so "likes left today" updates.
+    await refreshProfile();
   };
 
   const handleHeartClick = (e: React.MouseEvent) => {

@@ -3,8 +3,10 @@
 // line behind it, which an empty second popup box used to draw; scrolls on a
 // short screen), then, signed in as one user (an onboarded account, password
 // TestPass!2026): the like confirmation on a match card (it used to be
-// squeezed into the card), the profile, filters, Shaadi24+ (bought in the
-// apps), verify and delete-account popups, and the phone menu.
+// squeezed into the card; the liked card bursts into sparkles and leaves the
+// results), the profile (a like inside it closes it, and the person leaves
+// the results), filters, Shaadi24+ (bought in the apps), verify and
+// delete-account popups, and the phone menu.
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -108,6 +110,8 @@ try {
   check((await responded).status() === 200, 'search ran');
   await page.waitForTimeout(1500);
 
+  // Results shown (the count reads "28", or "12 of 28" with filters)
+  const shown = async () => Number((await page.getByTestId('results-count').innerText()).split(' ')[0]);
   const like = page.getByRole('button', { name: 'Like', exact: true }).first();
   await like.click();
   await page.getByText(/likes remaining today/).waitFor({ timeout: 5000 });
@@ -117,10 +121,14 @@ try {
   check((await backdrops(page)).length === 0, 'a click outside closes it');
   check(!(await page.getByText('Profile Details').first().isVisible().catch(() => false)),
     "and doesn't open the profile of the card underneath");
+  const before = await shown();
   await like.click();
   await page.getByRole('button', { name: 'Yes, Like' }).click();
+  check(await page.getByTestId('sparkles').first().waitFor({ state: 'attached', timeout: 5000 }).then(() => true, () => false),
+    'the liked card bursts into sparkles');
   await page.waitForTimeout(1500);
   check(sql(`select count(*) from likes where liker_id = '${me}';`) === '1', '"Yes, Like" still sends the like');
+  check(await shown() === before - 1, `and the card leaves the results (${before} → ${await shown()})`);
   if (await page.getByText("It's a Match!").isVisible().catch(() => false)) await page.getByText('Keep Searching').click();
 
   log('4. profile popup');
@@ -129,6 +137,20 @@ try {
   await checkBackdrop(page, 'profile');
   await page.mouse.click(10, 450);
   await page.waitForTimeout(400);
+
+  log('4b. a like inside the profile');
+  const before2 = await shown();
+  await page.locator('h3').first().click();
+  const profile = page.getByTestId('profile-popup');
+  await profile.waitFor({ timeout: 5000 });
+  await profile.getByRole('button', { name: 'Like', exact: true }).click();
+  await page.getByRole('button', { name: 'Yes, Like' }).click();
+  check(await profile.waitFor({ state: 'detached', timeout: 5000 }).then(() => true, () => false),
+    'a like inside the profile closes it (it used to stay open)');
+  await page.waitForTimeout(800);
+  check(sql(`select count(*) from likes where liker_id = '${me}';`) === '2', 'the like is saved');
+  check(await shown() === before2 - 1, `and the person leaves the results (${before2} → ${await shown()})`);
+  if (await page.getByText("It's a Match!").isVisible().catch(() => false)) await page.getByText('Keep Searching').click();
 
   log('5. filters drawer');
   await page.getByTitle('Filters').click();

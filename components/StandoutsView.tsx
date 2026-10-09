@@ -29,6 +29,8 @@ const StandoutsView: React.FC<StandoutsViewProps> = ({ onNavigateToMatches }) =>
   const { showToast } = useToast();
 
   const [candidates, setCandidates] = useState<MatchCandidate[]>([]);
+  // Today's picks were chosen and have all been liked since (when none are left)
+  const [allLiked, setAllLiked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState<MatchCandidate | null>(null);
@@ -39,13 +41,14 @@ const StandoutsView: React.FC<StandoutsViewProps> = ({ onNavigateToMatches }) =>
   const fetchStandouts = useCallback(async () => {
     if (!userId) return;
     setLoading(true);
-    const { candidates, error } = await loadStandouts();
+    const { candidates, computed, error } = await loadStandouts();
     setLoading(false);
     if (error) {
       showToast(`Couldn't load standouts: ${error}`, 'error');
       return;
     }
     setCandidates(candidates);
+    setAllLiked(candidates.length === 0 && !computed);
   }, [userId, showToast]);
 
   useEffect(() => { fetchStandouts(); }, [fetchStandouts]);
@@ -66,6 +69,12 @@ const StandoutsView: React.FC<StandoutsViewProps> = ({ onNavigateToMatches }) =>
     if (firstCelebration(matchId)) setMatchCelebration({ matchId, candidate });
   };
 
+  // Liked: the pick leaves today's list (the server leaves it out from now on)
+  const dropPick = (id: string) => {
+    setCandidates((prev) => prev.filter((c) => c.id !== id));
+    setAllLiked(true);  // shown only once none are left
+  };
+
   const handleManualRefresh = async () => {
     if (!isPro) {
       setShowUpgradeModal(true);
@@ -79,11 +88,13 @@ const StandoutsView: React.FC<StandoutsViewProps> = ({ onNavigateToMatches }) =>
       return;
     }
     setCandidates(candidates);
+    setAllLiked(false);
     showToast('Standouts refreshed', 'success');
   };
 
   return (
-    <div className="h-full overflow-y-auto">
+    // No scroll anchoring: a liked pick's place is taken by the next one
+    <div className="h-full overflow-y-auto [overflow-anchor:none]">
       <div className="max-w-6xl mx-auto py-8 px-6 lg:px-12">
         {/* Header */}
         <div className="mb-2 flex items-start justify-between gap-4">
@@ -132,10 +143,21 @@ const StandoutsView: React.FC<StandoutsViewProps> = ({ onNavigateToMatches }) =>
         ) : candidates.length === 0 ? (
           <div className="text-center py-20 bg-gray-50 dark:bg-zinc-900/50 rounded-xl border border-gray-100 dark:border-zinc-800">
             <div className="text-5xl mb-4">🌟</div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No standouts yet</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">
-              Complete more of your profile to get high-quality daily picks. We curate these based on your preferences.
-            </p>
+            {allLiked ? (
+              <>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">You've liked all of today's picks</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+                  New Standouts come tomorrow. The people you liked are in Chat History → Liked profiles.
+                </p>
+              </>
+            ) : (
+              <>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No standouts yet</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+                  Complete more of your profile to get high-quality daily picks. We curate these based on your preferences.
+                </p>
+              </>
+            )}
           </div>
         ) : (
           <>
@@ -146,9 +168,11 @@ const StandoutsView: React.FC<StandoutsViewProps> = ({ onNavigateToMatches }) =>
               </div>
               <div className="md:max-w-md mx-auto">
                 <MatchCard
+                  key={candidates[0].id}
                   candidate={candidates[0]}
                   onClick={() => setSelectedCandidate(candidates[0])}
                   onMatched={handleMatched}
+                  onLiked={() => dropPick(candidates[0].id)}
                   onLimitReached={() => setShowUpgradeModal(true)}
                 />
               </div>
@@ -165,6 +189,7 @@ const StandoutsView: React.FC<StandoutsViewProps> = ({ onNavigateToMatches }) =>
                       candidate={c}
                       onClick={() => setSelectedCandidate(c)}
                       onMatched={handleMatched}
+                      onLiked={() => dropPick(c.id)}
                       onLimitReached={() => setShowUpgradeModal(true)}
                     />
                   ))}
@@ -188,6 +213,7 @@ const StandoutsView: React.FC<StandoutsViewProps> = ({ onNavigateToMatches }) =>
           onClose={() => setSelectedCandidate(null)}
           onUpgrade={() => { setSelectedCandidate(null); setShowUpgradeModal(true); }}
           onMatched={handleMatched}
+          onLiked={dropPick}
         />
       )}
 
