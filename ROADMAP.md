@@ -909,6 +909,19 @@ and others the phone's own picker, and every answer then needed the green tick.
 - [x] Tests: `india-profile` picks with pills and the sheet; `accessibility` checks the pills and the
   sheet in light and dark.
 
+Part 29 done 2026-10-09: **Liking feels quick.** A liked card faded for 0.7 s, and only after the
+app had also reloaded your profile (over a second in all); a like inside an open profile left it open.
+
+- [x] **A liked card bursts into gold and rose sparkles** and is gone in 0.4 s, as soon as the like is
+  saved; the next card moves up into its place (the page used to jump back a card). Passing is quicker
+  too (0.3 s). With "reduce motion" on, the card just fades.
+- [x] **A like inside an open profile closes it**, with the same sparkles, and the person leaves the
+  results behind it. In Likes You, liking back from the open profile now shows "It's a Match!" at once.
+- [x] **Standouts:** a liked pick leaves today's list (it used to leave an empty space), and the server
+  leaves it out when Standouts opens again that day. With all five liked, Standouts says so.
+- [x] Tests: `popups` (sparkles, the card leaves, a like in the profile closes it) and `phase8-app`
+  (a liked pick stays off Standouts).
+
 **Still to do**
 
 - [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.

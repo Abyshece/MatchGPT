@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { IconCheck, IconZap, IconHeart, IconX } from '../constants';
 import LikeButton from './LikeButton';
+import { playExit, type ExitKind } from '../lib/likeExit';
 import type { MatchCandidate } from '../types';
 
 // ============================================================================
@@ -9,6 +10,9 @@ import type { MatchCandidate } from '../types';
 //     dots indicator, online/offline status chip top-left, match% top-right)
 //   - Below photo: badges row (Verified, Pro), name + age, location
 //   - Bottom: X (pass) + Like button row, separated from content with border
+//   - Liked: the card bursts into sparkles and is gone in about 0.4 s; passed:
+//     it drops away. onLiked / onReject fire once it's gone, for the list to
+//     drop it (without onLiked a liked card stays, showing "Liked").
 // ============================================================================
 
 interface MatchCardProps {
@@ -16,8 +20,8 @@ interface MatchCardProps {
   onClick: () => void;
   onMatched?: (matchId: string, candidate: MatchCandidate) => void;
   onLimitReached?: () => void;
-  onLiked?: () => void;
-  onReject?: (id: string) => void;
+  onLiked?: () => void;            // after the card has gone
+  onReject?: (id: string) => void; // after the card has gone
   showLikeButton?: boolean;
 }
 
@@ -26,12 +30,14 @@ const MatchCard: React.FC<MatchCardProps> = ({
 }) => {
   const photos = candidate.imageUrls ?? [];
   const [photoIdx, setPhotoIdx] = useState(0);
-  const [exiting, setExiting] = useState<'like' | 'reject' | null>(null);
+  const [exiting, setExiting] = useState<ExitKind | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   const score = candidate.compatibilityScore;
 
-  const triggerExit = (action: 'like' | 'reject') => {
-    setExiting(action);
-    // Card removal happens in parent after 700ms (matches CSS duration)
+  // Plays the exit, then tells the list
+  const leave = (kind: ExitKind, then: () => void) => {
+    setExiting(kind);
+    setTimeout(then, playExit(cardRef.current, kind));
   };
 
   // Touch swipe support
@@ -49,13 +55,11 @@ const MatchCard: React.FC<MatchCardProps> = ({
 
   return (
     <div
+      ref={cardRef}
       onClick={() => !exiting && onClick()}
-      className={`group relative bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:hover:border-zinc-700 hover:shadow-lg overflow-hidden flex flex-col h-full cursor-pointer transition-all duration-700 ease-in-out transform ${
-        exiting === 'like'
-          ? 'opacity-0 scale-90 -translate-y-12 rotate-3 pointer-events-none'
-          : exiting === 'reject'
-            ? 'opacity-0 scale-90 translate-y-12 -rotate-3 pointer-events-none'
-            : 'opacity-100 scale-100 translate-y-0'
+      data-exiting={exiting ?? undefined}
+      className={`group relative bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:hover:border-zinc-700 hover:shadow-lg overflow-hidden flex flex-col h-full cursor-pointer transition-[border-color,box-shadow] duration-200 ${
+        exiting ? 'pointer-events-none' : ''
       }`}
     >
       {/* Photo carousel */}
@@ -158,8 +162,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                triggerExit('reject');
-                setTimeout(() => onReject(candidate.id), 0);
+                leave('pass', () => onReject(candidate.id));
               }}
               className="px-3 h-9 rounded-lg border border-transparent text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 dark:text-gray-400 hover:border-red-100 dark:hover:border-red-900/30 transition-colors flex items-center justify-center"
               title="Pass"
@@ -178,11 +181,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                 showSuperLike={false}
                 onMatched={onMatched}
                 onLimitReached={onLimitReached}
-                onLiked={() => {
-                  // Animate this card out then notify parent to remove it from results
-                  triggerExit('like');
-                  if (onLiked) onLiked();
-                }}
+                onLiked={onLiked && (() => leave('like', onLiked))}
               />
             </div>
           ) : (

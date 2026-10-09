@@ -143,6 +143,7 @@ const LikesView: React.FC<{ onNavigateToMatches?: (matchId: string) => void }> =
           isPro={isPro}
           onClose={() => setSelectedCandidate(null)}
           onUpgrade={() => { setSelectedCandidate(null); setShowUpgradeModal(true); }}
+          onMatched={handleMatched}
         />
       )}
 

@@ -178,11 +178,12 @@ async function standouts(me: Row, body: Record<string, unknown>): Promise<Respon
   }
 
   // Today's picks, once chosen, stay for the day (in their saved order).
-  // Anyone who has since become unavailable (paused, banned, blocked) drops out.
+  // Anyone liked since, or who has become unavailable (paused, banned,
+  // blocked), drops out.
   const saved = await rest(`standouts?${mine}&select=candidate_id&order=rank.asc`) as { candidate_id: string }[];
   if (saved.length > 0) {
     const ids = saved.map((s) => s.candidate_id);
-    const pool = await rpc('search_candidates', { p_user_id: me.id, p_ids: ids }) as Row[];
+    const pool = await rpc('search_candidates', { p_user_id: me.id, p_ids: ids, p_exclude_liked: true }) as Row[];
     const { candidates } = rankCandidates(me, pool, '', {}, ids.length);
     candidates.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
     return json({ candidates: pro ? candidates : withoutReport(candidates), computed: false });

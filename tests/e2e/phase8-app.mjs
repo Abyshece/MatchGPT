@@ -1,6 +1,6 @@
 // Phase 8 app-side checks against the local stack, as one signed-in user:
 //  1. Online status on result cards (active in last 5 min, respects Active Status off)
-//  2. Standouts keeps today's saved picks, even ones outside the live top 8
+//  2. Standouts keeps today's saved picks, even ones outside the live top 8; a liked one leaves
 //  3. Blocked people are hidden from search; Settings lists them; Unblock works
 //  4. Pause my profile saves; Email Digests toggle is gone
 //  5. Profile page: "Get verified →" opens the verification form
@@ -71,13 +71,14 @@ try {
   check(found.every((c) => c.pill === (hidden.has(c.name) ? 'Offline' : 'Online')),
     'Online for recently active people, Offline for those with Active Status off');
 
-  log('2. Standouts keeps saved picks outside the live top 8');
+  log('2. Standouts keeps saved picks outside the live top 8 (until one is liked)');
   // Save 5 random compatible people as today's picks; most of them fall outside
   // the live top 8 that the old code re-ran on every visit. This account looks
   // for women here (other tests may have changed it), so the picks fit it.
   sql(`update profiles set gender = 'Male', interested_in = 'Women' where id = '${me}';`);
   const picks = sql(`select id || '|' || name from profiles where onboarding_complete and name <> '' and not is_banned and not is_paused
                      and gender = 'Female' and interested_in in ('Men','Everyone')
+                     and not exists (select 1 from likes where liker_id = '${me}' and liked_id = profiles.id)
                      order by md5(id::text) limit 5;`).split('\n').map((l) => l.split('|'));
   sql(`insert into standouts (user_id, candidate_id, rank, for_date) values ${picks.map(([id], i) => `('${me}', '${id}', ${i + 1}, (now() at time zone 'utc')::date)`).join(',')};`);
   await page.getByText('Standouts', { exact: true }).first().click();
@@ -87,6 +88,22 @@ try {
   const shown = picks.filter(([, name]) => standoutText.includes(name));
   log('   saved picks:', picks.map(([, n]) => n).join(', '), '| shown:', shown.length);
   check(shown.length === picks.length, 'all 5 saved picks are shown after reload');
+
+  // A liked pick leaves today's list, and stays gone when Standouts opens again
+  const likeButtons = () => page.getByRole('button', { name: 'Like', exact: true });
+  const picksShown = () => page.getByRole('button', { name: /^Liked?$/ }).count();  // a liked one would say "Liked"
+  await likeButtons().first().click();  // the top pick
+  const yes = page.getByRole('button', { name: 'Yes, Like' });
+  if (await yes.isVisible({ timeout: 2000 }).catch(() => false)) await yes.click();
+  await page.waitForTimeout(1500);
+  if (await page.getByText("It's a Match!").isVisible().catch(() => false)) await page.getByText('Keep Searching').click();
+  check(sql(`select count(*) from likes where liker_id = '${me}' and liked_id = '${picks[0][0]}';`) === '1'
+    && await picksShown() === 4, `liking the top pick (${picks[0][1]}) takes it off the list: 4 left`);
+  await page.getByText('Settings', { exact: true }).first().click();
+  await page.waitForTimeout(800);
+  await page.getByText('Standouts', { exact: true }).first().click();
+  await page.waitForTimeout(3000);
+  check(await picksShown() === 4, 'and it stays off when Standouts opens again');
 
   log('3. blocked people');
   // someone whose name nobody else has (the seed data repeats some names)

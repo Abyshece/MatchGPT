@@ -210,6 +210,8 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
 
   const handleExampleClick = (ex: string) => setPrompt(ex);
 
+  const dropResult = (id: string) => setResults((prev) => prev.filter((r) => r.id !== id));
+
   const handleMatched = (matchId: string, candidate: MatchCandidate) => {
     // Close any open profile modal first, then celebrate
     setSelectedCandidate(null);
@@ -218,8 +220,10 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
 
   return (
     // Before a search the start screen fits the phone: centred, no scrollbar
-    // (it only scrolls on the smallest screens); results scroll as usual
-    <div className={hasSearched ? 'h-full overflow-y-auto' : 'h-full overflow-y-auto no-scrollbar flex flex-col'} data-testid="search-view">
+    // (it only scrolls on the smallest screens); results scroll as usual, with
+    // no scroll anchoring, so the next card moves up into a liked card's place
+    // (with it, the page jumped back a card)
+    <div className={hasSearched ? 'h-full overflow-y-auto [overflow-anchor:none]' : 'h-full overflow-y-auto no-scrollbar flex flex-col'} data-testid="search-view">
       {/* Profile completion banner — full-width, dismissible. Encourages users to
           finish their profile because a 100% profile leads to more accurate matches. */}
       {showCompletionBanner && (
@@ -514,18 +518,9 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
                       onClick={() => setSelectedCandidate(c)}
                       onMatched={handleMatched}
                       onLimitReached={() => openUpgrade('like_limit')}
-                      onLiked={() => {
-                        // Animate-out then remove from results array (Item 2)
-                        setTimeout(() => {
-                          setResults((prev) => prev.filter((r) => r.id !== c.id));
-                        }, 700);
-                      }}
-                      onReject={(id) => {
-                        // Same animate-out behavior for reject (Item 3)
-                        setTimeout(() => {
-                          setResults((prev) => prev.filter((r) => r.id !== id));
-                        }, 700);
-                      }}
+                      // Liked or passed: the card plays its exit, then leaves the results
+                      onLiked={() => dropResult(c.id)}
+                      onReject={dropResult}
                     />
                   ))}
                 </div>
@@ -543,6 +538,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
           onClose={() => setSelectedCandidate(null)}
           onUpgrade={() => { setSelectedCandidate(null); openUpgrade('pro_feature'); }}
           onMatched={handleMatched}
+          onLiked={dropResult}
         />
       )}
 

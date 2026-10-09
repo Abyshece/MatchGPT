@@ -5,12 +5,15 @@ import BlockReportModal from './BlockReportModal';
 import { IconX, IconCheck, IconChevronLeft, IconChevronRight, IconUser } from '../constants';
 import { SECT_LABEL, formatBirthTime, formatChildren, formatSiblings, profileManagedBy } from '../lib/profileDisplay';
 import { isNativeApp } from '../lib/nativeApp';
+import { playExit } from '../lib/likeExit';
 import type { MatchCandidate } from '../types';
 
 // ============================================================================
 // ProfileModal — restyled to match the legacy Shaadi24 MatchProfileModal.
 // Two-column grid: photo+thumbnails on left, scrollable content on right.
 // Sticky footer with social links + a wide pill Like button.
+// A like closes it: the profile bursts into sparkles (as the cards do), and
+// onLiked tells the list behind it to drop the person.
 // ============================================================================
 
 interface ProfileModalProps {
@@ -19,6 +22,7 @@ interface ProfileModalProps {
   onClose: () => void;
   onUpgrade: () => void;
   onMatched?: (matchId: string, candidate: MatchCandidate) => void;
+  onLiked?: (id: string) => void;  // liked here: the list drops them (the profile closes itself)
   showLikeButton?: boolean;
 }
 
@@ -52,9 +56,14 @@ const Section: React.FC<{
 };
 
 const ProfileModal: React.FC<ProfileModalProps> = ({
-  candidate, isPro, onClose, onUpgrade, onMatched, showLikeButton = true,
+  candidate, isPro, onClose, onUpgrade, onMatched, onLiked, showLikeButton = true,
 }) => {
   const [photoIdx, setPhotoIdx] = useState(0);
+  const [leaving, setLeaving] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (closeTimer.current) clearTimeout(closeTimer.current); }, []);
   const [showOverflowMenu, setShowOverflowMenu] = useState(false);
   const [showBlockReport, setShowBlockReport] = useState<null | 'block' | 'report'>(null);
   const [lightbox, setLightbox] = useState<{ open: boolean; idx: number }>({ open: false, idx: 0 });
@@ -90,12 +99,26 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
 
   const c = candidate;
 
+  // Liked here: the list behind drops them while the profile bursts into
+  // sparkles and the blur fades, then it closes
+  const likedHere = () => {
+    setLeaving(true);
+    onLiked?.(candidate.id);
+    const ms = playExit(panelRef.current, 'like');
+    backdropRef.current?.animate?.([{ opacity: 1 }, { opacity: 0 }], { duration: ms, easing: 'ease-in', fill: 'forwards' });
+    closeTimer.current = setTimeout(onClose, ms);
+  };
+
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center p-2 sm:p-4 popup-backdrop animate-fade-in"
+      ref={backdropRef}
+      className={`fixed inset-0 z-[200] flex items-center justify-center p-2 sm:p-4 popup-backdrop animate-fade-in ${leaving ? 'pointer-events-none' : ''}`}
       onClick={onClose}
+      data-testid="profile-popup"
+      data-leaving={leaving || undefined}
     >
       <div
+        ref={panelRef}
         className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden border border-gray-200 dark:border-zinc-800"
         onClick={(e) => e.stopPropagation()}
       >
@@ -415,6 +438,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                 variant="wide"
                 showSuperLike={false}
                 onMatched={onMatched}
+                onLiked={likedHere}
                 onLimitReached={onUpgrade}
               />
             </div>
