@@ -92,6 +92,12 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => (
         <li><strong>Other members</strong> see your profile and photos, except answers you hide and your date of birth
           (they see your age), and can filter searches by the answers you show. Whether you're online shows only if
           Active Status is on. Messages are seen by the person you send them to.</li>
+        <li><strong>People you share a link with.</strong> If you share your biodata, anyone with its link or QR code
+          can open a page that shows what other members see of your profile (never what you hid, your email or a phone
+          number), until you turn the link off in My Biodata. If you invite family to Family Circle, each person you
+          invite sees, through their own private link, the people you liked or matched with, as members see them (never
+          your chats), and can react, until you remove them. Your profile can be shown to other members' families in
+          the same way, unless you turn off "Show me to members' families" in Settings.</li>
         <li><strong>Our team</strong> sees what it needs to verify profiles, check new photos and profile text, look into
           possible scams, review reports and complaints, and run{' '}
           {LEGAL.brand}, and every action in the admin panel is logged.</li>

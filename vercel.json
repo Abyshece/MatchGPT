@@ -25,6 +25,14 @@
       "destination": "/index.html"
     },
     {
+      "source": "/b/:link",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/family/:link",
+      "destination": "/index.html"
+    },
+    {
       "source": "/admin",
       "destination": "/index.html"
     },

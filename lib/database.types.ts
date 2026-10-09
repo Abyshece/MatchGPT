@@ -876,6 +876,7 @@ export type Database = {
           family_closeness: string | null
           family_health_history: string | null
           family_location: string | null
+          family_can_view: boolean
           family_plans: string | null
           family_status: string | null
           family_type: string | null
@@ -1046,6 +1047,7 @@ export type Database = {
           family_closeness?: string | null
           family_health_history?: string | null
           family_location?: string | null
+          family_can_view?: boolean
           family_plans?: string | null
           family_status?: string | null
           family_type?: string | null
@@ -1216,6 +1218,7 @@ export type Database = {
           family_closeness?: string | null
           family_health_history?: string | null
           family_location?: string | null
+          family_can_view?: boolean
           family_plans?: string | null
           family_status?: string | null
           family_type?: string | null
@@ -2245,6 +2248,16 @@ export type Database = {
       }
       sync_pro_status: { Args: { p_user_id: string }; Returns: undefined }
       trending_searches: { Args: never; Returns: Json }
+      my_biodata_link: { Args: never; Returns: Json }
+      revoke_biodata_link: { Args: never; Returns: undefined }
+      biodata_preview: { Args: { p_token: string }; Returns: Json }
+      admin_biodata_stats: { Args: { p_days?: number }; Returns: Json }
+      invite_family_member: { Args: { p_name: string; p_relation: string }; Returns: Json }
+      remove_family_member: { Args: { p_id: string }; Returns: undefined }
+      my_family_circle: { Args: never; Returns: Json }
+      family_circle_view: { Args: { p_token: string }; Returns: Json }
+      family_react: { Args: { p_token: string; p_profile_id: string; p_reaction: string; p_note?: string }; Returns: Json }
+      admin_family_stats: { Args: { p_days?: number }; Returns: Json }
       unmatch: { Args: { p_match_id: string }; Returns: undefined }
       unregister_push_device: { Args: { p_token: string }; Returns: undefined }
       vapid_public_key: { Args: never; Returns: string }

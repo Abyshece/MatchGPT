@@ -61,6 +61,40 @@ export async function fetchGrowth(days: number): Promise<{ growth: Growth | null
   return { growth: (data ?? null) as unknown as Growth | null, error: fail(error) };
 }
 
+// ---- Biodatas shared (lib/biodata.ts) ---------------------------------------------------------
+
+export interface BiodataStats {
+  members: number;            // members who made a biodata link
+  active_links: number;       // links on now
+  made_in_period: number;
+  opens: number;              // all opens, all time
+  opened_in_period: number;   // links opened in the period
+  top: { user_id: string; name: string | null; email: string | null; opens: number; created_at: string;
+    last_opened_at: string | null; turned_off: boolean }[];
+}
+
+export async function fetchBiodataStats(days: number): Promise<{ stats: BiodataStats | null; error: string | null }> {
+  const { data, error } = await supabase.rpc('admin_biodata_stats', { p_days: days });
+  return { stats: (data ?? null) as unknown as BiodataStats | null, error: fail(error) };
+}
+
+// ---- Family Circle (lib/familyCircle.ts) --------------------------------------------------------
+
+export interface FamilyStats {
+  circles: number;              // members with someone invited
+  family: number;               // people invited (not removed)
+  visited_in_period: number;
+  reactions: number;
+  reactions_in_period: number;
+  by_reaction: Partial<Record<'yes' | 'maybe' | 'no', number>>;
+  by_relation: Partial<Record<string, number>>;
+}
+
+export async function fetchFamilyStats(days: number): Promise<{ stats: FamilyStats | null; error: string | null }> {
+  const { data, error } = await supabase.rpc('admin_family_stats', { p_days: days });
+  return { stats: (data ?? null) as unknown as FamilyStats | null, error: fail(error) };
+}
+
 // ---- Search insights ------------------------------------------------------------------------
 
 export interface SearchInsights {

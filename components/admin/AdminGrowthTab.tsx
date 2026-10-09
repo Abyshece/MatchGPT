@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useToast } from '../../lib/useToast';
-import { DIMENSIONS, fetchGrowth, type Dimension, type Growth } from '../../lib/adminInsights';
+import {
+  DIMENSIONS, fetchBiodataStats, fetchFamilyStats, fetchGrowth, type BiodataStats, type Dimension, type FamilyStats, type Growth,
+} from '../../lib/adminInsights';
 import DailyChart from './DailyChart';
 import { FINANCE_VIZ_CSS } from './RevenueChart';
 
@@ -11,7 +13,10 @@ import { FINANCE_VIZ_CSS } from './RevenueChart';
 // Shaadi24+), each with its share of those who joined; sign-ups and active
 // members a day (active: searched, liked or wrote that day); and members by
 // city, community, religion, gender and age, with how many were active in
-// the last 30 days. Days are India time.
+// the last 30 days. Days are India time. Then biodatas members shared
+// (lib/biodata.ts): how many, how often their links were opened, the most
+// opened; and Family Circle (lib/familyCircle.ts): circles, family who
+// looked, their reactions.
 // ============================================================================
 
 const SPANS = [7, 30, 90] as const;
@@ -38,11 +43,15 @@ const AdminGrowthTab: React.FC = () => {
   const [days, setDays] = useState<(typeof SPANS)[number]>(30);
   const [growth, setGrowth] = useState<Growth | null>(null);
   const [dimension, setDimension] = useState<Dimension>('city');
+  const [biodata, setBiodata] = useState<BiodataStats | null>(null);
+  const [family, setFamily] = useState<FamilyStats | null>(null);
 
   const load = useCallback(async (d: number) => {
-    const { growth, error } = await fetchGrowth(d);
+    const [{ growth, error }, shared, circles] = await Promise.all([fetchGrowth(d), fetchBiodataStats(d), fetchFamilyStats(d)]);
     if (error) showToast(`Couldn't load growth: ${error}`, 'error');
     setGrowth(growth);
+    setBiodata(shared.stats);
+    setFamily(circles.stats);
   }, [showToast]);
   useEffect(() => { void load(days); }, [days, load]);
 
@@ -130,6 +139,59 @@ const AdminGrowthTab: React.FC = () => {
           </table>
         )}
       </section>
+
+      {biodata && (
+        <section className="rounded-lg border border-gray-200 dark:border-zinc-800 p-4" data-testid="growth-biodata">
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Biodatas shared</h2>
+          <p className="text-xs text-gray-500 dark:text-zinc-400">Members share their biodata on WhatsApp; its QR code and link open their page on the website, which sends people to the app.</p>
+          <div className="mt-3 grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <Tile label="Members with a biodata" value={biodata.members} sub={`${fmt(biodata.made_in_period)} new in ${days} days`} />
+            <Tile label="Links on" value={biodata.active_links} sub="the rest were turned off" />
+            <Tile label="Times opened" value={biodata.opens} sub="all time" />
+            <Tile label={`Opened in ${days} days`} value={biodata.opened_in_period} sub="biodatas, at least once" />
+          </div>
+          {biodata.top.length > 0 && (
+            <table className="mt-4 w-full text-sm">
+              <caption className="text-left text-xs text-gray-500 dark:text-zinc-400 pb-1">Most opened</caption>
+              <thead>
+                <tr className="text-xs text-gray-500 dark:text-zinc-400">
+                  <th scope="col" className="text-left font-medium py-1">Member</th>
+                  <th scope="col" className="text-right font-medium py-1">Opened</th>
+                  <th scope="col" className="text-right font-medium py-1">Last opened</th>
+                </tr>
+              </thead>
+              <tbody>
+                {biodata.top.map((t) => (
+                  <tr key={t.user_id} className="border-t border-gray-100 dark:border-zinc-800">
+                    <th scope="row" className="text-left font-normal py-1.5 pr-3 text-gray-900 dark:text-white">
+                      {t.name || t.email || 'A member'}{t.turned_off && <span className="ml-2 text-xs text-gray-500 dark:text-zinc-400">(link off)</span>}
+                    </th>
+                    <td className="py-1.5 pr-3 text-right tabular-nums">{fmt(t.opens)}</td>
+                    <td className="py-1.5 text-right tabular-nums text-gray-600 dark:text-zinc-300">
+                      {t.last_opened_at ? new Date(t.last_opened_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </section>
+      )}
+
+      {family && (
+        <section className="rounded-lg border border-gray-200 dark:border-zinc-800 p-4" data-testid="growth-family">
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Family Circle</h2>
+          <p className="text-xs text-gray-500 dark:text-zinc-400">Members invite family with a link; family see their shortlist and react.</p>
+          <div className="mt-3 grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <Tile label="Members with family invited" value={family.circles} />
+            <Tile label="Family invited" value={family.family}
+              sub={Object.entries(family.by_relation).map(([r, n]) => `${n} ${r}`).join(', ') || undefined} />
+            <Tile label={`Family who looked in ${days} days`} value={family.visited_in_period} />
+            <Tile label="Reactions" value={family.reactions}
+              sub={`👍 ${fmt(family.by_reaction.yes ?? 0)} · 🤔 ${fmt(family.by_reaction.maybe ?? 0)} · 👎 ${fmt(family.by_reaction.no ?? 0)}`} />
+          </div>
+        </section>
+      )}
     </div>
   );
 };

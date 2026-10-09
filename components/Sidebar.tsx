@@ -9,10 +9,10 @@ import { openLegalPage, type LegalPageName } from '../lib/legalInfo';
 import {
   IconSearch, IconHistory, IconHeart, IconMessageCircle, IconStar, IconUser,
   IconX, IconZap, IconLogOut, IconSettings, IconChevronLeft, IconChevronRight,
-  IconShield, IconClock,
+  IconShield, IconClock, IconBook,
 } from '../constants';
 
-type Tab = 'search' | 'history' | 'likes' | 'matches' | 'standouts' | 'profile' | 'settings' | 'admin';
+type Tab = 'search' | 'history' | 'likes' | 'matches' | 'standouts' | 'profile' | 'biodata' | 'family' | 'settings' | 'admin';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -159,13 +159,15 @@ const Sidebar: React.FC<SidebarProps> = ({
         </button>
       </div>
 
-      <nav className="flex-1 space-y-1 px-3 overflow-y-auto overflow-x-hidden">
+      <nav className="flex-1 min-h-0 space-y-1 px-3 overflow-y-auto overflow-x-hidden">
         {item('search', 'Find Match', <IconSearch />)}
         {item('history', 'Search History', <IconHistory />)}
         {item('likes', 'Likes You', <IconHeart />, likesCount)}
         {item('matches', 'Matches', <IconMessageCircle />, unreadMatches)}
         {item('standouts', 'Standouts', <IconStar />)}
         {item('profile', 'My Profile', <IconUser />)}
+        {item('biodata', 'My Biodata', <IconBook />)}
+        {item('family', 'Family Circle', <span className="text-base leading-none" aria-hidden="true">👪</span>)}
         {item('settings', 'Settings', <IconSettings />)}
         {isAdmin && (
           <>

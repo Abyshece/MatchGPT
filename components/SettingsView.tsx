@@ -202,6 +202,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
             />
             <SettingsToggle label="Incognito Mode" description="Only show my profile to people I've liked." checked={settings.incognito} onChange={(v) => updateOne('incognito', v)} />
             <SettingsToggle label="Active Status" description="Show when you are online." checked={settings.showOnline} onChange={(v) => updateOne('showOnline', v)} />
+            <SettingsToggle label="Show me to members' families" description="Members can show your profile, as other members see it, to their family in Family Circle." checked={settings.familyCanView} onChange={(v) => updateOne('familyCanView', v)} />
             <SettingsToggle label="Read Receipts" description="Let matches know when you've read messages." checked={settings.readReceipts} onChange={(v) => updateOne('readReceipts', v)} />
             <button
               onClick={handleDownloadData}

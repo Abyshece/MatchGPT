@@ -50,15 +50,22 @@ const EXAMPLE_PROMPTS = [
   'Most compatible',
 ];
 
-// As many as fit the start screen without scrolling (in about as many letters
-// as the examples): the most searched first, then any shorter ones that fit
+// As many as fit the start screen without scrolling: four rows of pills on
+// a phone, each row about 50 letters (a pill's padding and gap count for 6),
+// in order, then any shorter ones that fit
+const PILL_ROWS = 4;
+const ROW_LETTERS = 50;
 function fitOnStartScreen(list: string[]): string[] {
   const out: string[] = [];
-  let letters = 0;
+  const rows: number[] = [];
   for (const p of list) {
-    if (out.length >= EXAMPLE_PROMPTS.length || letters + p.length > 120) continue;
+    if (out.length >= EXAMPLE_PROMPTS.length) break;
+    const size = Math.min(p.length + 6, ROW_LETTERS);
+    const last = rows.length - 1;
+    if (last >= 0 && rows[last] + size <= ROW_LETTERS) rows[last] += size;
+    else if (rows.length < PILL_ROWS) rows.push(size);
+    else continue;
     out.push(p);
-    letters += p.length;
   }
   return out;
 }
