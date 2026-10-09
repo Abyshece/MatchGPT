@@ -290,6 +290,9 @@ $$;
 revoke all on function public.invite_family_member(text, text), public.remove_family_member(uuid), public.my_family_circle(),
   public.family_shortlist_ids(uuid), public.family_circle_view(text), public.family_react(text, uuid, text, text),
   public.admin_family_stats(integer) from public, anon;
+-- Only the functions above read someone's shortlist (Supabase grants new
+-- functions to signed-in members by default)
+revoke all on function public.family_shortlist_ids(uuid) from authenticated;
 grant execute on function public.invite_family_member(text, text), public.remove_family_member(uuid), public.my_family_circle(),
   public.admin_family_stats(integer) to authenticated;
 -- The link's page is on the website, for the family the member sent it to
