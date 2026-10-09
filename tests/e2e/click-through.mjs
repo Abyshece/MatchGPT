@@ -17,7 +17,7 @@
 // Makes its own account (crawler_<time>@shaadigpt.dev) with a match and a
 // message, and someone who liked it, so every screen has something on it.
 //
-// Usage: node click-through.mjs [android|ios|both] [maxDepth=2]
+// Usage: node click-through.mjs [android|ios|both] [maxDepth=2] [start screens, e.g. "Chat,Settings"]
 // Writes .shots/click-through/<platform>.json and .md (every tap and what it did)
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
@@ -35,6 +35,7 @@ const BRIDGE = {
 };
 const which = process.argv[2] || 'both';
 const MAX_DEPTH = Number(process.argv[3] || 2);
+const ONLY = process.argv[4] ? process.argv[4].split(',') : null;
 const PLATFORMS = which === 'both' ? ['android', 'ios'] : [which];
 const OUT = new URL('./.shots/click-through/', import.meta.url).pathname;
 fs.mkdirSync(OUT, { recursive: true });
@@ -330,6 +331,11 @@ async function runPlatform(platform) {
     { name: 'Search History', open: async () => { await signIn(); await menu('Search History'); } },
     { name: 'Likes You', open: async () => { await signIn(); await menu('Likes You'); } },
     { name: 'Matches', open: async () => { await signIn(); await menu('Matches'); } },
+    // A chat opens inside Matches (the same header), so it starts here too
+    { name: 'Chat', fresh: true, open: async () => {
+      await signIn(); await menu('Matches');
+      await page.getByRole('button', { name: /Nice to meet you here/ }).first().click(); await settle();
+    } },
     { name: 'Standouts', open: async () => { await signIn(); await menu('Standouts'); } },
     { name: 'My Profile', open: async () => { await signIn(); await menu('My Profile'); } },
     { name: 'Settings', open: async () => { await signIn(); await menu('Settings'); } },
@@ -369,7 +375,8 @@ async function runPlatform(platform) {
     const where = [root.name, ...path.map((p) => p.name)].join(' › ');
     const before0 = await page.evaluate(SNAP);
     const controls = sample(await page.evaluate(FIND));
-    const key = keyOf(before0);
+    // (a start screen that looks like another one, a chat inside Matches, is its own)
+    const key = path.length === 0 && root.fresh ? root.name : keyOf(before0);
     if (explored.has(key)) return;
     explored.add(key);
     log(`${platform}: ${where} — ${controls.length} controls`);
@@ -434,7 +441,7 @@ async function runPlatform(platform) {
     for (const child of children) await explore(root, [...path, child], depth + 1);
   };
 
-  for (const root of ROOTS) {
+  for (const root of ROOTS.filter((r) => !ONLY || ONLY.includes(r.name))) {
     try { await explore(root, [], 0); } catch (e) { log(`  ${root.name} stopped: ${e.message.split('\n')[0]}`); }
   }
   await ctx.close();
