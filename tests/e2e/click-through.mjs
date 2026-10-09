@@ -183,6 +183,7 @@ const FIND = () => {
     }
     return top ? top.contains(el) : true;
   };
+  for (const old of document.querySelectorAll('[data-ct]')) old.removeAttribute('data-ct');
   const SEL = 'button, a[href], [role=button], [role=tab], [role=radio], [role=switch], [role=checkbox], [role=menuitem], [role=option], [role=link], input[type=checkbox], input[type=radio], select, summary, label[for]';
   const all = [...scope.querySelectorAll('*')];
   const found = [];
@@ -353,7 +354,10 @@ async function runPlatform(platform) {
       return;
     }
     await loc.scrollIntoViewIfNeeded({ timeout: 2000 }).catch(() => {});
-    await loc.click({ timeout: 3000 }).catch(async () => { await loc.click({ timeout: 2000, force: true }); });
+    // Something else on top of it (a sheet, a sticky bar): a finger can't reach it
+    await loc.click({ timeout: 3000 }).catch((e) => {
+      throw new Error(/intercepts pointer events|not visible|outside of the viewport/.test(e.message) ? 'covered by something else' : e.message.split('\n')[0]);
+    });
   };
 
   const explore = async (root, path, depth) => {
