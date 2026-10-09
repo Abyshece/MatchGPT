@@ -10,7 +10,8 @@ import { Pill, ago } from './adminUi';
 // Admin → Scam alerts: members who look like scammers or fake profiles, from
 // what they do (admin_risk_signals()): the same photo as another account,
 // money talk in chats, one message pasted to many people, likes by the dozen,
-// reports from several members, a banned member back. Most serious first.
+// reports from several members, blocks by three or more, a banned member back.
+// Most serious first.
 // Open the member, ban them, or mark the alert reviewed; it comes back if
 // something new happens. "Check every photo" fingerprints the photos not
 // checked yet (lib/photoFingerprint.ts), in this browser.
@@ -83,7 +84,8 @@ const AdminRiskTab: React.FC = () => {
           <p className="text-sm font-medium text-gray-900 dark:text-white">{show === 'open' ? 'Nothing to look at' : 'None reviewed yet'}</p>
           <p className="mt-1 text-sm text-gray-500 dark:text-zinc-400">
             Alerts come from the same photo on two accounts, money talk in chats, one message pasted to many people,
-            dozens of likes in an hour, reports from several members, and banned members coming back.
+            dozens of likes in an hour, reports from several members, blocks by three or more members, and banned
+            members coming back.
           </p>
         </div>
       ) : (

@@ -173,7 +173,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         {isAdmin && (
           <>
             <div className="my-3 mx-3 border-t border-gray-200 dark:border-zinc-800" />
-            {item('admin', 'Admin', <span className="text-base">🛡️</span>)}
+            {item('admin', 'Admin', <IconShield />)}
           </>
         )}
       </nav>

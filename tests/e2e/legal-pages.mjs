@@ -165,7 +165,7 @@ try {
   await page.locator('h3').first().click();
   await page.getByText('Profile Details').first().waitFor({ timeout: 10000 });
   await page.getByRole('button', { name: 'More options' }).first().click();
-  await page.getByRole('button', { name: /🚩 Report/ }).click();
+  await page.getByRole('button', { name: 'Report', exact: true }).click();
   const reasons = await page.locator('input[name="report_reason"]').evaluateAll((els) => els.map((e) => e.value));
   check(reasons.includes('intimate_images') && reasons.includes('dowry'), `the reasons include intimate photos and dowry (${reasons.join(', ')})`);
   await page.locator('input[name="report_reason"][value="intimate_images"]').check();

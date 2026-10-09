@@ -22,11 +22,6 @@ export const TIMELINE_GROUPS: { id: 'all' | 'activity' | 'safety' | 'money' | 't
   { id: 'team', label: 'The team', kinds: ['admin', 'team'] },
 ];
 
-export const KIND_ICONS: Record<TimelineKind, string> = {
-  account: '👤', search: '🔎', like: '♥', match: '💞', message: '💬', safety: '🚩', verification: '✓',
-  profile: '🖼', money: '₹', team: '📣', admin: '🛡', device: '📱',
-};
-
 export async function fetchTimeline(userId: string): Promise<{ events: TimelineEvent[]; error: string | null }> {
   const { data, error } = await supabase.rpc('admin_member_timeline', { p_user: userId, p_limit: 400 });
   const out = (data ?? {}) as { events?: TimelineEvent[] };

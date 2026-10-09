@@ -7,7 +7,7 @@ import {
 import { unmatch } from '../lib/matchesService';
 import MessageBubble from './MessageBubble';
 import BlockReportModal from './BlockReportModal';
-import { IconChevronLeft, IconCheck, IconX, IconZap } from '../constants';
+import { IconChevronLeft, IconCheck, IconX, IconZap, IconFlag, IconBan, IconHeartOff, IconMore } from '../constants';
 import { isNativeApp } from '../lib/nativeApp';
 import { setOpenChat } from '../lib/nativePush';
 import type { Message } from '../lib/chatService';
@@ -251,7 +251,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             aria-expanded={showOverflow}
             className="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800"
           >
-            <span className="block w-5 h-5 leading-5 text-center font-bold" aria-hidden="true">⋯</span>
+            <span className="block w-5 h-5 [&>svg]:w-5 [&>svg]:h-5" aria-hidden="true"><IconMore /></span>
           </button>
           {showOverflow && (
             <div
@@ -262,19 +262,19 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                 onClick={() => { setShowOverflow(false); setShowBlockReport('report'); }}
                 className="w-full px-3 py-2 text-sm text-left text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2"
               >
-                🚩 Report
+                <span className="flex-none w-4 h-4 [&>svg]:w-4 [&>svg]:h-4" aria-hidden="true"><IconFlag /></span> Report
               </button>
               <button
                 onClick={() => { setShowOverflow(false); setShowUnmatchConfirm(true); }}
                 className="w-full px-3 py-2 text-sm text-left text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 flex items-center gap-2"
               >
-                💔 Unmatch
+                <span className="flex-none w-4 h-4 [&>svg]:w-4 [&>svg]:h-4" aria-hidden="true"><IconHeartOff /></span> Unmatch
               </button>
               <button
                 onClick={() => { setShowOverflow(false); setShowBlockReport('block'); }}
                 className="w-full px-3 py-2 text-sm text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
               >
-                🚫 Block user
+                <span className="flex-none w-4 h-4 [&>svg]:w-4 [&>svg]:h-4" aria-hidden="true"><IconBan /></span> Block user
               </button>
             </div>
           )}
@@ -392,7 +392,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="text-center mb-5">
-              <div className="text-4xl mb-2">💔</div>
+              <div aria-hidden="true" className="w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center bg-orange-50 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400 [&>svg]:w-6 [&>svg]:h-6"><IconHeartOff /></div>
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
                 Unmatch {match.otherUser.name}?
               </h3>

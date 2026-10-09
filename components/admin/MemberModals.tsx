@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { IconBan } from '../../constants';
 
 // ============================================================================
 // The pop-ups for acting on a member (Admin → Customers): banning them, with
@@ -36,8 +37,8 @@ export const BanModal: React.FC<{
         onClick={(e) => e.stopPropagation()}
       >
         <div className="text-center mb-4">
-          <div className="w-12 h-12 mx-auto mb-3 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center text-xl">
-            🚫
+          <div aria-hidden="true" className="w-12 h-12 mx-auto mb-3 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center [&>svg]:w-6 [&>svg]:h-6">
+            <IconBan />
           </div>
           <h3 className="text-lg font-bold text-gray-900 dark:text-white">Ban {user.name ?? user.email}?</h3>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">

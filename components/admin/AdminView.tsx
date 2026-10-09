@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../lib/AuthContext';
+import { IconBan, IconFlag } from '../../constants';
 import { useToast } from '../../lib/useToast';
 import {
   fetchPlatformStats, fetchReports, fetchAuditLog, setProForAll,
@@ -179,7 +180,7 @@ const AdminView: React.FC<{ initialTab?: AdminTab }> = ({ initialTab }) => {
     return (
       <div className="flex items-center justify-center h-full p-6">
         <div className="max-w-md text-center">
-          <div className="text-4xl mb-3">🚫</div>
+          <div aria-hidden="true" className="w-12 h-12 mx-auto mb-3 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 flex items-center justify-center [&>svg]:w-6 [&>svg]:h-6"><IconBan /></div>
           <h1 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Access denied</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             This area is only available to admins. Your account isn't on the admin list.
@@ -479,8 +480,9 @@ const DashboardTab: React.FC<{
       {recentReports.length > 0 && (
         <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-900/40 rounded-lg p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-bold text-yellow-900 dark:text-yellow-200">
-              🚩 {recentReports.length} pending {recentReports.length === 1 ? 'report' : 'reports'}
+            <h3 className="text-sm font-bold text-yellow-900 dark:text-yellow-200 flex items-center gap-2">
+              <span aria-hidden="true" className="w-4 h-4 [&>svg]:w-4 [&>svg]:h-4"><IconFlag /></span>
+              {recentReports.length} pending {recentReports.length === 1 ? 'report' : 'reports'}
             </h3>
             <button
               onClick={onGoToReports}

@@ -3,7 +3,7 @@ import { useAuth } from '../lib/AuthContext';
 import { useToast } from '../lib/useToast';
 import { blockUser, reportUser, REPORT_REASONS } from '../lib/blocksService';
 import type { ReportReason } from '../lib/blocksService';
-import { IconX } from '../constants';
+import { IconX, IconFlag, IconBan } from '../constants';
 
 interface BlockReportModalProps {
   mode: 'block' | 'report';
@@ -67,10 +67,10 @@ const BlockReportModal: React.FC<BlockReportModalProps> = ({
 
         <div className="p-6">
           <div className="text-center mb-5">
-            <div className={`w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center text-2xl ${
-              mode === 'block' ? 'bg-red-100 dark:bg-red-900/30' : 'bg-yellow-100 dark:bg-yellow-900/30'
+            <div aria-hidden="true" className={`w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center [&>svg]:w-6 [&>svg]:h-6 ${
+              mode === 'block' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' : 'bg-gray-100 text-gray-700 dark:bg-zinc-800 dark:text-gray-200'
             }`}>
-              {mode === 'block' ? '🚫' : '🚩'}
+              {mode === 'block' ? <IconBan /> : <IconFlag />}
             </div>
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
               {mode === 'block' ? `Block ${targetName}?` : `Report ${targetName}`}
@@ -91,7 +91,7 @@ const BlockReportModal: React.FC<BlockReportModalProps> = ({
                     key={r.value}
                     className={`flex items-center gap-3 p-2.5 rounded-lg border cursor-pointer transition-colors ${
                       reason === r.value
-                        ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
+                        ? 'bg-gray-50 dark:bg-zinc-800 border-gray-900 dark:border-white'
                         : 'bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600'
                     }`}
                   >
@@ -101,7 +101,7 @@ const BlockReportModal: React.FC<BlockReportModalProps> = ({
                       value={r.value}
                       checked={reason === r.value}
                       onChange={(e) => setReason(e.target.value as ReportReason)}
-                      className="text-yellow-600 focus:ring-yellow-500"
+                      className="accent-black dark:accent-white"
                     />
                     <span className="text-sm text-gray-700 dark:text-gray-200">{r.label}</span>
                   </label>
@@ -137,7 +137,7 @@ const BlockReportModal: React.FC<BlockReportModalProps> = ({
               className={`flex-1 py-2.5 rounded-lg text-sm font-bold text-white shadow-sm disabled:opacity-50 ${
                 mode === 'block'
                   ? 'bg-red-600 hover:bg-red-700'
-                  : 'bg-yellow-600 hover:bg-yellow-700'
+                  : 'bg-black hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200'
               }`}
             >
               {busy ? 'Submitting…' : mode === 'block' ? 'Block' : 'Submit Report'}

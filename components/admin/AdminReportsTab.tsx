@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNow } from '../../lib/useNow';
+import { IconBan } from '../../constants';
 import { REPORT_DEADLINE_HOURS } from '../../lib/blocksService';
 import { useToast } from '../../lib/useToast';
 import {
@@ -197,9 +198,9 @@ const AdminReportsTab: React.FC<AdminReportsTabProps> = ({ onAuditUpdate }) => {
                   <button
                     onClick={() => setActionModal({ report: r, action: 'ban' })}
                     disabled={actioningId === r.id}
-                    className="px-3 py-1.5 text-xs font-bold bg-red-600 text-white rounded hover:bg-red-700 shadow-sm disabled:opacity-50"
+                    className="px-3 py-1.5 text-xs font-bold bg-red-600 text-white rounded hover:bg-red-700 shadow-sm disabled:opacity-50 inline-flex items-center gap-1.5"
                   >
-                    🚫 Ban user
+                    <span aria-hidden="true" className="w-3.5 h-3.5 [&>svg]:w-3.5 [&>svg]:h-3.5"><IconBan /></span> Ban user
                   </button>
                 </div>
               )}
