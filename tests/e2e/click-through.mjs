@@ -203,7 +203,7 @@ const FIND = () => {
     const r = el.getBoundingClientRect();
     if (r.width < 2 || r.height < 2 || r.right <= 0 || r.left >= vw) continue;  // off-screen drawers
     if (!reachable(el, r) || laterInList(el)) continue;
-    const name = (el.getAttribute('aria-label') || el.innerText || el.getAttribute('title') || el.getAttribute('alt')
+    const name = (el.getAttribute('aria-label') || el.innerText || el.labels?.[0]?.innerText || el.getAttribute('title') || el.getAttribute('alt')
       || el.querySelector('img')?.getAttribute('alt') || el.getAttribute('placeholder') || el.getAttribute('href') || el.tagName)
       .replace(/\s+/g, ' ').trim().slice(0, 70);
     const role = el.getAttribute('role') || (el.tagName === 'A' ? 'link' : el.tagName === 'SELECT' ? 'select'
