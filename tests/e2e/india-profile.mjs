@@ -112,12 +112,28 @@ try {
     await r.getByRole('button', { name: 'Save' }).click();
     await pa.waitForTimeout(700);
   };
-  const choose = (typed, option) => async (r) => {
-    const box = r.getByRole('combobox');
-    await box.fill(typed);
-    await pa.getByRole('option', { name: option, exact: true }).click();
+  // A short list: pills in the row, saved on the tap (no Save button)
+  const pick = async (label, option) => {
+    const r = row(label);
+    await r.scrollIntoViewIfNeeded();
+    await r.hover();
+    await r.getByTitle('Edit').click();
+    await r.getByRole('radio', { name: option, exact: true }).click();
+    await r.getByRole('radiogroup').waitFor({ state: 'detached' });
+    await pa.waitForTimeout(500);
   };
-  const select = (value) => async (r) => { await r.locator('select').first().selectOption(value); };
+  // A long list: a sheet with a search box, saved on the tap
+  const fromSheet = async (label, typed, option) => {
+    const r = row(label);
+    await r.scrollIntoViewIfNeeded();
+    await r.hover();
+    await r.getByTitle('Edit').click();
+    const sheet = pa.getByTestId('picker-sheet');
+    await sheet.getByRole('searchbox').fill(typed);
+    await sheet.getByRole('radio', { name: option, exact: true }).click();
+    await sheet.waitFor({ state: 'detached' });
+    await pa.waitForTimeout(500);
+  };
   const shown = async (label) => (await row(label).innerText()).replace(/\s+/g, ' ');
 
   log('2. filling in the India details in My Profile');
@@ -132,23 +148,46 @@ try {
   check(await row('Age').getByTitle('Edit').count() === 0, 'the age can no longer be edited by hand');
   check((await shown('Date of birth')).includes('2 Apr 1996 (only your age is shown)'), 'date of birth says only the age is shown');
 
-  await edit('Religion', select('Hindu'));
-  await edit('Mother tongue', choose('tam', 'Tamil'));
-  await edit('Caste', choose('brah', 'Brahmin'));
-  await edit('Sub-caste', choose('iye', 'Iyer'));
+  // Pills: no Save button, the tap saves
+  await row('Religion').scrollIntoViewIfNeeded();
+  await row('Religion').hover();
+  await row('Religion').getByTitle('Edit').click();
+  check(await row('Religion').getByRole('radio').count() >= 10 && await row('Religion').getByRole('button', { name: 'Save' }).count() === 0,
+    'a short list shows as pills, with no Save button');
+  await row('Religion').getByRole('button', { name: 'Close' }).click();
+  // The answer from sign-up tapped again: kept, and the row closes
+  await pick('Religion', 'Hindu');
+  check(sql(`select religion from profiles where id = '${A}';`) === 'Hindu', 'the chosen pill tapped again keeps the answer');
+  // Another pill: saved on the tap
+  await pick('Religion', 'Jain');
+  check(sql(`select religion from profiles where id = '${A}';`) === 'Jain', 'another pill tapped is saved at once');
+  await pick('Religion', 'Hindu');
+  // The sheet: searched, and the tap saves and closes it
+  await row('Mother tongue').hover();
+  await row('Mother tongue').getByTitle('Edit').click();
+  const sheet = pa.getByTestId('picker-sheet');
+  await sheet.getByRole('searchbox').fill('guj');
+  check(await sheet.getByRole('radio', { name: 'Gujarati', exact: true }).isVisible()
+    && await sheet.getByRole('radio', { name: 'Tamil', exact: true }).count() === 0, 'a long list opens a sheet whose search narrows it ("guj": Gujarati, not Tamil)');
+  await sheet.getByRole('button', { name: 'Done' }).click();
+  await sheet.waitFor({ state: 'detached' });
+  await fromSheet('Mother tongue', 'tam', 'Tamil');
+  check((await shown('Mother tongue')).includes('Tamil'), 'picked in the sheet: saved, no Save button');
+  await fromSheet('Caste', 'brah', 'Brahmin');
+  await fromSheet('Sub-caste', 'iye', 'Iyer');
   await row('Caste').hover();
   await row('Caste').getByTitle('Hide from profile').click();
   await pa.waitForTimeout(700);
   check((await shown('Caste')).includes('Hidden'), 'caste marked hidden');
   check(await row('Gotra').isVisible() && !(await row('Denomination').isVisible()), 'gotra offered to a Hindu, denomination not');
-  await edit('Height', choose(`5' 8`, `5' 8" (173 cm)`));
-  await edit('State', choose('tamil', 'Tamil Nadu'));
-  await edit('City', choose('chen', 'Chennai'));
-  await edit('Brothers', select('2'));
-  await edit('Brothers married', select('1'));
+  await fromSheet('Height', `5' 8`, `5' 8" (173 cm)`);
+  await fromSheet('State', 'tamil', 'Tamil Nadu');
+  await fromSheet('City', 'chen', 'Chennai');
+  await pick('Brothers', '2');
+  await pick('Brothers married', '1');
   check((await shown('Brothers')).includes('2 (1 married)'), 'brothers read "2 (1 married)"');
-  await edit('Manglik', select('Non Manglik'));
-  await edit('Diet', select('Vegetarian'));
+  await pick('Manglik', 'Non Manglik');
+  await pick('Diet', 'Vegetarian');
   await edit('Languages', async (r) => {
     await r.getByRole('button', { name: 'Tamil', exact: true }).click();
     await r.getByRole('button', { name: 'English', exact: true }).click();

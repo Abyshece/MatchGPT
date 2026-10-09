@@ -894,6 +894,21 @@ opens the store; there was no way to move to another plan in the app.
 - [ ] **Owner:** in Play Console, set the `shaadi24_plus` subscription's default replacement mode to
   "Charge at the next billing date" (`docs/store/README.md`, Google Play step 4).
 
+Part 28 done 2026-10-09: **Profile answers in one tap.** In My Profile some lists opened a drop-down
+and others the phone's own picker, and every answer then needed the green tick.
+
+- [x] **Short lists are pills** (14 options or fewer: religion, diet, Manglik, brothers…), like
+  Bumble: tap one and it's saved, no tick. Tapping the chosen pill again clears an optional answer
+  and keeps a required one.
+- [x] **Long lists open a sheet** that slides up from the bottom, like an iPhone's, with a search box
+  (mother tongue, caste and sub-caste, height, state, city, education, occupation…): type a few
+  letters, tap, saved and closed. Lists that take your own answer (caste, city…) offer
+  "Use “…”" for what you typed.
+- [x] The answer itself opens the pills or the sheet; the pencil still works. Date of birth, time of
+  birth, text answers and the multi-pick lists (languages, hobbies) keep the tick.
+- [x] Tests: `india-profile` picks with pills and the sheet; `accessibility` checks the pills and the
+  sheet in light and dark.
+
 **Still to do**
 
 - [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.

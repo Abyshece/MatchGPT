@@ -1,4 +1,5 @@
-import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useEffectEvent, useId, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { OptionGroup } from '../lib/matrimonyOptions';
 
 // ============================================================================
@@ -11,7 +12,15 @@ import type { OptionGroup } from '../lib/matrimonyOptions';
 //   ChipsField        several answers, tapped on and off (hobbies, languages),
 //                     saved as "Reading, Cricket, Cooking"
 //   DateOfBirthField  day, month and year
+//   PillPicker        a short list as pills: one tap picks (My Profile saves it
+//                     at once, like Bumble)
+//   SheetPicker       a long list in a sheet that slides up from the bottom of
+//                     the screen, like an iPhone's, with a search box; a tap
+//                     picks and closes it
 // ============================================================================
+
+/** Short enough to show as pills (otherwise a sheet with a search box) */
+export const PILL_LIMIT = 14;
 
 const inputStyles = {
   form: 'w-full h-11 px-3 border border-gray-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-gray-900 dark:text-white outline-none focus:border-black dark:focus:border-white focus:ring-1 focus:ring-black dark:focus:ring-white transition-all',
@@ -386,5 +395,174 @@ export const DateOfBirthField: React.FC<{
         {years.map((y) => <option key={y} value={y}>{y}</option>)}
       </select>
     </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// PillPicker: one answer from a short list, tapped
+// ---------------------------------------------------------------------------
+
+export const PillPicker: React.FC<{
+  value: string;
+  options: string[];
+  onPick: (value: string) => void;
+  label: string;
+  allowClear?: boolean;    // tapping the chosen one again clears it (else keeps it)
+  busy?: boolean;
+}> = ({ value, options, onPick, label, allowClear = false, busy = false }) => {
+  // An answer given before that's no longer in the list still shows
+  const all = value && !options.includes(value) ? [value, ...options] : options;
+  return (
+    <div role="radiogroup" aria-label={label} className="flex flex-wrap gap-2 py-0.5" data-testid="pill-picker">
+      {all.map((o) => {
+        const on = o === value;
+        return (
+          <button
+            key={o}
+            type="button"
+            role="radio"
+            aria-checked={on}
+            disabled={busy}
+            onClick={() => onPick(on && allowClear ? '' : o)}
+            className={`px-3.5 py-2 rounded-full text-sm font-medium border transition-colors ${
+              on
+                ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white disabled:opacity-100'
+                : 'bg-white dark:bg-zinc-900 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-zinc-700 hover:border-gray-500 dark:hover:border-zinc-500 disabled:opacity-50'
+            }`}
+          >
+            {o}
+          </button>
+        );
+      })}
+    </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// SheetPicker: one answer from a long list, in a sheet with a search box
+// ---------------------------------------------------------------------------
+
+interface SheetPickerProps {
+  title: string;
+  value: string;
+  options?: string[];
+  groups?: OptionGroup[];
+  allowCustom?: boolean;   // a typed answer that isn't in the list can be used
+  allowClear?: boolean;
+  hint?: string;
+  onPick: (value: string) => void;
+  onClose: () => void;
+}
+
+export const SheetPicker: React.FC<SheetPickerProps> = ({
+  title, value, options, groups, allowCustom = false, allowClear = false, hint, onPick, onClose,
+}) => {
+  const allGroups = useMemo<OptionGroup[]>(() => groups ?? [{ label: '', options: options ?? [] }], [groups, options]);
+  const total = allGroups.reduce((n, g) => n + g.options.length, 0);
+  const [query, setQuery] = useState('');
+  const titleId = useId();
+  const chosenRef = useRef<HTMLButtonElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const searchable = allowCustom || total > 10;
+
+  const onEscape = useEffectEvent(() => onClose());
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onEscape(); };
+    document.addEventListener('keydown', onKey);
+    // The chosen answer in view; the search box ready where there's a keyboard
+    // to type with (on a phone the keyboard would cover the list)
+    chosenRef.current?.scrollIntoView({ block: 'center' });
+    if (window.matchMedia?.('(hover: hover) and (pointer: fine)').matches) searchRef.current?.focus();
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
+
+  const typed = query.trim();
+  const shown = allGroups
+    .map((g) => ({ label: g.label, options: g.options.filter((o) => matches(o, query)) }))
+    .filter((g) => g.options.length > 0);
+  const exact = typed && allGroups.some((g) => g.options.some((o) => o.toLowerCase() === typed.toLowerCase()));
+  const known = !value || allGroups.some((g) => g.options.includes(value));
+
+  const row = (text: string, on: boolean, onClick: () => void, extra = '') => (
+    <button
+      key={`${extra}${text}`}
+      ref={on ? chosenRef : undefined}
+      type="button"
+      role="radio"
+      aria-checked={on}
+      onClick={onClick}
+      className={`w-full min-h-[46px] flex items-center justify-between gap-3 px-5 py-2.5 text-left text-[15px] border-b border-gray-100 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-800/70 ${
+        on ? 'font-semibold text-gray-900 dark:text-white' : 'text-gray-800 dark:text-gray-200'
+      }`}
+    >
+      <span className="min-w-0 break-words">{text}</span>
+      {on && <span aria-hidden="true" className="flex-none text-gray-900 dark:text-white">✓</span>}
+    </button>
+  );
+
+  return createPortal(
+    <div data-popup className="fixed inset-0 z-[600] flex items-end sm:items-center justify-center popup-backdrop sm:p-4 animate-fade-in" onClick={onClose}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        data-testid="picker-sheet"
+        className={`w-full sm:max-w-md ${searchable ? 'h-[85vh] sm:h-[min(640px,85vh)]' : 'max-h-[85vh] sm:max-h-[min(640px,85vh)]'} flex flex-col rounded-t-[22px] sm:rounded-[22px] bg-white dark:bg-zinc-900 text-gray-900 dark:text-white border border-gray-200 dark:border-zinc-800 shadow-2xl overflow-hidden pb-[var(--safe-bottom)] sm:pb-0`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* The grabber, the title and Done, as on an iPhone */}
+        <div className="flex-none pt-2">
+          <div aria-hidden="true" className="sm:hidden mx-auto w-10 h-1.5 rounded-full bg-gray-300 dark:bg-zinc-700" />
+          <div className="flex items-center justify-between gap-3 px-5 pt-2 pb-2">
+            <h2 id={titleId} className="text-base font-semibold">{title}</h2>
+            <button type="button" onClick={onClose} className="text-sm font-semibold text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white px-1 py-1">
+              Done
+            </button>
+          </div>
+          {hint && <p className="px-5 pb-2 text-xs text-gray-500 dark:text-gray-400">{hint}</p>}
+          {searchable && (
+            <div className="px-4 pb-3">
+              <input
+                ref={searchRef}
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key !== 'Enter') return;
+                  e.preventDefault();
+                  const first = shown[0]?.options[0];
+                  if (first) onPick(first);
+                  else if (allowCustom && typed) onPick(typed);
+                }}
+                placeholder="Search"
+                aria-label={`Search ${title.toLowerCase()}`}
+                autoComplete="off"
+                className="w-full h-10 px-3.5 rounded-xl bg-gray-100 dark:bg-zinc-800 text-[15px] text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-zinc-400 outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white"
+              />
+            </div>
+          )}
+        </div>
+
+        <div role="radiogroup" aria-labelledby={titleId} className="flex-1 min-h-0 overflow-y-auto overscroll-contain border-t border-gray-100 dark:border-zinc-800">
+          {allowClear && value && !typed && row('None (clear the answer)', false, () => onPick(''), 'clear:')}
+          {value && !known && !typed && row(value, true, () => onClose(), 'own:')}
+          {allowCustom && typed && !exact && row(`Use “${typed}”`, false, () => onPick(typed), 'custom:')}
+          {shown.map((g) => (
+            <div key={g.label || 'all'}>
+              {g.label && (
+                <div className="sticky top-0 z-10 px-5 pt-3 pb-1.5 text-[11px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-zinc-950">
+                  {g.label}
+                </div>
+              )}
+              {g.options.map((o) => row(o, o === value, () => (o === value ? onClose() : onPick(o))))}
+            </div>
+          ))}
+          {shown.length === 0 && !(allowCustom && typed) && (
+            <p className="px-5 py-6 text-sm text-gray-500 dark:text-gray-400 text-center">Nothing matches “{typed}”.</p>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body,
   );
 };
