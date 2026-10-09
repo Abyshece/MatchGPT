@@ -168,6 +168,9 @@ export interface MyMessage {
 }
 
 export async function fetchMyMessages(): Promise<MyMessage[]> {
+  // (waits out a sign-out in progress; signed out, there's nothing to ask for)
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return [];
   const { data, error } = await supabase.rpc('my_messages');
   return error ? [] : ((data ?? []) as unknown as MyMessage[]);
 }
