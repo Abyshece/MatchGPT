@@ -215,7 +215,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       {/* Header */}
       <header className="flex items-center gap-3 p-3 border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex-shrink-0">
         <button
+          type="button"
           onClick={onBack}
+          aria-label="Back to matches"
           className="md:hidden p-1.5 rounded text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800"
         >
           <IconChevronLeft />
@@ -242,10 +244,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
         <div className="relative">
           <button
+            type="button"
             onClick={() => setShowOverflow((v) => !v)}
+            aria-label="More options"
+            aria-haspopup="true"
+            aria-expanded={showOverflow}
             className="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800"
           >
-            <span className="block w-5 h-5 leading-5 text-center font-bold">⋯</span>
+            <span className="block w-5 h-5 leading-5 text-center font-bold" aria-hidden="true">⋯</span>
           </button>
           {showOverflow && (
             <div
@@ -319,14 +325,15 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           <button
             onClick={openDateBuilder}
             disabled={sending}
-            title={isPro ? 'Propose a date' : 'Propose a date (Pro)'}
+            title={isPro ? 'Propose a date' : 'Propose a date (Shaadi24+)'}
+            aria-label={isPro ? 'Propose a date' : 'Propose a date (Shaadi24+)'}
             className={`w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full ${
               isPro
                 ? 'bg-pink-50 dark:bg-pink-900/30 text-pink-500 hover:bg-pink-100 dark:hover:bg-pink-900/50'
                 : 'bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-gray-400'
             }`}
           >
-            <span className="text-lg">📅</span>
+            <span className="text-lg" aria-hidden="true">📅</span>
           </button>
 
           <textarea
@@ -345,14 +352,16 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           />
 
           <button
+            type="button"
             onClick={handleSend}
             disabled={sending || !composing.trim()}
+            aria-label="Send"
             className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full bg-blue-500 text-white shadow-sm hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {sending ? (
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
-              <span className="text-lg leading-none">→</span>
+              <span className="text-lg leading-none" aria-hidden="true">→</span>
             )}
           </button>
         </div>
@@ -468,7 +477,7 @@ const DateProposalBuilder: React.FC<DateProposalBuilderProps> = ({ onSend, onClo
       >
         <div className="p-5 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between">
           <h3 className="text-lg font-bold text-gray-900 dark:text-white">📅 Propose a date</h3>
-          <button onClick={onClose} className="text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white">
+          <button type="button" onClick={onClose} aria-label="Close" className="text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white">
             <IconX />
           </button>
         </div>

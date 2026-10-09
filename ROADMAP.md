@@ -923,6 +923,21 @@ app had also reloaded your profile (over a second in all); a like inside an open
 - [x] Tests: `popups` (sparkles, the card leaves, a like in the profile closes it) and `phase8-app`
   (a liked pick stays off Standouts).
 
+Part 30 done 2026-10-09: **Every button tapped, on both phones.** A test robot (`click-through`)
+opened the members' app as Android and as iPhone see it and tapped every button it could reach, two
+screens deep, checking each did something; `final-steps` taps Report, Unmatch, Block and Delete
+account for real.
+
+- [x] **Sign-in sheet:** "Terms" and "Privacy Policy" did nothing; they open the pages now.
+- [x] **Menu:** "Chat History" opened Search History; it's called "Search History" now.
+- [x] **Chat:** the back, more-options (⋯), propose-a-date (📅) and send buttons have names for
+  screen readers.
+- [x] **Profiles:** photos are "Photo 1 of 6" (they were "thumb 0"), the one showing marked; the
+  full-screen viewer has a name and opens from the keyboard; no tap pointer when there are no photos.
+- [x] **Search History:** Searches / Liked profiles are real tabs (screen readers hear which is open).
+- [x] **Signing out** in the first 2.5 seconds no longer sends a request without a sign-in.
+- [x] Tests: `click-through` (about 600 taps over both phones, with `phone-standin`) and `final-steps`.
+
 **Still to do**
 
 - [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.
