@@ -217,7 +217,10 @@ const FIND = () => {
     seen.set(key, nth + 1);
     const id = `${key}|${nth}`;
     el.setAttribute('data-ct', id);
-    return { id, role, name, nth, href: el.getAttribute('href') || null, inPopup: !!top && top.contains(el) };
+    // The tab, pill or option that's already chosen (tapping it again changes nothing)
+    const chosen = [el.getAttribute('aria-selected'), el.getAttribute('aria-pressed'), el.getAttribute('aria-checked')].includes('true')
+      || (el.getAttribute('aria-current') || 'false') !== 'false' || el.checked === true;
+    return { id, role, name, nth, chosen, href: el.getAttribute('href') || null, inPopup: !!top && top.contains(el) };
   });
 };
 
@@ -430,6 +433,7 @@ async function runPlatform(platform) {
       if (events.downloads > mark.downloads) what.push('download');
       if (confirms.length) what.push(`asked: "${confirms[0].slice(0, 60)}" (answered Cancel)`);
       const errors = [...events.errors.slice(mark.errors), ...events.failed.slice(mark.failed)];
+      if (!what.length && c.chosen && !tapError) what.push('already chosen');
       const outcome = what.length ? what.join('; ') : 'NOTHING HAPPENED';
       results.push({ where, ...c, outcome, errors });
       if (errors.length || !what.length) log(`  ${!what.length ? '??' : '!!'} ${c.role} "${c.name}": ${outcome}${errors.length ? ` | ${errors.join(' | ')}` : ''}`);

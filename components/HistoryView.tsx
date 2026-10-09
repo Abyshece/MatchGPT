@@ -149,8 +149,11 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
     <div className="h-full overflow-y-auto">
       <div className="max-w-6xl mx-auto py-8 px-6 lg:px-12">
         {/* Tab switcher */}
-        <div className="flex gap-1 mb-6 border-b border-gray-200 dark:border-zinc-800">
+        <div className="flex gap-1 mb-6 border-b border-gray-200 dark:border-zinc-800" role="tablist" aria-label="Search History">
           <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'searches'}
             onClick={() => setTab('searches')}
             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
               tab === 'searches'
@@ -161,6 +164,9 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
             <IconHistory /> Searches
           </button>
           <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'liked'}
             onClick={() => setTab('liked')}
             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
               tab === 'liked'
