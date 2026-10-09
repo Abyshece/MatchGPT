@@ -145,10 +145,10 @@ const AdminGrowthTab: React.FC = () => {
           <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Biodatas shared</h2>
           <p className="text-xs text-gray-500 dark:text-zinc-400">Members share their biodata on WhatsApp; its QR code and link open their page on the website, which sends people to the app.</p>
           <div className="mt-3 grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <Tile label="Members with a biodata" value={biodata.members} sub={`${fmt(biodata.made_in_period)} new in ${days} days`} />
+            <Tile label="Members with a biodata" value={biodata.members} sub={`${fmt(biodata.made_in_period)} made one in ${days} days`} />
             <Tile label="Links on" value={biodata.active_links} sub="the rest were turned off" />
             <Tile label="Times opened" value={biodata.opens} sub="all time" />
-            <Tile label={`Opened in ${days} days`} value={biodata.opened_in_period} sub="biodatas, at least once" />
+            <Tile label={`Opened in ${days} days`} value={biodata.opened_in_period} sub="members whose biodata was opened" />
           </div>
           {biodata.top.length > 0 && (
             <table className="mt-4 w-full text-sm">

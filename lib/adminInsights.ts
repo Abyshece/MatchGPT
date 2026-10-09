@@ -66,9 +66,9 @@ export async function fetchGrowth(days: number): Promise<{ growth: Growth | null
 export interface BiodataStats {
   members: number;            // members who made a biodata link
   active_links: number;       // links on now
-  made_in_period: number;
+  made_in_period: number;     // members who made one in the period
   opens: number;              // all opens, all time
-  opened_in_period: number;   // links opened in the period
+  opened_in_period: number;   // members whose biodata was opened in the period
   top: { user_id: string; name: string | null; email: string | null; opens: number; created_at: string;
     last_opened_at: string | null; turned_off: boolean }[];
 }

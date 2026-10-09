@@ -92,7 +92,11 @@ begin
   if not shown then
     return jsonb_build_object('found', false);
   end if;
-  update public.biodata_links set opens = opens + 1, last_opened_at = now() where token = p_token;
+  -- Opening it again within a minute (a reload) doesn't count twice
+  update public.biodata_links
+     set opens = opens + case when last_opened_at > now() - interval '1 minute' then 0 else 1 end,
+         last_opened_at = now()
+   where token = p_token;
 
   hidden := coalesce(p.hidden_fields, '{}');
   photos := public.moderated_photos(p.id, p.photo_urls);
@@ -140,15 +144,18 @@ begin
   return jsonb_build_object(
     'members', (select count(distinct user_id) from public.biodata_links),
     'active_links', (select count(*) from public.biodata_links where revoked_at is null),
-    'made_in_period', (select count(*) from public.biodata_links where created_at >= v_since),
+    'made_in_period', (select count(distinct user_id) from public.biodata_links where created_at >= v_since),
     'opens', (select coalesce(sum(opens), 0) from public.biodata_links),
-    'opened_in_period', (select count(*) from public.biodata_links where last_opened_at >= v_since),
+    'opened_in_period', (select count(distinct user_id) from public.biodata_links where last_opened_at >= v_since),
+    -- By member: every link they've had, old ones included
     'top', coalesce((
       select jsonb_agg(t order by t.opens desc)
-        from (select l.user_id, p.name, p.email, l.opens, l.created_at, l.last_opened_at, l.revoked_at is not null as turned_off
+        from (select l.user_id, p.name, p.email, sum(l.opens)::int as opens, min(l.created_at) as created_at,
+                     max(l.last_opened_at) as last_opened_at, bool_and(l.revoked_at is not null) as turned_off
                 from public.biodata_links l join public.profiles p on p.id = l.user_id
-               where l.opens > 0
-               order by l.opens desc limit 10) t), '[]'::jsonb)
+               group by l.user_id, p.name, p.email
+              having sum(l.opens) > 0
+               order by sum(l.opens) desc limit 10) t), '[]'::jsonb)
   );
 end;
 $$;

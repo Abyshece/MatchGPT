@@ -9,7 +9,7 @@ import { openLegalPage, type LegalPageName } from '../lib/legalInfo';
 import {
   IconSearch, IconHistory, IconHeart, IconMessageCircle, IconStar, IconUser,
   IconX, IconZap, IconLogOut, IconSettings, IconChevronLeft, IconChevronRight,
-  IconShield, IconClock, IconBook,
+  IconShield, IconClock, IconBook, IconUsers,
 } from '../constants';
 
 type Tab = 'search' | 'history' | 'likes' | 'matches' | 'standouts' | 'profile' | 'biodata' | 'family' | 'settings' | 'admin';
@@ -167,7 +167,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         {item('standouts', 'Standouts', <IconStar />)}
         {item('profile', 'My Profile', <IconUser />)}
         {item('biodata', 'My Biodata', <IconBook />)}
-        {item('family', 'Family Circle', <span className="text-base leading-none" aria-hidden="true">👪</span>)}
+        {item('family', 'Family Circle', <IconUsers />)}
         {item('settings', 'Settings', <IconSettings />)}
         {isAdmin && (
           <>

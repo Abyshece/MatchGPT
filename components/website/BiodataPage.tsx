@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { SITE_URL } from '../../lib/blogSeo';
 import { setPageMeta } from '../../lib/pageMeta';
@@ -37,12 +37,15 @@ interface Preview {
 
 const BiodataPage: React.FC<{ token: string }> = ({ token }) => {
   const [preview, setPreview] = useState<Preview | null>(null);
+  const asked = useRef<string | null>(null);  // each look counts once
 
   useEffect(() => {
     setPageMeta({
       title: 'A biodata shared on Shaadi24', description: 'See this profile on Shaadi24, the matrimony app.',
       url: `${SITE_URL}/b/${token}`, noindex: true,
     });
+    if (asked.current === token) return;
+    asked.current = token;
     void supabase.rpc('biodata_preview', { p_token: token }).then(({ data, error }) =>
       setPreview(error || !data ? { found: false } : (data as unknown as Preview)));
   }, [token]);

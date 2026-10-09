@@ -65,12 +65,13 @@ const FamilyCircleView: React.FC = () => {
     setBusy(false);
     if (proOnly) { setUpgrade(true); return; }
     if (error || !token) { showToast(error ?? 'Could not invite them', 'error'); return; }
-    await load();
+    // WhatsApp first: a browser only opens it straight after the tap
     try {
       await shareInvite({ name: name.trim(), token }, from);
     } catch (e) {
       showToast(e instanceof Error ? e.message : 'Could not open WhatsApp', 'error');
     }
+    await load();
   };
 
   const remove = async (m: FamilyMember) => {
