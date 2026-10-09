@@ -10,7 +10,7 @@ import type { MatchCandidate } from '../types';
 //     dots indicator, online/offline status chip top-left, match% top-right)
 //   - Below photo: badges row (Verified, Pro), name + age, location
 //   - Bottom: X (pass) + Like button row, separated from content with border
-//   - Liked: the card bursts into sparkles and is gone in about 0.4 s; passed:
+//   - Liked: the card bursts into sparkles and is gone in about 0.6 s; passed:
 //     it drops away. onLiked / onReject fire once it's gone, for the list to
 //     drop it (without onLiked a liked card stays, showing "Liked").
 // ============================================================================

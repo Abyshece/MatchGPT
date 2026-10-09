@@ -912,9 +912,10 @@ and others the phone's own picker, and every answer then needed the green tick.
 Part 29 done 2026-10-09: **Liking feels quick.** A liked card faded for 0.7 s, and only after the
 app had also reloaded your profile (over a second in all); a like inside an open profile left it open.
 
-- [x] **A liked card bursts into gold and rose sparkles** and is gone in 0.4 s, as soon as the like is
-  saved; the next card moves up into its place (the page used to jump back a card). Passing is quicker
-  too (0.3 s). With "reduce motion" on, the card just fades.
+- [x] **A liked card bursts into glittering yellow sparkles** and is gone in 0.6 s, as soon as the like is
+  saved; the sparkles twinkle for about a second, slow enough to see. The next card moves up into its
+  place (the page used to jump back a card). Passing is quicker too (0.3 s). With "reduce motion" on,
+  the card just fades.
 - [x] **A like inside an open profile closes it**, with the same sparkles, and the person leaves the
   results behind it. In Likes You, liking back from the open profile now shows "It's a Match!" at once.
 - [x] **Standouts:** a liked pick leaves today's list (it used to leave an empty space), and the server
