@@ -221,9 +221,10 @@ const FIND = () => {
 const SNAP = () => {
   const showing = (el) => el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden'
     && getComputedStyle(el).pointerEvents !== 'none';
+  // Popups and drawers on screen, by name (the menu drawer has none: "Menu")
   const popups = [...document.querySelectorAll('.popup-backdrop, [data-popup], [role=dialog]')].filter(showing)
-    .map((el) => (el.getAttribute('aria-label') || el.querySelector('h1, h2, h3, [id$=title]')?.innerText || el.innerText.slice(0, 40))
-      .replace(/\s+/g, ' ').trim().slice(0, 50));
+    .map((el) => (el.getAttribute('aria-label') || el.querySelector('h1, h2, h3, [id$=title]')?.innerText || el.innerText.slice(0, 40)
+      || 'Menu').replace(/\s+/g, ' ').trim().slice(0, 50));
   const header = document.querySelector('header h1, main h1, h1')?.innerText?.trim() || '';
   const states = [...document.querySelectorAll('[aria-checked], [aria-pressed], [aria-expanded], [aria-selected], input, select, textarea')]
     .map((el) => `${el.getAttribute('aria-checked')}${el.getAttribute('aria-pressed')}${el.getAttribute('aria-expanded')}${el.getAttribute('aria-selected')}${el.value ?? ''}${el.checked ?? ''}`).join(',');
@@ -239,7 +240,7 @@ const SNAP = () => {
 };
 
 // The screen as a key: which tab and which popups (however it was reached)
-const keyOf = (snap) => `${snap.header}|${snap.popups.join('+')}`;
+const keyOf = (snap) => `${snap.header}|${JSON.stringify(snap.popups)}`;
 // Of controls that repeat (an Edit button on every row, the options of a
 // list), a few stand for the rest
 const sample = (controls) => controls.filter((c) => (['radio', 'option', 'menuitem'].includes(c.role) ? c.nth < 1 : c.nth < 3)
@@ -370,7 +371,7 @@ async function runPlatform(platform) {
       if (c.inPopup && DENY.test(c.name)) { results.push({ where, ...c, outcome: 'skipped (final confirmation)' }); continue; }
       // Back on this screen first, if the last tap left it
       const now = await page.evaluate(SNAP).catch(() => null);
-      if (!now || now.header !== before0.header || now.popups.join() !== before0.popups.join() || now.url !== before0.url) {
+      if (!now || now.header !== before0.header || JSON.stringify(now.popups) !== JSON.stringify(before0.popups) || now.url !== before0.url) {
         if (!(await replay(root, path))) break;
       }
       const list = await page.evaluate(FIND);
