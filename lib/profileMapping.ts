@@ -264,6 +264,7 @@ export function rowToSettings(row: ProfileRow): UserSettings {
   return {
     incognito: row.settings_incognito,
     showOnline: row.settings_show_online,
+    familyCanView: row.family_can_view ?? true,
     readReceipts: row.settings_read_receipts,
     pushNotifs: row.settings_push_notifs,
     emailNotifs: row.settings_email_notifs,
@@ -275,6 +276,7 @@ export function settingsToRowUpdate(s: UserSettings): Partial<ProfileRow> {
   return {
     settings_incognito: s.incognito,
     settings_show_online: s.showOnline,
+    family_can_view: s.familyCanView,
     settings_read_receipts: s.readReceipts,
     settings_push_notifs: s.pushNotifs,
     settings_email_notifs: s.emailNotifs,

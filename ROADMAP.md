@@ -939,6 +939,35 @@ account for real.
 - [x] Tests: `click-through` (646 taps over both phones, 44 screens and popups, none broken; with
   `phone-standin`) and `final-steps`.
 
+Part 31 done 2026-10-09: **Search in your own language; Biodata and Family Circle.**
+
+- [x] **Trending searches on Find Match:** the pills under the search box are what members near you
+  searched in the last 30 days. They come from your city first, then your state, then the country,
+  and the heading says which ("Trending in Mumbai"). A search shows only once at least 2 members
+  made it and it found people. Searches with numbers, links or bad words are never shown. Until
+  there are enough searches, the old examples show.
+- [x] **Search in any Indian language:** members can type in Hindi, Hinglish, Tamil, Marathi,
+  Bengali and other Indian languages ("Mere liye 6 foot ka ladka dhundho jo London me rehta ho aur
+  finance me kaam karta ho"). The AI understands it and says back what it understood in the same
+  language. If the AI is busy, the rules-based reader still knows the common words (ladka/ladki,
+  saal, foot, sharaab nahi peeta, shakahari, doctor, Tamil words…).
+- [x] **My Biodata:** a marriage biodata made from the profile, in 6 languages (English, हिन्दी,
+  मराठी, ગુજરાતી, தமிழ், বাংলা) and 3 designs, shared on WhatsApp or saved as an image in one tap.
+  Its QR code opens the member's biodata page on the website (`/b/<link>`), which shows what
+  members see (hidden fields stay hidden, never contact details) and invites people to get the
+  app. The member sees how often it was opened and can turn the link off at any time.
+- [x] **Family Circle (Shaadi24+):** invite up to 5 family members by WhatsApp. They open a private
+  page (`/family/<link>`, English or हिन्दी, no app needed) with the people the member liked or
+  matched with, and react 👍 / 🤔 / 👎 with a note. The member sees each reaction and gets a
+  notification. Members can turn off "Show me to members' families" in Settings → Privacy.
+- [x] **Admin → Growth:** biodata links shared and opened, and Family Circle invites, visits and
+  reactions.
+- [x] Terms (section 5) and the Privacy Policy explain biodata links, Family Circle and trending
+  searches; members accept the new versions.
+- [x] The menu scrolls when it's longer than the screen.
+- [x] Tests: `search-languages`, `biodata-family`, and the search function's unit tests for the
+  language reader.
+
 **Still to do**
 
 - [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.

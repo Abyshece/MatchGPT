@@ -17,6 +17,8 @@ const RefundsView = lazyScreen(() => import('../RefundsView'));
 const BlogIndex = lazyScreen(() => import('./BlogPages').then((m) => ({ default: m.BlogIndex })));
 const BlogPostPage = lazyScreen(() => import('./BlogPages').then((m) => ({ default: m.BlogPostPage })));
 const StoriesPage = lazyScreen(() => import('./StoriesPages').then((m) => ({ default: m.StoriesPage })));
+const BiodataPage = lazyScreen(() => import('./BiodataPage'));
+const FamilyPage = lazyScreen(() => import('./FamilyPage'));
 
 // ============================================================================
 // Website: the website, for everyone who isn't in the apps (lib/website.ts)
@@ -30,11 +32,15 @@ const StoriesPage = lazyScreen(() => import('./StoriesPages').then((m) => ({ def
 //   /stories          couples who met on Shaadi24 (StoriesPages.tsx)
 //   /blog             the blog (BlogPages.tsx), /blog/<slug> a post; the server
 //                     sends these with their search engine tags (api/blog.ts)
+//   /b/<link>         a member's shared biodata (BiodataPage.tsx; lib/biodata.ts)
+//   /family/<link>    Family Circle: a member's shortlist for their family to
+//                     react to (FamilyPage.tsx; lib/familyCircle.ts)
 // /support and /delete-account stand on their own (index.tsx). A link from
 // an email (a password reset) asks for the new password wherever it lands.
 // ============================================================================
 
-type Route = 'home' | 'admin' | 'terms' | 'privacy' | 'grievances' | 'safety' | 'refunds' | 'stories' | 'blog' | `blog/${string}`;
+type Route = 'home' | 'admin' | 'terms' | 'privacy' | 'grievances' | 'safety' | 'refunds' | 'stories' | 'blog' | `blog/${string}`
+  | `b/${string}` | `family/${string}`;
 
 // An admin alert clicked while no tab was open comes to /?push=… (public/sw.js)
 function isAdminAlertData(raw: string | null): boolean {
@@ -55,6 +61,10 @@ function currentRoute(): Route {
   if (path === 'blog') return 'blog';
   const post = path.match(/^blog\/([a-z0-9-]+)$/);
   if (post) return `blog/${post[1]}`;
+  const biodata = path.match(/^b\/([a-f0-9]{20})$/);
+  if (biodata) return `b/${biodata[1]}`;
+  const family = path.match(/^family\/([a-f0-9]{24})$/);
+  if (family) return `family/${family[1]}`;
   if (isAdminAlertData(new URLSearchParams(window.location.search).get('push'))) {
     window.history.replaceState(null, '', `/admin${window.location.search}`);
     return 'admin';
@@ -90,6 +100,8 @@ const Routes: React.FC<{ route: Route }> = ({ route }) => {
   if (route === 'stories') return <StoriesPage />;
   if (route === 'blog') return <BlogIndex />;
   if (route.startsWith('blog/')) return <BlogPostPage slug={route.slice('blog/'.length)} />;
+  if (route.startsWith('b/')) return <BiodataPage token={route.slice('b/'.length)} />;
+  if (route.startsWith('family/')) return <FamilyPage token={route.slice('family/'.length)} />;
   return <SiteHome />;
 };
 

@@ -7,6 +7,7 @@ import { saveSearch } from '../lib/searchHistoryService';
 import { computeVerificationStatus } from '../lib/profileService';
 import { allowanceLine, useSearchAllowance } from '../lib/searchLimits';
 import { profileCompletion } from '../lib/profileCompletion';
+import { fetchTrendingSearches, trendingHeading, type TrendingSearch } from '../lib/trendingSearches';
 import MatchCard from './MatchCard';
 import ProfileModal from './ProfileModal';
 import VerificationBanner from './VerificationBanner';
@@ -35,6 +36,7 @@ interface SearchViewProps {
   onNavigateToProfile?: () => void;
 }
 
+// Until enough members near you have searched (see lib/trendingSearches.ts).
 // Short, so two fit in a row on a phone and the start screen needs no
 // scrolling; each is understood like a longer one ("near me" and "online"
 // become filters)
@@ -47,6 +49,26 @@ const EXAMPLE_PROMPTS = [
   'Settled abroad',
   'Most compatible',
 ];
+
+// As many as fit the start screen without scrolling: four rows of pills on
+// a phone, each row about 50 letters (a pill's padding and gap count for 6),
+// in order, then any shorter ones that fit
+const PILL_ROWS = 4;
+const ROW_LETTERS = 50;
+function fitOnStartScreen(list: string[]): string[] {
+  const out: string[] = [];
+  const rows: number[] = [];
+  for (const p of list) {
+    if (out.length >= EXAMPLE_PROMPTS.length) break;
+    const size = Math.min(p.length + 6, ROW_LETTERS);
+    const last = rows.length - 1;
+    if (last >= 0 && rows[last] + size <= ROW_LETTERS) rows[last] += size;
+    else if (rows.length < PILL_ROWS) rows.push(size);
+    else continue;
+    out.push(p);
+  }
+  return out;
+}
 
 // The profile sections that each add a free search a day (lib/profileRewards.ts)
 const MAX_SECTIONS = 6;
@@ -65,7 +87,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
   const [hasSearched, setHasSearched] = useState(false);
   const [searching, setSearching] = useState(false);
   // What the server understood from the prompt, shown above the results
-  const [understood, setUnderstood] = useState<{ labels: string[]; byAi: boolean } | null>(null);
+  const [understood, setUnderstood] = useState<{ labels: string[]; byAi: boolean; said: string | null } | null>(null);
   const [selectedCandidate, setSelectedCandidate] = useState<MatchCandidate | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   // Why it opened: a search limit, the day's likes, or a Shaadi24+ feature
@@ -170,7 +192,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
       setResults(output.candidates);
       setSearchedFilters(filters);
       setLevel('all');
-      setUnderstood({ labels: output.understood, byAi: output.understoodBy === 'ai' });
+      setUnderstood({ labels: output.understood, byAi: output.understoodBy === 'ai', said: output.said ?? null });
 
       saveSearch(userId, effectivePrompt, filters, output.candidates, output.poolSize)
         .catch((e) => console.warn('[SearchView] saveSearch failed:', e));
@@ -204,11 +226,22 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
     autoRunSearchRef.current = handleSearch;
   }, [handleSearch]);
 
+  // What members near you search for, fetched each time the start screen shows
+  const [trending, setTrending] = useState<TrendingSearch[] | null>(null);
+  useEffect(() => {
+    if (hasSearched || !session) return;
+    let live = true;
+    void fetchTrendingSearches().then((list) => { if (live) setTrending(list); });
+    return () => { live = false; };
+  }, [hasSearched, session]);
+
   if (!profile || !userId || !verification) {
     return <div className="p-12 text-center text-gray-500 dark:text-gray-400">Loading…</div>;
   }
 
   const handleExampleClick = (ex: string) => setPrompt(ex);
+  const pills = trending?.length ? fitOnStartScreen(trending.map((t) => t.prompt)) : EXAMPLE_PROMPTS;
+
 
   const dropResult = (id: string) => setResults((prev) => prev.filter((r) => r.id !== id));
 
@@ -273,14 +306,14 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
               Find your life partner
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm sm:max-w-none mx-auto">
-              Search by community, profession, family values or anything you're looking for.
+              Search by community, profession, family values or anything else, in any Indian language.
             </p>
           </div>
         ) : (
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">Find your match</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Describe who you're looking for. Our algorithm scores every profile across 70+ attributes.
+              Describe who you're looking for, in English or your own language. Our algorithm scores every profile across 70+ attributes.
             </p>
           </div>
         )}
@@ -432,14 +465,16 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
           </p>
         )}
 
-        {/* Trending Near You — landing state only */}
-        {!hasSearched && (
-          <div className="mt-5 [@media(max-height:700px)]:mt-3 sm:mt-8 sm:mb-10 animate-fade-in" data-testid="example-prompts">
+        {/* What members near you search for — landing state only (the first
+            time, after they've loaded: no fixed list flashing past) */}
+        {!hasSearched && (trending !== null || !session) && (
+          <div className="mt-5 [@media(max-height:700px)]:mt-3 sm:mt-8 sm:mb-10 animate-fade-in" data-testid="example-prompts"
+            data-trending={trending?.length ? trending[0].scope : 'none'}>
             <p className="text-center text-[11px] uppercase font-bold text-gray-500 dark:text-gray-400 tracking-widest mb-3 [@media(max-height:700px)]:mb-2 sm:mb-4">
-              Trending near you
+              {trendingHeading(trending ?? [])}
             </p>
             <div className="flex flex-wrap justify-center gap-2 [@media(max-height:700px)]:gap-1.5 sm:gap-3 max-w-md sm:max-w-2xl mx-auto">
-              {EXAMPLE_PROMPTS.map((ex) => (
+              {pills.map((ex) => (
                 <button
                   key={ex}
                   onClick={() => handleExampleClick(ex)}
@@ -455,6 +490,12 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
         {/* Results */}
         {hasSearched && (
           <div className="mt-8">
+            {/* A search in Hindi, Tamil or another language: the AI answers in it */}
+            {!searching && understood?.said && (
+              <p className="text-center text-sm text-gray-700 dark:text-gray-200 mb-2 animate-fade-in" data-testid="ai-said">
+                <span aria-hidden="true">✨ </span>{understood.said}
+              </p>
+            )}
             {!searching && understood && understood.labels.length > 0 && (
               <div className="flex flex-wrap items-center justify-center gap-1.5 mb-6 animate-fade-in" data-testid="understood">
                 <span className="text-xs text-gray-500 dark:text-gray-400 mr-1">

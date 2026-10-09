@@ -130,7 +130,9 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => (
         <li>harass, stalk, threaten, blackmail or abuse anyone, or discriminate against anyone for their caste,
           religion, gender, disability or appearance in a way that insults or demeans them;</li>
         <li>ask for or share intimate images, or share another member's photos, messages or details outside{' '}
-          {LEGAL.brand} without their consent;</li>
+          {LEGAL.brand} without their consent (showing your shortlist to the family you invite to Family Circle, as
+          members see those profiles, is allowed; you are responsible for who you invite, and they must keep what they
+          see within the family);</li>
         <li>create a fake or second profile, or a profile for a child or for anyone without their permission;</li>
         <li>use {LEGAL.brand} for business: advertising, marriage bureaus or agents, recruitment, selling, or spam; or</li>
         <li>copy or collect other members' data, use bots or automated tools, reverse-engineer the apps, or get around

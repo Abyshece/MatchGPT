@@ -9,7 +9,10 @@
 //
 //   POST { mode: 'search', prompt, filters, limit? }
 //     → { candidates, poolSize, totalEligible, remaining, allowance,
-//         understood: ["Women", "Doesn't smoke", ...], understoodBy: 'ai' | 'rules' }
+//         understood: ["Women", "Doesn't smoke", ...], understoodBy: 'ai' | 'rules',
+//         said: "London me rehne wale…" | null }
+//     The prompt can be in any Indian language (Gemini's `said` answers in it;
+//     the rules know the common Hindi, Hinglish, Tamil and other words)
 //     Counts toward the search limits (consume_search, limits.ts: so many
 //     every 5 hours, a day and a week): 429 { code: 'LIMIT_REACHED',
 //     allowance } once one is used up, saying which and when the next search
@@ -44,7 +47,7 @@ const GEMINI_API_BASE = Deno.env.get('GEMINI_API_BASE') || undefined;  // only f
 const MAX_RESULTS = 50;
 const STANDOUTS_PER_DAY = 5;
 const LOCKOUT_HOURS = 72;        // unverified accounts can search for 3 days
-const PLAN_VERSION = 3;          // bump when ai.ts's instructions change, so old plans aren't reused
+const PLAN_VERSION = 4;          // bump when ai.ts's instructions change, so old plans aren't reused
 const PLAN_CACHE_DAYS = 30;
 
 function json(body: unknown, status = 200): Response {
@@ -160,7 +163,7 @@ async function search(me: Row, body: Record<string, unknown>): Promise<Response>
   const after = { ...allowance, allowed: !allowance.limited_by };
   return json({
     candidates: pro ? candidates : withoutReport(candidates), poolSize, totalEligible: pool.length, remaining: allowance.remaining, allowance: after,
-    understood: describeParsed(parsed), understoodBy: by,
+    understood: describeParsed(parsed), understoodBy: by, said: parsed.said ?? null,
   });
 }
 

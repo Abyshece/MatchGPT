@@ -1,11 +1,15 @@
 // ============================================================================
 // Understanding search prompts with Google Gemini (free tier)
 //
-// Turns what someone typed ("a vegetarian doctor in Pune who doesn't smoke")
-// into a SearchPlan (matching.ts): hard filters (gender, age, height, place,
-// online, habits to avoid) and preferences that raise the score (profile
-// answers such as mother tongue, community or marital status, and words with
-// synonyms to look for in bios, hobbies and jobs).
+// Turns what someone typed ("a vegetarian doctor in Pune who doesn't smoke",
+// or in Hindi, Hinglish, Tamil or another Indian language: "Mere liye 6 foot
+// ka ladka dhundho jo London me rehta ho") into a SearchPlan (matching.ts):
+// hard filters (gender, age, height, place, online, habits to avoid) and
+// preferences that raise the score (profile answers such as mother tongue,
+// community or marital status, and words with synonyms to look for in bios,
+// hobbies and jobs, in English as profiles are written). A search not in
+// English also gets a line back in its own language and script, saying who
+// will be looked for (`said`).
 //
 // Sent to Google: the typed text (emails and phone numbers removed) and the
 // list of profile answers people in the pool have. Never names, photos or
@@ -54,12 +58,20 @@ const INSTRUCTIONS = `You turn a search typed into an Indian matrimony app (for 
 The person describes who they want to meet. Record only what they asked for and leave the rest empty
 (gender "any", ages and heights 0, city "", false, empty lists). Never guess.
 
-- gender: who they want to meet. girl, woman, lady, wife, bride, ladki -> "woman"; boy, guy, man, husband, groom,
-  ladka -> "man".
+The search may be in English or in any Indian language (Hindi, Marathi, Punjabi, Gujarati, Bengali, Tamil, Telugu,
+Kannada, Malayalam, Urdu, Odia and others), in its own script or typed in English letters ("Hinglish"), or a mix.
+Understand it the same way, and always write city and keywords in English, the way profiles are written: a place
+by its usual English name ("लंदन", "Landan" -> "London"; "Bambai" -> "Mumbai"; "Dilli" -> "Delhi"; "சென்னையில்" ->
+"Chennai"), keywords in English ("डॉक्टर" -> doctor, physician; "finance me kaam karta ho" -> finance, banking,
+investment). Hindi words that only ask ("mere liye", "dhundho", "dikhao", "chahiye", "jo ... ho") are ignored.
+
+- gender: who they want to meet. girl, woman, lady, wife, bride, ladki, kudi, mulgi, ponnu, लड़की, பெண் -> "woman";
+  boy, guy, man, husband, groom, ladka, munda, mulga, paiyan, लड़का, பையன் -> "man".
 - age_min, age_max: "under 30" -> age_max 29; "over 25" -> age_min 26; "25-30" or "between 25 and 30" -> 25 and 30;
   "in her 20s" -> 20 and 29; "late 20s" -> 26 and 29; "early 30s" -> 30 and 33. 0 when not said.
 - height_min_cm, height_max_cm: heights in cm (1 inch = 2.54 cm). "taller than 5'6\"" -> height_min_cm 170;
-  "at least 5'6" -> 168; "under 6 feet" -> height_max_cm 180; "5'4 to 5'8" -> 163 and 173; "tall" alone is not a
+  "at least 5'6" -> 168; "under 6 feet" -> height_max_cm 180; "5'4 to 5'8" -> 163 and 173; a height on its own
+  ("a 5'8\" guy", "6 foot ka ladka") -> 3 cm either side (6 feet -> 180 and 186); "tall" or "lamba" alone is not a
   height. 0 when not said.
 - near_me: "near me", "nearby", "around me", "local", "in my city".
 - city: a city, state, area or country they name ("in Pune" -> "Pune", "from Gujarat" -> "Gujarat"), written as
@@ -78,7 +90,11 @@ The person describes who they want to meet. Record only what they asked for and 
 - keywords: everything else to look for in bios, hobbies and jobs, each as a few words or synonyms ("book lover" ->
   books, reading, novels, literature; "doctor" -> doctor, physician, MBBS, surgeon; "ambitious" -> ambitious,
   driven, motivated). negated = true for things they don't want ("not a lawyer").
-Ignore words that only say they are searching ("find", "show me", "someone", "match", "partner", "most compatible").`;
+Ignore words that only say they are searching ("find", "show me", "someone", "match", "partner", "most compatible").
+- language: the language the search is written in, in English ("English", "Hindi", "Hinglish", "Tamil", ...).
+- summary: when the search is not in English, one short sentence in the same language and the same script the
+  person wrote in, saying who you will look for (for "Mere liye 6 foot ka ladka dhundho jo London me rehta ho" ->
+  "London me rehne wale, lagbhag 6 foot ke ladke"); "" for a search in English.`;
 
 function responseSchema(fields: string[]) {
   const words = { type: 'array', items: { type: 'string' } };
@@ -116,10 +132,12 @@ function responseSchema(fields: string[]) {
           required: ['words', 'negated'],
         },
       },
+      language: { type: 'string' },
+      summary: { type: 'string' },
     },
     required: [
       'gender', 'age_min', 'age_max', 'height_min_cm', 'height_max_cm', 'near_me', 'city', 'online_now', 'recently_active',
-      'verified_only', 'avoid', 'preferences', 'keywords',
+      'verified_only', 'avoid', 'preferences', 'keywords', 'language', 'summary',
     ],
   };
 }
@@ -160,11 +178,15 @@ export function scrub(prompt: string): string {
 const asAge = (n: unknown) => (typeof n === 'number' && Number.isInteger(n) && n >= 18 && n <= 99 ? n : null);
 const asHeight = (n: unknown) => (typeof n === 'number' && Number.isInteger(n) && n >= 120 && n <= 230 ? n : null);
 const asText = (s: unknown, max: number) => (typeof s === 'string' && s.trim() && s.trim().length <= max ? s.trim() : null);
+// A place's English name: letters, spaces, dots, apostrophes and hyphens
+const LATIN_PLACE = /^[A-Za-z][A-Za-z .'-]*$/;
 
 // Gemini's answer → a SearchPlan, keeping only what makes sense: known
 // habits, fields and answers from the catalog (matched without regard to
-// case), a place that appears in the prompt, ages between 18 and 99, heights
-// between 120 and 230 cm.
+// case), a place that appears in the prompt (or, for a search in another
+// language, its English name in English letters), ages between 18 and 99,
+// heights between 120 and 230 cm, and the line back in the search's own
+// language only when it wasn't in English.
 export function readPlan(data: unknown, prompt: string, catalog: Catalog): SearchPlan | null {
   // deno-lint-ignore no-explicit-any
   const parts = (data as any)?.candidates?.[0]?.content?.parts;
@@ -187,6 +209,8 @@ export function readPlan(data: unknown, prompt: string, catalog: Catalog): Searc
   if (heightMinCm !== null && heightMaxCm !== null && heightMinCm > heightMaxCm) heightMinCm = heightMaxCm = null;
 
   const city = asText(out.city, 60);
+  const language = asText(out.language, 30);
+  const inEnglish = !language || /^english$/i.test(language);
 
   const preferences = new Map<string, { field: string; answers: string[]; negated: boolean }>();
   for (const pref of Array.isArray(out.preferences) ? out.preferences : []) {
@@ -220,13 +244,15 @@ export function readPlan(data: unknown, prompt: string, catalog: Catalog): Searc
     heightMinCm,
     heightMaxCm,
     nearMe: out.near_me === true,
-    city: city && prompt.toLowerCase().includes(city.toLowerCase()) ? city : null,
+    city: city && LATIN_PLACE.test(city) && (!inEnglish || prompt.toLowerCase().includes(city.toLowerCase())) ? city : null,
     online: out.online_now === true,
     recentlyActive: out.recently_active === true,
     verified: out.verified_only === true,
     avoid: [...new Set((Array.isArray(out.avoid) ? out.avoid : []).filter((h: unknown) => HABITS.includes(h as Habit)))] as Habit[],
     preferences: [...preferences.values()].slice(0, 12),
     keywords: keywords.slice(0, 10),
+    language: language ?? null,
+    said: inEnglish ? null : asText(out.summary, 200),
   };
 }
 

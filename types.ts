@@ -15,6 +15,7 @@ export type SubscriptionTier = 'FREE' | 'PRO';
 export interface UserSettings {
   incognito: boolean;
   showOnline: boolean;
+  familyCanView: boolean;   // other members may show this profile to their family (Family Circle)
   readReceipts: boolean;
   pushNotifs: boolean;
   emailNotifs: boolean;

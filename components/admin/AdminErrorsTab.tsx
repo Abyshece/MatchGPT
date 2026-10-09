@@ -108,7 +108,7 @@ const AdminErrorsTab: React.FC<{ onAuditUpdate: () => void }> = ({ onAuditUpdate
               {open === e.id && (
                 <div className="mt-3 space-y-2">
                   {e.stack && (
-                    <pre className="text-xs leading-relaxed whitespace-pre-wrap break-words bg-gray-50 dark:bg-zinc-900 text-gray-700 dark:text-gray-300 rounded p-3 max-h-72 overflow-auto">{e.stack}</pre>
+                    <pre tabIndex={0} aria-label="Stack trace" className="text-xs leading-relaxed whitespace-pre-wrap break-words bg-gray-50 dark:bg-zinc-900 text-gray-700 dark:text-gray-300 rounded p-3 max-h-72 overflow-auto">{e.stack}</pre>
                   )}
                   {e.user_agent && <p className="text-xs text-gray-500 dark:text-gray-400 break-words">{e.user_agent}</p>}
                   <p className="text-xs text-gray-500 dark:text-gray-400">

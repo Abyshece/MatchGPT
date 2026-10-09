@@ -42,11 +42,13 @@ const LikesView = lazyScreen(() => import('./LikesView'));
 const MatchesView = lazyScreen(() => import('./MatchesView'));
 const StandoutsView = lazyScreen(() => import('./StandoutsView'));
 const ProfileView = lazyScreen(() => import('./ProfileView'));
+const BiodataView = lazyScreen(() => import('./BiodataView'));
+const FamilyCircleView = lazyScreen(() => import('./FamilyCircleView'));
 const SettingsView = lazyScreen(() => import('./SettingsView'));
 const HelpCenter = lazyScreen(() => import('./HelpCenter'));
 const AdminView = lazyScreen(() => import('./admin/AdminView'));
 
-type Tab = 'search' | 'history' | 'likes' | 'matches' | 'standouts' | 'profile' | 'settings' | 'help' | 'admin';
+type Tab = 'search' | 'history' | 'likes' | 'matches' | 'standouts' | 'profile' | 'biodata' | 'family' | 'settings' | 'help' | 'admin';
 
 interface DashboardProps {
   isDarkMode: boolean;
@@ -138,6 +140,9 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
     } else if (data.event_type === 'super_like' || data.deep_link === '/likes') {
       setPendingMatchOpenId(null);
       setActiveTab('likes');
+    } else if (data.event_type === 'family_reaction') {
+      setPendingMatchOpenId(null);
+      setActiveTab('family');
     } else if (data.event_type === 'admin_message') {
       // A message from the team: it shows as a card when the app opens; its
       // button's place too, if it's in My Profile
@@ -253,6 +258,8 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
             <span className="hidden md:block capitalize">
               {activeTab === 'search' ? 'Find Match'
                 : activeTab === 'profile' ? 'My Profile'
+                : activeTab === 'biodata' ? 'My Biodata'
+                : activeTab === 'family' ? 'Family Circle'
                 : activeTab === 'history' ? 'Search History'
                 : activeTab === 'likes' ? 'Likes You'
                 : activeTab === 'matches' ? 'Matches'
@@ -298,6 +305,10 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
             {activeTab === 'matches' && <MatchesView initialMatchId={pendingMatchOpenId} />}
             {activeTab === 'standouts' && <StandoutsView onNavigateToMatches={handleNavigateToMatches} />}
             {activeTab === 'profile' && <ProfileView key={profileOpen.key} initialSection={profileOpen.section} />}
+            {activeTab === 'family' && <FamilyCircleView />}
+            {activeTab === 'biodata' && (
+              <BiodataView onEditProfile={() => { setProfileOpen((o) => ({ section: 'family', key: o.key + 1 })); setActiveTab('profile'); }} />
+            )}
             {activeTab === 'settings' && (
               <SettingsView
                 isDarkMode={isDarkMode}

@@ -90,10 +90,13 @@ for (const platform of PLATFORMS) {
     await page.getByRole('button', { name: new RegExp(text) }).first().click();
     await page.getByRole('button', { name: 'More options' }).waitFor({ timeout: 10000 });
   };
-  const inMatches = async (text) => {
+  // Is that chat in Matches? (after the list has loaded: the chat that stays is there)
+  const inMatches = async (text, expected) => {
     await toMatches();
-    await page.waitForTimeout(800);
-    return page.getByRole('button', { name: new RegExp(text) }).count();
+    const chat = page.getByRole('button', { name: new RegExp(text) });
+    await chat.first().waitFor({ state: expected ? 'visible' : 'detached', timeout: 8000 }).catch(() => {});
+    await page.waitForTimeout(300);
+    return chat.count();
   };
 
   try {
@@ -126,7 +129,7 @@ for (const platform of PLATFORMS) {
     await page.getByText(/^Unmatched /).waitFor({ timeout: 10000 });
     check(sql(`select count(*) from matches where '${me}' in (user_a_id, user_b_id) and '${women[1]}' in (user_a_id, user_b_id)
       and unmatched_at is not null;`) === '1', 'Unmatch: the match is ended');
-    check(await inMatches(hello[1]) === 0, 'Unmatch: the chat has left Matches');
+    check(await inMatches(hello[1], false) === 0, 'Unmatch: the chat has left Matches');
 
     // Block
     await openChat(hello[2]);
@@ -135,8 +138,8 @@ for (const platform of PLATFORMS) {
     await page.getByRole('button', { name: 'Block', exact: true }).click();
     await page.getByText(/^Blocked /).waitFor({ timeout: 10000 });
     check(sql(`select count(*) from blocks where blocker_id = '${me}' and blocked_id = '${women[2]}';`) === '1', 'Block: saved');
-    check(await inMatches(hello[2]) === 0, 'Block: the chat has left Matches');
-    check(await inMatches(hello[0]) === 1, 'Reporting alone keeps the match');
+    check(await inMatches(hello[2], false) === 0, 'Block: the chat has left Matches');
+    check(await inMatches(hello[0], true) === 1, 'Reporting alone keeps the match');
 
     // Delete account
     await menu('Settings');
