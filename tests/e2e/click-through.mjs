@@ -238,8 +238,12 @@ const SNAP = () => {
     links: (window.__links || []).length };
 };
 
-// The screen as a key: which tab, which popups, which buttons
-const keyOf = (snap, controls) => `${snap.header}|${snap.popups.join('+')}|${controls.map((c) => c.id).sort().join(',').length}`;
+// The screen as a key: which tab and which popups (however it was reached)
+const keyOf = (snap) => `${snap.header}|${snap.popups.join('+')}`;
+// Of controls that repeat (an Edit button on every row, the options of a
+// list), a few stand for the rest
+const sample = (controls) => controls.filter((c) => (['radio', 'option', 'menuitem'].includes(c.role) ? c.nth < 1 : c.nth < 3)
+  && controls.filter((x) => x.role === c.role && ['radio', 'option'].includes(c.role)).indexOf(c) < 4);
 
 // ---- The run --------------------------------------------------------------------------------
 
@@ -355,8 +359,8 @@ async function runPlatform(platform) {
     if (!(await replay(root, path))) { log(`  could not get back to ${root.name} › ${path.map((p) => p.name).join(' › ')}`); return; }
     const where = [root.name, ...path.map((p) => p.name)].join(' › ');
     const before0 = await page.evaluate(SNAP);
-    const controls = await page.evaluate(FIND);
-    const key = keyOf(before0, controls);
+    const controls = sample(await page.evaluate(FIND));
+    const key = keyOf(before0);
     if (explored.has(key)) return;
     explored.add(key);
     log(`${platform}: ${where} — ${controls.length} controls`);
