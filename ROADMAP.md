@@ -1007,6 +1007,10 @@ with `drop function public.get_likes_received_before_notes(uuid);`.
 Also fixed: the WhatsApp buttons in My Biodata and Family Circle have dark text, readable on the green;
 the search-limits test accepts "tomorrow at …" when the 5 hours run past midnight in India.
 
+Link previews (WhatsApp and the rest) and the Google Play feature graphic are in the brand now: white,
+the ring with its blue diamond, near-black type and a thin line of the diamond's blue, instead of the old
+pink-to-orange (`scripts/store-graphics.mjs`; the image's address has `?v=2`, so apps fetch the new one).
+
 **Still to do**
 
 - [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.
