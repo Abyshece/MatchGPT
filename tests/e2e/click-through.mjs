@@ -80,6 +80,7 @@ log(`account ${EMAIL}`);
 // ---- The phone's side ------------------------------------------------------------------
 
 const products = (platform) => {
+  // Google Play: identifier = the base plan, planIdentifier = the subscription (as the plugin reports them)
   const p = (identifier, plan, price, priceString, months) => ({
     identifier, planIdentifier: platform === 'android' ? 'shaadi24_plus' : undefined, offerToken: `base-${plan}`,
     title: 'Shaadi24+', description: 'Unlimited searches and likes', currencyCode: 'INR', currencySymbol: '₹',
@@ -88,8 +89,7 @@ const products = (platform) => {
   });
   const id = (plan) => (platform === 'android' ? plan : `shaadi24_plus_${plan}`);
   return [p(id('weekly'), 'weekly', 499, '₹499.00', 0), p(id('monthly'), 'monthly', 999, '₹999.00', 1),
-    p(id('quarterly'), 'quarterly', 1999, '₹1,999.00', 3), p(id('halfyearly'), 'halfyearly', 2999, '₹2,999.00', 6)]
-    .map((x) => (platform === 'android' ? { ...x, identifier: x.identifier, planIdentifier: x.identifier } : x));
+    p(id('quarterly'), 'quarterly', 1999, '₹1,999.00', 3), p(id('halfyearly'), 'halfyearly', 2999, '₹2,999.00', 6)];
 };
 const methods = (names) => JSON.stringify(names.map((name) => ({ name, rtype: name.endsWith('Listener') ? 'callback' : 'promise' })));
 function standin(platform) {
