@@ -936,7 +936,8 @@ account for real.
   full-screen viewer has a name and opens from the keyboard; no tap pointer when there are no photos.
 - [x] **Search History:** Searches / Liked profiles are real tabs (screen readers hear which is open).
 - [x] **Signing out** in the first 2.5 seconds no longer sends a request without a sign-in.
-- [x] Tests: `click-through` (about 600 taps over both phones, with `phone-standin`) and `final-steps`.
+- [x] Tests: `click-through` (646 taps over both phones, 44 screens and popups, none broken; with
+  `phone-standin`) and `final-steps`.
 
 **Still to do**
 

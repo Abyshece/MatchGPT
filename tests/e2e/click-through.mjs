@@ -36,6 +36,8 @@ const PLATFORMS = which === 'both' ? ['android', 'ios'] : [which];
 const OUT = new URL('./.shots/click-through/', import.meta.url).pathname;
 fs.mkdirSync(OUT, { recursive: true });
 const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
+// (a browser hiccup in a page being closed is logged, not the end of a 15-minute run)
+process.on('unhandledRejection', (e) => log(`  (ignored: ${String(e?.message || e).split('\n')[0]})`));
 const sql = (q) => execSync(`docker exec -i ${DB} psql -U postgres -At`, { input: q }).toString().trim();
 const PASSWORD = 'TestPass!2026';
 if (!SERVICE) { console.error('SERVICE_ROLE_KEY is needed (to make the account)'); process.exit(2); }
@@ -200,7 +202,7 @@ async function runPlatform(platform) {
   page.on('response', (r) => {
     if (r.status() >= 400 && !NOISE.test(r.url())) events.failed.push(`${r.status()} ${r.request().method()} ${r.url().replace(/^https?:\/\/[^/]+/, '').split('?')[0]}`);
   });
-  ctx.on('page', (p) => { events.popups.push(p.url()); p.close().catch(() => {}); });
+  ctx.on('page', (p) => { events.popups.push(p.url()); p.on('dialog', (d) => { d.dismiss().catch(() => {}); }); p.close().catch(() => {}); });
   page.on('filechooser', () => { events.files++; });
   page.on('download', (d) => { events.downloads++; d.cancel().catch(() => {}); });
   // (any other browser dialog: dismissed, and never an error if the page is closing)
@@ -357,7 +359,7 @@ async function runPlatform(platform) {
       if (events.downloads > mark.downloads) what.push('download');
       if (confirms.length) what.push(`asked: "${confirms[0].slice(0, 60)}" (answered Cancel)`);
       const errors = [...events.errors.slice(mark.errors), ...events.failed.slice(mark.failed)];
-      if (!what.length && c.chosen && !tapError) what.push('already chosen');
+      if (!what.length && target.chosen && !tapError) what.push('already chosen');
       const outcome = what.length ? what.join('; ') : 'NOTHING HAPPENED';
       results.push({ where, ...c, outcome, errors });
       if (errors.length || !what.length) log(`  ${!what.length ? '??' : '!!'} ${c.role} "${c.name}": ${outcome}${errors.length ? ` | ${errors.join(' | ')}` : ''}`);
