@@ -190,8 +190,10 @@ const FIND = () => {
     const tappable = el.matches(SEL) || (getComputedStyle(el).cursor === 'pointer' && !el.parentElement?.closest(SEL)
       && getComputedStyle(el.parentElement || el).cursor !== 'pointer');
     if (!tappable) continue;
-    // Typing boxes are for typing, not tapping
-    if (el.matches('textarea, input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=file]), [contenteditable=true]')) continue;
+    // Typing boxes are for typing, not tapping (and so are their labels)
+    const TYPING = 'textarea, input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=file]), [contenteditable=true]';
+    if (el.matches(TYPING)) continue;
+    if (el.tagName === 'LABEL' && (el.control?.matches(TYPING) || el.querySelector(TYPING))) continue;
     if (el.closest('[aria-hidden=true], [inert]') || el.disabled || el.getAttribute('aria-disabled') === 'true') continue;
     if (!showing(el)) continue;
     const r = el.getBoundingClientRect();
