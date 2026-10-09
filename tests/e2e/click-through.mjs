@@ -359,7 +359,7 @@ async function runPlatform(platform) {
       if (events.downloads > mark.downloads) what.push('download');
       if (confirms.length) what.push(`asked: "${confirms[0].slice(0, 60)}" (answered Cancel)`);
       const errors = [...events.errors.slice(mark.errors), ...events.failed.slice(mark.failed)];
-      if (!what.length && c.chosen && !tapError) what.push('already chosen');
+      if (!what.length && target.chosen && !tapError) what.push('already chosen');
       const outcome = what.length ? what.join('; ') : 'NOTHING HAPPENED';
       results.push({ where, ...c, outcome, errors });
       if (errors.length || !what.length) log(`  ${!what.length ? '??' : '!!'} ${c.role} "${c.name}": ${outcome}${errors.length ? ` | ${errors.join(' | ')}` : ''}`);
