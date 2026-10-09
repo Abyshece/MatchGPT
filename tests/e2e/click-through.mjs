@@ -203,6 +203,8 @@ async function runPlatform(platform) {
   ctx.on('page', (p) => { events.popups.push(p.url()); p.close().catch(() => {}); });
   page.on('filechooser', () => { events.files++; });
   page.on('download', (d) => { events.downloads++; d.cancel().catch(() => {}); });
+  // (any other browser dialog: dismissed, and never an error if the page is closing)
+  page.on('dialog', (d) => { d.dismiss().catch(() => {}); });
 
   const results = [];
   const explored = new Set();
