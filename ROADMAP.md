@@ -430,15 +430,15 @@ Part 7 done 2026-10-06: **the name is now Shaadi24** (it was MatchGPT), everywhe
   lawyer check the name with the legal review.
 - [x] **The website at https://shaadi24.in** (2026-10-10): every link the apps and the website give
   (privacy, terms, support, account deletion, shared biodata and Family Circle links, the blog and its
-  sitemap) uses `LEGAL.websiteUrl`; the contact addresses are support@, privacy@ and grievance@shaadi24.in;
+  sitemap) uses `LEGAL.websiteUrl`; one contact address for everything, hello@shaadi24.in (the owner's choice: help, personal data and the Grievance Officer);
   `vercel.json` forwards `shaadi-gpt.vercel.app` and `www.shaadi24.in` to `https://shaadi24.in`, so old
   links keep working.
 - [ ] **Owner, shaadi24.in:**
   1. Vercel → the project → Settings → Domains: add `shaadi24.in` and `www.shaadi24.in`.
   2. GoDaddy → shaadi24.in → DNS: delete the "Parked" A record for `@`, then add the records Vercel shows
      (an A record for `@`, a CNAME for `www`). Vercel says "Valid Configuration" when it works.
-  3. Email forwarding for support@, privacy@ and grievance@shaadi24.in to the inbox you read every day
-     (GoDaddy → Email forwarding, or a free service such as ImprovMX).
+  3. The mailbox hello@shaadi24.in, read every day and answered from (for example Zoho Mail's free plan,
+     or Google Workspace), or at least forwarded to the inbox you read.
   4. Supabase → Authentication → URL Configuration: Site URL `https://shaadi24.in`; Redirect URLs add
      `https://shaadi24.in/**`.
   5. In the stores' listings, use the shaadi24.in addresses (`docs/store/README.md`).

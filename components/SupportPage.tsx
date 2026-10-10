@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { helpTopics, PRIVACY_EMAIL, SUPPORT_EMAIL } from './helpTopics';
+import { helpTopics, SUPPORT_EMAIL } from './helpTopics';
 import StoreBadges from './StoreBadges';
 import ContactForm from './ContactForm';
 import { BrandMark } from '../constants';
@@ -37,10 +37,9 @@ const SupportPage: React.FC = () => {
 
         <section className="mt-6 rounded-lg border border-gray-200 dark:border-zinc-800 p-4 text-sm leading-relaxed text-gray-600 dark:text-gray-300 space-y-2" data-testid="support-contact">
           <p><strong className="text-gray-900 dark:text-white">Write to us:</strong>{' '}
-            <a className={link} href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('Shaadi24 help')}`}>{SUPPORT_EMAIL}</a>.
-            Tell us the email address of your account and, for a problem in the app, your phone's make and model.</p>
-          <p><strong className="text-gray-900 dark:text-white">Privacy and your data:</strong>{' '}
-            <a className={link} href={`mailto:${PRIVACY_EMAIL}`}>{PRIVACY_EMAIL}</a>.</p>
+            <a className={link} href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('Shaadi24 help')}`}>{SUPPORT_EMAIL}</a>,
+            for help, your personal data and privacy, or anything else. Tell us the email address of your account
+            and, for a problem in the app, your phone's make and model.</p>
           <p><strong className="text-gray-900 dark:text-white">Someone bothering you?</strong> Report them in the app
             (⋯ on their profile or in the chat → Report). We review every report within 24 hours.</p>
           <p><strong className="text-gray-900 dark:text-white">A complaint?</strong> Our Grievance Officer answers on the{' '}

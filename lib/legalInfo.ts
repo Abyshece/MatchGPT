@@ -20,9 +20,11 @@ export const LEGAL = {
   cin: '',     // a company's Corporate Identification Number, if any
   gstin: '',   // GST registration, if any
 
-  supportEmail: 'support@shaadi24.in',
-  privacyEmail: 'privacy@shaadi24.in',
-  grievanceEmail: 'grievance@shaadi24.in',
+  // One mailbox for everything: help, personal data and the Grievance Officer.
+  // Each page still says what it's for; split them here if that ever changes.
+  supportEmail: 'hello@shaadi24.in',
+  privacyEmail: 'hello@shaadi24.in',
+  grievanceEmail: 'hello@shaadi24.in',
   supportHours: 'Monday to Saturday, 10 am to 6 pm India time',
 
   // IT Rules 2021, rule 3(2)(a): named on the website and in the app

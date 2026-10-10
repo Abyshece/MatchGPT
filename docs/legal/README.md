@@ -155,7 +155,7 @@ before launch" where an address is missing.
 | The **address**, in Germany (a business-address service is fine; a PO box isn't) | E-Commerce Rules, rule 4(2)(b); § 5 DDG | Terms, Privacy, Grievances |
 | Your **VAT ID** (USt-IdNr.), once the tax office gives it. No register number (a sole trader isn't in the commercial register), and no CIN or GSTIN: there's no Indian company, and the stores pay India's GST | E-Commerce Rules, rule 4(2); § 5 DDG | Terms, the Impressum |
 | The **Grievance Officer**: name and a phone number (now: "Abhishek", no phone). Can be you, in Germany, with a German number. Must be someone who can act within 2 hours, every day | IT Rules 3(2)(a): "the name of the Grievance Officer and his contact details"; E-Commerce Rules 4(4) | Grievances page, Terms, Privacy |
-| **Working mailboxes**: support@, privacy@ and grievance@shaadi24.in, read every day (the pages give these since the website moved to shaadi24.in; forward them to an inbox you read) | Every page gives them; complaints by email are as valid as by the form | Everywhere |
+| **A working mailbox**: hello@shaadi24.in, read every day: the pages give it for help, personal data and the Grievance Officer | Every page gives it; complaints by email are as valid as by the form | Everywhere |
 | The **city whose courts** hear disputes (now: Bengaluru, Karnataka; the lawyer to confirm, with the operator in Germany) | Terms, section 14 | Terms |
 | ~~The website's **own domain**~~ Done: https://shaadi24.in (the old shaadi-gpt.vercel.app forwards to it) | Links in the apps and emails | `websiteUrl` |
 

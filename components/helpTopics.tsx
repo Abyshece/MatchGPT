@@ -1,4 +1,5 @@
 import React from 'react';
+import { LEGAL } from '../lib/legalInfo';
 
 // ============================================================================
 // Answers to common questions, shared by the Help Center and the website's
@@ -9,8 +10,8 @@ import React from 'react';
 // other platforms or ways to pay).
 // ============================================================================
 
-export const SUPPORT_EMAIL = 'support@shaadi24.in';
-export const PRIVACY_EMAIL = 'privacy@shaadi24.in';
+export const SUPPORT_EMAIL = LEGAL.supportEmail;
+export const PRIVACY_EMAIL = LEGAL.privacyEmail;
 
 export interface HelpTopic {
   q: string;
