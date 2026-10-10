@@ -269,6 +269,7 @@ export const StoreTerms: React.FC<{ offer: StoreOffer | undefined; platform: Sto
       {platform === 'ios'
         ? <>Payment is charged to your Apple ID when you confirm. Shaadi24+ renews automatically at the same price every {every} unless you turn it off at least 24 hours before the period ends; manage it in your App Store account settings. </>
         : <>Payment is charged to your Google Play account. Shaadi24+ renews automatically every {every} until you cancel, which you can do any time in Google Play's Subscriptions. </>}
+      We send you a message {offer.period === 'weekly' ? 'a day' : '3 days'} before each renewal{offer.freeTrial ? ' and before the trial ends' : ''}.{' '}
       <button type="button" onClick={() => openLegal('terms', onClose)} className="underline text-gray-700 dark:text-zinc-200">Terms of Use</button>
       {' · '}
       <button type="button" onClick={() => openLegal('privacy', onClose)} className="underline text-gray-700 dark:text-zinc-200">Privacy Policy</button>

@@ -147,6 +147,10 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
     } else if (data.event_type === 'family_reaction') {
       setPendingMatchOpenId(null);
       setActiveTab('family');
+    } else if (data.event_type === 'your_week') {
+      // The week's numbers are on Find Match
+      setPendingMatchOpenId(null);
+      setActiveTab('search');
     } else if (data.event_type === 'search_alert') {
       // New members for a saved search or the partner preferences: Search History lists them
       setPendingMatchOpenId(null);
@@ -301,7 +305,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
 
         <div className="flex-1 relative overflow-hidden">
           <Suspense fallback={<TabLoader />}>
-            {activeTab === 'search' && <SearchView key={searchResetKey} onNavigateToMatches={handleNavigateToMatches} onNavigateToProfile={() => setActiveTab('profile')} />}
+            {activeTab === 'search' && <SearchView key={searchResetKey} onNavigateToMatches={handleNavigateToMatches} onNavigateToProfile={() => setActiveTab('profile')} onNavigate={(t) => setActiveTab(t)} />}
             {activeTab === 'history' && (
               <HistoryView
                 onOpenInSearch={(saved) => {

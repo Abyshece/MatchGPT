@@ -49,7 +49,7 @@ const MyRequestsList: React.FC<{ onAddPhotos?: () => void; scrollTo?: boolean }>
     <div data-testid="my-requests">
       {rows.length === 0 ? (
         <p className="text-sm text-gray-500 dark:text-gray-400 px-2 py-1">
-          Nothing yet. When you ask for the Verified badge, make a complaint or report someone, it shows here, with our answer.
+          Nothing yet. When you ask for the Verified badge, make a complaint, report someone or report a problem, it shows here, with our answer.
         </p>
       ) : (
         <ul className="divide-y divide-gray-100 dark:divide-zinc-800">
@@ -65,7 +65,7 @@ const MyRequestsList: React.FC<{ onAddPhotos?: () => void; scrollTo?: boolean }>
               <p className="mt-1 text-xs text-gray-600 dark:text-gray-300">{r.detail}</p>
               {r.note && (
                 <p className="mt-2 text-xs text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-zinc-800/60 rounded-md px-3 py-2 whitespace-pre-wrap" data-testid="my-request-answer">
-                  <span className="font-semibold">{r.kind === 'complaint' ? 'Our answer: ' : 'Note from our team: '}</span>{r.note}
+                  <span className="font-semibold">{r.kind === 'complaint' || r.kind === 'problem' ? 'Our answer: ' : 'Note from our team: '}</span>{r.note}
                 </p>
               )}
               {r.retry && (

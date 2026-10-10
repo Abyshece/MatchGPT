@@ -1058,7 +1058,11 @@ filters. Phase 4 (done): the Verified badge needs a selfie doing a gesture we as
 optional), a turned-down request says why with "Try again"; Settings → My requests (verifications,
 complaints, reports, with answers and a message when answered); "An agent or marriage bureau" as a report
 reason; "Share my number" in chat; screenshots blocked in the Android app; chat messages can't be changed by
-members any more. Next: payments and reliability (5).
+members any more. Phase 5 (done): a message 3 days before Shaadi24+ renews (1 day for the weekly plan) and
+before a free trial ends, with the price and where to cancel; "Your week" on Find Match and in a Monday
+notification; Settings → Report a problem, answered in Admin → Errors and read in My requests; crash reports
+from the apps (Firebase Crashlytics); staged releases and an "Oldest app that still works" switch for a broken
+version (`docs/store/README.md`).
 
 **Still to do**
 

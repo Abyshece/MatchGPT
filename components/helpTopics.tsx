@@ -94,8 +94,9 @@ export function helpTopics(platform: HelpPlatform): HelpTopic[] {
     },
     {
       q: 'Where can I see my complaints and requests?',
-      a: <>Settings → <strong>My requests</strong> lists your verification requests, complaints and reports, where
-        each stands, and our answer. You also get a notification when one is answered.</>,
+      a: <>Settings → <strong>My requests</strong> lists your verification requests, complaints, reports and the
+        problems you've told us about, where each stands, and our answer. You also get a notification when one is
+        answered.</>,
     },
     {
       q: 'How do I give someone my phone number?',
@@ -131,19 +132,34 @@ export function helpTopics(platform: HelpPlatform): HelpTopic[] {
         accounts have no Shaadi24 password.</>,
     },
     {
+      q: 'Something isn\'t working',
+      a: onWebsite
+        ? <>In the app, Settings → Support → <strong>Report a problem</strong>: say what went wrong and what you were
+          trying to do. The screen you were on, the app's version and the kind of phone go with it, so we can find it,
+          and our answer appears in Settings → My requests. Or email <Mail to={SUPPORT_EMAIL} />.</>
+        : <>Settings → Support → <strong>Report a problem</strong>: say what went wrong and what you were trying to do.
+          The screen you were on, the app's version and the kind of phone go with it, so we can find it, and our
+          answer appears in Settings → My requests. If the app asks you to update, please do: it means that version
+          had a problem we've fixed.</>,
+    },
+    {
       q: 'How do I cancel Shaadi24+?',
       a: platform === 'android'
         ? <>Settings → Shaadi24+ → <strong>Manage subscription</strong> opens your subscriptions in Google Play
           (or: Play Store → your picture → Payments &amp; subscriptions → Subscriptions). Shaadi24+ stays on until
-          the end of the time you've paid for.</>
+          the end of the time you've paid for. We send you a message 3 days before it renews (a day before, for a
+          weekly plan) and before a free trial ends, with the price.</>
         : platform === 'ios'
           ? <>Settings → Shaadi24+ → <strong>Manage subscription</strong> (or: iPhone Settings → your name →
-            Subscriptions). Shaadi24+ stays on until the end of the time you've paid for. Deleting your account
-            doesn't cancel it, so cancel it first.</>
+            Subscriptions). Shaadi24+ stays on until the end of the time you've paid for. We send you a message
+            3 days before it renews (a day before, for a weekly plan) and before a free trial ends, with the price.
+            Deleting your account doesn't cancel it, so cancel it first.</>
           : <>In the store you bought it from; it stays on until the end of the time you've paid for. Google Play:
             in the app, Settings → Shaadi24+ → Manage subscription, or Play Store → your picture → Payments &amp;
-            subscriptions → Subscriptions. App Store: iPhone Settings → your name → Subscriptions. Deleting your
-            account doesn't cancel an App Store subscription, so cancel it first.</>,
+            subscriptions → Subscriptions. App Store: iPhone Settings → your name → Subscriptions. We send you a
+            message in the app 3 days before it renews (a day before, for a weekly plan) and before a free trial
+            ends, with the price. Deleting your account doesn't cancel an App Store subscription, so cancel it
+            first.</>,
     },
     {
       q: 'Can I get a refund?',

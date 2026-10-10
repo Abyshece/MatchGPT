@@ -85,7 +85,7 @@ try {
   check(await contact.locator('a[href="mailto:privacy@shaadi24.com"]').count() === 1, 'the privacy address');
   check(/review every report within 24 hours/.test(await contact.innerText()), 'how reports are handled');
   const questions = page.locator('details');
-  check(await questions.count() === 20, `20 questions (${await questions.count()})`);
+  check(await questions.count() === 21, `21 questions (${await questions.count()})`);
   check(!(await page.getByText(/use the AI search \(a few searches every few hours/).isVisible()), 'answers start closed');
   await page.getByText('Is Shaadi24 free?').click();
   check(await appears(page.getByText(/use the AI search \(a few searches every few hours, a day and\s+a week; more a day with a complete profile\), send/)), 'a question opens to its answer');

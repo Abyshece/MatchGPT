@@ -3437,6 +3437,16 @@ export type Database = {
       my_requests: { Args: never; Returns: Json }
       share_my_number: { Args: { p_match_id: string; p_phone: string; p_remember?: boolean }; Returns: Json }
       verification_pose: { Args: never; Returns: string }
+      // From 20261013090000_payments_and_reliability.sql
+      my_week: { Args: never; Returns: Json }
+      report_problem: {
+        Args: { p_app_version?: string; p_details: string; p_device?: string; p_platform?: string; p_screen?: string }
+        Returns: string
+      }
+      admin_list_problems: { Args: { p_open_only?: boolean }; Returns: Json }
+      admin_answer_problem: { Args: { p_answer: string; p_id: string }; Returns: undefined }
+      app_config: { Args: never; Returns: Json }
+      admin_set_min_app_build: { Args: { p_build: number }; Returns: undefined }
       vapid_public_key: { Args: never; Returns: string }
     }
     Enums: {

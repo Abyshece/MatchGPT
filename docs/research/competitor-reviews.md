@@ -16,14 +16,14 @@ can count under several problems, so the counts are approximate.
 | # | Problem | Reviews | Shaadi24 | Phase |
 |---|---|---|---|---|
 | 1 | Fake profiles, bots, marriage-bureau agents | ~1,740 | Photo and bio approval, Scam alerts, throwaway emails refused, one account per inbox, 3 per phone. The Verified badge needs a selfie with a gesture; "An agent or marriage bureau" is a report reason. | 4 (done) |
-| 2 | Crashes, freezes, broken updates | ~830 | Every change is tested before it ships. Crash reports from phones and gradual releases next. | 5 |
+| 2 | Crashes, freezes, broken updates | ~830 | Every change is tested before it ships. Crash reports from phones (Crashlytics), "Report a problem" in Settings, releases to a few people first, and a switch that makes a broken old version ask to be updated. | 5 (done) |
 | 3 | Support that doesn't help | ~710 | Complaints with a ticket and legal deadlines. "My requests" shows each verification, complaint and report with our answer, and a message says when one is answered. | 4 (done) |
 | 4 | Nobody replies; dead profiles; fake "last seen" | ~600 | "Online" is never faked. Inactive profiles leave search, interests expire, a "Usually replies" badge, "I found my match". | 2 (done) |
 | 5 | Daily sales calls | ~440 | No sales team. Now a written promise. | 1 (done) |
 | 6 | Too expensive | ~420 | From ₹499 a week. Now a public price list with the price a day. | 1 (done) |
 | 7 | Basics locked behind payment; "free" ads that aren't | ~390 | Chatting after a match is free. Now said plainly, and one free "Likes You" a day. | 1 (done) |
-| 8 | Refunds refused, auto-renewal, double charges | ~300 | Paid only through the stores. A reminder before each renewal next. | 5 |
-| 9 | Matches dry up after paying | ~260 | Paying doesn't change matches. A "Your week" card next. | 5 |
+| 8 | Refunds refused, auto-renewal, double charges | ~300 | Paid only through the stores. A message 3 days before each renewal (1 for a weekly plan) and before a free trial ends, with the price and where to cancel. | 5 (done) |
+| 9 | Matches dry up after paying | ~260 | Paying doesn't change matches. "Your week" on Find Match and on Monday mornings: likes, matches, messages, Standouts and new members near you, only what really happened. | 5 (done) |
 | 10 | The same profiles again and again | ~250 | "Not interested" for good, no repeats in Standouts, "New" on new members. | 2 (done) |
 | 11 | Too few relevant profiles | ~240 | Near misses below few results; saved searches with a daily alert about new members. | 3 (done) |
 | 12 | Can't log in, no code, reset broken | ~200 | Errors in plain words and a "Still no email?" box. | 1 (done) |
@@ -112,3 +112,24 @@ free, and a separate subscription for each sister site.
 - **Download my data** adds partner preferences, saved searches, hidden profiles, complaints and an "I found my
   match" story; Privacy Policy and Terms updated (members accept them again).
 
+## Phase 5 (done)
+
+- **A reminder before Shaadi24+ charges again** (`renewal_reminders()`, daily at 10:07 India time): 3 days before a
+  plan renews (a day before, for the weekly plan) and before a free trial ends, the member gets a message and a
+  notification. It gives the date, the price ("₹999 a month"), the store that charges it, and where to cancel. There
+  is one reminder per renewal. A plan that is already cancelled gets none.
+- **Your week** (`my_week()`): a card on Find Match with the last 7 days' likes, new matches, messages, the Standouts
+  the member was picked for, and new members near them. Likes from people they blocked don't count. Tapping a
+  number opens it, and × puts the card away until next week. A Monday morning notification says the same, only in
+  a week with something to say.
+- **Report a problem** (Settings → Support; `report_problem()`): what went wrong, in the member's words, with the
+  screen, app version and kind of phone. The team gets an alert and answers in Admin → Errors. The member gets a
+  message and reads the answer in My requests. Five a day at most.
+- **Crash reports** (Firebase Crashlytics) from the Android and iPhone apps. They carry no name or account. The
+  TestFlight job uploads the iPhone app's debug symbols.
+- **Gradual releases and a stop switch** (`docs/store/README.md`, "Staged rollouts"):
+  - Google Play's staged roll-out and the App Store's phased release, with what to check before each step.
+  - Admin → Errors → *Oldest app that still works* (`app_settings.min_app_build`, owner only, audited): older apps
+    show "Please update Shaadi24" and nothing else.
+- **Download my data** adds problem reports. The Privacy Policy, the Help Center and the store privacy answers
+  name Crashlytics, problem reports and the reminders.

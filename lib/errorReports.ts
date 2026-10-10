@@ -18,6 +18,9 @@ const MAX_PER_PAGE = 10;    // a loop of errors sends no more than this
 const sentHere = new Set<string>();
 let screen = '';
 
+/** The screen people are on, for the reports and Report a problem (lib/problemReports.ts). */
+export const currentScreen = (): string => screen;
+
 /** The screen people are on, for the reports (App, Dashboard's tabs, the website's pages). */
 export function setErrorScreen(name: string): void {
   screen = name;

@@ -248,6 +248,46 @@ On an Android phone (internal testing) and an iPhone (TestFlight):
 3. iPhone: `npm run build:ios`, Archive and upload in Xcode, and a new version in App Store Connect with
    "What's New".
 4. Commit the version change.
+5. Release it in stages (below), not to everyone at once.
+
+### Staged rollouts, and stopping a bad version
+A new version goes to a few people first, so a mistake reaches a few hundred phones, not everyone.
+- **Google Play**: Production → Create new release → upload the `.aab` → *Staged roll-out*. Start at
+  **5%** for a day, then 20%, 50% and 100%, a day or two apart. Before each step, look at:
+  - Firebase → Crashlytics: crash-free users should stay above 99%, with no new crash at the top of the list.
+  - Play Console → Android vitals: crashes and "app not responding".
+  - Admin → Errors: error reports, and the problems members sent with Settings → Report a problem.
+
+  If something is wrong, use **Halt roll-out**. Phones that already have the version keep it. Fix it,
+  raise the version, and start a new staged release.
+- **App Store**: on the version's page, before submitting, choose *Release update over 7-day period
+  using phased release*. Apple gives it to 1%, 2%, 5%, 10%, 20%, 50% and then 100% of automatic updates.
+  If something is wrong, use **Pause Phased Release** (up to 30 days), then submit a fixed version.
+  People can still update by hand from the App Store page.
+- **TestFlight first**: every build from main goes to the testers before it goes to review (`.github/workflows/testflight.yml`).
+- **When an old version is broken for everyone**, for example after a backend change it can't handle:
+  1. Release the fixed version in both stores, and wait until it is live.
+  2. Go to Admin → Errors → *Oldest app that still works* and enter that version's build number
+     (version 1.2.3 is 10203).
+  3. Older apps then show "Please update Shaadi24" with a button to the store, and nothing else.
+
+  Notes:
+  - Raise it only once the fixed version can be downloaded, or members are stuck with nowhere to go.
+  - The website is always the newest, so it never asks.
+  - Only the owner can change it, and each change is in Admin → Audit log.
+  - Set it back to 0 to turn it off.
+
+### Crash reports (Firebase Crashlytics)
+The apps send a report to Firebase when they crash. It contains where in the code, the app's version and
+the phone, but no name, account or screen contents. Admin → Errors covers the website's errors and the
+problems members report.
+- [ ] Firebase console → Crashlytics → **Enable Crashlytics** for both apps.
+- [ ] **Android**: on by itself once `google-services.json` is in `android/app/`. Reports come from
+  release and debug builds; a crash shows up a few minutes after the app is opened again.
+- [ ] **iPhone**: on by itself with `FIREBASE_IOS_CONFIG`. The TestFlight job uploads the debug symbols
+  (dSYMs), so crashes show the code's names. If you upload from Xcode instead, Firebase's guide shows how
+  to add the symbol upload to the build.
+- [ ] Optional: Firebase → Crashlytics → alerts by email for new crashes and for a crash that comes back.
 
 ## Shaadi24+ prices
 
@@ -448,7 +488,7 @@ password, and OAuth (Google; Apple on iPhones).
 |---|---|---|---|---|
 | Personal info → Name | Yes | No | Required | App functionality, Account management, Fraud prevention, security, and compliance |
 | Personal info → Email address | Yes | No | Required | App functionality, Account management, Fraud prevention, security, and compliance |
-| Personal info → Phone number (only if given with a complaint to the Grievance Officer) | Yes | No | Optional | Fraud prevention, security, and compliance |
+| Personal info → Phone number (only if shared in a chat with Share my number, or given with a complaint to the Grievance Officer) | Yes | No | Optional | App functionality, Fraud prevention, security, and compliance |
 | Personal info → User IDs (the account's; Google's or Apple's at sign-in) | Yes | No | Required | App functionality, Account management |
 | Personal info → Race and ethnicity (community, caste, ethnicity) | Yes | No | Optional | App functionality |
 | Personal info → Political or religious beliefs | Yes | No | Optional | App functionality |
@@ -462,10 +502,10 @@ password, and OAuth (Google; Apple on iPhones).
 | Photos and videos → Photos | Yes | No | Required | App functionality |
 | App activity → App interactions (likes, matches, last active) | Yes | No | Required | App functionality |
 | App activity → In-app search history | Yes | **Yes**\* | Optional | App functionality |
-| App activity → Other user-generated content (About me, profile answers) | Yes | No | Optional | App functionality |
+| App activity → Other user-generated content (About me, profile answers, problems reported in Settings → Report a problem) | Yes | No | Optional | App functionality |
 | Device or other IDs (the notification token, if notifications are on; the app's ID for the phone, kept scrambled) | Yes | No | Required | App functionality, Fraud prevention, security and compliance |
-| App info and performance → Crash logs (error reports: the error and where in the code) | Yes | No | Required | App functionality |
-| App info and performance → Diagnostics (with an error: the screen, app version, phone and system) | Yes | No | Required | App functionality |
+| App info and performance → Crash logs (error reports, and Firebase Crashlytics when the app crashes: the error and where in the code) | Yes | No | Required | App functionality |
+| App info and performance → Diagnostics (with an error, a crash or a reported problem: the screen, app version, phone and system) | Yes | No | Required | App functionality |
 
 Not collected: precise location, contacts, calendar, files, audio, web browsing, payment details (Google
 Play takes the payment; Shaadi24 never sees cards or UPI). Internet (IP) addresses are kept with each
@@ -479,7 +519,7 @@ are still "collected", as Google counts anything that leaves the phone.
 names, emails or phone numbers). On Gemini's free tier Google may use them to improve its services, which
 makes this "shared". On a paid Gemini plan Google only processes them for Shaadi24: then answer **No**.
 Without the key nothing is sent: also **No**. Hosting and delivery companies (Supabase, Vercel, Firebase
-Cloud Messaging) work for Shaadi24 and don't count as sharing; other members seeing a profile is what
+Cloud Messaging, Firebase Crashlytics) work for Shaadi24 and don't count as sharing; other members seeing a profile is what
 the person asked for and doesn't either.
 
 ## App Store: App Privacy answers
@@ -493,10 +533,11 @@ third-party partners use data for tracking?" **No.**
 |---|---|---|
 | Contact Info | Name | the profile's name |
 | Contact Info | Email Address | the account's email |
-| Contact Info | Phone Number | only if someone gives it with a complaint (optional) |
+| Contact Info | Phone Number | only if someone shares it in a chat with Share my number, or gives it with a complaint (optional) |
 | User Content | Photos or Videos | profile photos |
 | User Content | Emails or Text Messages | chat messages between matches |
 | User Content | Other User Content | About me and the profile's answers |
+| User Content | Customer Support | complaints, and Settings → Report a problem (with the screen, app version and phone) |
 | Health & Fitness | Health | disability, family health history (optional) |
 | Sensitive Info | Sensitive Info | religion, community, sexuality, political views (optional) |
 | Location | Coarse Location | the city and state people type |
@@ -507,8 +548,8 @@ third-party partners use data for tracking?" **No.**
 | Identifiers | Device ID | the notification token, and the app's ID for the phone (kept scrambled; fraud prevention: free searches on 3 accounts a phone) |
 | Usage Data | Product Interaction | likes, matches, last active |
 | Other Data | Other Data Types | date of birth, gender, marital status, height, horoscope, family, education, job |
-| Diagnostics (Not Linked to You) | Crash Data | error reports: the error and where in the code |
-| Diagnostics (Not Linked to You) | Other Diagnostic Data | with an error: the screen, app version, phone and system |
+| Diagnostics (Not Linked to You) | Crash Data | error reports and Firebase Crashlytics crash reports: the error and where in the code |
+| Diagnostics (Not Linked to You) | Other Diagnostic Data | with an error or a crash: the screen, app version, phone and system |
 
 ## Content rating
 

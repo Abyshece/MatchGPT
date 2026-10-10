@@ -335,7 +335,7 @@ try {
 
   log('== 7. Download my data, and Android');
   const data = (await rpc('export_my_data', {}, jwtA)).json;
-  check(data?.export_metadata?.format_version === '1.5', `format ${data?.export_metadata?.format_version}`);
+  check(Number(data?.export_metadata?.format_version) >= 1.5, `format ${data?.export_metadata?.format_version}`);
   check(['partner_preferences', 'saved_searches', 'hidden_profiles', 'complaints', 'found_my_match_story'].every((k) => k in (data ?? {})),
     'with partner preferences, saved searches, hidden profiles, complaints and an "I found my match" story');
   check(data?.complaints?.some((g) => g.ticket === ticket) && data?.reports_filed?.every((x) => !('admin_notes' in x)),

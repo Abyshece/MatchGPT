@@ -2,10 +2,13 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useToast } from '../../lib/useToast';
 import { useNow } from '../../lib/useNow';
 import { fetchErrorReports, markErrorFixed, type ErrorReportRow } from '../../lib/adminService';
+import AdminProblems from './AdminProblems';
 
 // ============================================================================
 // AdminErrorsTab: what went wrong in the app and on the website
 //
+// First the problems members reported, and the oldest app version that still
+// works (AdminProblems); then the errors the apps sent themselves.
 // Each error once (all the days it happened together), most recent first,
 // with how often, where, on which version and device, and its stack.
 // "Mark fixed" hides it until it happens again (lib/errorReports.ts sends
@@ -59,6 +62,7 @@ const AdminErrorsTab: React.FC<{ onAuditUpdate: () => void }> = ({ onAuditUpdate
 
   return (
     <div data-testid="admin-errors">
+      <AdminProblems />
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <p className="text-sm text-gray-600 dark:text-gray-300 max-w-2xl">
           Errors the app and the website reported, most recent first. They say where and on which device, never who:

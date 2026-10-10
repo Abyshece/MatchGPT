@@ -22,7 +22,8 @@ const RefundsView: React.FC<{ onBack: () => void }> = ({ onBack }) => (
     <Section title="1. What you buy">
       <p>Shaadi24+ is a subscription of one week, one month, three months or six months ({pricesInWords()} in India),
         that renews automatically until you cancel. The store shows you the final price, including GST and any other taxes, and any free trial, before
-        you confirm. {LEGAL.brand} itself is free to use.</p>
+        you confirm. We send you a message in the app 3 days before it renews (a day before, for the weekly plan) and
+        before a free trial ends, with the price and where to cancel. {LEGAL.brand} itself is free to use.</p>
       <p>Spotlight ({spotlightPrice()}) and Super Interests ({superInterestPrices()}) are bought one at a time in the
         apps the same way. They don't renew, so there is nothing to cancel; ones you haven't used stay in your account.</p>
     </Section>
