@@ -44,8 +44,9 @@ free, and a separate subscription for each sister site.
 
 - **Promises** (`lib/promises.ts`): no sales calls, every interest from a real member, chatting free, clear prices.
   On the welcome screen, the Shaadi24+ page and the website, which also lists the prices with the price a day.
-- **Undo and Withdraw** (`withdraw_interest()`): an interest can be taken back until it becomes a match. Undone
-  within a minute, it doesn't use up one of the day's likes, and a bought Super Interest comes back.
+- **Undo and Withdraw** (`interest_status()`, `refund_undone_interest()`): an interest can be taken back until it
+  becomes a match. Undone within a minute, it doesn't use up one of the day's likes, and a bought Super Interest comes
+  back.
 - **One free "Likes You" a day** (`reveal_like()`, `app_settings.free_like_reveals_per_day`): without Shaadi24+, a
   member can see who one person who liked them is, each day. The database only sends who it is after that.
   While "Shaadi24+ for everyone" is on, everyone sees all of them anyway.

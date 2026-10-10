@@ -86,6 +86,12 @@ http.createServer((req, res) => {
     if (/near me|nearby/i.test(prompt)) plan.near_me = true;
     if (/online/i.test(prompt)) plan.online_now = true;
     if (/under 30/i.test(prompt)) plan.age_max = 29;
+    // Heights as the real prompt asks (ai.ts): "taller than 5'6"" -> 170, "shorter than 5'5"" -> 163
+    const cm = (ft, inch) => Math.round((Number(ft) * 12 + Number(inch || 0)) * 2.54);
+    const taller = prompt.match(/taller than (\d)'(\d{1,2})?/i);
+    if (taller) plan.height_min_cm = cm(taller[1], Number(taller[2] || 0) + 1);
+    const shorter = prompt.match(/shorter than (\d)'(\d{1,2})?/i);
+    if (shorter) plan.height_max_cm = cm(shorter[1], Number(shorter[2] || 0) - 1);
     if (/smok/i.test(prompt)) plan.avoid.push('smoking');
     if (/vegetarian/i.test(prompt)) plan.preferences.push({ field: 'dietary_preferences',
       answers: (answers.dietary_preferences || []).filter((a) => /Vegetarian|Vegan|Jain/.test(a)), negated: false });

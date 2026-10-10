@@ -30,7 +30,7 @@ alter table public.app_settings
 comment on column public.app_settings.inactive_hide_days is
   'Members who haven''t opened the app for this many days are left out of search and Standouts.';
 comment on column public.app_settings.interest_expiry_days is
-  'An interest nobody answered is taken back after this many days (a Super Interest after twice as many).';
+  'An interest nobody answered no longer counts after this many days (a Super Interest after twice as many).';
 
 -- ---- 1. Not interested -----------------------------------------------------------------------------
 

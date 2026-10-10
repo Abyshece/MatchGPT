@@ -21,7 +21,7 @@ import type { MatchCandidate } from '../types';
 //     show the celebration modal
 //   - Otherwise the toast offers Undo for a few seconds: an interest sent by
 //     mistake is taken back without using up one of the day's likes
-//     (withdraw_interest() in the database)
+//     (withdrawInterest() in lib/likesService.ts)
 // ============================================================================
 
 interface LikeButtonProps {
