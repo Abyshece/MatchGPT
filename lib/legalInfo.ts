@@ -20,9 +20,9 @@ export const LEGAL = {
   cin: '',     // a company's Corporate Identification Number, if any
   gstin: '',   // GST registration, if any
 
-  supportEmail: 'support@shaadi24.com',
-  privacyEmail: 'privacy@shaadi24.com',
-  grievanceEmail: 'grievance@shaadi24.com',
+  supportEmail: 'support@shaadi24.in',
+  privacyEmail: 'privacy@shaadi24.in',
+  grievanceEmail: 'grievance@shaadi24.in',
   supportHours: 'Monday to Saturday, 10 am to 6 pm India time',
 
   // IT Rules 2021, rule 3(2)(a): named on the website and in the app
@@ -38,8 +38,10 @@ export const LEGAL = {
   // Where members' data is kept (Supabase project in ap-south-1)
   dataRegion: 'Mumbai, India',
 
-  // The website, for links from inside the phone apps (account deletion, support)
-  websiteUrl: 'https://shaadi-gpt.vercel.app',
+  // The website, for links from inside the phone apps (account deletion, support),
+  // shared biodata and Family Circle links, and the blog's addresses.
+  // https://shaadi-gpt.vercel.app forwards here (vercel.json).
+  websiteUrl: 'https://shaadi24.in',
 } as const;
 
 /** "to be published before launch" for anything the owner hasn't filled in yet. */

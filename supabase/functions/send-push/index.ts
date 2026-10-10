@@ -69,7 +69,7 @@ Deno.serve(withCors(async (req: Request): Promise<Response> => {
   // ---- Read env (both provided by Supabase) ----
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-  const vapidSubject = Deno.env.get('VAPID_SUBJECT') ?? 'mailto:support@shaadi24.com';
+  const vapidSubject = Deno.env.get('VAPID_SUBJECT') ?? 'mailto:support@shaadi24.in';
 
   if (!supabaseUrl || !serviceRoleKey) {
     console.error('[send-push] missing env vars');

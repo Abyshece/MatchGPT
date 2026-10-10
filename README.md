@@ -7,7 +7,7 @@ answer can be hidden. Likes that go both ways become matches, and matches can ch
 verified through their social links. AI searches have limits every 5 hours, a day and a week (like
 Claude's), and Shaadi24+ adds more searches and unlimited likes.
 
-Members use Shaadi24 in the **Android and iPhone apps**. The website, **https://shaadi-gpt.vercel.app**,
+Members use Shaadi24 in the **Android and iPhone apps**. The website, **https://shaadi24.in**,
 says what Shaadi24 is and where to get the apps, serves the pages the stores and Indian law ask for
 (support, privacy, terms, grievances, safety, refunds, account deletion), has a blog at `/blog`, and
 has the admin panel for Shaadi24's team at `/admin`. Shaadi24+ is sold only

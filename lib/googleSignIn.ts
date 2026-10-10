@@ -13,7 +13,7 @@
 // ============================================================================
 
 // Google's public ID for this site's sign-in client. Not a secret: it's part
-// of every Google sign-in link. Empty until https://shaadi-gpt.vercel.app is
+// of every Google sign-in link. Empty until https://shaadi24.in is
 // an authorized origin of the client, because Google refuses the button
 // until then; while empty, the classic sign-in is used.
 // VITE_GOOGLE_CLIENT_ID overrides it ('' switches Google's button off).

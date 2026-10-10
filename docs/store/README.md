@@ -13,17 +13,16 @@ In this folder:
   preview. Change the words or the picture there and run it to remake them all. The App Store takes
   its icon from the app.
 
-The website pages the stores link to (the home page, https://shaadi-gpt.vercel.app, says what Shaadi24
-is and links to the stores; members use the apps):
+The website pages the stores link to (the home page, https://shaadi24.in, says what Shaadi24 is and
+links to the stores; members use the apps). The old address, https://shaadi-gpt.vercel.app, forwards to
+the same page on shaadi24.in:
 
 | Page | Address |
 |---|---|
-| Privacy Policy | https://shaadi-gpt.vercel.app/privacy |
-| Terms of Service | https://shaadi-gpt.vercel.app/terms |
-| Help & Support | https://shaadi-gpt.vercel.app/support |
-| Delete your account | https://shaadi-gpt.vercel.app/delete-account |
-
-With a domain of your own (step 1), use it in place of `shaadi-gpt.vercel.app` everywhere below.
+| Privacy Policy | https://shaadi24.in/privacy |
+| Terms of Service | https://shaadi24.in/terms |
+| Help & Support | https://shaadi24.in/support |
+| Delete your account | https://shaadi24.in/delete-account |
 
 ---
 
@@ -31,12 +30,16 @@ With a domain of your own (step 1), use it in place of `shaadi-gpt.vercel.app` e
 
 ### 1. Before you start
 - [ ] **The email addresses.** The apps, the Terms, the Privacy Policy and the support page tell people
-  to write to `support@shaadi24.com` and `privacy@shaadi24.com`. Make sure both reach you: they need the
-  shaadi24.com domain, which in October 2026 was already registered by someone (it answered with a
-  hosted website). If you can't get it, ask Claude to change them to addresses you have.
-- [ ] **The website's address.** The stores show it to everyone. `shaadi-gpt.vercel.app` works; a domain
-  of your own (Vercel → your project → Settings → Domains) looks more trustworthy. If you add one, also
-  set it as Supabase's Site URL and in `ALLOWED_ORIGINS` (step 3).
+  to write to `support@shaadi24.in`, `privacy@shaadi24.in` and `grievance@shaadi24.in`. Make sure all
+  three reach you: GoDaddy → your domain → Email forwarding (or a free forwarding service such as
+  ImprovMX), each to the inbox you read every day.
+- [ ] **The website's address: shaadi24.in.**
+  - Vercel → your project → Settings → Domains: add `shaadi24.in` and `www.shaadi24.in`.
+  - GoDaddy → My Products → shaadi24.in → DNS: delete the "Parked" A record for `@`, set the `www`
+    CNAME to what Vercel shows, and add Vercel's A record for `@`. Vercel says "Valid Configuration"
+    once it works, and adds the padlock (https) by itself.
+  - `vercel.json` forwards `shaadi-gpt.vercel.app` and `www.shaadi24.in` to `https://shaadi24.in`.
+  - Also set it as Supabase's Site URL (step 3), and in `ALLOWED_ORIGINS` (step 3).
 - [ ] **The name.** Search both stores for "Shaadi24" to be sure it's free. Shaadi.com is a large
   matrimony brand in India, so have a lawyer check that "Shaadi24" doesn't conflict with its trademarks
   (with the legal review of the Terms and Privacy Policy). If a store objects, a different store name is
@@ -67,7 +70,7 @@ With a domain of your own (step 1), use it in place of `shaadi-gpt.vercel.app` e
   domain). Supabase's built-in email sends a few emails an hour, and only to your team: members would
   get no codes.
 - [ ] Authentication → URL Configuration → Site URL: the website's address. Redirect URLs: add the
-  address with `/**` after it (`https://shaadi-gpt.vercel.app/**`), so an admin who signs in with Google
+  address with `/**` after it (`https://shaadi24.in/**`), so an admin who signs in with Google
   comes back to the admin panel (without it they come back to the home page, which links to it).
 - [ ] Authentication → Sign In / Providers: **Google** (Client IDs: the web client, then the iOS client
   from step 4) and **Apple** (Client IDs: `com.shaadi24.app`).
@@ -79,7 +82,7 @@ With a domain of your own (step 1), use it in place of `shaadi-gpt.vercel.app` e
 | `GOOGLE_PLAY_SERVICE_ACCOUNT` | checking Google Play purchases | step 6.5 |
 | `GOOGLE_RTDN_SECRET` | Google Play's purchase notifications | a long random string you make up (step 6.6) |
 | `APPLE_TEAM_ID`, `APPLE_SIGNIN_KEY_ID`, `APPLE_SIGNIN_PRIVATE_KEY` | ending Sign in with Apple when an account is deleted | step 4, Apple |
-| `ALLOWED_ORIGINS` | which pages may call the server | `https://shaadi-gpt.vercel.app,https://localhost,capacitor://localhost` (the website, the Android app, the iPhone app; add your own domain). Without the apps' two, the apps can't search, buy or delete accounts: leave the secret out rather than miss them |
+| `ALLOWED_ORIGINS` | which pages may call the server | `https://shaadi24.in,https://www.shaadi24.in,https://shaadi-gpt.vercel.app,https://localhost,capacitor://localhost` (the website, its old address, the Android app, the iPhone app). Without the apps' two, the apps can't search, buy or delete accounts: leave the secret out rather than miss them |
 | `GEMINI_API_KEY` (optional) | AI search | Google AI Studio; read the note on search in "Data safety" |
 
 - [ ] Optional: Authentication → Attack Protection → leaked-password protection (paid plans).
@@ -172,13 +175,13 @@ then test it and add iPad screenshots.)
 7. **Settings → License testing**: your Gmail and your testers', so test purchases aren't charged.
 8. **Grow users → Store presence → Main store listing**: the texts, graphics and screenshots below.
 9. **Policy and programs → App content**:
-   - Privacy policy: `https://shaadi-gpt.vercel.app/privacy`
+   - Privacy policy: `https://shaadi24.in/privacy`
    - App access: "All or some functionality is restricted", with the demo account (below)
    - Ads: no ads
    - Content rating: the questionnaire (below)
    - Target audience: 18 and over, nothing younger
    - Data safety: the answers below
-   - Account deletion: Settings → Delete Account in the app, and `https://shaadi-gpt.vercel.app/delete-account`
+   - Account deletion: Settings → Delete Account in the app, and `https://shaadi24.in/delete-account`
    - Advertising ID: the app doesn't use it. Government app: no. Financial features: none. Health: none.
      News: no
 10. **Closed testing** (personal accounts): at least 12 testers opted in for 14 days in a row; friends and
@@ -235,7 +238,7 @@ On an Android phone (internal testing) and an iPhone (TestFlight):
 - [ ] **Reports within 24 hours.** The Terms promise it and both stores expect it: look at Admin →
   Reports every day, remove what breaks the rules and ban the people who post it.
 - [ ] Verification requests (Admin → Verifications), so new members don't wait long. The admin panel is in
-  the app, and on the website at https://shaadi-gpt.vercel.app/admin.
+  the app, and on the website at https://shaadi24.in/admin.
 - [ ] Reply to reviews in Play Console and App Store Connect.
 - [ ] The stores' payout reports are the final word on fees and tax; Admin → Finance estimates the
   stores' share at 15% (`STORE_FEE_PERCENT_GOOGLE_PLAY`, `STORE_FEE_PERCENT_APP_STORE` if yours differ).
@@ -409,13 +412,13 @@ No plan needed: put yourself first in searches near you for 24 hours with Spotli
 
 Making a profile for a son, daughter, brother, sister or friend? Welcome, with their permission.
 
-Privacy Policy: https://shaadi-gpt.vercel.app/privacy
-Terms of Service: https://shaadi-gpt.vercel.app/terms
-Help: https://shaadi-gpt.vercel.app/support
+Privacy Policy: https://shaadi24.in/privacy
+Terms of Service: https://shaadi24.in/terms
+Help: https://shaadi24.in/support
 ```
 
-**Category**: Dating. **Contact details**: email `support@shaadi24.com`, website
-`https://shaadi-gpt.vercel.app`. **Graphics**: `graphics/play-icon-512.png`,
+**Category**: Dating. **Contact details**: email `support@shaadi24.in`, website
+`https://shaadi24.in`. **Graphics**: `graphics/play-icon-512.png`,
 `graphics/play-feature-graphic.jpg`, and the phone screenshots (below).
 
 ## App Store listing
@@ -426,9 +429,9 @@ Help: https://shaadi-gpt.vercel.app/support
 | Subtitle (30) | `Find a life partner who fits` |
 | Promotional text (170) | `Describe the person you hope to marry, in your own words. Shaadi24 finds the people you fit best: by values, family, lifestyle and plans.` |
 | Keywords (100) | `shaadi,rishta,marriage,bride,groom,biodata,kundli,manglik,hindu,muslim,sikh,jain,christian,nri,desi` |
-| Support URL | `https://shaadi-gpt.vercel.app/support` |
-| Marketing URL | `https://shaadi-gpt.vercel.app` |
-| Privacy Policy URL | `https://shaadi-gpt.vercel.app/privacy` |
+| Support URL | `https://shaadi24.in/support` |
+| Marketing URL | `https://shaadi24.in` |
+| Privacy Policy URL | `https://shaadi24.in/privacy` |
 | Copyright | `2026 <your name or company>` |
 | Category | Lifestyle; secondary Social Networking |
 
@@ -474,14 +477,14 @@ No plan needed: put yourself first in searches near you for 24 hours with Spotli
 
 Shaadi24+ is an auto-renewing subscription for 1 week, 1 month, 3 months or 6 months. Payment is charged to your Apple Account when you confirm the purchase. It renews automatically unless you turn off auto-renewal at least 24 hours before the end of the current period, and your account is charged for the renewal within 24 hours before the period ends. Manage or cancel it in your Apple Account settings. If a free trial is offered, any unused part of it ends when you buy a subscription.
 
-Terms of Use: https://shaadi-gpt.vercel.app/terms
-Privacy Policy: https://shaadi-gpt.vercel.app/privacy
+Terms of Use: https://shaadi24.in/terms
+Privacy Policy: https://shaadi24.in/privacy
 ```
 
 ## Google Play: Data safety answers
 
 Data collection: **yes**. Encrypted in transit: **yes**. People can ask for their data to be deleted:
-**yes** (in the app, and `https://shaadi-gpt.vercel.app/delete-account`). Account creation: username and
+**yes** (in the app, and `https://shaadi24.in/delete-account`). Account creation: username and
 password, and OAuth (Google; Apple on iPhones).
 
 | Data type | Collected | Shared | Required or optional | Purposes |

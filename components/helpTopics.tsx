@@ -9,8 +9,8 @@ import React from 'react';
 // other platforms or ways to pay).
 // ============================================================================
 
-export const SUPPORT_EMAIL = 'support@shaadi24.com';
-export const PRIVACY_EMAIL = 'privacy@shaadi24.com';
+export const SUPPORT_EMAIL = 'support@shaadi24.in';
+export const PRIVACY_EMAIL = 'privacy@shaadi24.in';
 
 export interface HelpTopic {
   q: string;
