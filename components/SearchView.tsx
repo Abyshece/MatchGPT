@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect, useRef, useMemo, Suspense } fr
 import { lazyScreen } from '../lib/lazyScreen';
 import { useAuth } from '../lib/AuthContext';
 import { useToast } from '../lib/useToast';
+import { usePassProfile } from '../lib/usePassProfile';
 import { searchProfiles, SearchError } from '../lib/searchService';
 import { saveSearch } from '../lib/searchHistoryService';
 import { computeVerificationStatus } from '../lib/profileService';
@@ -80,6 +81,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
   const [prompt, setPrompt] = useState('');
   const [filters, setFilters] = useState<FilterOptions>(DEFAULT_FILTERS);
   const [results, setResults] = useState<MatchCandidate[]>([]);
+  const pass = usePassProfile();
   // The filters the results came from, and how the member wants them shown
   const [searchedFilters, setSearchedFilters] = useState<FilterOptions | null>(null);
   const [sort, setSort] = useState<SortId>('best');
@@ -249,6 +251,15 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
 
 
   const dropResult = (id: string) => setResults((prev) => prev.filter((r) => r.id !== id));
+  // The X, or "Not interested": gone for good (Undo puts the card back where it was)
+  const hideResult = (id: string) => {
+    const at = results.findIndex((r) => r.id === id);
+    const candidate = results[at];
+    dropResult(id);
+    if (candidate) {
+      pass(candidate, () => setResults((prev) => (prev.some((r) => r.id === id) ? prev : [...prev.slice(0, at), candidate, ...prev.slice(at)])));
+    }
+  };
 
   const handleMatched = (matchId: string, candidate: MatchCandidate) => {
     // Close any open profile modal first, then celebrate
@@ -567,7 +578,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
                       onLimitReached={() => openUpgrade('like_limit')}
                       // Liked or passed: the card plays its exit, then leaves the results
                       onLiked={() => dropResult(c.id)}
-                      onReject={dropResult}
+                      onReject={hideResult}
                     />
                   ))}
                 </div>
@@ -586,6 +597,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
           onUpgrade={() => { setSelectedCandidate(null); openUpgrade('pro_feature'); }}
           onMatched={handleMatched}
           onLiked={dropResult}
+          onHidden={hideResult}
         />
       )}
 

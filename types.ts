@@ -263,6 +263,8 @@ export interface MatchCandidate {
   joinedDate?: string;
   hiddenFields?: string[];
   spotlight?: boolean;          // in Spotlight near the searcher (lib/boosts.ts): shown first, marked
+  isNew?: boolean;              // joined in the last week (search function)
+  repliesUsually?: boolean;     // answers most people who write to them (member_stats in the database)
 
   // Detailed profile fields used by ProfileModal — same shape as UserProfile
   jobTitle?: string;

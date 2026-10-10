@@ -395,3 +395,17 @@ Deno.test('Spotlight: a fair match near the searcher goes first, marked; one far
   const [c] = rankCandidates(me, [poor], '', {}, 50, NOW, undefined, new Set(['poor'])).candidates;
   assertEquals([c.compatibilityScore < 50, c.spotlight], [true, undefined], 'a poor match is not marked or pushed up');
 });
+
+Deno.test('"New" for people who joined this week; "Usually replies" from member_stats', () => {
+  const daysAgo = (d: number) => new Date(NOW - d * 86_400_000).toISOString();
+  const pool = [
+    person('new', { account_created: daysAgo(2), replies_usually: true }),
+    person('old', { account_created: daysAgo(40), replies_usually: false }),
+    person('unknown'),
+  ];
+  const out = rankCandidates(me, pool, '', {}, 10, NOW).candidates;
+  const labels = Object.fromEntries(out.map((c) => [c.id, [c.isNew, c.repliesUsually]]));
+  assertEquals(labels, { new: [true, true], old: [false, false], unknown: [false, false] });
+  // Neither the date joined nor the reply figures go to the browser as details
+  assertEquals(out.some((c) => 'accountCreated' in c || 'repliesUsually' in c && typeof c.repliesUsually !== 'boolean'), false);
+});

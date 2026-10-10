@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { IconCheck, IconZap, IconHeart, IconX, IconUser, IconSparkles } from '../constants';
+import { IconCheck, IconZap, IconHeart, IconX, IconUser, IconSparkles, IconMessageCircle } from '../constants';
 import LikeButton from './LikeButton';
 import { playExit, type ExitKind } from '../lib/likeExit';
 import type { MatchCandidate } from '../types';
@@ -8,7 +8,8 @@ import type { MatchCandidate } from '../types';
 // MatchCard — restyled to match the legacy Shaadi24 design:
 //   - Photo on top with carousel (left/right arrows on hover, swipe on mobile,
 //     dots indicator, online/offline status chip top-left, match% top-right)
-//   - Below photo: badges row (Verified, Pro), name + age, location
+//   - Below photo: badges row (Spotlight, New, Verified, Usually replies,
+//     Plus), name + age, location
 //   - Bottom: X (pass) + Like button row, separated from content with border
 //   - Liked: the card bursts into sparkles and is gone in about 0.6 s; passed:
 //     it drops away. onLiked / onReject fire once it's gone, for the list to
@@ -58,6 +59,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
       ref={cardRef}
       onClick={() => !exiting && onClick()}
       data-exiting={exiting ?? undefined}
+      data-testid="match-card"
       className={`group relative bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:hover:border-zinc-700 hover:shadow-lg overflow-hidden flex flex-col h-full cursor-pointer transition-[border-color,box-shadow] duration-200 ${
         exiting ? 'pointer-events-none' : ''
       }`}
@@ -133,7 +135,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
       {/* Body */}
       <div className="p-4 flex-1 flex flex-col">
         {/* Badges */}
-        {(candidate.isVerified || candidate.isPremium || candidate.spotlight) && (
+        {(candidate.isVerified || candidate.isPremium || candidate.spotlight || candidate.isNew || candidate.repliesUsually) && (
           <div className="flex flex-wrap gap-2 mb-2">
             {candidate.spotlight && (
               <div data-testid="spotlight-badge" title="In Spotlight near you"
@@ -141,9 +143,21 @@ const MatchCard: React.FC<MatchCardProps> = ({
                 <span aria-hidden="true" className="[&>svg]:w-3 [&>svg]:h-3"><IconSparkles /></span> Spotlight
               </div>
             )}
+            {candidate.isNew && (
+              <div data-testid="new-badge" title="Joined this week"
+                className="inline-flex items-center gap-1 bg-violet-100 dark:bg-violet-900/30 text-violet-800 dark:text-violet-300 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border border-violet-200 dark:border-violet-800">
+                New
+              </div>
+            )}
             {candidate.isVerified && (
               <div className="inline-flex items-center gap-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border border-green-200 dark:border-green-800">
                 <IconCheck className="w-3 h-3" /> Verified
+              </div>
+            )}
+            {candidate.repliesUsually && (
+              <div data-testid="replies-badge" title="Answers most people who write to them"
+                className="inline-flex items-center gap-1 bg-sky-100 dark:bg-sky-900/30 text-sky-800 dark:text-sky-300 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border border-sky-200 dark:border-sky-800">
+                <span aria-hidden="true" className="[&>svg]:w-3 [&>svg]:h-3"><IconMessageCircle /></span> Usually replies
               </div>
             )}
             {candidate.isPremium && (

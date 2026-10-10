@@ -1045,11 +1045,14 @@ What members of other matrimony apps complain about (`docs/research/competitor-r
 store reviews of 9 apps, 20 problems), fixed in 5 phases. Phase 1 (done): our promises (no sales
 calls, real interests only, chatting free, clear prices) on the welcome screen, the Shaadi24+ page,
 the website (with the price list) and the store texts; Undo after sending an interest and Withdraw in
-Search History (`withdraw_interest()`: undone within a minute, nothing is used up); one free "Likes
-You" a day (`reveal_like()`); chat notes on "digital arrest" threats and on moving to WhatsApp or a
-video call fast, and a scams section on the Safety page; sign-in errors in plain words. Next: fresh,
-active profiles (2), partner preferences and saved searches (3), trust and support (4), payments and
-reliability (5).
+Search History (undone within a minute, nothing is used up); one free "Likes You" a day
+(`reveal_like()`); chat notes on "digital arrest" threats and on moving to WhatsApp or a video call
+fast, and a scams section on the Safety page; sign-in errors in plain words. Phase 2 (done): "Not
+interested" for good, with Undo and Settings → Hidden profiles (`passed_profiles`); nobody inactive
+for 60 days in search or Standouts; unanswered interests expire after 14 days (28 for a Super
+Interest) and can be sent again; "New" and "Usually replies" on cards (`member_stats`); no repeats in
+Standouts for 30 days; "I found my match" in Settings. Next: partner preferences and saved searches
+(3), trust and support (4), payments and reliability (5).
 
 **Still to do**
 
