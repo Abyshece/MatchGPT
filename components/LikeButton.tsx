@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../lib/AuthContext';
 import { useToast } from '../lib/useToast';
-import { likeUser, hasLiked, unlikeUser } from '../lib/likesService';
+import { likeUser, hasLiked, withdrawInterest } from '../lib/likesService';
 import { DAILY_LIMITS } from '../lib/profileService';
 import { IconHeart } from '../constants';
 import type { MatchCandidate } from '../types';
@@ -19,6 +19,9 @@ import type { MatchCandidate } from '../types';
 //   - Pro user: clicking heart sends immediately
 //   - If like causes a mutual match, fires onMatched(matchId) so caller can
 //     show the celebration modal
+//   - Otherwise the toast offers Undo for a few seconds: an interest sent by
+//     mistake is taken back without using up one of the day's likes
+//     (withdraw_interest() in the database)
 // ============================================================================
 
 interface LikeButtonProps {
@@ -93,7 +96,23 @@ const LikeButton: React.FC<LikeButtonProps> = ({
       // It's a match — caller handles the celebration
       onMatched?.(result.matchId, candidate);
     } else {
-      showToast(`Liked ${candidate.name}`, 'success');
+      // The card may be gone by the time Undo is tapped, so this only uses the toast
+      const name = candidate.name;
+      showToast(`Interest sent to ${name}`, 'success', {
+        action: {
+          label: 'Undo',
+          onClick: async () => {
+            const out = await withdrawInterest(candidate.id);
+            if (out.withdrawn) {
+              setLiked(false);
+              showToast(`Interest to ${name} taken back`, 'info');
+              refreshProfile();
+            } else {
+              showToast(out.reason === 'matched' ? `You and ${name} have already matched` : `Couldn't undo${out.error ? `: ${out.error}` : ''}`, 'error');
+            }
+          },
+        },
+      });
     }
     // The card or profile leaves now, without waiting for the refresh below
     onLiked?.();
@@ -118,13 +137,14 @@ const LikeButton: React.FC<LikeButtonProps> = ({
     if (!session?.user.id || busy) return;
     setBusy(true);
     setLiked(false); // optimistic
-    const { error } = await unlikeUser(session.user.id, candidate.id);
+    const out = await withdrawInterest(candidate.id);
     setBusy(false);
-    if (error) {
+    if (!out.withdrawn) {
       setLiked(true);
-      showToast(`Couldn't undo: ${error}`, 'error');
+      showToast(out.reason === 'matched' ? `You and ${candidate.name} have already matched` : `Couldn't undo${out.error ? `: ${out.error}` : ''}`, 'error');
     } else {
-      showToast('Like removed', 'info');
+      showToast('Interest taken back', 'info');
+      if (out.refunded) refreshProfile();
     }
   };
 

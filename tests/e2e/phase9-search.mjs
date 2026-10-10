@@ -134,7 +134,7 @@ try {
   const visibleName = sql(`select name from profiles where id = '${visible.id}';`);
   const blockedName = sql(`select name from profiles where id = '${toBlock.id}';`);
   await page.getByText('Search History', { exact: true }).first().click();
-  await page.getByText('Liked profiles', { exact: true }).first().click();
+  await page.getByText('Interests sent', { exact: true }).first().click();
   await page.getByText(visibleName).first().waitFor({ timeout: 10000 });
   await page.screenshot({ path: `${OUT}5-liked.png` });
   check(await page.locator('h3', { hasText: 'Name hidden' }).first().isVisible(), `liked list: ${visibleName} and "Name hidden"`);

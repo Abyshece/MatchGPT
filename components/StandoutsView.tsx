@@ -147,7 +147,7 @@ const StandoutsView: React.FC<StandoutsViewProps> = ({ onNavigateToMatches }) =>
               <>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">You've liked all of today's picks</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">
-                  New Standouts come tomorrow. The people you liked are in Search History → Liked profiles.
+                  New Standouts come tomorrow. The people you sent an interest to are in Search History → Interests sent.
                 </p>
               </>
             ) : (

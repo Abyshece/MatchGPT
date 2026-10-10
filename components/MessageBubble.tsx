@@ -2,7 +2,7 @@ import React from 'react';
 import DateProposalCard from './DateProposalCard';
 import { IconAlert, IconCheck, IconUser } from '../constants';
 import type { Message } from '../lib/chatService';
-import { looksLikeMoneyAsk } from '../lib/scamWarning';
+import { WARNING_TEXT, type ChatWarning } from '../lib/scamWarning';
 
 // ============================================================================
 // MessageBubble
@@ -26,6 +26,7 @@ interface MessageBubbleProps {
   onAcceptDate?: (msgId: string) => void;
   onDeclineDate?: (msgId: string) => void;
   onReport?: () => void;
+  warning?: ChatWarning | null;  // a note under the message (chatWarnings in lib/scamWarning.ts)
 }
 
 const formatTime = (iso: string): string => {
@@ -35,7 +36,7 @@ const formatTime = (iso: string): string => {
 
 const MessageBubble: React.FC<MessageBubbleProps> = ({
   message, isMine, showReceipts, showAvatar, otherPhoto,
-  onAcceptDate, onDeclineDate, onReport,
+  onAcceptDate, onDeclineDate, onReport, warning,
 }) => {
   const isDateProposal = message.messageType === 'date_proposal';
 
@@ -89,12 +90,12 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
           {message.content}
         </div>
 
-        {!isMine && looksLikeMoneyAsk(message.content) && (
-          <div role="note" data-testid="scam-warning"
+        {!isMine && warning && (
+          <div role="note" data-testid={warning === 'off_platform' ? 'off-platform-warning' : 'scam-warning'} data-kind={warning}
             className="mt-1 flex items-start gap-2 rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/30 px-3 py-2 text-xs text-amber-900 dark:text-amber-200">
             <span aria-hidden="true" className="flex-none mt-px [&>svg]:w-4 [&>svg]:h-4"><IconAlert /></span>
             <span className="min-w-0">
-              Never send money or share bank, UPI or card details with someone you haven't met. Shaadi24 never asks for them.
+              {WARNING_TEXT[warning]}
               {onReport && (
                 <> <button type="button" onClick={onReport} className="font-semibold underline underline-offset-2">Report</button></>
               )}

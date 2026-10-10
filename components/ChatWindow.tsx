@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { useToast } from '../lib/useToast';
 import {
@@ -13,6 +13,7 @@ import {
 import { isNativeApp } from '../lib/nativeApp';
 import { setOpenChat } from '../lib/nativePush';
 import type { Message } from '../lib/chatService';
+import { chatWarnings } from '../lib/scamWarning';
 import type { MatchSummary } from '../lib/matchesService';
 
 // ============================================================================
@@ -54,6 +55,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
   const userId = session?.user.id;
   const matchId = match.matchId;
+  // Notes under messages that read like a scam, or move the talk elsewhere
+  const warnings = useMemo(() => chatWarnings(messages, userId ?? ''), [messages, userId]);
 
   // A notification for this chat isn't shown while it's open (phone apps)
   useEffect(() => {
@@ -304,6 +307,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         ) : (
           messages.map((m, i) => {
             const prev = messages[i - 1];
+            const warning = warnings.get(m.id) ?? null;
             const showAvatar = !prev || prev.senderId !== m.senderId;
             return (
               <MessageBubble
@@ -316,6 +320,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                 onAcceptDate={handleAcceptDate}
                 onDeclineDate={handleDeclineDate}
                 onReport={() => setShowBlockReport('report')}
+                warning={warning}
               />
             );
           })

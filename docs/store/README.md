@@ -347,6 +347,12 @@ When you like each other, it's a match and you can chat. Notifications tell you 
 5 STANDOUTS A DAY
 Each day, five of the most compatible people you haven't liked yet.
 
+OUR PROMISES
+• We never call you to sell: Shaadi24 has no sales team
+• Every interest is from a real member: we never send fake ones to get you to pay
+• Chatting with your matches is free
+• Clear prices, no hidden charges, cancel any time in the store
+
 SAFE AND RESPECTFUL
 • A verified badge for members our team has checked
 • Report or block anyone from their profile or your chat; every report is reviewed within 24 hours
@@ -356,7 +362,7 @@ SAFE AND RESPECTFUL
 • For adults 18 and over
 
 SHAADI24+
-A free account can make a few AI searches every 5 hours (more a day with a complete profile) and send 15 likes a day. Shaadi24+ adds more searches, unlimited likes, 3 Super Interests a week, everyone who has liked you, more search filters (religion, mother tongue, community, Manglik, height, diet, education and more), the full compatibility report and date proposals in chat. It's a subscription for a week, a month, 3 months or 6 months through Google Play that renews until you cancel it in Google Play.
+A free account can make a few AI searches every 5 hours (more a day with a complete profile) and send 15 likes a day. Shaadi24+ adds more searches, unlimited likes, 3 Super Interests a week, everyone who has liked you (one a day without it), more search filters (religion, mother tongue, community, Manglik, height, diet, education and more), the full compatibility report and date proposals in chat. It's a subscription for a week, a month, 3 months or 6 months through Google Play that renews until you cancel it in Google Play.
 
 SPOTLIGHT AND SUPER INTEREST
 No plan needed: put yourself first in searches near you for 24 hours with Spotlight, or send a Super Interest, a like with a note that goes to the top of their Likes You. Bought one at a time in the app.
@@ -406,6 +412,12 @@ When you like each other, it's a match and you can chat. Notifications tell you 
 5 STANDOUTS A DAY
 Each day, five of the most compatible people you haven't liked yet.
 
+OUR PROMISES
+• We never call you to sell: Shaadi24 has no sales team
+• Every interest is from a real member: we never send fake ones to get you to pay
+• Chatting with your matches is free
+• Clear prices, no hidden charges, cancel any time in the store
+
 SAFE AND RESPECTFUL
 • A verified badge for members our team has checked
 • Report or block anyone from their profile or your chat; every report is reviewed within 24 hours
@@ -415,7 +427,7 @@ SAFE AND RESPECTFUL
 • For adults 18 and over
 
 SHAADI24+
-A free account can make a few AI searches every 5 hours (more a day with a complete profile) and send 15 likes a day. Shaadi24+ adds more searches, unlimited likes, 3 Super Interests a week, everyone who has liked you, more search filters (religion, mother tongue, community, Manglik, height, diet, education and more), the full compatibility report and date proposals in chat.
+A free account can make a few AI searches every 5 hours (more a day with a complete profile) and send 15 likes a day. Shaadi24+ adds more searches, unlimited likes, 3 Super Interests a week, everyone who has liked you (one a day without it), more search filters (religion, mother tongue, community, Manglik, height, diet, education and more), the full compatibility report and date proposals in chat.
 
 SPOTLIGHT AND SUPER INTEREST
 No plan needed: put yourself first in searches near you for 24 hours with Spotlight, or send a Super Interest, a like with a note that goes to the top of their Likes You. Bought one at a time in the app.

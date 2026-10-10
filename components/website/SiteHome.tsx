@@ -6,7 +6,9 @@ import StoreBadges from '../StoreBadges';
 import OfferBanner from './OfferBanner';
 import { SiteFooter, SiteHeader } from './SiteChrome';
 import { StoriesStrip } from './StoriesPages';
-import { IconSparkles, IconShield, IconUsers, IconMessageCircle } from '../../constants';
+import { IconSparkles, IconShield, IconUsers, IconMessageCircle, IconCheck } from '../../constants';
+import { PROMISES } from '../../lib/promises';
+import { DEFAULT_PLANS, PERIODS } from '../../lib/billingService';
 
 // ============================================================================
 // SiteHome: the website's home page
@@ -15,8 +17,12 @@ import { IconSparkles, IconShield, IconUsers, IconMessageCircle } from '../../co
 // Someone signed in on the website (an admin, or a member who opened an email
 // link here) sees who they're signed in as, and can sign out; a member can
 // also delete the account here (the Delete account page sends them here when
-// its email has a link instead of a code).
+// its email has a link instead of a code). Our promises (lib/promises.ts) and
+// the Shaadi24+ prices, with the price a day, are on the page for anyone to
+// read before joining.
 // ============================================================================
+
+const rupees = (paise: number) => `₹${Math.round(paise / 100).toLocaleString('en-IN')}`;
 
 const FEATURES = [
   {
@@ -168,6 +174,41 @@ const SiteHome: React.FC = () => {
               <p className="mt-1.5 text-sm leading-relaxed text-gray-600 dark:text-gray-300">{f.text}</p>
             </div>
           ))}
+        </section>
+
+        <section aria-labelledby="promises-title" className="max-w-4xl mx-auto px-5 pb-16" data-testid="site-promises">
+          <h2 id="promises-title" className="text-2xl font-bold tracking-tight text-center">Our promises</h2>
+          <ul className="mt-6 grid gap-4 sm:grid-cols-2">
+            {PROMISES.map((p) => (
+              <li key={p.key} className="flex gap-3 rounded-xl bg-gray-50 dark:bg-zinc-900 p-5">
+                <span className="flex-none mt-0.5 text-green-700 dark:text-green-400 [&>svg]:w-5 [&>svg]:h-5" aria-hidden="true"><IconCheck /></span>
+                <span className="min-w-0">
+                  <span className="block font-semibold text-gray-900 dark:text-white">{p.title}</span>
+                  <span className="mt-1 block text-sm leading-relaxed text-gray-600 dark:text-gray-300">{p.text}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section aria-labelledby="prices-title" className="max-w-4xl mx-auto px-5 pb-16" data-testid="site-prices">
+          <h2 id="prices-title" className="text-2xl font-bold tracking-tight text-center">Prices</h2>
+          <p className="mt-3 text-center text-sm leading-relaxed text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            Joining, searching, matching and chatting are free. Shaadi24+ is optional: more searches every day, every
+            filter, and who liked you. It renews until you cancel it in Google Play or the App Store.
+          </p>
+          <ul className="mt-6 grid gap-3 grid-cols-2 sm:grid-cols-4">
+            {DEFAULT_PLANS.map((plan) => (
+              <li key={plan.id} className="rounded-xl border border-gray-200 dark:border-zinc-800 p-4 text-center">
+                <span className="block text-sm font-semibold text-gray-600 dark:text-gray-300">{PERIODS[plan.period].label}</span>
+                <span className="mt-1 block text-2xl font-bold tabular-nums text-gray-900 dark:text-white">{rupees(plan.amount)}</span>
+                <span className="mt-1 block text-xs tabular-nums text-gray-500 dark:text-gray-400">
+                  {rupees(plan.amount / (PERIODS[plan.period].weeks * 7))} a day
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-center text-xs text-gray-500 dark:text-gray-400">Our prices in India. Before you pay, the app shows the final price, with any taxes, in your own currency.</p>
         </section>
 
         <StoriesStrip />

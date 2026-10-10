@@ -94,7 +94,7 @@ try {
   const dialog = hisPage.locator('[data-popup], .fixed.inset-0').filter({ hasText: 'Profile Details' }).last();
   await dialog.getByTitle('Like').first().click();
   await hisPage.getByRole('button', { name: 'Yes, Like' }).click();
-  check(await appears(hisPage.getByText(`Liked ${HER_NAME}`)), 'he likes her ("Liked …")');
+  check(await appears(hisPage.getByText(`Interest sent to ${HER_NAME}`)), 'he likes her ("Interest sent to …")');
   check(sql(`select count(*) from likes where liker_id = '${him[0]}' and liked_id = '${her}';`) === '1', 'the like is saved');
   await hisPage.keyboard.press('Escape');
 

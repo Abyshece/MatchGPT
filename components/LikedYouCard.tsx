@@ -10,7 +10,9 @@ import type { MatchCandidate } from '../types';
 //
 // Card on the Likes-You tab. Free users see blurred photos with name hidden;
 // Pro users see everything clearly. A Super Interest (lib/boosts.ts) shows
-// who sent it, and their note, to everyone.
+// who sent it, and their note, to everyone. Without Shaadi24+, one card a day
+// can be opened for free (revealsLeft, onReveal; reveal_like() in the
+// database, which decides and then sends who it is).
 // ============================================================================
 
 interface LikedYouCardProps {
@@ -19,6 +21,8 @@ interface LikedYouCardProps {
   onView: (candidate: MatchCandidate) => void;
   onUpgrade: () => void;
   onMatched: (matchId: string, candidate: MatchCandidate) => void;
+  revealsLeft?: number;        // free looks left today (members without Shaadi24+)
+  onReveal?: () => void;
 }
 
 const formatRelativeTime = (iso: string): string => {
@@ -33,17 +37,20 @@ const formatRelativeTime = (iso: string): string => {
   return new Date(iso).toLocaleDateString();
 };
 
-const LikedYouCard: React.FC<LikedYouCardProps> = ({ like, isPro, onView, onUpgrade, onMatched }) => {
+const LikedYouCard: React.FC<LikedYouCardProps> = ({ like, isPro, onView, onUpgrade, onMatched, revealsLeft = 0, onReveal }) => {
   const photo = like.liker.photos?.[0];
   const candidate = likeReceivedToCandidate(like);
-  // Shown in full: with Shaadi24+, or when they sent a Super Interest
-  const open = isPro || like.isSuperLike;
+  // Shown in full: with Shaadi24+, a Super Interest, or opened with a free
+  // look (the database only says who it is then)
+  const open = isPro || like.isSuperLike || !!like.likerId;
+  const canReveal = !open && revealsLeft > 0 && !!onReveal;
+  const locked = () => (canReveal ? onReveal?.() : onUpgrade());
 
   return (
     <div className="group relative bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl overflow-hidden hover:shadow-md transition-all">
       <div
         className="aspect-[3/4] bg-gray-100 dark:bg-zinc-800 overflow-hidden relative cursor-pointer"
-        onClick={() => open ? onView(candidate) : onUpgrade()}
+        onClick={() => open ? onView(candidate) : locked()}
       >
         {photo ? (
           <img
@@ -86,10 +93,11 @@ const LikedYouCard: React.FC<LikedYouCardProps> = ({ like, isPro, onView, onUpgr
               <IconZap />
             </div>
             <button
-              onClick={(e) => { e.stopPropagation(); onUpgrade(); }}
+              onClick={(e) => { e.stopPropagation(); locked(); }}
+              data-testid={canReveal ? 'reveal-like' : undefined}
               className="text-[11px] font-bold text-gray-800 uppercase bg-white/90 px-3 py-1.5 rounded backdrop-blur-sm hover:bg-white shadow-sm tracking-wide"
             >
-              Upgrade to See
+              {canReveal ? 'See who (free today)' : 'Upgrade to See'}
             </button>
           </div>
         )}
@@ -124,7 +132,7 @@ const LikedYouCard: React.FC<LikedYouCardProps> = ({ like, isPro, onView, onUpgr
           />
         ) : (
           <button
-            onClick={onUpgrade}
+            onClick={locked}
             className="text-[11px] font-bold text-gray-900 dark:text-white hover:underline"
           >
             See & Like Back

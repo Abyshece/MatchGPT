@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from './NotionUI';
 import { IconChevronLeft, IconCheck, IconMail } from '../constants';
 import { supabase } from '../lib/supabase';
+import { authErrorText } from '../lib/authErrors';
 
 interface EmailVerificationProps {
   email: string;
@@ -15,6 +16,7 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({ email, onVerified
   const [info, setInfo] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [resends, setResends] = useState(0);   // after one, the screen says what else to try
   const inputRef = useRef<HTMLInputElement>(null);
 
   // resend countdown
@@ -46,7 +48,7 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({ email, onVerified
     setIsVerifying(false);
 
     if (verifyError) {
-      setError(verifyError.message);
+      setError(authErrorText(verifyError));
       return;
     }
 
@@ -66,12 +68,13 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({ email, onVerified
     });
 
     if (resendError) {
-      setError(resendError.message);
+      setError(authErrorText(resendError));
       setResendCooldown(0);
       return;
     }
 
-    setInfo(`A fresh code has been sent to ${email}.`);
+    setResends((n) => n + 1);
+    setInfo(`A fresh code has been sent to ${email}. Use the newest one.`);
   };
 
   const handleCodeChange = (val: string) => {
@@ -154,9 +157,22 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({ email, onVerified
           </div>
 
           <div className="mt-8 pt-6 border-t border-gray-100 dark:border-zinc-800 text-center">
-            <p className="text-[10px] text-gray-500 dark:text-gray-400 max-w-sm mx-auto leading-relaxed">
-              Check your spam folder if you don't see it. The code expires in 1 hour.
+            <p className="text-xs text-gray-500 dark:text-gray-400 max-w-sm mx-auto leading-relaxed">
+              It can take a minute to arrive. Look in Spam and Promotions too. The code expires in 1 hour.
             </p>
+            {resends > 0 && (
+              <div className="mt-4 text-left rounded-lg bg-gray-50 dark:bg-zinc-900 px-4 py-3 text-xs leading-relaxed text-gray-600 dark:text-gray-300" data-testid="code-help">
+                <p className="font-semibold text-gray-900 dark:text-white">Still no email?</p>
+                <ul className="mt-1 list-disc pl-4 space-y-0.5">
+                  <li>Search your inbox for "Shaadi24".</li>
+                  <li>Check the address: <span className="font-medium break-all">{email}</span>.</li>
+                  <li>Or go back and continue with Google or Apple: no code needed.</li>
+                </ul>
+                <button type="button" onClick={onBack} className="mt-2 font-semibold underline underline-offset-2">
+                  Use a different email
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
