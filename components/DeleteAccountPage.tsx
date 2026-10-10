@@ -102,7 +102,7 @@ const DeleteAccountPage: React.FC = () => {
       if (!message && fnError && 'context' in fnError) {
         message = await (fnError as { context: Response }).context.json().then((b) => b?.error, () => undefined);
       }
-      setError(message || 'Your account couldn\'t be deleted. Please try again, or write to privacy@shaadi24.in.');
+      setError(message || 'Your account couldn\'t be deleted. Please try again, or write to hello@shaadi24.in.');
       return;
     }
     setAppStoreRenews(!!data.details?.app_store_renews);
@@ -218,7 +218,7 @@ const DeleteAccountPage: React.FC = () => {
 
         <p className="mt-10 text-xs text-gray-500 dark:text-gray-400">
           Questions, or no access to your email any more? Write to{' '}
-          <a className="underline" href="mailto:privacy@shaadi24.in">privacy@shaadi24.in</a>.
+          <a className="underline" href="mailto:hello@shaadi24.in">hello@shaadi24.in</a>.
         </p>
       </main>
     </div>

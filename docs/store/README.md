@@ -29,10 +29,9 @@ the same page on shaadi24.in:
 ## The launch checklist
 
 ### 1. Before you start
-- [ ] **The email addresses.** The apps, the Terms, the Privacy Policy and the support page tell people
-  to write to `support@shaadi24.in`, `privacy@shaadi24.in` and `grievance@shaadi24.in`. Make sure all
-  three reach you: GoDaddy → your domain → Email forwarding (or a free forwarding service such as
-  ImprovMX), each to the inbox you read every day.
+- [ ] **The email address.** The apps, the Terms, the Privacy Policy, the Grievances page and the support
+  page give one address for everything: `hello@shaadi24.in` (`LEGAL` in `lib/legalInfo.ts`). Make sure it
+  reaches you and that you can answer from it, every day: the Grievance Officer's complaints come here.
 - [ ] **The website's address: shaadi24.in.**
   - Vercel → your project → Settings → Domains: add `shaadi24.in` and `www.shaadi24.in`.
   - GoDaddy → My Products → shaadi24.in → DNS: delete the "Parked" A record for `@`, set the `www`
@@ -417,7 +416,7 @@ Terms of Service: https://shaadi24.in/terms
 Help: https://shaadi24.in/support
 ```
 
-**Category**: Dating. **Contact details**: email `support@shaadi24.in`, website
+**Category**: Dating. **Contact details**: email `hello@shaadi24.in`, website
 `https://shaadi24.in`. **Graphics**: `graphics/play-icon-512.png`,
 `graphics/play-feature-graphic.jpg`, and the phone screenshots (below).
 
