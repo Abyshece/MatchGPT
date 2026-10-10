@@ -433,14 +433,19 @@ Part 7 done 2026-10-06: **the name is now Shaadi24** (it was MatchGPT), everywhe
   sitemap) uses `LEGAL.websiteUrl`; the contact addresses are support@, privacy@ and grievance@shaadi24.in;
   `vercel.json` forwards `shaadi-gpt.vercel.app` and `www.shaadi24.in` to `https://shaadi24.in`, so old
   links keep working.
+- [x] **The admin panel at https://admin.shaadi24.in** (its home page; `isAdminHost()` in `lib/website.ts`):
+  `shaadi24.in/admin` and `/app-preview` forward there, and it's sent with `X-Robots-Tag: noindex` so
+  search engines leave it out. Admins sign in once more there (each address keeps its own sign-in).
 - [ ] **Owner, shaadi24.in:**
-  1. Vercel → the project → Settings → Domains: add `shaadi24.in` and `www.shaadi24.in`.
+  1. Vercel → the project → Settings → Domains: add `shaadi24.in`, `www.shaadi24.in` and
+     `admin.shaadi24.in`.
   2. GoDaddy → shaadi24.in → DNS: delete the "Parked" A record for `@`, then add the records Vercel shows
-     (an A record for `@`, a CNAME for `www`). Vercel says "Valid Configuration" when it works.
+     (an A record for `@`, a CNAME each for `www` and `admin`). Vercel says "Valid Configuration" when it
+     works.
   3. Email forwarding for support@, privacy@ and grievance@shaadi24.in to the inbox you read every day
      (GoDaddy → Email forwarding, or a free service such as ImprovMX).
   4. Supabase → Authentication → URL Configuration: Site URL `https://shaadi24.in`; Redirect URLs add
-     `https://shaadi24.in/**`.
+     `https://shaadi24.in/**` and `https://admin.shaadi24.in/**`.
   5. In the stores' listings, use the shaadi24.in addresses (`docs/store/README.md`).
 
 Part 8 done 2026-10-06: **the members' app inside the admin panel**, to see that everything works.

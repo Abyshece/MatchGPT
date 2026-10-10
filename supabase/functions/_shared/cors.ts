@@ -5,7 +5,7 @@
 // functions from a browser (comma-separated), the phone apps' too (the
 // Android app's pages come from https://localhost, the iPhone app's from
 // capacitor://localhost):
-//   npx supabase secrets set ALLOWED_ORIGINS=https://shaadi24.in,https://www.shaadi24.in,https://shaadi-gpt.vercel.app,https://localhost,capacitor://localhost
+//   npx supabase secrets set ALLOWED_ORIGINS=https://shaadi24.in,https://admin.shaadi24.in,https://shaadi-gpt.vercel.app,https://localhost,capacitor://localhost
 //
 // If ALLOWED_ORIGINS is unset, every origin is allowed (the previous
 // behaviour), so deploying this before setting the secret breaks nothing.

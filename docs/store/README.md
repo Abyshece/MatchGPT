@@ -39,6 +39,9 @@ the same page on shaadi24.in:
     CNAME to what Vercel shows, and add Vercel's A record for `@`. Vercel says "Valid Configuration"
     once it works, and adds the padlock (https) by itself.
   - `vercel.json` forwards `shaadi-gpt.vercel.app` and `www.shaadi24.in` to `https://shaadi24.in`.
+  - **The admin panel at admin.shaadi24.in:** Vercel → Domains → add `admin.shaadi24.in`; GoDaddy → DNS →
+    Add New Record: CNAME, name `admin`, value as Vercel shows. `shaadi24.in/admin` forwards there; search
+    engines are told not to list it. Add `https://admin.shaadi24.in/**` to Supabase's Redirect URLs.
   - Also set it as Supabase's Site URL (step 3), and in `ALLOWED_ORIGINS` (step 3).
 - [ ] **The name.** Search both stores for "Shaadi24" to be sure it's free. Shaadi.com is a large
   matrimony brand in India, so have a lawyer check that "Shaadi24" doesn't conflict with its trademarks
@@ -82,7 +85,7 @@ the same page on shaadi24.in:
 | `GOOGLE_PLAY_SERVICE_ACCOUNT` | checking Google Play purchases | step 6.5 |
 | `GOOGLE_RTDN_SECRET` | Google Play's purchase notifications | a long random string you make up (step 6.6) |
 | `APPLE_TEAM_ID`, `APPLE_SIGNIN_KEY_ID`, `APPLE_SIGNIN_PRIVATE_KEY` | ending Sign in with Apple when an account is deleted | step 4, Apple |
-| `ALLOWED_ORIGINS` | which pages may call the server | `https://shaadi24.in,https://www.shaadi24.in,https://shaadi-gpt.vercel.app,https://localhost,capacitor://localhost` (the website, its old address, the Android app, the iPhone app). Without the apps' two, the apps can't search, buy or delete accounts: leave the secret out rather than miss them |
+| `ALLOWED_ORIGINS` | which pages may call the server | `https://shaadi24.in,https://admin.shaadi24.in,https://shaadi-gpt.vercel.app,https://localhost,capacitor://localhost` (the website, the admin panel, the website's old address, the Android app, the iPhone app). Without the apps' two, the apps can't search, buy or delete accounts: leave the secret out rather than miss them |
 | `GEMINI_API_KEY` (optional) | AI search | Google AI Studio; read the note on search in "Data safety" |
 
 - [ ] Optional: Authentication → Attack Protection → leaked-password protection (paid plans).
@@ -238,7 +241,7 @@ On an Android phone (internal testing) and an iPhone (TestFlight):
 - [ ] **Reports within 24 hours.** The Terms promise it and both stores expect it: look at Admin →
   Reports every day, remove what breaks the rules and ban the people who post it.
 - [ ] Verification requests (Admin → Verifications), so new members don't wait long. The admin panel is in
-  the app, and on the website at https://shaadi24.in/admin.
+  the app, and on the website at https://admin.shaadi24.in.
 - [ ] Reply to reviews in Play Console and App Store Connect.
 - [ ] The stores' payout reports are the final word on fees and tax; Admin → Finance estimates the
   stores' share at 15% (`STORE_FEE_PERCENT_GOOGLE_PLAY`, `STORE_FEE_PERCENT_APP_STORE` if yours differ).

@@ -11,6 +11,18 @@
       "has": [{ "type": "host", "value": "www.shaadi24.in" }],
       "destination": "https://shaadi24.in/:path*",
       "permanent": true
+    },
+    {
+      "source": "/admin",
+      "has": [{ "type": "host", "value": "shaadi24.in" }],
+      "destination": "https://admin.shaadi24.in/",
+      "permanent": true
+    },
+    {
+      "source": "/app-preview",
+      "has": [{ "type": "host", "value": "shaadi24.in" }],
+      "destination": "https://admin.shaadi24.in/app-preview",
+      "permanent": true
     }
   ],
   "rewrites": [
@@ -84,6 +96,16 @@
     }
   ],
   "headers": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "admin.shaadi24.in" }],
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
     {
       "source": "/(.*)",
       "headers": [

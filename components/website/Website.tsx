@@ -5,6 +5,7 @@ import { ToastProvider, useToast } from '../../lib/useToast';
 import { emailLinkError } from '../../lib/supabase';
 import { setErrorScreen } from '../../lib/errorReports';
 import { isAdminAlert } from '../../lib/adminAlerts';
+import { isAdminHost } from '../../lib/website';
 import SiteHome from './SiteHome';
 
 const AdminSite = lazyScreen(() => import('./AdminSite'));
@@ -24,7 +25,8 @@ const FamilyPage = lazyScreen(() => import('./FamilyPage'));
 // Website: the website, for everyone who isn't in the apps (lib/website.ts)
 //
 //   /                 the home page: what Shaadi24 is, where to get the apps
-//   /admin            the admin panel, for admins only
+//   /admin            the admin panel, for admins only (and the home page of
+//                     admin.shaadi24.in, where shaadi24.in/admin forwards)
 //   /terms, /privacy  Terms of Service and the Privacy Policy (#terms and
 //                     #privacy too, as older links have them)
 //   /grievances       the Grievance Officer and a complaint form (IT Rules 2021)
@@ -53,7 +55,7 @@ function isAdminAlertData(raw: string | null): boolean {
 
 function currentRoute(): Route {
   const path = window.location.pathname.replace(/^\/|\/$/g, '');
-  if (path === 'admin') return 'admin';
+  if (path === 'admin' || (path === '' && isAdminHost())) return 'admin';
   if (path === 'terms' || window.location.hash === '#terms') return 'terms';
   if (path === 'privacy' || window.location.hash === '#privacy') return 'privacy';
   if (path === 'grievances' || path === 'safety' || path === 'refunds') return path;
