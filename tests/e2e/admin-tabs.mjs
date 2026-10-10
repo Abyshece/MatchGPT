@@ -115,7 +115,7 @@ try {
   await verdict.waitFor({ timeout: 15000 });
   const said = await verdict.innerText();
   await page.screenshot({ path: `${OUT}5-verification.png` });
-  check(said.includes('Unlikely to pass') && said.includes('Only 1 working profile link (LinkedIn); 2 are needed')
+  check(said.includes('Unlikely to pass') && said.includes('No selfie (sent before selfies)') && said.includes('1 working profile link (LinkedIn)')
     && said.includes("The Instagram link isn't a profile") && said.includes('Their name is in the LinkedIn link'),
     `the request says why it's unlikely to pass (${said.split('\n').join(' | ')})`);
   check(/1 waiting/.test(await page.getByTestId('verification-summary').innerText()), 'and how many are waiting');

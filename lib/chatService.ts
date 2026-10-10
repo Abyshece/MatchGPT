@@ -13,7 +13,7 @@
 import { supabase } from './supabase';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
-export type MessageType = 'text' | 'date_proposal';
+export type MessageType = 'text' | 'date_proposal' | 'contact';  // contact: a number shared with Share my number
 
 export interface Message {
   id: string;
@@ -93,6 +93,40 @@ export async function sendMessage(
     },
     error: null,
   };
+}
+
+// ----------------------------------------------------------------------------
+// shareMyNumber — the member's own number into the chat, as a message only
+// share_my_number() can send (it checks the match and the number, and keeps
+// the number on the profile, never shown, if asked to remember it)
+// ----------------------------------------------------------------------------
+
+export async function shareMyNumber(
+  matchId: string,
+  phone: string,
+  remember: boolean,
+): Promise<{ message: Message | null; error: string | null }> {
+  const { data, error } = await supabase.rpc('share_my_number', { p_match_id: matchId, p_phone: phone, p_remember: remember });
+  if (error || !data) return { message: null, error: error?.message ?? 'Your number was not shared.' };
+  const row = data as unknown as Record<string, string | null>;
+  return {
+    message: {
+      id: row.id as string,
+      matchId: row.match_id as string,
+      senderId: row.sender_id as string,
+      content: row.content as string,
+      messageType: 'contact',
+      readAt: row.read_at,
+      createdAt: row.created_at as string,
+    },
+    error: null,
+  };
+}
+
+/** +919876543210 → "+91 98765 43210"; other countries as they are */
+export function formatPhone(phone: string): string {
+  const m = phone.match(/^\+91(\d{5})(\d{5})$/);
+  return m ? `+91 ${m[1]} ${m[2]}` : phone;
 }
 
 // ----------------------------------------------------------------------------

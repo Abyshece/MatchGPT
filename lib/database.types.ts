@@ -2697,8 +2697,11 @@ export type Database = {
           id: string
           instagram_url: string | null
           linkedin_url: string | null
+          pose: string | null
+          reason_code: string | null
           reviewed_at: string | null
           reviewed_by: string | null
+          selfie_path: string | null
           status: string
           twitter_url: string | null
           user_id: string
@@ -2711,8 +2714,11 @@ export type Database = {
           id?: string
           instagram_url?: string | null
           linkedin_url?: string | null
+          pose?: string | null
+          reason_code?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          selfie_path?: string | null
           status?: string
           twitter_url?: string | null
           user_id: string
@@ -2725,8 +2731,11 @@ export type Database = {
           id?: string
           instagram_url?: string | null
           linkedin_url?: string | null
+          pose?: string | null
+          reason_code?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          selfie_path?: string | null
           status?: string
           twitter_url?: string | null
           user_id?: string
@@ -2966,8 +2975,10 @@ export type Database = {
           facebook_url: string
           instagram_url: string
           linkedin_url: string
+          pose: string
           request_id: string
           requested_at: string
+          selfie_path: string
           twitter_url: string
           user_email: string
           user_id: string
@@ -2984,7 +2995,7 @@ export type Database = {
         Returns: undefined
       }
       admin_review_verification: {
-        Args: { decision: string; notes: string; request_id: string }
+        Args: { decision: string; notes: string; p_reason?: string; request_id: string }
         Returns: undefined
       }
       admin_risk_signals: { Args: never; Returns: Json }
@@ -3387,16 +3398,29 @@ export type Database = {
         }
         Returns: Json
       }
-      submit_verification_request: {
-        Args: {
-          p_facebook_url: string
-          p_instagram_url: string
-          p_linkedin_url: string
-          p_twitter_url: string
-          p_user_notes: string
-        }
-        Returns: string
-      }
+      submit_verification_request:
+        | {
+            Args: {
+              p_facebook_url: string
+              p_instagram_url: string
+              p_linkedin_url: string
+              p_twitter_url: string
+              p_user_notes: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_facebook_url: string
+              p_instagram_url: string
+              p_linkedin_url: string
+              p_pose: string
+              p_selfie_path: string
+              p_twitter_url: string
+              p_user_notes: string
+            }
+            Returns: string
+          }
       sync_pro_status: { Args: { p_user_id: string }; Returns: undefined }
       text_flags: { Args: { p_text: string }; Returns: string[] }
       trending_searches: { Args: never; Returns: Json }
@@ -3409,6 +3433,10 @@ export type Database = {
       like_reveal_status: { Args: never; Returns: Json }
       reveal_like: { Args: { p_like_id: string }; Returns: Json }
       unregister_push_device: { Args: { p_token: string }; Returns: undefined }
+      // From 20261012090000_trust_and_support.sql
+      my_requests: { Args: never; Returns: Json }
+      share_my_number: { Args: { p_match_id: string; p_phone: string; p_remember?: boolean }; Returns: Json }
+      verification_pose: { Args: never; Returns: string }
       vapid_public_key: { Args: never; Returns: string }
     }
     Enums: {

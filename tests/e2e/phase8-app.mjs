@@ -142,7 +142,7 @@ try {
   await page.getByRole('button', { name: /Get verified/ }).click();
   await page.waitForTimeout(1000);
   await page.screenshot({ path: `${OUT}5-verify-modal.png` });
-  check(await page.getByText(/LinkedIn/i).first().isVisible(), '"Get verified →" opens the verification form');
+  check(await page.getByTestId('verify-modal').getByText('A selfie, doing this').isVisible(), '"Get verified →" opens the verification form');
 } catch (e) {
   failures++;
   log('FAIL (stopped):', e.message.split('\n')[0]);

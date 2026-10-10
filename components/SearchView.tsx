@@ -340,7 +340,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
       <div className={hasSearched
         ? 'max-w-6xl mx-auto py-8 px-6 lg:px-12'
         : 'w-full max-w-6xl mx-auto flex-1 flex flex-col justify-center py-5 [@media(max-height:700px)]:py-3 sm:py-8 px-5 sm:px-6 lg:px-12'}>
-        {isLockedOut && <VerificationBanner verification={verification} />}
+        {isLockedOut && <VerificationBanner verification={verification} onAddPhotos={onNavigateToProfile} />}
 
         {/* Search header — sparkle hero on landing, simple title once searched */}
         {!hasSearched ? (

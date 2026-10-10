@@ -1054,7 +1054,11 @@ Interest) and can be sent again; "New" and "Usually replies" on cards (`member_s
 Standouts for 30 days; "I found my match" in Settings. Phase 3 (done): partner preferences (Standouts
 follow them, search starts from them, a daily alert about new members who fit); near misses below few
 results; saved searches (up to 10) with a daily alert; "Family from (state)" and "Profile managed by"
-filters. Next: trust and support (4), payments and reliability (5).
+filters. Phase 4 (done): the Verified badge needs a selfie doing a gesture we ask for and two photos (links
+optional), a turned-down request says why with "Try again"; Settings → My requests (verifications,
+complaints, reports, with answers and a message when answered); "An agent or marriage bureau" as a report
+reason; "Share my number" in chat; screenshots blocked in the Android app; chat messages can't be changed by
+members any more. Next: payments and reliability (5).
 
 **Still to do**
 

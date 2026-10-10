@@ -7,6 +7,7 @@ import { deleteAccount } from '../lib/deleteAccountService';
 import PushNotifSetup from './PushNotifSetup';
 import BlockedPeopleList from './BlockedPeopleList';
 import HiddenProfilesList from './HiddenProfilesList';
+import MyRequestsList from './MyRequestsList';
 import FoundMatchModal from './FoundMatchModal';
 import SubscriptionSettings from './SubscriptionSettings';
 import { getMySubscription, type Subscription } from '../lib/billingService';
@@ -33,6 +34,7 @@ interface SettingsViewProps {
   themeMode?: 'system' | 'light' | 'dark';        // current theme mode setting
   onSetTheme?: (mode: 'system' | 'light' | 'dark') => void;  // set + persist
   onNavigate?: (tab: string) => void;
+  focus?: 'requests';  // opened from a message about a request: scroll to My requests
 }
 
 const DELETE_REASONS = [
@@ -76,6 +78,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
   themeMode = 'system',
   onSetTheme,
   onNavigate,
+  focus,
 }) => {
   const { profile, profileRow, settings, session, signOut, refreshProfile } = useAuth();
   const { showToast } = useToast();
@@ -302,6 +305,10 @@ const SettingsView: React.FC<SettingsViewProps> = ({
                   : `Always ${themeMode}, whatever your phone uses. Choose Automatic to follow it again.`}
               </p>
             </div>
+          </InfoSection>
+
+          <InfoSection title="My requests" id="my-requests">
+            <MyRequestsList onAddPhotos={() => onNavigate?.('profile')} scrollTo={focus === 'requests'} />
           </InfoSection>
 
           <InfoSection title="Support">

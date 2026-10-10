@@ -84,7 +84,8 @@ try {
     check(r.status === 201, `sent: "${text}"`);
   }
   r = await rest(jwtA, 'PATCH', `messages?id=eq.${firstId}`, { content: 'chutiya' });
-  check(r.status === 400 && r.body?.code === 'MG001', 'editing a message into one is refused');
+  // Members can't change messages at all (only mark them read: …_trust_and_support.sql)
+  check(r.status === 403 && r.body?.code === '42501', `editing a message into one is refused (${r.status} ${r.body?.code})`);
   r = await rest(jwtB, 'PATCH', `messages?id=eq.${firstId}`, { read_at: new Date().toISOString() });
   check(r.status === 200, `marking it read still works (${r.status})`);
   check(sql(`select count(*) from messages where match_id = '${matchId}';`) === '4', 'only the ordinary messages were saved');
@@ -112,7 +113,7 @@ try {
   check(r.status === 200, `and the old text can be changed (${r.status})`);
 
   log('== Reports');
-  r = await rest(jwtA, 'POST', 'reports', { reporter_id: A, reported_id: B, reason: 'harassment', details: 'He called me a chutiya' });
+  r = await rest(jwtA, 'POST', 'reports?select=id', { reporter_id: A, reported_id: B, reason: 'harassment', details: 'He called me a chutiya' });
   check(r.status === 201, `a report can quote what was said (${r.status})`);
 
   log('== In the website');

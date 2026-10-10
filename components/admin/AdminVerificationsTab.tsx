@@ -8,6 +8,9 @@ import {
   assessVerification, fetchVerificationSignals, VERDICT_LABEL, type Assessment, type VerificationSignals,
 } from '../../lib/verificationChecks';
 import {
+  poseLabel, removeSelfie, selfieUrl, VERIFICATION_REASONS, type VerificationReason,
+} from '../../lib/verificationSelfie';
+import {
   IconUser, IconCheck, IconAlert, IconX, IconIdCard, IconLinkedin, IconInstagram, IconFacebook, IconTwitter,
 } from '../../constants';
 
@@ -16,11 +19,14 @@ import {
 //
 // Lists pending verification requests for admin review. Each request shows:
 //   - Whether it's likely to pass, and why (lib/verificationChecks.ts)
-//   - The user's name, email, primary photo
-//   - All 4 social media links (clickable, opens in new tab)
+//   - The user's name, email and profile photos, next to their selfie and the
+//     gesture they were asked to do (lib/verificationSelfie.ts)
+//   - The social media links they gave, if any (open in a new tab)
 //   - User's notes (if any)
 //   - When the request was submitted
-//   - Approve / Reject buttons with notes
+//   - Approve / Reject: a rejection needs a reason, which the member reads
+//     with what to do; either way they get a message. The selfie is deleted
+//     once decided.
 // ============================================================================
 
 interface AdminVerificationsTabProps {
@@ -52,16 +58,18 @@ const AdminVerificationsTab: React.FC<AdminVerificationsTabProps> = ({ onAuditUp
 
   useEffect(() => { load(); }, [load]);
 
-  const handleReview = async (notes: string) => {
+  const handleReview = async (notes: string, reason?: VerificationReason) => {
     if (!reviewModal) return;
     const { req, decision } = reviewModal;
     setReviewModal(null);
 
-    const { error } = await reviewVerificationRequest(req.request_id, decision, notes);
+    const { error } = await reviewVerificationRequest(req.request_id, decision, notes, reason);
     if (error) {
       showToast(`Couldn't ${decision === 'approved' ? 'approve' : 'reject'}: ${error}`, 'error');
       return;
     }
+    // Decided: the selfie isn't needed any more
+    await removeSelfie(req.selfie_path);
 
     showToast(`${req.user_name} ${decision === 'approved' ? 'verified' : 'rejected'}`, 'success');
     onAuditUpdate();
@@ -143,6 +151,13 @@ const VerificationCard: React.FC<{
   ];
   const linkCount = links.filter((l) => l.url).length;
   const photo = req.user_photo_urls?.[0];
+  const photos = (req.user_photo_urls ?? []).filter(Boolean);
+  const [selfie, setSelfie] = useState<string | null>(null);
+  useEffect(() => {
+    let live = true;
+    if (req.selfie_path) void selfieUrl(req.selfie_path).then((url) => { if (live) setSelfie(url); });
+    return () => { live = false; };
+  }, [req.selfie_path]);
 
   return (
     <div className="bg-white dark:bg-zinc-800 rounded-lg p-4 border border-gray-200 dark:border-zinc-700">
@@ -161,6 +176,41 @@ const VerificationCard: React.FC<{
           <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
             Requested {new Date(req.requested_at).toLocaleString()} · {linkCount} link{linkCount === 1 ? '' : 's'}
           </p>
+        </div>
+      </div>
+
+      {/* The selfie next to the profile photos */}
+      <div className="mb-3" data-testid="verification-selfie">
+        {req.selfie_path ? (
+          <p className="text-xs text-gray-700 dark:text-gray-300 mb-1.5">
+            Asked to do: <span className="font-bold">{poseLabel(req.pose)}</span>. Is it the same person as in the photos?
+          </p>
+        ) : (
+          <p className="text-xs text-amber-700 dark:text-amber-400 mb-1.5">
+            No selfie: this was sent before selfies. Turn it down with "No selfie" and they'll be asked for one.
+          </p>
+        )}
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {req.selfie_path && (
+            <figure className="flex-none">
+              {selfie ? (
+                <a href={selfie} target="_blank" rel="noopener noreferrer">
+                  <img src={selfie} alt={`Selfie: ${poseLabel(req.pose)}`} className="w-28 h-28 rounded-lg object-cover ring-2 ring-blue-500" />
+                </a>
+              ) : (
+                <div className="w-28 h-28 rounded-lg bg-gray-100 dark:bg-zinc-700 animate-pulse" />
+              )}
+              <figcaption className="text-[10px] text-center text-blue-600 dark:text-blue-400 font-semibold mt-0.5">Selfie</figcaption>
+            </figure>
+          )}
+          {photos.map((url, i) => (
+            <figure key={url} className="flex-none">
+              <a href={url} target="_blank" rel="noopener noreferrer">
+                <img src={url} alt={`Profile photo ${i + 1}`} className="w-28 h-28 rounded-lg object-cover" />
+              </a>
+              <figcaption className="text-[10px] text-center text-gray-500 dark:text-gray-400 mt-0.5">Photo {i + 1}</figcaption>
+            </figure>
+          ))}
         </div>
       </div>
 
@@ -223,7 +273,9 @@ const VerificationCard: React.FC<{
         </button>
         <button
           onClick={onApprove}
-          className="flex-1 py-2 inline-flex items-center justify-center gap-1 text-xs font-bold bg-blue-600 text-white rounded hover:bg-blue-700 shadow-sm"
+          disabled={!req.selfie_path || photos.length < 2}
+          title={!req.selfie_path ? 'No selfie to compare' : photos.length < 2 ? 'Fewer than 2 photos' : undefined}
+          className="flex-1 py-2 inline-flex items-center justify-center gap-1 text-xs font-bold bg-blue-600 text-white rounded hover:bg-blue-700 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <span aria-hidden="true" className="[&>svg]:w-3.5 [&>svg]:h-3.5"><IconCheck /></span>Approve
         </button>
@@ -240,9 +292,11 @@ const ReviewModal: React.FC<{
   req: PendingVerification;
   decision: 'approved' | 'rejected';
   onCancel: () => void;
-  onConfirm: (notes: string) => void;
+  onConfirm: (notes: string, reason?: VerificationReason) => void;
 }> = ({ req, decision, onCancel, onConfirm }) => {
   const [notes, setNotes] = useState('');
+  const [reason, setReason] = useState<VerificationReason | ''>(req.selfie_path ? '' : 'need_selfie');
+  const needsNote = reason === 'other';
 
   return (
     <div
@@ -258,18 +312,41 @@ const ReviewModal: React.FC<{
         </h3>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
           {decision === 'approved'
-            ? 'Their profile will show a verified badge to other users.'
-            : 'They can submit again. Tell them what was missing or wrong (this message is shown to them).'}
+            ? 'Their profile will show a verified badge to other users, and they get a message saying so.'
+            : 'They get a message with the reason and what to do, and can try again.'}
         </p>
 
+        {decision === 'rejected' && (
+          <>
+            <label htmlFor="verify-reason" className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Why not</label>
+            <select
+              id="verify-reason"
+              value={reason}
+              onChange={(e) => setReason(e.target.value as VerificationReason)}
+              className="w-full mb-2 bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-lg p-2.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+              data-testid="verify-reason-select"
+            >
+              <option value="" disabled>Choose</option>
+              {(Object.keys(VERIFICATION_REASONS) as VerificationReason[]).map((code) => (
+                <option key={code} value={code}>{VERIFICATION_REASONS[code].label}</option>
+              ))}
+            </select>
+            {reason && (
+              <p className="mb-4 text-xs text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-zinc-800/60 rounded-md px-3 py-2">
+                They read: "{VERIFICATION_REASONS[reason].member}"
+              </p>
+            )}
+          </>
+        )}
+
         <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">
-          Notes {decision === 'rejected' ? '(shown to user)' : '(optional, audit only)'}
+          {decision === 'rejected' ? `Note for them${needsNote ? '' : ' (optional, shown to them)'}` : 'Notes (optional, audit only)'}
         </label>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={3}
-          placeholder={decision === 'rejected' ? 'e.g. Could not find a matching public profile on these accounts' : 'Optional notes for the audit log'}
+          placeholder={decision === 'rejected' ? 'e.g. The selfie is too dark to see your face' : 'Optional notes for the audit log'}
           className="w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-lg p-2.5 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
         />
 
@@ -281,8 +358,8 @@ const ReviewModal: React.FC<{
             Cancel
           </button>
           <button
-            onClick={() => onConfirm(notes)}
-            disabled={decision === 'rejected' && !notes.trim()}
+            onClick={() => onConfirm(notes, reason || undefined)}
+            disabled={decision === 'rejected' && (!reason || (needsNote && !notes.trim()))}
             className={`flex-1 py-2.5 rounded-lg text-sm font-bold text-white shadow-sm disabled:opacity-50 ${
               decision === 'approved' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-orange-600 hover:bg-orange-700'
             }`}

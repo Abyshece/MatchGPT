@@ -168,7 +168,7 @@ const AdminReportsTab: React.FC<AdminReportsTabProps> = ({ onAuditUpdate }) => {
                     <span className="font-bold">{r.reported_name ?? r.reported_email ?? 'a user'}</span>
                   </div>
                   <div className="text-xs text-gray-600 dark:text-gray-300 mt-1">
-                    <span className="font-bold uppercase tracking-wider">{r.reason.replace(/_/g, ' ')}</span>
+                    <span className="font-bold uppercase tracking-wider">{r.reason === 'agent_bureau' ? 'agent or marriage bureau' : r.reason.replace(/_/g, ' ')}</span>
                     {r.details && <span className="ml-2 italic">"{r.details}"</span>}
                   </div>
                   {r.admin_notes && (
@@ -253,7 +253,10 @@ const ActionModal: React.FC<{
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{title}</h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{description}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{description}</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+          {report.reporter_name ?? 'The member who reported'} gets a message saying whether we acted: never what we did, and not these notes.
+        </p>
 
         <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">
           {action === 'ban' ? 'Ban reason' : 'Notes (optional)'}

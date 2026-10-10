@@ -15,9 +15,9 @@ can count under several problems, so the counts are approximate.
 
 | # | Problem | Reviews | Shaadi24 | Phase |
 |---|---|---|---|---|
-| 1 | Fake profiles, bots, marriage-bureau agents | ~1,740 | Photo and bio approval, Verified badge, Scam alerts, throwaway emails refused, one account per inbox, 3 per phone. Selfie check and an "agent or bureau" report reason next. | 4 |
+| 1 | Fake profiles, bots, marriage-bureau agents | ~1,740 | Photo and bio approval, Scam alerts, throwaway emails refused, one account per inbox, 3 per phone. The Verified badge needs a selfie with a gesture; "An agent or marriage bureau" is a report reason. | 4 (done) |
 | 2 | Crashes, freezes, broken updates | ~830 | Every change is tested before it ships. Crash reports from phones and gradual releases next. | 5 |
-| 3 | Support that doesn't help | ~710 | Complaints with a ticket and legal deadlines. "My requests" with replies next. | 4 |
+| 3 | Support that doesn't help | ~710 | Complaints with a ticket and legal deadlines. "My requests" shows each verification, complaint and report with our answer, and a message says when one is answered. | 4 (done) |
 | 4 | Nobody replies; dead profiles; fake "last seen" | ~600 | "Online" is never faked. Inactive profiles leave search, interests expire, a "Usually replies" badge, "I found my match". | 2 (done) |
 | 5 | Daily sales calls | ~440 | No sales team. Now a written promise. | 1 (done) |
 | 6 | Too expensive | ~420 | From ₹499 a week. Now a public price list with the price a day. | 1 (done) |
@@ -30,10 +30,10 @@ can count under several problems, so the counts are approximate.
 | 13 | Matches ignore preferences | ~120 | Search filters are strict. Partner preferences decide Standouts, start searches and have their own alert. | 3 (done) |
 | 14 | Missing search options; can't save a search | ~120 | Saved searches; "Family from (state)" and "Profile managed by" filters. | 3 (done) |
 | 15 | Fake interests to make people pay | ~130 | None, ever. Now a written promise. | 1 (done) |
-| 16 | Hidden or missing photos | ~100 | A face photo is required; no paid photo locks. Second photo for Verified next. | 4 |
-| 17 | Privacy: numbers made public, data copied | ~100 | Phone and email never shown. "Share my number" in chat next. | 4 |
+| 16 | Hidden or missing photos | ~100 | A face photo is required; no paid photo locks. The Verified badge needs two. | 4 (done) |
+| 17 | Privacy: numbers made public, data copied | ~100 | Phone and email never shown; "Share my number" in chat when the member chooses; screenshots blocked in the Android app. | 4 (done) |
 | 18 | Members running money scams | dozens | Chat notes on money, "digital arrest" and moving to WhatsApp fast; a scams section on the Safety page. | 1 (done) |
-| 19 | Verification stuck | ~120 | Status and reasons next. | 4 |
+| 19 | Verification stuck | ~120 | Since when it's in review ("taking longer than usual" after 48 hours), the reason when it isn't approved, and Try again. | 4 (done) |
 | 20 | Interests sent by mistake can't be undone | ~40 | Undo after sending; Withdraw in Search History. | 1 (done) |
 
 Also mentioned less often: accounts suspended without a reason, daily caps even on paid plans, profiles that can't be
@@ -88,4 +88,27 @@ free, and a separate subscription for each sister site.
 - **New filters**: "Family from (state)" (a new My Profile answer, "Family's home state", taken from "Family lives in"
   where that names a state) and "Profile managed by" (the member, parents, or a sibling, relative or friend, from
   "Profile created for"). Both free.
+
+## Phase 4 (done)
+
+- **Selfie check** (`verification-selfies`, a private bucket; `verification_pose()`): the Verified badge needs two
+  photos of the member and a selfie doing a gesture the server picks (the same all day, so it can't be chosen to
+  suit an old photo). Social media links are optional now. Only the member and the verification team can open the
+  selfie; the admin panel shows it next to the profile photos and deletes it once decided, and deleting the account
+  deletes it too.
+- **Verification status and reasons**: a request in review says since when, and "taking longer than usual" after 48
+  hours. Turning one down needs a reason (`verification_requests.reason_code`), which the member reads with what to
+  do, the team's note, and Try again. Either way the member gets a message and a notification.
+- **My requests** (Settings; `my_requests()`): verification requests, complaints and reports, where each stands and
+  our answer. A report says only whether we acted, never what happened to the other member and never the team's
+  notes (members can't read those notes any more). Answering a complaint or a report sends the member a message.
+- **"An agent or marriage bureau"** as a reason to report someone, with its own admin alert.
+- **Share my number** (chat ⋯; `share_my_number()`): the member's own number into the chat as a card with Call,
+  WhatsApp and Copy, and a safety line. Only that function can send one. It can't be taken back, which the sheet
+  says.
+- **Screenshots blocked** in the Android app (`FLAG_SECURE`), which also hides the app in the recent-apps list.
+- **Chat messages can't be changed**: until now either person in a chat could rewrite the other's messages through
+  the database; now only the person a message was sent to can mark it read.
+- **Download my data** adds partner preferences, saved searches, hidden profiles, complaints and an "I found my
+  match" story; Privacy Policy and Terms updated (members accept them again).
 

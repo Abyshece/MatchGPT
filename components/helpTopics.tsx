@@ -69,9 +69,12 @@ export function helpTopics(platform: HelpPlatform): HelpTopic[] {
     },
     {
       q: 'How do I get the verified badge?',
-      a: <>Tap <strong>Get verified</strong> and add links to at least two of your profiles on LinkedIn,
-        Instagram, Facebook or X. Our team checks them, usually within 24–48 hours, and adds the badge. A new
-        account can search for 72 hours; after that it needs to be verified.</>,
+      a: <>Add two clear photos of yourself to your profile, then tap <strong>Get verified</strong> and take a
+        selfie doing the gesture shown (a thumbs up, say). Links to your LinkedIn, Instagram, Facebook or X help but
+        aren't needed. Our team compares the selfie with your photos, usually within 24–48 hours, and adds the
+        badge; if it isn't approved, you're told why and can try again. Only the team sees the selfie, and it's
+        deleted once they've decided. A new account can search for 72 hours; after that it needs to be
+        verified.</>,
     },
     {
       q: 'Who can see my profile?',
@@ -84,8 +87,26 @@ export function helpTopics(platform: HelpPlatform): HelpTopic[] {
       q: 'How do I report or block someone?',
       a: <>On their profile or in your chat with them, tap <strong>⋯</strong>, then <strong>Report</strong> or
         <strong> Block user</strong>. Blocking ends the match and hides you from each other; Settings → Blocked
-        people undoes it. We review every report within 24 hours (intimate photos or someone pretending to be you
-        within 2 hours), remove content that breaks our Terms and remove the people who post it.</>,
+        people undoes it. Agents and marriage bureaus aren't allowed: report them with <strong>An agent or marriage
+        bureau</strong>. We review every report within 24 hours (intimate photos or someone pretending to be you
+        within 2 hours), remove content that breaks our Terms and remove the people who post it. Settings →
+        <strong> My requests</strong> shows whether we acted (never what happened to the other person).</>,
+    },
+    {
+      q: 'Where can I see my complaints and requests?',
+      a: <>Settings → <strong>My requests</strong> lists your verification requests, complaints and reports, where
+        each stands, and our answer. You also get a notification when one is answered.</>,
+    },
+    {
+      q: 'How do I give someone my phone number?',
+      a: <>Shaadi24 never shows your number. When you're ready, open your chat with a match, tap
+        <strong> ⋯</strong> → <strong>Share my number</strong>, and they can call or WhatsApp you. Once shared it
+        can't be taken back, so take your time.</>,
+    },
+    {
+      q: "Why can't I take screenshots?",
+      a: <>To protect members' photos and chats, the Android app doesn't allow screenshots or screen recording,
+        and shows blank in your list of recent apps.</>,
     },
     {
       q: 'How do I make a complaint?',

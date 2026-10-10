@@ -8,16 +8,16 @@ import type { VerificationStatus } from '../lib/profileService';
 // VerificationBanner (Phase 6 update)
 //
 // Shows when the user has missed the 72h grace period without verifying.
-// Replaces the Phase 4 one-click stub with a real flow: clicking the button
-// opens VerificationRequestModal where the user submits their social media
-// profile links for admin review.
+// Clicking the button opens VerificationRequestModal, where the member sends
+// a selfie (and, if they like, social media links) for review.
 // ============================================================================
 
 interface VerificationBannerProps {
   verification: VerificationStatus;
+  onAddPhotos?: () => void;
 }
 
-const VerificationBanner: React.FC<VerificationBannerProps> = ({ verification }) => {
+const VerificationBanner: React.FC<VerificationBannerProps> = ({ verification, onAddPhotos }) => {
   const { profile } = useAuth();
   const [showModal, setShowModal] = useState(false);
 
@@ -64,14 +64,14 @@ const VerificationBanner: React.FC<VerificationBannerProps> = ({ verification })
                 <span aria-hidden="true" className="[&>svg]:w-4 [&>svg]:h-4"><IconIdCard /></span> Get verified
               </button>
               <p className="text-[11px] text-red-700 dark:text-red-400 mt-2">
-                Provide links to at least 2 of your social media profiles. Reviewed in 24-48 hours.
+                Two photos of you and a quick selfie. Reviewed in 24–48 hours.
               </p>
             </>
           )}
         </div>
       </div>
 
-      {showModal && <VerificationRequestModal onClose={() => setShowModal(false)} />}
+      {showModal && <VerificationRequestModal onClose={() => setShowModal(false)} onAddPhotos={onAddPhotos} />}
     </>
   );
 };

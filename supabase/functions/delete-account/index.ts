@@ -12,7 +12,8 @@
 //         to do first (details.app_store_renews).
 //         Sign in with Apple is ended for Shaadi24 too, as Apple asks (best
 //         effort; _shared/appleSignIn.ts).
-//      a) Delete all photos from Storage (best-effort)
+//      a) Delete all photos, and any verification selfie, from Storage
+//         (best-effort)
 //      b) Write an audit log entry (kept for legal retention)
 //      c) Delete the auth.users row → cascades to profiles, likes, matches, messages, etc.
 //   4. Returns success
@@ -168,6 +169,23 @@ serve(withCors(async (req: Request): Promise<Response> => {
       storageErrors++;
     } else {
       photosDeleted = paths.length;
+    }
+  }
+
+  // A verification selfie still waiting for a decision (private bucket)
+  const { data: selfies, error: selfieListError } = await admin.storage
+    .from('verification-selfies')
+    .list(userId, { limit: 100 });
+  if (selfieListError) {
+    console.warn('[delete-account] selfie list failed:', selfieListError);
+    storageErrors++;
+  } else if (selfies && selfies.length > 0) {
+    const { error: selfieError } = await admin.storage
+      .from('verification-selfies')
+      .remove(selfies.map((f) => `${userId}/${f.name}`));
+    if (selfieError) {
+      console.warn('[delete-account] selfie remove failed:', selfieError);
+      storageErrors++;
     }
   }
 

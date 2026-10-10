@@ -128,7 +128,7 @@ try {
   const [jwtAdmin, jwtA] = [await signIn(ADMIN), await signIn(EMAIL_A)];
 
   log('== A report');
-  let r = await rest(jwtA, 'POST', 'reports', { reporter_id: A, reported_id: B, reason: 'harassment', details: 'Rude messages from Test' });
+  let r = await rest(jwtA, 'POST', 'reports?select=id', { reporter_id: A, reported_id: B, reason: 'harassment', details: 'Rude messages from Test' });
   check(r.status === 201, `A reports B (${r.status})`);
   let got = alerts(ADMIN_ID);
   check(got.length === 1 && got[0].type === 'admin_report' && got[0].title === '🚩 New report to review'
@@ -139,21 +139,29 @@ try {
     'no names, no details');
   check(alerts(A).length === 0 && alerts(B).length === 0, 'members aren\'t told');
 
-  r = await rest(jwtA, 'POST', 'reports', { reporter_id: A, reported_id: B, reason: 'underage' });
+  r = await rest(jwtA, 'POST', 'reports?select=id', { reporter_id: A, reported_id: B, reason: 'underage' });
   got = alerts(ADMIN_ID);
   check(got.length === 2 && got[1].title === '🚨 Report: someone may be under age' && got[1].body === 'Reason: Underage user. Open Admin → Reports.',
     `someone maybe under age gets its own title ("${got[1]?.title}")`);
 
-  r = await rest(jwtAdmin, 'POST', 'reports', { reporter_id: ADMIN_ID, reported_id: B, reason: 'spam' });
+  r = await rest(jwtAdmin, 'POST', 'reports?select=id', { reporter_id: ADMIN_ID, reported_id: B, reason: 'spam' });
   check(r.status === 201 && alerts(ADMIN_ID).length === 2, 'an admin who reports isn\'t told about their own report');
 
   sql(`update profiles set settings_push_notifs = false where id = '${ADMIN_ID}';`);
-  await rest(jwtA, 'POST', 'reports', { reporter_id: A, reported_id: B, reason: 'spam' });
+  await rest(jwtA, 'POST', 'reports?select=id', { reporter_id: A, reported_id: B, reason: 'spam' });
   check(alerts(ADMIN_ID).length === 2, 'an admin with notifications off isn\'t told');
   sql(`update profiles set settings_push_notifs = true where id = '${ADMIN_ID}';`);
 
   log('== A verification request');
-  const links = { p_linkedin_url: 'https://linkedin.com/in/a-test', p_instagram_url: 'https://instagram.com/a.test', p_facebook_url: '', p_twitter_url: '', p_user_notes: '' };
+  // A selfie doing today's gesture (A has photos; a verified member can't ask again)
+  const verifiedWas = sql(`select is_verified::text || '|' || coalesce(verification_status, '') from profiles where id = '${A}';`).split('|');
+  sql(`update profiles set is_verified = false where id = '${A}';`);
+  const pose = (await rest(jwtA, 'POST', 'rpc/verification_pose', {})).body;
+  const selfie = `${A}/selfie_alerts_${Date.now()}.png`;
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
+  const selfieUrl = `${API}/storage/v1/object/verification-selfies/${selfie}`;
+  await fetch(selfieUrl, { method: 'POST', headers: { apikey: ANON, Authorization: `Bearer ${jwtA}`, 'Content-Type': 'image/png' }, body: png });
+  const links = { p_selfie_path: selfie, p_pose: pose, p_linkedin_url: 'https://linkedin.com/in/a-test', p_instagram_url: '', p_facebook_url: '', p_twitter_url: '', p_user_notes: '' };
   r = await rest(jwtA, 'POST', 'rpc/submit_verification_request', links);
   check(r.status === 200, `A asks to be verified (${r.status})`);
   got = alerts(ADMIN_ID).filter((x) => x.type === 'admin_verification');
@@ -161,6 +169,8 @@ try {
     `the admin is told: "${got[0]?.title}"`);
   await rest(jwtA, 'POST', 'rpc/submit_verification_request', { ...links, p_twitter_url: 'https://x.com/a_test' });
   check(alerts(ADMIN_ID).filter((x) => x.type === 'admin_verification').length === 1, 'updating the waiting request doesn\'t ask again');
+  await fetch(selfieUrl, { method: 'DELETE', headers: { apikey: ANON, Authorization: `Bearer ${jwtA}` } });
+  sql(`update profiles set is_verified = ${verifiedWas[0]}, verification_status = ${verifiedWas[1] ? `'${verifiedWas[1]}'` : 'null'} where id = '${A}';`);
 
   log('== To the admin\'s phone');
   await fetch(`${STANDIN}/__fcm/reset`, { method: 'POST' });  // only this run's messages
