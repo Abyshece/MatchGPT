@@ -7,8 +7,9 @@ import {
 import { unmatch } from '../lib/matchesService';
 import MessageBubble from './MessageBubble';
 import BlockReportModal from './BlockReportModal';
+import ShareNumberModal from './ShareNumberModal';
 import {
-  IconChevronLeft, IconCheck, IconX, IconZap, IconFlag, IconBan, IconHeartOff, IconMore, IconUser, IconMessageCircle, IconCalendar, IconCoffee, IconUtensils, IconGlass, IconFootprints, IconFilm, IconPalette,
+  IconChevronLeft, IconCheck, IconX, IconZap, IconFlag, IconBan, IconHeartOff, IconMore, IconUser, IconMessageCircle, IconCalendar, IconPhone, IconCoffee, IconUtensils, IconGlass, IconFootprints, IconFilm, IconPalette,
 } from '../constants';
 import { isNativeApp } from '../lib/nativeApp';
 import { setOpenChat } from '../lib/nativePush';
@@ -49,6 +50,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   const [showBlockReport, setShowBlockReport] = useState<null | 'block' | 'report'>(null);
   const [showUnmatchConfirm, setShowUnmatchConfirm] = useState(false);
   const [showDateBuilder, setShowDateBuilder] = useState(false);
+  const [showShareNumber, setShowShareNumber] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const composerRef = useRef<HTMLTextAreaElement>(null);
@@ -264,6 +266,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
               onClick={(e) => e.stopPropagation()}
             >
               <button
+                onClick={() => { setShowOverflow(false); setShowShareNumber(true); }}
+                className="w-full px-3 py-2 text-sm text-left text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2"
+                data-testid="share-number"
+              >
+                <span className="flex-none w-4 h-4 [&>svg]:w-4 [&>svg]:h-4" aria-hidden="true"><IconPhone /></span> Share my number
+              </button>
+              <button
                 onClick={() => { setShowOverflow(false); setShowBlockReport('report'); }}
                 className="w-full px-3 py-2 text-sm text-left text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2"
               >
@@ -317,6 +326,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                 showReceipts={myReadReceipts}
                 showAvatar={showAvatar}
                 otherPhoto={otherPhoto}
+                otherName={match.otherUser.name}
                 onAcceptDate={handleAcceptDate}
                 onDeclineDate={handleDeclineDate}
                 onReport={() => setShowBlockReport('report')}
@@ -424,6 +434,19 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {showShareNumber && (
+        <ShareNumberModal
+          matchId={matchId}
+          name={match.otherUser.name}
+          onClose={() => setShowShareNumber(false)}
+          onShared={(message) => {
+            setShowShareNumber(false);
+            setMessages((prev) => prev.some((m) => m.id === message.id) ? prev : [...prev, message]);
+            showToast('Number shared', 'success');
+          }}
+        />
       )}
 
       {/* Block / Report */}

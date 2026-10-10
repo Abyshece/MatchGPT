@@ -41,7 +41,8 @@ const SafetyView: React.FC<{ onBack: () => void }> = ({ onBack }) => (
 
     <Section title="We don't check every profile">
       <p>A profile has been checked by our team only if it shows the <strong>Verified</strong> badge, and that means we
-        checked the social-media profiles the member linked, nothing more. Check for yourself whatever matters to you:
+        compared a selfie the member took, doing a gesture we asked for, with their profile photos (and looked at any
+        social-media profiles they linked), nothing more. Check for yourself whatever matters to you:
         identity, marital status, education, job and family, for example with documents, video calls and people you
         trust.</p>
     </Section>
@@ -103,7 +104,7 @@ const SafetyView: React.FC<{ onBack: () => void }> = ({ onBack }) => (
 
     <HindiSummary>
       <p>शादी24 केवल विवाह के लिए है। अपनी सही जानकारी दें, सबसे सम्मान से बात करें, और दहेज की माँग या पेशकश बिल्कुल न करें।</p>
-      <p>हम हर प्रोफ़ाइल की जाँच नहीं करते; केवल "Verified" निशान वाली प्रोफ़ाइल के सोशल मीडिया लिंक जाँचे गए हैं। किसी को कभी पैसे न
+      <p>हम हर प्रोफ़ाइल की जाँच नहीं करते; केवल "Verified" निशान वाली प्रोफ़ाइल की सेल्फ़ी उनकी फ़ोटो से मिलाई गई है। किसी को कभी पैसे न
         भेजें और बैंक विवरण या OTP साझा न करें। पहली मुलाकात सार्वजनिक स्थान पर करें और परिवार को बताएँ।</p>
       <p>पुलिस, CBI, कस्टम या कोर्ट कभी वीडियो कॉल पर "डिजिटल अरेस्ट" नहीं करते और पैसे नहीं माँगते। निवेश, क्रिप्टो या "कस्टम में फँसे
         पार्सल" के नाम पर पैसे माँगने वाले धोखेबाज़ हैं, और जो जल्दी WhatsApp या वीडियो कॉल पर ले जाना चाहे, उससे सावधान रहें।</p>

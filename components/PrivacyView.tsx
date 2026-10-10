@@ -61,17 +61,19 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => (
         <Item what="Optional answers you choose to give: caste or community, sub-caste, sect, gotra, horoscope (Manglik, rashi, nakshatra, time and place of birth), education and work (degree, college, employer, job, annual income), family (parents' occupations, brothers and sisters, family type, status, values and where they live), lifestyle, appearance, plans and personality, hometown, disability, vaccination and similar"
           why="To show your profile and work out how well you might match someone. Completing sections of these also gives you extra free searches a day. Leave out anything you prefer not to say." />
         <Item what="Photos" why="To show your profile to other members. Our team checks new photos, and what you write about yourself and your family, before other members see them." />
-        <Item what="Links to your profiles on LinkedIn, Instagram, Facebook or X, if you ask to be verified"
-          why="So our team can check them and give your profile the Verified badge. Only our team sees them." />
+        <Item what="If you ask for the Verified badge: a selfie you take doing a gesture we ask for (a thumbs up, say), and links to your profiles on LinkedIn, Instagram, Facebook or X if you add them"
+          why="So our team can compare the selfie with your profile photos, look at the links, and give your profile the Verified badge, or tell you why not. Only our verification team sees them. A person compares the photos: we don't use face recognition. The selfie is deleted once we've decided, or when you delete your account." />
+        <Item what="Your phone number, only if you share it in a chat with Share my number"
+          why="To show it to the match you shared it with, in that chat. If you ask us to remember it, it's kept on your account for next time, never shown on your profile, and used to recognise a banned member's phone." />
         <Item what="What you do on Shaadi24: likes, matches, messages, what you search for, Standouts, the people you block and the reports you make"
           why="To provide these features (for example, to deliver your messages), to keep members safe, and to act on reports. To keep members safe our systems also look for signs of scams and fake profiles, such as messages asking for money, the same message sent to many people, or the same photo on several accounts; our team looks at what was flagged and can stop the account. Short searches that at least two members near you have made show as Trending on Find Match, never with who made them, and never with numbers, email addresses or links." />
         <Item what="Device and technical data: the internet (IP) addresses and devices you sign in from and use to set up your profile, the app's version, the app's ID for your phone (we keep only a scrambled form of it, which can't be turned back into the ID), and a notification token if you turn notifications on"
           why="To keep accounts secure, prevent fraud, fake profiles and repeat accounts (for example, free searches are limited to three accounts on one phone, and a banned member's phone is recognised), send notifications you asked for, and keep the records Indian law requires (section 6)." />
-        <Item what="Error reports" why="When something goes wrong in the app, we get what went wrong, on which screen, and the kind of device, without your name, email or account; email addresses and phone numbers in it are removed first." />
+        <Item what="Error and crash reports" why="When something goes wrong in the app, we get what went wrong, on which screen, and the kind of device, without your name, email or account; email addresses and phone numbers in it are removed first. If the Android or iPhone app crashes, Firebase Crashlytics sends us where in the app it crashed, the app's version, the kind of phone and its system version, and a random ID for that install, never your name, email, account or what's on the screen." />
         <Item what="Purchases of Shaadi24+, Spotlight and Super Interests: the store's order number, the plan or pack, the price, dates and refunds (never your card, UPI or bank details)"
           why="To give you what you bought and keep the accounts that tax law requires. While your Spotlight is on, we count how many searches it was shown in, to tell you how it went." />
-        <Item what="Complaints and requests you send us, and the consents you give (which documents, when)"
-          why="To answer them, and to show what you agreed to." />
+        <Item what="Complaints, problems and requests you send us (a problem you report comes with the screen you were on, the app's version and the kind of phone or browser), and the consents you give (which documents, when)"
+          why="To answer them (Settings → My requests shows where each stands, and we send you a message when one is answered), to fix what went wrong, and to show what you agreed to." />
       </ul>
       <p><strong>Sensitive details.</strong> Some of this is sensitive: who you are interested in (which can show your
         sexual orientation), any health detail such as a disability or vaccination, and your password are "sensitive
@@ -98,7 +100,10 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => (
           haven't opened the app for 60 days, you're left out of search until you come back. Members can search by
           your family's home state and by who manages your profile (you, parents, or a sibling, relative or friend).
           Your partner preferences and saved searches are seen only by you; we use them to pick your Standouts, to start
-          your searches and to tell you about new members who fit.</li>
+          your searches and to tell you about new members who fit. Your phone number is seen only by a match you share
+          it with, in your chat; once shared it can't be taken back. When you report someone, they aren't told who
+          reported them, and you're told only whether we acted. In the Android app, screenshots and screen recordings
+          of Shaadi24 are blocked, to protect members' photos and chats.</li>
         <li><strong>People you share a link with.</strong> If you share your biodata, anyone with its link or QR code
           can open a page that shows what other members see of your profile (never what you hid, your email or a phone
           number), until you turn the link off in My Biodata. If you invite family to Family Circle, each person you
@@ -115,8 +120,8 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => (
             <li>Vercel: hosts the website;</li>
             <li>Google: Gemini, which reads the text you type into search (with email addresses and phone numbers
               removed, and never with your name or profile) to understand what you're looking for; Firebase Cloud
-              Messaging, which delivers notifications; Google sign-in; and Google Play, which sells Shaadi24+ on
-              Android;</li>
+              Messaging, which delivers notifications; Firebase Crashlytics, which sends us the apps' crash reports;
+              Google sign-in; and Google Play, which sells Shaadi24+ on Android;</li>
             <li>Apple: Sign in with Apple, the App Store and its notification service on iPhone; and</li>
             <li>an email service, to send sign-up codes and password resets.</li>
           </List>
@@ -151,6 +156,7 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => (
           optional answer, photo or your whole account at any time.</li>
         <li><strong>When you delete your account</strong>, your profile, photos, likes, matches, messages and searches
           are deleted straight away, and from our backups within 30 days.</li>
+        <li>A verification selfie is deleted once our team has decided, approved or not.</li>
         <li><strong>What Indian law requires us to keep after that</strong>, kept apart, seen by nobody at{' '}
           {LEGAL.brand} except to answer a lawful request, and then deleted:
           <List>
@@ -206,7 +212,10 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => (
       <p>The apps and the website keep your sign-in and settings on your device so you stay signed in. The website
         shows a cookie notice, and uses no advertising or tracking cookies; any optional analytics stays off unless you
         turn it on. Notifications are sent only if you turn them on, and you can turn them off in Settings or in your
-        phone's settings. Emails with tips and news are sent only if you agreed, and you can stop them in Settings.</p>
+        phone's settings. They include a weekly summary on Mondays (your likes, matches and messages that week) when
+        there is something to tell. If your Shaadi24+ renews by itself, we send you a message a few days before it
+        renews or before a free trial ends (a day before, for a weekly plan), with the price and how to cancel, even
+        with notifications off. Emails with tips and news are sent only if you agreed, and you can stop them in Settings.</p>
     </Section>
 
     <Section title="10. Changes to this policy">

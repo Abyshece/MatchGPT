@@ -676,7 +676,12 @@ const ProfileView: React.FC<{ initialSection?: SectionId }> = ({ initialSection 
                   {profile.isVerified ? (
                     <span className="text-green-600 dark:text-green-400 font-bold text-xs flex items-center gap-1"><IconCheck /> Verified</span>
                   ) : profile.verificationStatus === 'pending' ? (
-                    <span className="text-yellow-600 dark:text-yellow-400 font-bold text-xs flex items-center gap-1"><IconClock /> Pending</span>
+                    <button
+                      onClick={() => setShowVerifyModal(true)}
+                      className="text-yellow-600 dark:text-yellow-400 font-bold text-xs flex items-center gap-1 hover:underline"
+                    >
+                      <IconClock /> In review
+                    </button>
                   ) : (
                     <button
                       onClick={() => setShowVerifyModal(true)}

@@ -13,7 +13,7 @@ import { BrandMark } from '../constants';
 // tapped, so it doesn't come back.
 // ============================================================================
 
-export type MessageGoTo = { tab: 'profile'; section?: SectionId } | { tab: 'search' };
+export type MessageGoTo = { tab: 'profile'; section?: SectionId } | { tab: 'search' } | { tab: 'settings'; focus: 'requests' };
 
 const MemberMessages: React.FC<{ onGo: (to: MessageGoTo) => void }> = ({ onGo }) => {
   const [message, setMessage] = useState<MyMessage | null>(null);
@@ -39,6 +39,7 @@ const MemberMessages: React.FC<{ onGo: (to: MessageGoTo) => void }> = ({ onGo })
     if (!target) return;
     if (target === 'verify' || target === 'upgrade') setModal(target);
     else if (target === 'search') onGo({ tab: 'search' });
+    else if (target === 'requests') onGo({ tab: 'settings', focus: 'requests' });
     else if (target === 'profile') onGo({ tab: 'profile' });
     else onGo({ tab: 'profile', section: target.slice('profile:'.length) as SectionId });
   };
@@ -74,7 +75,7 @@ const MemberMessages: React.FC<{ onGo: (to: MessageGoTo) => void }> = ({ onGo })
           </div>
         </div>
       )}
-      {modal === 'verify' && <VerificationRequestModal onClose={() => setModal(null)} />}
+      {modal === 'verify' && <VerificationRequestModal onClose={() => setModal(null)} onAddPhotos={() => onGo({ tab: 'profile' })} />}
       {modal === 'upgrade' && <UpgradeModal reason="pro_feature" onClose={() => setModal(null)} />}
     </>
   );

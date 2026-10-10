@@ -21,10 +21,10 @@
 #   APPLE_TEAM_ID: developer.apple.com → Account → Membership details
 #   VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY: as in .env.production.local
 #   VITE_GOOGLE_IOS_CLIENT_ID (optional): Google sign-in on iPhones
-#   FIREBASE_IOS_CONFIG (optional): notifications on iPhones, the text of
-#     GoogleService-Info.plist (Firebase console → Project settings → Your
-#     apps → the iOS app com.shaadi24.app); without it the app says
-#     notifications are coming soon
+#   FIREBASE_IOS_CONFIG (optional): notifications and crash reports on
+#     iPhones, the text of GoogleService-Info.plist (Firebase console →
+#     Project settings → Your apps → the iOS app com.shaadi24.app); without
+#     it the app says notifications are coming soon
 # Build numbers are the date and time (261006.1530), so each upload is higher
 # than the last; uploads from Xcode with package.json's build number would be
 # lower, so keep uploading from here.
@@ -137,6 +137,21 @@ jobs:
           [ "$bundle" = com.shaadi24.app ] \
             || { echo "::error::FIREBASE_IOS_CONFIG is for $bundle, not com.shaadi24.app: download it from the iOS app com.shaadi24.app in Firebase"; exit 1; }
           echo "GoogleService-Info.plist added (Firebase project $(/usr/libexec/PlistBuddy -c 'Print :PROJECT_ID' "$PLIST"))"
+
+      # Crash reports name the app's code only with its debug symbols (dSYMs).
+      # Firebase's upload-symbols comes with the Crashlytics package; a failed
+      # upload doesn't hold the build up
+      - name: Debug symbols to Crashlytics (when the secret is set)
+        if: env.FIREBASE_IOS_CONFIG != '' && steps.mode.outputs.upload == 'true'
+        continue-on-error: true
+        run: |
+          TOOL=$(find ~/Library/Developer/Xcode/DerivedData -path '*/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/upload-symbols' -type f 2>/dev/null | head -1)
+          if [ -z "$TOOL" ]; then
+            echo "::warning::Firebase's upload-symbols wasn't found: crashes from this build show addresses instead of names"
+            exit 0
+          fi
+          chmod +x "$TOOL"
+          "$TOOL" -gsp "$ARCHIVE/Products/Applications/App.app/GoogleService-Info.plist" -p ios "$ARCHIVE/dSYMs"
 
       # Signing at export takes the entitlements from the archived app's
       # signature, and an unsigned app has none: a placeholder signature

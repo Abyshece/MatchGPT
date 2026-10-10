@@ -1,5 +1,5 @@
 import React from 'react';
-import { IconCheck, IconZap, IconUser, IconMessageCircle, IconWave, IconCalendar } from '../constants';
+import { IconCheck, IconZap, IconUser, IconMessageCircle, IconWave, IconCalendar, IconPhone } from '../constants';
 import type { MatchSummary } from '../lib/matchesService';
 
 // ============================================================================
@@ -82,6 +82,10 @@ const ChatList: React.FC<ChatListProps> = ({
             preview = p.activity ?? 'Date proposal';
             previewIcon = <IconCalendar />;
           } catch { preview = lastMsg.content; }
+        } else if (/^\+[1-9]\d{7,14}$/.test(lastMsg.content)) {
+          // A number shared with Share my number
+          preview = 'Shared a phone number';
+          previewIcon = <IconPhone />;
         } else {
           preview = lastMsg.content;
         }

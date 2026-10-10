@@ -33,7 +33,7 @@ const FEATURES = [
   {
     icon: <IconShield />,
     title: 'Verified badges, and reports that count',
-    text: 'Members can get a Verified badge by linking their social profiles, which our team checks, and every report is reviewed within 24 hours.',
+    text: 'Members can get a Verified badge with a selfie our team compares with their photos, every report is reviewed within 24 hours, and members see what came of theirs in the app.',
   },
   {
     icon: <IconUsers />,

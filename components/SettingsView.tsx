@@ -7,6 +7,8 @@ import { deleteAccount } from '../lib/deleteAccountService';
 import PushNotifSetup from './PushNotifSetup';
 import BlockedPeopleList from './BlockedPeopleList';
 import HiddenProfilesList from './HiddenProfilesList';
+import MyRequestsList from './MyRequestsList';
+import ReportProblemModal from './ReportProblemModal';
 import FoundMatchModal from './FoundMatchModal';
 import SubscriptionSettings from './SubscriptionSettings';
 import { getMySubscription, type Subscription } from '../lib/billingService';
@@ -33,6 +35,7 @@ interface SettingsViewProps {
   themeMode?: 'system' | 'light' | 'dark';        // current theme mode setting
   onSetTheme?: (mode: 'system' | 'light' | 'dark') => void;  // set + persist
   onNavigate?: (tab: string) => void;
+  focus?: 'requests';  // opened from a message about a request: scroll to My requests
 }
 
 const DELETE_REASONS = [
@@ -76,6 +79,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
   themeMode = 'system',
   onSetTheme,
   onNavigate,
+  focus,
 }) => {
   const { profile, profileRow, settings, session, signOut, refreshProfile } = useAuth();
   const { showToast } = useToast();
@@ -89,6 +93,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({
   const [renewing, setRenewing] = useState<Subscription | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [foundMatch, setFoundMatch] = useState(false);   // the "I found my match" sheet
+  const [reportingProblem, setReportingProblem] = useState(false);
+  const [requestsKey, setRequestsKey] = useState(0);     // reloads My requests after a report
 
   if (!settings || !profile) {
     return <div className="p-12 text-center text-gray-500 dark:text-gray-400">Loading…</div>;
@@ -304,7 +310,29 @@ const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
           </InfoSection>
 
+          <InfoSection title="My requests" id="my-requests">
+            <MyRequestsList key={requestsKey} onAddPhotos={() => onNavigate?.('profile')} scrollTo={focus === 'requests'} />
+          </InfoSection>
+
           <InfoSection title="Support">
+            <button
+              onClick={() => setReportingProblem(true)}
+              data-testid="report-problem"
+              className="w-full flex items-center justify-between py-3 px-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800/30 rounded text-left"
+            >
+              <span>Report a problem <span className="text-gray-500 dark:text-gray-400">· something isn't working</span></span>
+              <IconChevronRight />
+            </button>
+            {reportingProblem && (
+              <ReportProblemModal
+                onClose={() => setReportingProblem(false)}
+                onSent={() => {
+                  setReportingProblem(false);
+                  setRequestsKey((k) => k + 1);
+                  showToast("Thank you. We'll look into it and answer in My requests.", 'success');
+                }}
+              />
+            )}
             <button
               onClick={() => onNavigate?.('help')}
               className="w-full flex items-center justify-between py-3 px-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800/30 rounded text-left"

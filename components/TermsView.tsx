@@ -51,7 +51,8 @@ const TermsView: React.FC<TermsViewProps> = ({ onBack }) => (
         agreement or marriage between members. Whether and how a marriage can be solemnised or registered depends on
         the law that applies to the two people concerned.</p>
       <p><strong>We do not check every profile.</strong> A profile has been checked by us only if it shows the Verified
-        badge, and the badge means only that our team checked the social-media profiles the member linked. We do
+        badge, and the badge means only that our team compared a selfie the member took, doing a gesture we asked
+        for, with their profile photos (and looked at any social-media profiles they linked). We do
         not verify identity documents, age, marital status, religion, community, education, income, family or
         anything else a member says unless we say so on the profile. Please check what you rely on yourself
         (section 8).</p>

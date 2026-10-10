@@ -270,7 +270,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Opened from the boxes above (both render into <body>) */}
       {showVerifyModal && (
-        <VerificationRequestModal onClose={() => setShowVerifyModal(false)} />
+        <VerificationRequestModal onClose={() => setShowVerifyModal(false)} onAddPhotos={() => onTabChange('profile')} />
       )}
       {showUpgradeModal && (
         <UpgradeModal reason="pro_feature" onClose={() => setShowUpgradeModal(false)} />

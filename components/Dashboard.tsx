@@ -81,6 +81,8 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
   const [matchCelebration, setMatchCelebration] = useState<{ matchId: string; candidate: MatchCandidate } | null>(null);
   // My Profile opened at a section (from the free-searches pop-up; a new key each time)
   const [profileOpen, setProfileOpen] = useState<{ section?: SectionId; key: number }>({ key: 0 });
+  // Settings opened at My requests (a message about a request); the key remounts it to scroll there
+  const [settingsFocus, setSettingsFocus] = useState<{ focus?: 'requests'; key: number }>({ key: 0 });
   // Bumping this forces SearchView to remount, clearing prompt + results.
   // Used by the pencil "new chat" icon in the topbar.
   const [searchResetKey, setSearchResetKey] = useState(0);
@@ -145,6 +147,10 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
     } else if (data.event_type === 'family_reaction') {
       setPendingMatchOpenId(null);
       setActiveTab('family');
+    } else if (data.event_type === 'your_week') {
+      // The week's numbers are on Find Match
+      setPendingMatchOpenId(null);
+      setActiveTab('search');
     } else if (data.event_type === 'search_alert') {
       // New members for a saved search or the partner preferences: Search History lists them
       setPendingMatchOpenId(null);
@@ -158,6 +164,10 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
         const section = target.split(':')[1] as SectionId | undefined;
         setProfileOpen((o) => ({ section, key: o.key + 1 }));
         setActiveTab('profile');
+      } else if (target === 'requests') {
+        // An answer to a verification request, complaint or report
+        setSettingsFocus((o) => ({ focus: 'requests', key: o.key + 1 }));
+        setActiveTab('settings');
       }
     } else if (adminTabFromAlert(data)) {
       setPendingMatchOpenId(null);
@@ -230,6 +240,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
       {/* Messages from the Shaadi24 team (Admin → Messages) */}
       <MemberMessages onGo={(to) => {
         if (to.tab === 'profile') setProfileOpen((o) => ({ section: to.section, key: o.key + 1 }));
+        if (to.tab === 'settings') setSettingsFocus((o) => ({ focus: to.focus, key: o.key + 1 }));
         handleTabChange(to.tab);
       }} />
       {isMobileMenuOpen && (
@@ -294,7 +305,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
 
         <div className="flex-1 relative overflow-hidden">
           <Suspense fallback={<TabLoader />}>
-            {activeTab === 'search' && <SearchView key={searchResetKey} onNavigateToMatches={handleNavigateToMatches} onNavigateToProfile={() => setActiveTab('profile')} />}
+            {activeTab === 'search' && <SearchView key={searchResetKey} onNavigateToMatches={handleNavigateToMatches} onNavigateToProfile={() => setActiveTab('profile')} onNavigate={(t) => setActiveTab(t)} />}
             {activeTab === 'history' && (
               <HistoryView
                 onOpenInSearch={(saved) => {
@@ -324,6 +335,8 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
                 themeMode={themeMode}
                 onSetTheme={onSetTheme}
                 onNavigate={(t: string) => setActiveTab(t as Tab)}
+                focus={settingsFocus.focus}
+                key={settingsFocus.key}
               />
             )}
             {activeTab === 'help' && <HelpCenter />}

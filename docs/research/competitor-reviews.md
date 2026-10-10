@@ -15,25 +15,25 @@ can count under several problems, so the counts are approximate.
 
 | # | Problem | Reviews | Shaadi24 | Phase |
 |---|---|---|---|---|
-| 1 | Fake profiles, bots, marriage-bureau agents | ~1,740 | Photo and bio approval, Verified badge, Scam alerts, throwaway emails refused, one account per inbox, 3 per phone. Selfie check and an "agent or bureau" report reason next. | 4 |
-| 2 | Crashes, freezes, broken updates | ~830 | Every change is tested before it ships. Crash reports from phones and gradual releases next. | 5 |
-| 3 | Support that doesn't help | ~710 | Complaints with a ticket and legal deadlines. "My requests" with replies next. | 4 |
+| 1 | Fake profiles, bots, marriage-bureau agents | ~1,740 | Photo and bio approval, Scam alerts, throwaway emails refused, one account per inbox, 3 per phone. The Verified badge needs a selfie with a gesture; "An agent or marriage bureau" is a report reason. | 4 (done) |
+| 2 | Crashes, freezes, broken updates | ~830 | Every change is tested before it ships. Crash reports from phones (Crashlytics), "Report a problem" in Settings, releases to a few people first, and a switch that makes a broken old version ask to be updated. | 5 (done) |
+| 3 | Support that doesn't help | ~710 | Complaints with a ticket and legal deadlines. "My requests" shows each verification, complaint and report with our answer, and a message says when one is answered. | 4 (done) |
 | 4 | Nobody replies; dead profiles; fake "last seen" | ~600 | "Online" is never faked. Inactive profiles leave search, interests expire, a "Usually replies" badge, "I found my match". | 2 (done) |
 | 5 | Daily sales calls | ~440 | No sales team. Now a written promise. | 1 (done) |
 | 6 | Too expensive | ~420 | From ₹499 a week. Now a public price list with the price a day. | 1 (done) |
 | 7 | Basics locked behind payment; "free" ads that aren't | ~390 | Chatting after a match is free. Now said plainly, and one free "Likes You" a day. | 1 (done) |
-| 8 | Refunds refused, auto-renewal, double charges | ~300 | Paid only through the stores. A reminder before each renewal next. | 5 |
-| 9 | Matches dry up after paying | ~260 | Paying doesn't change matches. A "Your week" card next. | 5 |
+| 8 | Refunds refused, auto-renewal, double charges | ~300 | Paid only through the stores. A message 3 days before each renewal (1 for a weekly plan) and before a free trial ends, with the price and where to cancel. | 5 (done) |
+| 9 | Matches dry up after paying | ~260 | Paying doesn't change matches. "Your week" on Find Match and on Monday mornings: likes, matches, messages, Standouts and new members near you, only what really happened. | 5 (done) |
 | 10 | The same profiles again and again | ~250 | "Not interested" for good, no repeats in Standouts, "New" on new members. | 2 (done) |
 | 11 | Too few relevant profiles | ~240 | Near misses below few results; saved searches with a daily alert about new members. | 3 (done) |
 | 12 | Can't log in, no code, reset broken | ~200 | Errors in plain words and a "Still no email?" box. | 1 (done) |
 | 13 | Matches ignore preferences | ~120 | Search filters are strict. Partner preferences decide Standouts, start searches and have their own alert. | 3 (done) |
 | 14 | Missing search options; can't save a search | ~120 | Saved searches; "Family from (state)" and "Profile managed by" filters. | 3 (done) |
 | 15 | Fake interests to make people pay | ~130 | None, ever. Now a written promise. | 1 (done) |
-| 16 | Hidden or missing photos | ~100 | A face photo is required; no paid photo locks. Second photo for Verified next. | 4 |
-| 17 | Privacy: numbers made public, data copied | ~100 | Phone and email never shown. "Share my number" in chat next. | 4 |
+| 16 | Hidden or missing photos | ~100 | A face photo is required; no paid photo locks. The Verified badge needs two. | 4 (done) |
+| 17 | Privacy: numbers made public, data copied | ~100 | Phone and email never shown; "Share my number" in chat when the member chooses; screenshots blocked in the Android app. | 4 (done) |
 | 18 | Members running money scams | dozens | Chat notes on money, "digital arrest" and moving to WhatsApp fast; a scams section on the Safety page. | 1 (done) |
-| 19 | Verification stuck | ~120 | Status and reasons next. | 4 |
+| 19 | Verification stuck | ~120 | Since when it's in review ("taking longer than usual" after 48 hours), the reason when it isn't approved, and Try again. | 4 (done) |
 | 20 | Interests sent by mistake can't be undone | ~40 | Undo after sending; Withdraw in Search History. | 1 (done) |
 
 Also mentioned less often: accounts suspended without a reason, daily caps even on paid plans, profiles that can't be
@@ -89,3 +89,47 @@ free, and a separate subscription for each sister site.
   where that names a state) and "Profile managed by" (the member, parents, or a sibling, relative or friend, from
   "Profile created for"). Both free.
 
+## Phase 4 (done)
+
+- **Selfie check** (`verification-selfies`, a private bucket; `verification_pose()`): the Verified badge needs two
+  photos of the member and a selfie doing a gesture the server picks (the same all day, so it can't be chosen to
+  suit an old photo). Social media links are optional now. Only the member and the verification team can open the
+  selfie; the admin panel shows it next to the profile photos and deletes it once decided, and deleting the account
+  deletes it too.
+- **Verification status and reasons**: a request in review says since when, and "taking longer than usual" after 48
+  hours. Turning one down needs a reason (`verification_requests.reason_code`), which the member reads with what to
+  do, the team's note, and Try again. Either way the member gets a message and a notification.
+- **My requests** (Settings; `my_requests()`): verification requests, complaints and reports, where each stands and
+  our answer. A report says only whether we acted, never what happened to the other member and never the team's
+  notes (members can't read those notes any more). Answering a complaint or a report sends the member a message.
+- **"An agent or marriage bureau"** as a reason to report someone, with its own admin alert.
+- **Share my number** (chat ⋯; `share_my_number()`): the member's own number into the chat as a card with Call,
+  WhatsApp and Copy, and a safety line. Only that function can send one. It can't be taken back, which the sheet
+  says.
+- **Screenshots blocked** in the Android app (`FLAG_SECURE`), which also hides the app in the recent-apps list.
+- **Chat messages can't be changed**: until now either person in a chat could rewrite the other's messages through
+  the database; now only the person a message was sent to can mark it read.
+- **Download my data** adds partner preferences, saved searches, hidden profiles, complaints and an "I found my
+  match" story; Privacy Policy and Terms updated (members accept them again).
+
+## Phase 5 (done)
+
+- **A reminder before Shaadi24+ charges again** (`renewal_reminders()`, daily at 10:07 India time): 3 days before a
+  plan renews (a day before, for the weekly plan) and before a free trial ends, the member gets a message and a
+  notification. It gives the date, the price ("₹999 a month"), the store that charges it, and where to cancel. There
+  is one reminder per renewal. A plan that is already cancelled gets none.
+- **Your week** (`my_week()`): a card on Find Match with the last 7 days' likes, new matches, messages, the Standouts
+  the member was picked for, and new members near them. Likes from people they blocked don't count. Tapping a
+  number opens it, and × puts the card away until next week. A Monday morning notification says the same, only in
+  a week with something to say.
+- **Report a problem** (Settings → Support; `report_problem()`): what went wrong, in the member's words, with the
+  screen, app version and kind of phone. The team gets an alert and answers in Admin → Errors. The member gets a
+  message and reads the answer in My requests. Five a day at most.
+- **Crash reports** (Firebase Crashlytics) from the Android and iPhone apps. They carry no name or account. The
+  TestFlight job uploads the iPhone app's debug symbols.
+- **Gradual releases and a stop switch** (`docs/store/README.md`, "Staged rollouts"):
+  - Google Play's staged roll-out and the App Store's phased release, with what to check before each step.
+  - Admin → Errors → *Oldest app that still works* (`app_settings.min_app_build`, owner only, audited): older apps
+    show "Please update Shaadi24" and nothing else.
+- **Download my data** adds problem reports. The Privacy Policy, the Help Center and the store privacy answers
+  name Crashlytics, problem reports and the reminders.

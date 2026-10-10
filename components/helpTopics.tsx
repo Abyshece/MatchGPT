@@ -69,9 +69,12 @@ export function helpTopics(platform: HelpPlatform): HelpTopic[] {
     },
     {
       q: 'How do I get the verified badge?',
-      a: <>Tap <strong>Get verified</strong> and add links to at least two of your profiles on LinkedIn,
-        Instagram, Facebook or X. Our team checks them, usually within 24–48 hours, and adds the badge. A new
-        account can search for 72 hours; after that it needs to be verified.</>,
+      a: <>Add two clear photos of yourself to your profile, then tap <strong>Get verified</strong> and take a
+        selfie doing the gesture shown (a thumbs up, say). Links to your LinkedIn, Instagram, Facebook or X help but
+        aren't needed. Our team compares the selfie with your photos, usually within 24–48 hours, and adds the
+        badge; if it isn't approved, you're told why and can try again. Only the team sees the selfie, and it's
+        deleted once they've decided. A new account can search for 72 hours; after that it needs to be
+        verified.</>,
     },
     {
       q: 'Who can see my profile?',
@@ -84,8 +87,27 @@ export function helpTopics(platform: HelpPlatform): HelpTopic[] {
       q: 'How do I report or block someone?',
       a: <>On their profile or in your chat with them, tap <strong>⋯</strong>, then <strong>Report</strong> or
         <strong> Block user</strong>. Blocking ends the match and hides you from each other; Settings → Blocked
-        people undoes it. We review every report within 24 hours (intimate photos or someone pretending to be you
-        within 2 hours), remove content that breaks our Terms and remove the people who post it.</>,
+        people undoes it. Agents and marriage bureaus aren't allowed: report them with <strong>An agent or marriage
+        bureau</strong>. We review every report within 24 hours (intimate photos or someone pretending to be you
+        within 2 hours), remove content that breaks our Terms and remove the people who post it. Settings →
+        <strong> My requests</strong> shows whether we acted (never what happened to the other person).</>,
+    },
+    {
+      q: 'Where can I see my complaints and requests?',
+      a: <>Settings → <strong>My requests</strong> lists your verification requests, complaints, reports and the
+        problems you've told us about, where each stands, and our answer. You also get a notification when one is
+        answered.</>,
+    },
+    {
+      q: 'How do I give someone my phone number?',
+      a: <>Shaadi24 never shows your number. When you're ready, open your chat with a match, tap
+        <strong> ⋯</strong> → <strong>Share my number</strong>, and they can call or WhatsApp you. Once shared it
+        can't be taken back, so take your time.</>,
+    },
+    {
+      q: "Why can't I take screenshots?",
+      a: <>To protect members' photos and chats, the Android app doesn't allow screenshots or screen recording,
+        and shows blank in your list of recent apps.</>,
     },
     {
       q: 'How do I make a complaint?',
@@ -110,19 +132,34 @@ export function helpTopics(platform: HelpPlatform): HelpTopic[] {
         accounts have no Shaadi24 password.</>,
     },
     {
+      q: 'Something isn\'t working',
+      a: onWebsite
+        ? <>In the app, Settings → Support → <strong>Report a problem</strong>: say what went wrong and what you were
+          trying to do. The screen you were on, the app's version and the kind of phone go with it, so we can find it,
+          and our answer appears in Settings → My requests. Or email <Mail to={SUPPORT_EMAIL} />.</>
+        : <>Settings → Support → <strong>Report a problem</strong>: say what went wrong and what you were trying to do.
+          The screen you were on, the app's version and the kind of phone go with it, so we can find it, and our
+          answer appears in Settings → My requests. If the app asks you to update, please do: it means that version
+          had a problem we've fixed.</>,
+    },
+    {
       q: 'How do I cancel Shaadi24+?',
       a: platform === 'android'
         ? <>Settings → Shaadi24+ → <strong>Manage subscription</strong> opens your subscriptions in Google Play
           (or: Play Store → your picture → Payments &amp; subscriptions → Subscriptions). Shaadi24+ stays on until
-          the end of the time you've paid for.</>
+          the end of the time you've paid for. We send you a message 3 days before it renews (a day before, for a
+          weekly plan) and before a free trial ends, with the price.</>
         : platform === 'ios'
           ? <>Settings → Shaadi24+ → <strong>Manage subscription</strong> (or: iPhone Settings → your name →
-            Subscriptions). Shaadi24+ stays on until the end of the time you've paid for. Deleting your account
-            doesn't cancel it, so cancel it first.</>
+            Subscriptions). Shaadi24+ stays on until the end of the time you've paid for. We send you a message
+            3 days before it renews (a day before, for a weekly plan) and before a free trial ends, with the price.
+            Deleting your account doesn't cancel it, so cancel it first.</>
           : <>In the store you bought it from; it stays on until the end of the time you've paid for. Google Play:
             in the app, Settings → Shaadi24+ → Manage subscription, or Play Store → your picture → Payments &amp;
-            subscriptions → Subscriptions. App Store: iPhone Settings → your name → Subscriptions. Deleting your
-            account doesn't cancel an App Store subscription, so cancel it first.</>,
+            subscriptions → Subscriptions. App Store: iPhone Settings → your name → Subscriptions. We send you a
+            message in the app 3 days before it renews (a day before, for a weekly plan) and before a free trial
+            ends, with the price. Deleting your account doesn't cancel an App Store subscription, so cancel it
+            first.</>,
     },
     {
       q: 'Can I get a refund?',

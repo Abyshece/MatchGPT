@@ -43,14 +43,15 @@ const config: CapacitorConfig = {
       logLevel: 1,
     },
   },
-  // The Firebase plugin's Swift package is named "messaging", like a package
-  // inside Firebase's own; linking it under its full name keeps them apart
-  // (Capacitor CLI 8.4+).
+  // The Firebase plugins' Swift packages are named "messaging" and
+  // "crashlytics", like packages inside Firebase's own; linking them under
+  // their full names keeps them apart (Capacitor CLI 8.4+).
   experimental: {
     ios: {
       spm: {
         packageOptions: {
           '@capacitor-firebase/messaging': { symlink: true },
+          '@capacitor-firebase/crashlytics': { symlink: true },
         },
       },
     },

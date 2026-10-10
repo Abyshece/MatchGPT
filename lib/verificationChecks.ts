@@ -5,13 +5,15 @@
 // (admin_verification_signals(), in
 // supabase/migrations/…_admin_customers_and_verification_checks.sql).
 //
-// A guide for the admin, who still opens the links and decides:
+// A guide for the admin, who still compares the selfie with the photos and
+// decides:
 //   Likely to pass: nothing against it
 //   Check closely:  two or more things to look at (a link that isn't a
 //                   profile, the name not in any link, no confirmed email,
 //                   joined today…)
-//   Unlikely:       something that usually means no (no photo, fewer than two
-//                   working links, a link another member used, reports)
+//   Unlikely:       something that usually means no (no selfie, fewer than
+//                   two photos, a link another member used, reports)
+// Links are optional since the selfie: none is fine, a broken one is a warning.
 // ============================================================================
 
 import { supabase } from './supabase';
@@ -113,22 +115,26 @@ export function assessVerification(req: PendingVerification, s: VerificationSign
   const links = linkChecks(req);
   const working = links.filter((l) => l.ok);
 
-  // The links (two working ones are what the app asks for)
-  if (working.length >= 2) checks.push({ level: 'pass', text: `${working.length} working profile links (${working.map((l) => l.site).join(', ')})` });
-  else if (working.length === 1) checks.push({ level: 'fail', text: `Only 1 working profile link (${working[0].site}); 2 are needed` });
-  else checks.push({ level: 'fail', text: 'No working profile links' });
-  for (const l of links.filter((x) => !x.ok)) checks.push({ level: 'warn', text: `${l.problem?.[0].toUpperCase()}${l.problem?.slice(1)}` });
+  // The selfie, which is what decides
+  checks.push(req.selfie_path
+    ? { level: 'pass', text: 'Selfie sent: compare it with the photos' }
+    : { level: 'fail', text: 'No selfie (sent before selfies)' });
 
-  const named = nameInLinks(req.user_name, links);
-  checks.push(named
-    ? { level: 'pass', text: `Their name is in the ${named} link` }
-    : { level: 'warn', text: "Their name isn't in any link: open them to compare" });
+  // The links, if they gave any
+  if (working.length) checks.push({ level: 'pass', text: `${working.length} working profile link${working.length === 1 ? '' : 's'} (${working.map((l) => l.site).join(', ')})` });
+  for (const l of links.filter((x) => !x.ok)) checks.push({ level: 'warn', text: `${l.problem?.[0].toUpperCase()}${l.problem?.slice(1)}` });
+  if (working.length) {
+    const named = nameInLinks(req.user_name, links);
+    checks.push(named
+      ? { level: 'pass', text: `Their name is in the ${named} link` }
+      : { level: 'warn', text: "Their name isn't in any link: open them to compare" });
+  }
 
   if (!s) return verdictOf(checks);
 
-  checks.push(s.photos > 0
-    ? { level: 'pass', text: `${s.photos} photo${s.photos === 1 ? '' : 's'} to compare with the links` }
-    : { level: 'fail', text: 'No photo to compare with the links' });
+  checks.push(s.photos >= 2
+    ? { level: 'pass', text: `${s.photos} photos to compare with the selfie` }
+    : { level: 'fail', text: s.photos === 1 ? 'Only 1 photo: the badge needs 2' : 'No photo to compare with the selfie' });
 
   checks.push(s.sections_done >= 3
     ? { level: 'pass', text: `Profile: ${s.sections_done} of 6 sections complete` }

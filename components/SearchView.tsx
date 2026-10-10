@@ -13,6 +13,7 @@ import { hasPreferences, usePartnerPreferences } from '../lib/partnerPreferences
 import MatchCard from './MatchCard';
 import ProfileModal from './ProfileModal';
 import VerificationBanner from './VerificationBanner';
+import YourWeekCard from './YourWeekCard';
 import UpgradeModal from './UpgradeModal';
 import MatchCelebrationModal from './MatchCelebrationModal';
 import ResultsSortMenu from './ResultsSortMenu';
@@ -38,6 +39,7 @@ const FilterPanel = lazyScreen(() => import('./FilterPanel'));
 interface SearchViewProps {
   onNavigateToMatches?: (matchId: string) => void;
   onNavigateToProfile?: () => void;
+  onNavigate?: (tab: 'likes' | 'matches') => void;  // from Your week
 }
 
 // Until enough members near you have searched (see lib/trendingSearches.ts).
@@ -77,7 +79,7 @@ function fitOnStartScreen(list: string[]): string[] {
 // The profile sections that each add a free search a day (lib/profileRewards.ts)
 const MAX_SECTIONS = 6;
 
-const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigateToProfile }) => {
+const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigateToProfile, onNavigate }) => {
   const { profile, profileRow, session, refreshProfile, hasPro } = useAuth();
   const { showToast } = useToast();
 
@@ -340,7 +342,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
       <div className={hasSearched
         ? 'max-w-6xl mx-auto py-8 px-6 lg:px-12'
         : 'w-full max-w-6xl mx-auto flex-1 flex flex-col justify-center py-5 [@media(max-height:700px)]:py-3 sm:py-8 px-5 sm:px-6 lg:px-12'}>
-        {isLockedOut && <VerificationBanner verification={verification} />}
+        {isLockedOut && <VerificationBanner verification={verification} onAddPhotos={onNavigateToProfile} />}
 
         {/* Search header — sparkle hero on landing, simple title once searched */}
         {!hasSearched ? (
@@ -360,6 +362,11 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
               Describe who you're looking for, in English or your own language. Our algorithm scores every profile across 70+ attributes.
             </p>
           </div>
+        )}
+
+        {/* The last 7 days, once a week, before a search */}
+        {!hasSearched && (
+          <YourWeekCard onGo={onNavigate} />
         )}
 
         {/* Quick filter pills — only shown post-search to refine results. Each

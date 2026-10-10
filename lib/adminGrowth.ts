@@ -77,7 +77,7 @@ export const AUDIENCES: Audience[] = [
 ];
 
 /** Where a message's button goes in the app */
-export type MessageTarget = '' | `profile:${SectionId}` | 'profile' | 'verify' | 'upgrade' | 'search';
+export type MessageTarget = '' | `profile:${SectionId}` | 'profile' | 'verify' | 'upgrade' | 'search' | 'requests';
 
 export const TARGETS: { id: MessageTarget; label: string }[] = [
   ...(['about', 'community', 'career', 'family', 'lifestyle', 'plans'] as SectionId[])
@@ -86,6 +86,7 @@ export const TARGETS: { id: MessageTarget; label: string }[] = [
   { id: 'verify', label: 'Get verified' },
   { id: 'upgrade', label: 'Shaadi24+' },
   { id: 'search', label: 'Find Match' },
+  { id: 'requests', label: 'Settings → My requests' },
   { id: '', label: 'No button' },
 ];
 

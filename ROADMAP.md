@@ -206,8 +206,8 @@ Search and Standouts run in a new `search` edge function instead of the browser.
   Then I switch Google's button on (`LIVE_CLIENT_ID` in `lib/googleSignIn.ts`); Google's screen then shows
   the site's address instead of Supabase's
 - [ ] **Owner, for "Shaadi24" on Google's screen** (after the button is on): Branding: app name Shaadi24,
-  logo, home page `https://shaadi-gpt.vercel.app`, privacy `https://shaadi-gpt.vercel.app/#privacy`, terms
-  `https://shaadi-gpt.vercel.app/#terms`, authorized domain `shaadi-gpt.vercel.app`; remove the Supabase
+  logo, home page `https://shaadi-gpt.vercel.app`, privacy `https://shaadi-gpt.vercel.app/privacy`, terms
+  `https://shaadi-gpt.vercel.app/terms`, authorized domain `shaadi-gpt.vercel.app`; remove the Supabase
   callback from the client's redirect URIs and `fmrbzzdjtarsaqvfukum.supabase.co` from the authorized domains;
   prove the site is yours in Google Search Console (I add the verification tag); then Verification Center →
   submit for brand verification (Google says a few business days)
@@ -1054,7 +1054,15 @@ Interest) and can be sent again; "New" and "Usually replies" on cards (`member_s
 Standouts for 30 days; "I found my match" in Settings. Phase 3 (done): partner preferences (Standouts
 follow them, search starts from them, a daily alert about new members who fit); near misses below few
 results; saved searches (up to 10) with a daily alert; "Family from (state)" and "Profile managed by"
-filters. Next: trust and support (4), payments and reliability (5).
+filters. Phase 4 (done): the Verified badge needs a selfie doing a gesture we ask for and two photos (links
+optional), a turned-down request says why with "Try again"; Settings → My requests (verifications,
+complaints, reports, with answers and a message when answered); "An agent or marriage bureau" as a report
+reason; "Share my number" in chat; screenshots blocked in the Android app; chat messages can't be changed by
+members any more. Phase 5 (done): a message 3 days before Shaadi24+ renews (1 day for the weekly plan) and
+before a free trial ends, with the price and where to cancel; "Your week" on Find Match and in a Monday
+notification; Settings → Report a problem, answered in Admin → Errors and read in My requests; crash reports
+from the apps (Firebase Crashlytics); staged releases and an "Oldest app that still works" switch for a broken
+version (`docs/store/README.md`).
 
 **Still to do**
 

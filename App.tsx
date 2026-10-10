@@ -6,6 +6,8 @@ import { emailLinkError, supabase } from './lib/supabase';
 import LandingView from './components/LandingView';
 import CookieBanner from './components/CookieBanner';
 import { BACK, isNativeApp, setNativeTheme, useBackHandler } from './lib/nativeApp';
+import { useUpdateRequired } from './lib/appUpdate';
+import UpdateRequiredScreen from './components/UpdateRequiredScreen';
 import { isAppPreview } from './lib/appPreview';
 import { startStoreSync, stopStoreSync } from './lib/storePurchases';
 import { syncPacks } from './lib/boosts';
@@ -304,6 +306,8 @@ const AppRouter: React.FC<{
 
 const App: React.FC = () => {
   const [legalPage, setLegalPage] = useState<LegalPage>(legalPageInUrl);
+  // A phone app older than the oldest one that still works (Admin → Errors)
+  const updateRequired = useUpdateRequired();
 
   // #terms or #privacy later on (links in emails and in the app)
   useEffect(() => {
@@ -342,6 +346,7 @@ const App: React.FC = () => {
           {/* The apps use no cookies or trackers, so they don't ask about them */}
           {/* Not in the phone apps, nor in the admin panel's preview of them */}
           {!isNativeApp() && !isAppPreview() && <CookieBanner onNavigateToPrivacy={() => setLegalPage('privacy')} />}
+          {updateRequired && <UpdateRequiredScreen />}
         </div>
       </AuthProvider>
     </ToastProvider>

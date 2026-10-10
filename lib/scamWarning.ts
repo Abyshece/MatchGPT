@@ -72,11 +72,12 @@ export function chatWarning(text: string | null | undefined): ChatWarning | null
  * under every such message from the other person; the WhatsApp note only
  * under the first, so a chat doesn't fill up with it.
  */
-export function chatWarnings(messages: { id: string; senderId: string; content: string | null }[], me: string): Map<string, ChatWarning> {
+export function chatWarnings(messages: { id: string; senderId: string; content: string | null; messageType?: string }[], me: string): Map<string, ChatWarning> {
   const out = new Map<string, ChatWarning>();
   let offPlatformShown = false;
   for (const m of messages) {
-    if (m.senderId === me) continue;
+    // A number shared with "Share my number" has its own safety line (MessageBubble)
+    if (m.senderId === me || m.messageType === 'contact') continue;
     const w = chatWarning(m.content);
     if (!w) continue;
     if (w === 'off_platform') {

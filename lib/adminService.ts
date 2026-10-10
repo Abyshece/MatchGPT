@@ -226,3 +226,44 @@ export async function markErrorFixed(id: number): Promise<{ error: string | null
   const { error } = await supabase.rpc('admin_mark_error_fixed', { p_id: id });
   return { error: error?.message ?? null };
 }
+
+// ---- Problems members reported (Settings → Report a problem) -------------------------
+
+export interface ProblemRow {
+  id: string;
+  user_id: string;
+  name: string | null;
+  details: string;
+  screen: string | null;
+  app_version: string | null;
+  platform: string | null;
+  device: string | null;
+  status: 'open' | 'answered' | 'closed';
+  answer: string | null;
+  answered_at: string | null;
+  created_at: string;
+}
+
+export async function fetchProblems(openOnly: boolean): Promise<{ problems: ProblemRow[]; error: string | null }> {
+  const { data, error } = await supabase.rpc('admin_list_problems', { p_open_only: openOnly });
+  if (error) return { problems: [], error: error.message };
+  return { problems: (data ?? []) as unknown as ProblemRow[], error: null };
+}
+
+/** An answer goes to the member (a message that opens My requests); none closes it quietly */
+export async function answerProblem(id: string, answer: string): Promise<{ error: string | null }> {
+  const { error } = await supabase.rpc('admin_answer_problem', { p_id: id, p_answer: answer });
+  return { error: error?.message ?? null };
+}
+
+// ---- The oldest app that still works (app_config(); owner only) ----------------------
+
+export async function fetchMinAppBuild(): Promise<number> {
+  const { data } = await supabase.rpc('app_config');
+  return Number((data as { min_app_build?: number } | null)?.min_app_build ?? 0);
+}
+
+export async function setMinAppBuild(build: number): Promise<{ error: string | null }> {
+  const { error } = await supabase.rpc('admin_set_min_app_build', { p_build: build });
+  return { error: error?.message ?? null };
+}
