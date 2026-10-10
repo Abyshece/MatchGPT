@@ -25,10 +25,10 @@ can count under several problems, so the counts are approximate.
 | 8 | Refunds refused, auto-renewal, double charges | ~300 | Paid only through the stores. A reminder before each renewal next. | 5 |
 | 9 | Matches dry up after paying | ~260 | Paying doesn't change matches. A "Your week" card next. | 5 |
 | 10 | The same profiles again and again | ~250 | "Not interested" for good, no repeats in Standouts, "New" on new members. | 2 (done) |
-| 11 | Too few relevant profiles | ~240 | Near misses and search alerts next. | 3 |
+| 11 | Too few relevant profiles | ~240 | Near misses below few results; saved searches with a daily alert about new members. | 3 (done) |
 | 12 | Can't log in, no code, reset broken | ~200 | Errors in plain words and a "Still no email?" box. | 1 (done) |
-| 13 | Matches ignore preferences | ~120 | Search filters are strict. Partner preferences for Standouts next. | 3 |
-| 14 | Missing search options; can't save a search | ~120 | Saved searches and new filters next. | 3 |
+| 13 | Matches ignore preferences | ~120 | Search filters are strict. Partner preferences decide Standouts, start searches and have their own alert. | 3 (done) |
+| 14 | Missing search options; can't save a search | ~120 | Saved searches; "Family from (state)" and "Profile managed by" filters. | 3 (done) |
 | 15 | Fake interests to make people pay | ~130 | None, ever. Now a written promise. | 1 (done) |
 | 16 | Hidden or missing photos | ~100 | A face photo is required; no paid photo locks. Second photo for Verified next. | 4 |
 | 17 | Privacy: numbers made public, data copied | ~100 | Phone and email never shown. "Share my number" in chat next. | 4 |
@@ -68,3 +68,24 @@ free, and a separate subscription for each sister site.
 - **Standouts don't repeat**: nobody picked in the last 30 days is picked again while there are others.
 - **I found my match** (Settings): hides the profile, and passes the story the member may tell to the team,
   unpublished (`found_my_match()`, `success_stories`).
+
+## Phase 3 (done)
+
+- **Partner preferences** (`partner_preferences`; My Profile, and Edit from the filters and Standouts): ages, heights,
+  religions, mother tongues, marital status, diets, Manglik, states and countries, no smoking or drinking.
+  - Standouts put the people who fit them first (someone who hasn't answered isn't held against).
+  - Search starts from them ("Use my partner preferences" in the filters, on by default); a filter the member sets
+    replaces the preference about the same thing. Without Shaadi24+, only age and place apply, like the filters.
+  - With alerts on, a notification once a day about new members who fit; they wait in Search History.
+- **Near misses**: when a search finds fewer than 5, up to 10 people who miss one thing by a little are shown below,
+  each saying what ("Age 31", "Height 6'2\"", "Not verified yet", the next level of education, "Not online right
+  now"). Religion, community, place and the like are never "a little".
+- **Saved searches** (`saved_searches`, up to 10): "Save this search" on the results, or when nothing is found. Each
+  has a daily alert (the bell turns it off). The `search-alerts` job (8:43 every morning, India time) calls the search
+  function with the push cron secret; it looks at members listed since the last look (`profiles.listed_at`), keeps who
+  fits, and sends one notification. Search History shows "N new"; looking at them doesn't use a search. Only the
+  server writes who an alert found, so it can't be used to see profiles without searching.
+- **New filters**: "Family from (state)" (a new My Profile answer, "Family's home state", taken from "Family lives in"
+  where that names a state) and "Profile managed by" (the member, parents, or a sibling, relative or friend, from
+  "Profile created for"). Both free.
+

@@ -1,7 +1,8 @@
 // Tests for matching.ts. Run from the repo root:
 //   deno test --no-config supabase/functions/search/matching_test.ts
 import {
-  buildCatalog, describeParsed, parsePrompt, planToParsed, rankCandidates, sanitizeFilters, withoutProFilters,
+  buildCatalog, describeParsed, effectivePrefs, parsePrompt, planToParsed, prefMisses, prefsFromRow, prefsWithoutPro,
+  rankCandidates, sanitizeFilters, withoutProFilters,
   type Row, type SearchPlan,
 } from './matching.ts';
 
@@ -408,4 +409,113 @@ Deno.test('"New" for people who joined this week; "Usually replies" from member_
   assertEquals(labels, { new: [true, true], old: [false, false], unknown: [false, false] });
   // Neither the date joined nor the reply figures go to the browser as details
   assertEquals(out.some((c) => 'accountCreated' in c || 'repliesUsually' in c && typeof c.repliesUsually !== 'boolean'), false);
+});
+
+// ---- Phase 3 of the review fixes: preferences and search -------------------------------------
+
+Deno.test('near misses: one thing missed by a little, only when few people pass', () => {
+  const pool = [
+    person('fits', { age: 27, is_verified: true }),
+    person('a-bit-older', { age: 31, is_verified: true }),
+    person('much-older', { age: 40, is_verified: true }),
+    person('unverified', { age: 27 }),
+    person('two-misses', { age: 31 }),
+    person('woman', { age: 27, gender: 'Woman', is_verified: true }),
+  ];
+  const run = (filters: Record<string, unknown>, prompt = '') =>
+    rankCandidates(me, pool, prompt, sanitizeFilters(filters), 50, NOW, undefined, undefined, { nearMisses: { below: 5, max: 10 } });
+  const out = run({ ageRange: [25, 28], isVerified: true });
+  assertEquals(out.candidates.map((c) => c.id), ['fits', 'woman'], 'who fits');
+  assertEquals(Object.fromEntries(out.nearMisses.map((c) => [c.id, c.missed])),
+    { 'a-bit-older': 'Age 31', unverified: 'Not verified yet' }, 'near misses, with what they miss');
+  // "a man" is never missed by a little
+  assertEquals(run({ ageRange: [25, 28] }, 'a man').nearMisses.some((c) => c.id === 'woman'), false, 'gender is never a near miss');
+  // Enough results: no near misses
+  const many = rankCandidates(me, pool, '', sanitizeFilters({ ageRange: [18, 60] }), 50, NOW, undefined, undefined,
+    { nearMisses: { below: 5, max: 10 } });
+  assertEquals(many.nearMisses.length, 0, 'none when 5 or more fit');
+});
+
+Deno.test('near misses: height by an inch or two, the next level of education', () => {
+  const pool = [
+    person('tall', { height_cm: 175, education_level: "Master's" }),
+    person('short', { height_cm: 168, education_level: "Master's" }),
+    person('bachelor', { height_cm: 175, education_level: "Bachelor's" }),
+    person('school', { height_cm: 175, education_level: 'High School' }),
+  ];
+  const out = rankCandidates(me, pool, '', sanitizeFilters({ heightRange: [173, 190], educationLevel: "Master's" }), 50, NOW,
+    undefined, undefined, { nearMisses: { below: 5, max: 10 } });
+  assertEquals(out.candidates.map((c) => c.id), ['tall']);
+  assertEquals(Object.fromEntries(out.nearMisses.map((c) => [c.id, c.missed])),
+    { short: `Height 5'6"`, bachelor: "Education: Bachelor's" });
+});
+
+Deno.test('partner preferences: from the table, without Shaadi24+, and what the member asked for wins', () => {
+  assertEquals(prefsFromRow(null), null);
+  assertEquals(prefsFromRow({ religions: [], states: [], no_smoking: false, age_min: null }), null, 'nothing set');
+  const prefs = prefsFromRow({
+    age_min: 25, age_max: 30, height_min_cm: null, height_max_cm: 180, religions: ['Hindu', 'Jain'], mother_tongues: ['Tamil'],
+    states: ['Tamil Nadu'], countries: [], no_smoking: true, alerts: true,
+  })!;
+  assertEquals(prefs, {
+    ageRange: [25, 30], heightRange: [0, 180], religions: ['Hindu', 'Jain'], motherTongues: ['Tamil'],
+    states: ['Tamil Nadu'], noSmoking: true,
+  });
+  assertEquals(Object.keys(prefsWithoutPro(prefs)), ['ageRange', 'states'], 'age and place are everyone\'s');
+  const asked = effectivePrefs(prefs, sanitizeFilters({ religion: 'Sikh', ageRange: [30, 35] }), parsePrompt('in Pune'));
+  assertEquals(Object.keys(asked), ['heightRange', 'motherTongues', 'states', 'noSmoking'], 'a filter replaces its preference');
+  const city = effectivePrefs(prefs, {}, parsePrompt('near me'));
+  assertEquals('states' in city, false, '"near me" replaces the places');
+});
+
+Deno.test('partner preferences as search filters: strict, like the filter panel', () => {
+  const pool = [
+    person('fits', { age: 27, religion: 'Jain', mother_tongue: 'Tamil', state: 'Tamil Nadu', country: 'India', smoking: 'No' }),
+    person('smokes', { age: 27, religion: 'Hindu', mother_tongue: 'Tamil', state: 'Tamil Nadu', country: 'India', smoking: 'Socially' }),
+    person('silent', { age: 27, mother_tongue: 'Tamil', state: 'Tamil Nadu', country: 'India' }),
+    person('karnataka', { age: 27, religion: 'Hindu', mother_tongue: 'Tamil', state: 'Karnataka', country: 'India' }),
+    person('abroad', { age: 27, religion: 'Hindu', mother_tongue: 'Tamil', country: 'USA', smoking: 'No' }),
+  ];
+  const prefs = prefsFromRow({ age_min: 25, age_max: 30, religions: ['Hindu', 'Jain'], mother_tongues: ['Tamil'],
+    states: ['Tamil Nadu'], countries: [], no_smoking: true })!;
+  const strict = rankCandidates(me, pool, '', {}, 50, NOW, undefined, undefined, { prefs }).candidates.map((c) => c.id);
+  assertEquals(strict, ['fits'], 'only who fits every preference (not saying is left out)');
+  // With the USA among the countries, anywhere there fits too
+  const withUsa = rankCandidates(me, pool, '', {}, 50, NOW, undefined, undefined,
+    { prefs: { ...prefs, countries: ['India', 'USA'] } }).candidates.map((c) => c.id).sort();
+  assertEquals(withUsa, ['abroad', 'fits']);
+});
+
+Deno.test('partner preferences for Standouts and alerts: who fits more comes first; not saying isn\'t held against anyone', () => {
+  const prefs = prefsFromRow({ religions: ['Hindu'], diets: ['Vegetarian'], age_min: 25, age_max: 32 })!;
+  const c = (fields: Record<string, unknown>) => ({ age: 28, ...fields });
+  assertEquals(prefMisses(c({ religion: 'Hindu', dietaryPreferences: 'Vegetarian' }), prefs), 0);
+  assertEquals(prefMisses(c({}), prefs), 0, 'unknown answers');
+  assertEquals(prefMisses(c({ religion: 'Muslim', dietaryPreferences: 'Non-vegetarian', age: 40 }), prefs), 3);
+  const pool = [
+    person('poor-fit', { religion: 'Muslim', dietary_preferences: 'Non-vegetarian' }),
+    person('fits', { religion: 'Hindu', dietary_preferences: 'Vegetarian' }),
+  ];
+  const ranked = rankCandidates(me, pool, '', {}, 50, NOW, undefined, undefined, { preferFitting: prefs }).candidates;
+  assertEquals(ranked.map((r) => [r.id, r.prefMisses]), [['fits', 0], ['poor-fit', 2]]);
+});
+
+Deno.test('family home state and who manages the profile', () => {
+  const pool = [
+    person('answer', { family_state: 'Gujarat' }),
+    person('typed', { family_location: 'Surat, Gujarat' }),
+    person('elsewhere', { family_state: 'Punjab', family_location: 'Ludhiana' }),
+    person('hidden', { family_state: 'Gujarat', family_location: 'Surat', hidden_fields: ['familyLocation'] }),
+  ];
+  assertEquals(ids(pool, '', { familyState: 'Gujarat' }).sort(), ['answer', 'typed'], 'the answer, or "Family lives in" naming it; hidden stays hidden');
+  const managed = [
+    person('self', { profile_created_for: 'Myself' }),
+    person('before', {}),
+    person('parents', { profile_created_for: 'Daughter' }),
+    person('sister', { profile_created_for: 'Sister' }),
+  ];
+  assertEquals(ids(managed, '', { managedBy: 'Self' }).sort(), ['before', 'self'], 'profiles from before the question count as their own');
+  assertEquals(ids(managed, '', { managedBy: 'Parents' }), ['parents']);
+  assertEquals(ids(managed, '', { managedBy: 'Sibling, relative or friend' }), ['sister']);
+  assertEquals(sanitizeFilters({ managedBy: 'Astrologer' }), {}, 'an unknown choice is dropped');
 });

@@ -8,6 +8,7 @@ import { listMyLikesDetailed, withdrawInterest, likeUser } from '../lib/likesSer
 import MatchCard from './MatchCard';
 import ProfileModal from './ProfileModal';
 import UpgradeModal from './UpgradeModal';
+import SavedSearchesList from './SavedSearchesList';
 import { IconSearch, IconTrash, IconClock, IconHistory, IconHeart } from '../constants';
 import type { SavedSearch } from '../lib/searchHistoryService';
 import type { MyLikeEntry } from '../lib/likesService';
@@ -17,7 +18,9 @@ import type { MatchCandidate } from '../types';
 // HistoryView
 //
 // Two tabs:
-//   - Searches: past search prompts the user can click to re-run
+//   - Searches: the searches the member saved, with their daily alerts and
+//     the new members found (SavedSearchesList), then past search prompts
+//     the user can click to re-run
 //   - Liked: every interest the user has sent, with Today/Week/All filter;
 //     one that hasn't become a match can be withdrawn, and one nobody
 //     answered in 14 days has expired and can be sent again
@@ -317,6 +320,11 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
             </button>
           )}
         </div>
+
+        <SavedSearchesList
+          onRun={(prompt, filters) => handleRerun({ id: '', prompt, filters, resultIds: [], poolSize: 0, createdAt: '' })}
+          onOpenProfile={setSelectedCandidate}
+        />
 
         {loading ? (
           <div className="space-y-3">

@@ -96,6 +96,8 @@ http.createServer((req, res) => {
     if (/vegetarian/i.test(prompt)) plan.preferences.push({ field: 'dietary_preferences',
       answers: (answers.dietary_preferences || []).filter((a) => /Vegetarian|Vegan|Jain/.test(a)), negated: false });
     if (/book/i.test(prompt)) plan.keywords.push({ words: ['books', 'reading', 'novels', 'literature'], negated: false });
+    // The made-up hobby boosts.mjs finds its member by
+    if (/zebracorn/i.test(prompt)) plan.keywords.push({ words: ['zebracorn'], negated: false });
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(plan) }] }, finishReason: 'STOP' }] }));
   });

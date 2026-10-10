@@ -60,6 +60,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
       onClick={() => !exiting && onClick()}
       data-exiting={exiting ?? undefined}
       data-testid="match-card"
+      data-candidate-id={candidate.id}
       className={`group relative bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:hover:border-zinc-700 hover:shadow-lg overflow-hidden flex flex-col h-full cursor-pointer transition-[border-color,box-shadow] duration-200 ${
         exiting ? 'pointer-events-none' : ''
       }`}
@@ -174,6 +175,11 @@ const MatchCard: React.FC<MatchCardProps> = ({
             {candidate.name}{candidate.age ? `, ${candidate.age}` : ''}
           </h3>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{candidate.location}</p>
+          {candidate.missed && (
+            <p data-testid="near-miss-note" className="mt-1.5 text-xs font-medium text-amber-800 dark:text-amber-300">
+              Close, but: {candidate.missed}
+            </p>
+          )}
         </div>
 
         {/* Footer: X + Like button row */}

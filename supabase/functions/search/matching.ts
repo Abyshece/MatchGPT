@@ -68,6 +68,33 @@ export interface FilterOptions {
   country?: string;
   state?: string;
   heightRange?: [number, number];  // cm
+  familyState?: string;        // the state the family comes from
+  managedBy?: string;          // who runs the profile: a key of MANAGED_BY
+  usePreferences?: boolean;    // start from the member's partner preferences
+}
+
+// "Profile managed by": the answers to "This profile is for" behind each choice.
+// Profiles made before the question was asked count as the member's own.
+export const MANAGED_BY: Record<string, string[]> = {
+  'Self': ['Myself'],
+  'Parents': ['Son', 'Daughter'],
+  'Sibling, relative or friend': ['Brother', 'Sister', 'Relative', 'Friend'],
+};
+
+// What a member is looking for (partner_preferences). Empty lists and
+// missing ranges mean "any".
+export interface PartnerPrefs {
+  ageRange?: [number, number];
+  heightRange?: [number, number];  // cm
+  religions?: string[];
+  motherTongues?: string[];
+  maritalStatuses?: string[];
+  diets?: string[];
+  manglik?: string[];
+  countries?: string[];
+  states?: string[];
+  noSmoking?: boolean;
+  noDrinking?: boolean;
 }
 
 export interface MatchCandidate {
@@ -87,6 +114,7 @@ export interface MatchCandidate {
   hiddenFields: string[];
   isNew?: boolean;           // joined in the last NEW_FOR_DAYS days
   repliesUsually?: boolean;  // answers most people who write to them (member_stats)
+  missed?: string;           // a near miss: the one thing that doesn't fit ("Age 31")
   [detail: string]: unknown;
 }
 
@@ -108,6 +136,8 @@ const SHOWN_FIELDS = [
   'residentialStatus', 'settlingAbroad', 'familyType', 'familyStatus', 'familyValues', 'fatherOccupation',
   'motherOccupation', 'brothers', 'brothersMarried', 'sisters', 'sistersMarried', 'familyLocation',
   'livingWithFamily', 'aboutFamily', 'familyCloseness',
+  // Phase 3 of the review fixes
+  'familyState',
 ];
 
 // ============================================================================
@@ -149,6 +179,7 @@ export function ownProfile(row: Row): Profile {
 const HIDDEN_WITH: Record<string, string[]> = {
   location: ['city', 'state', 'country'],
   height: ['heightCm'],
+  familyLocation: ['familyState'],
 };
 
 // Someone else's profile as other users see it: hidden fields left out.
@@ -239,11 +270,13 @@ function nearby(a: Profile, b: Profile): boolean {
 // Filters sent by the browser
 // ============================================================================
 
-const BOOLEAN_FILTERS = ['isOnline', 'recentlyActive', 'isVerified', 'isPremium', 'hasLinkedin', 'hasInstagram'] as const;
+const BOOLEAN_FILTERS = [
+  'isOnline', 'recentlyActive', 'isVerified', 'isPremium', 'hasLinkedin', 'hasInstagram', 'usePreferences',
+] as const;
 const TEXT_FILTERS = [
   'neighborhood', 'religion', 'datingIntention', 'children', 'familyPlans', 'smoking', 'drinking',
   'educationLevel', 'motherTongue', 'caste', 'maritalStatus', 'manglik', 'dietaryPreferences',
-  'country', 'state',
+  'country', 'state', 'familyState', 'managedBy',
 ] as const;
 
 // The filters Shaadi24+ adds (the ones FilterPanel locks without it). Age,
@@ -278,7 +311,122 @@ export function sanitizeFilters(input: unknown): FilterOptions {
   if (Array.isArray(heights) && heights.length === 2 && heights.every((n) => typeof n === 'number' && Number.isFinite(n))) {
     filters.heightRange = [Math.min(heights[0], heights[1]), Math.max(heights[0], heights[1])];
   }
+  if (filters.managedBy && !MANAGED_BY[filters.managedBy]) delete filters.managedBy;
   return filters;
+}
+
+// ============================================================================
+// Partner preferences
+// ============================================================================
+
+const textList = (value: unknown): string[] | undefined => {
+  if (!Array.isArray(value)) return undefined;
+  const list = value.filter((v): v is string => typeof v === 'string' && v.trim() !== '').map((v) => v.trim().slice(0, 100));
+  return list.length ? list.slice(0, 40) : undefined;
+};
+const range = (min: unknown, max: unknown): [number, number] | undefined => {
+  const lo = typeof min === 'number' && Number.isFinite(min) ? min : undefined;
+  const hi = typeof max === 'number' && Number.isFinite(max) ? max : undefined;
+  if (lo === undefined && hi === undefined) return undefined;
+  return [lo ?? 0, hi ?? 999];
+};
+
+/** A partner_preferences row as PartnerPrefs; null when nothing is set. */
+export function prefsFromRow(row: Record<string, unknown> | null | undefined): PartnerPrefs | null {
+  if (!row) return null;
+  const prefs: PartnerPrefs = {
+    ageRange: range(row.age_min, row.age_max),
+    heightRange: range(row.height_min_cm, row.height_max_cm),
+    religions: textList(row.religions),
+    motherTongues: textList(row.mother_tongues),
+    maritalStatuses: textList(row.marital_statuses),
+    diets: textList(row.diets),
+    manglik: textList(row.manglik),
+    countries: textList(row.countries),
+    states: textList(row.states),
+    noSmoking: row.no_smoking === true || undefined,
+    noDrinking: row.no_drinking === true || undefined,
+  };
+  for (const key of Object.keys(prefs) as (keyof PartnerPrefs)[]) if (prefs[key] === undefined) delete prefs[key];
+  return Object.keys(prefs).length ? prefs : null;
+}
+
+// In search, the preferences that match a Shaadi24+ filter need Shaadi24+ too
+// (age and place are everyone's). Standouts and alerts use them all.
+const PRO_PREFS: (keyof PartnerPrefs)[] = [
+  'heightRange', 'religions', 'motherTongues', 'maritalStatuses', 'diets', 'manglik', 'noSmoking', 'noDrinking',
+];
+export function prefsWithoutPro(prefs: PartnerPrefs): PartnerPrefs {
+  const kept: PartnerPrefs = { ...prefs };
+  for (const key of PRO_PREFS) delete kept[key];
+  return kept;
+}
+
+/**
+ * The preferences a search starts from: what the member asked for themselves
+ * (a filter, or the prompt) replaces the preference about the same thing.
+ */
+export function effectivePrefs(prefs: PartnerPrefs, filters: FilterOptions, parsed: ParsedPrompt): PartnerPrefs {
+  const kept: PartnerPrefs = { ...prefs };
+  if (filters.ageRange || parsed.ageRange) delete kept.ageRange;
+  if (filters.heightRange || parsed.heightRange) delete kept.heightRange;
+  if (filters.religion) delete kept.religions;
+  if (filters.motherTongue) delete kept.motherTongues;
+  if (filters.maritalStatus) delete kept.maritalStatuses;
+  if (filters.dietaryPreferences) delete kept.diets;
+  if (filters.manglik) delete kept.manglik;
+  if (filters.country || filters.state || filters.neighborhood || parsed.city || parsed.nearMe) {
+    delete kept.countries;
+    delete kept.states;
+  }
+  if (filters.smoking) delete kept.noSmoking;
+  if (filters.drinking) delete kept.noDrinking;
+  return kept;
+}
+
+const speaks = (c: Profile, tongue: string) =>
+  c.motherTongue === tongue || (tongue === 'Hindi' && String(c.motherTongue ?? '').startsWith('Hindi'));
+
+// Each preference other than age and height: whether the person fits it,
+// doesn't, or hasn't said (or hid it)
+function prefFits(c: Profile, prefs: PartnerPrefs): ('fits' | 'misses' | 'unknown')[] {
+  const out: ('fits' | 'misses' | 'unknown')[] = [];
+  const among = (list: string[] | undefined, value: unknown, same = (v: string) => v === value) => {
+    if (!list?.length) return;
+    out.push(!isFilledIn(value) ? 'unknown' : list.some(same) ? 'fits' : 'misses');
+  };
+  among(prefs.religions, c.religion);
+  among(prefs.motherTongues, c.motherTongue, (t) => speaks(c, t));
+  among(prefs.maritalStatuses, c.maritalStatus);
+  among(prefs.diets, c.dietaryPreferences);
+  among(prefs.manglik, c.manglik);
+  if (prefs.countries?.length || prefs.states?.length) {
+    // A state is a place in India; with countries chosen too, anywhere in
+    // those other countries fits
+    const country = c.country as string | undefined;
+    const state = c.state as string | undefined;
+    if (!country && !state) out.push('unknown');
+    else if (prefs.states?.length) {
+      const abroad = !!country && country !== 'India' && !!prefs.countries?.includes(country);
+      out.push(abroad || (!!state && prefs.states.includes(state)) ? 'fits' : 'misses');
+    } else out.push(country && prefs.countries?.includes(country) ? 'fits' : country ? 'misses' : 'unknown');
+  }
+  const habit = (no: boolean | undefined, value: unknown) => {
+    if (!no) return;
+    out.push(!isFilledIn(value) ? 'unknown' : ['Socially', 'Regularly'].includes(String(value)) ? 'misses' : 'fits');
+  };
+  habit(prefs.noSmoking, c.smoking);
+  habit(prefs.noDrinking, c.drinking);
+  return out;
+}
+
+const outside = (value: unknown, r: [number, number] | undefined) =>
+  !!r && typeof value === 'number' && (value < r[0] || value > r[1]);
+
+/** How many of the member's preferences the person doesn't fit (not saying isn't counted). */
+export function prefMisses(c: Profile, prefs: PartnerPrefs): number {
+  return prefFits(c, prefs).filter((f) => f === 'misses').length
+    + (outside(c.age, prefs.ageRange) ? 1 : 0) + (outside(c.heightCm, prefs.heightRange) ? 1 : 0);
 }
 
 // ============================================================================
@@ -851,66 +999,116 @@ export function describeParsed(parsed: ParsedPrompt): string[] {
 // Hard filters
 // ============================================================================
 
-function passesFilters(
+// A near miss: someone who misses exactly one thing asked for, and only by a
+// little: a few years of age, an inch or two of height, not verified yet, an
+// adjacent level of education, not online at this moment. Shown below the
+// results when there are few (rankCandidates).
+const NEAR_AGE_YEARS = 3;
+const NEAR_HEIGHT_CM = 5;
+
+type FilterCheck = { ok: true } | { ok: false; near?: string };
+
+function checkFilters(
   row: Row, c: Profile, me: Profile, filters: FilterOptions, parsed: ParsedPrompt, now: number,
-): boolean {
-  // Age: the filter panel and the prompt combined. Someone whose age isn't
-  // shown can't be confirmed to fit, so they're left out.
-  const ranges = [filters.ageRange, parsed.ageRange].filter(Boolean) as [number, number][];
+  prefs: PartnerPrefs = {},
+): FilterCheck {
+  // Each miss, with its near-miss label (null: too far to count as one).
+  // Two misses, or one that isn't near, and there's no need to look further.
+  const misses: (string | null)[] = [];
+  const stop = (near: string | null) => {
+    misses.push(near);
+    return near === null || misses.length > 1;
+  };
+  const NO: FilterCheck = { ok: false };
+
+  // Age: the filter panel, the prompt and the preferences combined. Someone
+  // whose age isn't shown can't be confirmed to fit, so they're left out.
+  const ranges = [filters.ageRange, parsed.ageRange, prefs.ageRange].filter(Boolean) as [number, number][];
   if (ranges.length > 0) {
     const min = Math.max(...ranges.map((r) => r[0]));
     const max = Math.min(...ranges.map((r) => r[1]));
-    if (typeof c.age !== 'number' || c.age < min || c.age > max) return false;
+    if (typeof c.age !== 'number') {
+      if (stop(null)) return NO;
+    } else if (c.age < min || c.age > max) {
+      const off = c.age < min ? min - c.age : c.age - max;
+      if (stop(off <= NEAR_AGE_YEARS ? `Age ${c.age}` : null)) return NO;
+    }
   }
 
-  // Height: the filter panel and the prompt combined; unknown is left out
-  const heights = [filters.heightRange, parsed.heightRange].filter(Boolean) as [number, number][];
+  // Height: the same; unknown is left out
+  const heights = [filters.heightRange, parsed.heightRange, prefs.heightRange].filter(Boolean) as [number, number][];
   if (heights.length > 0) {
     const min = Math.max(...heights.map((r) => r[0]));
     const max = Math.min(...heights.map((r) => r[1]));
-    if (typeof c.heightCm !== 'number' || c.heightCm < min || c.heightCm > max) return false;
+    if (typeof c.heightCm !== 'number') {
+      if (stop(null)) return NO;
+    } else if (c.heightCm < min || c.heightCm > max) {
+      const off = c.heightCm < min ? min - c.heightCm : c.heightCm - max;
+      if (stop(off <= NEAR_HEIGHT_CM ? `Height ${feetAndInches(c.heightCm)}` : null)) return NO;
+    }
   }
 
   const places = `${c.location ?? ''} ${c.hometown ?? ''} ${c.city ?? ''} ${c.state ?? ''}`.toLowerCase();
-  if (filters.neighborhood && !places.includes(filters.neighborhood.toLowerCase())) return false;
+  if (filters.neighborhood && !places.includes(filters.neighborhood.toLowerCase())) return NO;
   if (parsed.city) {
     // "from Gujarat" can be where they live, grew up or where the family is
-    const hay = `${places} ${c.country ?? ''} ${c.familyLocation ?? ''}`.toLowerCase();
-    if (!hay.includes(parsed.city.toLowerCase())) return false;
+    const hay = `${places} ${c.country ?? ''} ${c.familyLocation ?? ''} ${c.familyState ?? ''}`.toLowerCase();
+    if (!hay.includes(parsed.city.toLowerCase())) return NO;
   }
-  if (filters.country && c.country !== filters.country) return false;
-  if (filters.state && c.state !== filters.state) return false;
-  if (parsed.nearMe && placeOf(me) && !nearby(me, c)) return false;
+  if (filters.country && c.country !== filters.country) return NO;
+  if (filters.state && c.state !== filters.state) return NO;
+  if (parsed.nearMe && placeOf(me) && !nearby(me, c)) return NO;
+  // The family's home state: the answer, or "Family lives in" naming it
+  if (filters.familyState && c.familyState !== filters.familyState
+    && !(!c.familyState && new RegExp(`\\b${filters.familyState.replace(/[^\w ]/g, '')}\\b`, 'i').test(String(c.familyLocation ?? '')))) {
+    return NO;
+  }
+  // Who runs the profile; profiles from before the question count as their own
+  if (filters.managedBy && !(MANAGED_BY[filters.managedBy] ?? []).includes(String(c.profileCreatedFor ?? 'Myself'))) return NO;
 
-  if ((filters.isVerified || parsed.verified) && row.is_verified !== true) return false;
-  if ((filters.isOnline || parsed.online) && !activeWithin(row, ONLINE_WINDOW_MS, now)) return false;
-  if ((filters.recentlyActive || parsed.recentlyActive) && !activeWithin(row, RECENT_WINDOW_MS, now)) return false;
-  if (filters.isPremium && row.subscription_tier !== 'PRO') return false;
-  if (filters.hasLinkedin && !c.linkedin) return false;
-  if (filters.hasInstagram && !c.instagram) return false;
+  if ((filters.isVerified || parsed.verified) && row.is_verified !== true) {
+    if (stop('Not verified yet')) return NO;
+  }
+  if ((filters.isOnline || parsed.online) && !activeWithin(row, ONLINE_WINDOW_MS, now)) {
+    if (stop(activeWithin(row, RECENT_WINDOW_MS, now) ? 'Not online right now' : null)) return NO;
+  }
+  if ((filters.recentlyActive || parsed.recentlyActive) && !activeWithin(row, RECENT_WINDOW_MS, now)) return NO;
+  if (filters.isPremium && row.subscription_tier !== 'PRO') return NO;
+  if (filters.hasLinkedin && !c.linkedin && stop('No LinkedIn')) return NO;
+  if (filters.hasInstagram && !c.instagram && stop('No Instagram')) return NO;
 
   // "a woman", "men": the person's gender, as for the gender preferences.
-  if (parsed.gender && genderOf(row.gender) !== parsed.gender) return false;
+  if (parsed.gender && genderOf(row.gender) !== parsed.gender) return NO;
 
   // Exact-value filters: the person must show that answer.
   const exact: (keyof FilterOptions)[] = [
-    'religion', 'datingIntention', 'familyPlans', 'educationLevel', 'smoking',
+    'religion', 'datingIntention', 'familyPlans', 'smoking',
     'drinking', 'maritalStatus', 'manglik', 'dietaryPreferences',
   ];
   for (const key of exact) {
-    if (filters[key] && c[key] !== filters[key]) return false;
+    if (filters[key] && c[key] !== filters[key]) return NO;
   }
-  if (filters.children && hasChildren(c.children) !== ['Yes', 'Has children'].includes(filters.children)) return false;
+  // Education: the next level up or down is a near miss
+  if (filters.educationLevel && c.educationLevel !== filters.educationLevel) {
+    const close = typeof c.educationLevel === 'string' && educationLevelsClose(c.educationLevel, filters.educationLevel);
+    if (stop(close ? `Education: ${c.educationLevel}` : null)) return NO;
+  }
+  if (filters.children && hasChildren(c.children) !== ['Yes', 'Has children'].includes(filters.children)) return NO;
   // "Hindi" also finds "Hindi (Delhi)" and the other regional kinds
-  if (filters.motherTongue && !(c.motherTongue === filters.motherTongue
-    || (filters.motherTongue === 'Hindi' && String(c.motherTongue ?? '').startsWith('Hindi')))) return false;
-  if (filters.caste && String(c.caste ?? '').toLowerCase() !== filters.caste.toLowerCase()) return false;
+  if (filters.motherTongue && !speaks(c, filters.motherTongue)) return NO;
+  if (filters.caste && String(c.caste ?? '').toLowerCase() !== filters.caste.toLowerCase()) return NO;
 
   // "doesn't smoke": leave out people who say they do
   for (const term of parsed.terms) {
-    if (term.negated && term.intent?.strictWhenNot && term.intent.answer(c) === true) return false;
+    if (term.negated && term.intent?.strictWhenNot && term.intent.answer(c) === true) return NO;
   }
-  return true;
+
+  // Partner preferences, when the search starts from them: like a filter,
+  // someone who hasn't said is left out
+  if (prefFits(c, prefs).some((f) => f !== 'fits')) return NO;
+
+  if (misses.length === 0) return { ok: true };
+  return misses.length === 1 && misses[0] ? { ok: false, near: misses[0] } : NO;
 }
 
 // Children: "No" (or the older "No children"), any "Yes, ..." (or the older
@@ -1392,7 +1590,19 @@ export const SPOTLIGHT_MIN_SCORE = 50;
 
 // Rank the pool for the searcher: filters, then score, best first. Ties keep
 // the pool's order (most recently active first). `spotlit`: who is in
-// Spotlight now.
+// Spotlight now. Options:
+//   prefs: partner preferences the search starts from (applied like filters)
+//   preferFitting: partner preferences to rank by instead (Standouts, alerts):
+//     people who fit more of them first, then by score; each candidate gets
+//     prefMisses
+//   nearMisses: when fewer than `below` people pass, up to `max` near misses
+//     (checkFilters), best first
+export interface RankOptions {
+  prefs?: PartnerPrefs | null;
+  preferFitting?: PartnerPrefs | null;
+  nearMisses?: { below: number; max: number };
+}
+
 export function rankCandidates(
   meRow: Row,
   pool: Row[],
@@ -1402,18 +1612,37 @@ export function rankCandidates(
   now = Date.now(),
   parsed: ParsedPrompt = parsePrompt(prompt),
   spotlit: ReadonlySet<string> = new Set(),
-): { candidates: MatchCandidate[]; poolSize: number } {
+  options: RankOptions = {},
+): { candidates: MatchCandidate[]; poolSize: number; nearMisses: MatchCandidate[] } {
   const me = ownProfile(meRow);
-  const survivors = pool
-    .map((row) => ({ row, c: asSeenByOthers(row) }))
-    .filter(({ row, c }) => passesFilters(row, c, me, filters, parsed, now));
+  const survivors: { row: Row; c: Profile }[] = [];
+  const near: { row: Row; c: Profile; missed: string }[] = [];
+  for (const row of pool) {
+    const c = asSeenByOthers(row);
+    const check = checkFilters(row, c, me, filters, parsed, now, options.prefs ?? {});
+    if (check.ok) survivors.push({ row, c });
+    else if (check.near) near.push({ row, c, missed: check.near });
+  }
+  const fitting = options.preferFitting;
   const ranked = survivors
-    .map(({ row, c }) => ({ candidate: toCandidate(row, c, me, parsed, now), near: spotlit.has(String(row.id)) && nearby(me, c) }))
-    .sort((a, b) => b.candidate.compatibilityScore - a.candidate.compatibilityScore);
+    .map(({ row, c }) => {
+      const candidate = toCandidate(row, c, me, parsed, now);
+      if (fitting) candidate.prefMisses = prefMisses(c, fitting);
+      return { candidate, near: spotlit.has(String(row.id)) && nearby(me, c) };
+    })
+    .sort((a, b) => (fitting ? Number(a.candidate.prefMisses) - Number(b.candidate.prefMisses) : 0)
+      || b.candidate.compatibilityScore - a.candidate.compatibilityScore);
   const first = ranked
     .filter((r) => r.near && r.candidate.compatibilityScore >= SPOTLIGHT_MIN_SCORE)
     .slice(0, SPOTLIGHT_SLOTS);
   for (const r of first) r.candidate.spotlight = true;
   const order = [...first, ...ranked.filter((r) => !first.includes(r))].map((r) => r.candidate);
-  return { candidates: order.slice(0, limit), poolSize: survivors.length };
+  const wanted = options.nearMisses;
+  const nearMisses = wanted && survivors.length < wanted.below
+    ? near
+      .map(({ row, c, missed }) => ({ ...toCandidate(row, c, me, parsed, now), missed }))
+      .sort((a, b) => b.compatibilityScore - a.compatibilityScore)
+      .slice(0, wanted.max)
+    : [];
+  return { candidates: order.slice(0, limit), poolSize: survivors.length, nearMisses };
 }

@@ -6,6 +6,8 @@ import {
   RELIGIONS,
 } from '../lib/matrimonyOptions';
 import type { FilterOptions } from '../types';
+import { hasPreferences, preferenceSummary, type PartnerPreferences } from '../lib/partnerPreferences';
+import { MANAGED_BY_OPTIONS } from '../lib/searchResults';
 
 // ============================================================================
 // FilterPanel
@@ -21,6 +23,9 @@ interface FilterPanelProps {
   onApply: (filters: FilterOptions) => void;
   onClose: () => void;
   onUpgrade: () => void;
+  /** The member's partner preferences (null: none yet), and a way to set them */
+  preferences?: PartnerPreferences | null;
+  onEditPreferences?: () => void;
 }
 
 // ---- helper components -----------------------------------------------------
@@ -85,7 +90,7 @@ const Toggle = ({
 const HEIGHT_CM = HEIGHTS.map((label) => ({ label, cm: Number(/\((\d+) cm\)/.exec(label)?.[1]) }));
 
 const FilterPanel: React.FC<FilterPanelProps> = ({
-  isOpen, initialFilters, isPro, onApply, onClose, onUpgrade,
+  isOpen, initialFilters, isPro, onApply, onClose, onUpgrade, preferences = null, onEditPreferences,
 }) => {
   const [filters, setFilters] = useState<FilterOptions>(initialFilters);
 
@@ -146,6 +151,35 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-4 divide-y divide-gray-100 dark:divide-zinc-800">
+          {/* Partner preferences: what search starts from */}
+          <div className="py-3" data-testid="filter-preferences">
+            {hasPreferences(preferences) ? (
+              <>
+                <Toggle
+                  checked={filters.usePreferences ?? false}
+                  onChange={(v) => update('usePreferences', v)}
+                  label="Use my partner preferences"
+                />
+                <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+                  {preferenceSummary(preferences).join(' · ')}
+                  {!isPro && ' (age and place; the rest with Shaadi24+)'}
+                  {onEditPreferences && (
+                    <> · <button type="button" onClick={onEditPreferences} className="font-semibold text-gray-700 dark:text-gray-200 hover:underline">Edit</button></>
+                  )}
+                </p>
+              </>
+            ) : onEditPreferences && (
+              <button
+                type="button"
+                onClick={onEditPreferences}
+                className="w-full text-left px-3 py-2 rounded-lg border border-dashed border-gray-300 dark:border-zinc-700 text-sm text-gray-700 dark:text-gray-200 hover:border-gray-500"
+              >
+                <span className="font-semibold">Set your partner preferences</span>
+                <span className="block text-xs text-gray-500 dark:text-gray-400">Search starts from them, and Standouts follow them.</span>
+              </button>
+            )}
+          </div>
+
           {/* Age range — always free */}
           <FilterRow label="Age range" onUpgrade={onUpgrade}>
             <div className="flex items-center gap-3 mb-2">
@@ -212,6 +246,27 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
               onChange={(e) => update('neighborhood', e.target.value)}
               placeholder="e.g. Mumbai, Bangalore"
               className="w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </FilterRow>
+
+          <FilterRow label="Family from (state)" onUpgrade={onUpgrade}>
+            <ChoiceField
+              value={filters.familyState ?? ''}
+              onChange={(v) => update('familyState', v || undefined)}
+              options={INDIAN_STATES}
+              placeholder="Any"
+              clearLabel="Any"
+              size="compact"
+              ariaLabel="Family from (state)"
+            />
+            <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">Where the family comes from (native place), wherever they live now.</p>
+          </FilterRow>
+
+          <FilterRow label="Profile managed by" onUpgrade={onUpgrade}>
+            <Select
+              value={filters.managedBy}
+              onChange={(v) => update('managedBy', v || undefined)}
+              options={[{ value: '', label: 'Anyone' }, ...MANAGED_BY_OPTIONS.map((o) => ({ value: o.value, label: o.label }))]}
             />
           </FilterRow>
 

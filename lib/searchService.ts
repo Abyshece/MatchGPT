@@ -25,6 +25,8 @@ export interface SearchOutput {
   understood: string[];           // what the prompt was taken to mean ("Women", "Doesn't smoke", ...)
   understoodBy: 'ai' | 'rules';   // Gemini, or the rule-based fallback
   said?: string | null;           // for a search in Hindi, Tamil…: who will be looked for, in that language
+  nearMisses?: MatchCandidate[];  // fewer than 5 results: people who miss one thing by a little (`missed`)
+  usedPreferences?: boolean;      // the member's partner preferences were part of the search
 }
 
 export type SearchErrorCode =
@@ -76,7 +78,14 @@ export async function searchProfiles(
   const output = await callSearch<SearchOutput>({ mode: 'search', prompt, filters, limit, device, platform: devicePlatform() });
   // (whether the next search can go ahead: this one used the last?)
   const allowance = output.allowance && { ...output.allowance, allowed: !output.allowance.limited_by };
-  return { ...output, allowance, candidates: withNames(output.candidates) };
+  return { ...output, allowance, candidates: withNames(output.candidates), nearMisses: withNames(output.nearMisses ?? []) };
+}
+
+// The new members a saved search's alert (or the partner preferences',
+// id 'preferences') found. Doesn't use a search. Throws SearchError.
+export async function fetchAlertMatches(id: string): Promise<MatchCandidate[]> {
+  const output = await callSearch<{ candidates: MatchCandidate[] }>({ mode: 'alert_matches', id });
+  return withNames(output.candidates);
 }
 
 // Today's Standouts (picked on the first visit of the UTC day, then kept);

@@ -11,7 +11,21 @@ export const DEFAULT_FILTERS: FilterOptions = {
   isOnline: false,
   isVerified: false,
   isPremium: false,
+  // Search starts from the member's partner preferences, when they have some
+  usePreferences: true,
 };
+
+// "Profile managed by" (the search function's MANAGED_BY): the choice and how it reads
+export const MANAGED_BY_OPTIONS: { value: string; label: string; chip: string }[] = [
+  { value: 'Self', label: 'The person themselves', chip: 'Managed by themselves' },
+  { value: 'Parents', label: 'Parents', chip: 'Managed by parents' },
+  { value: 'Sibling, relative or friend', label: 'A sibling, relative or friend', chip: 'Managed by family or a friend' },
+];
+
+export interface ChipOptions {
+  /** The member has partner preferences, so "Use my partner preferences" does something */
+  preferences?: boolean;
+}
 
 const DEFAULT_AGE: [number, number] = [21, 45];
 
@@ -29,11 +43,12 @@ const cmLabel = (cm: number) => heightLabel(Math.round(cm / 2.54)).replace(/ \(\
  * filter button counts these, so a filter can't be on without a chip to
  * take it off.
  */
-export function activeFilterChips(f: FilterOptions): FilterChipItem[] {
+export function activeFilterChips(f: FilterOptions, opts: ChipOptions = {}): FilterChipItem[] {
   const chips: FilterChipItem[] = [];
   const add = (key: keyof FilterOptions, label: string, off: FilterOptions[keyof FilterOptions] = undefined) =>
     chips.push({ key, label, remove: (prev) => ({ ...prev, [key]: off }) });
 
+  if (f.usePreferences && opts.preferences) add('usePreferences', 'My partner preferences', false);
   if (f.isOnline) add('isOnline', 'Online now', false);
   if (f.recentlyActive) add('recentlyActive', 'Recently active', false);
   if (f.isVerified) add('isVerified', 'Verified', false);
@@ -65,6 +80,8 @@ export function activeFilterChips(f: FilterOptions): FilterChipItem[] {
   if (f.familyPlans) add('familyPlans', f.familyPlans);
   if (f.drinking) add('drinking', `Drinking: ${f.drinking}`);
   if (f.smoking) add('smoking', `Smoking: ${f.smoking}`);
+  if (f.familyState) add('familyState', `Family from ${f.familyState}`);
+  if (f.managedBy) add('managedBy', MANAGED_BY_OPTIONS.find((o) => o.value === f.managedBy)?.chip ?? f.managedBy);
   return chips;
 }
 
@@ -82,9 +99,9 @@ export function passesQuickFilters(c: MatchCandidate, f: FilterOptions): boolean
 }
 
 /** Whether `now` asks for anything the last search left out, so only a new search can show it */
-export function widensSearch(now: FilterOptions, searched: FilterOptions): boolean {
-  const before = new Map(activeFilterChips(searched).map((c) => [c.key, c.label]));
-  const after = new Map(activeFilterChips(now).map((c) => [c.key, c.label]));
+export function widensSearch(now: FilterOptions, searched: FilterOptions, opts: ChipOptions = {}): boolean {
+  const before = new Map(activeFilterChips(searched, opts).map((c) => [c.key, c.label]));
+  const after = new Map(activeFilterChips(now, opts).map((c) => [c.key, c.label]));
   for (const [key, label] of before) if (after.get(key) !== label) return true;
   // A filter added from the panel narrows on the server, not on screen
   const quick = new Set(['isOnline', 'isVerified', 'hasInstagram', 'hasLinkedin']);
