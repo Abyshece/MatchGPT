@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { useToast } from '../lib/useToast';
 import { loadStandouts, refreshStandouts } from '../lib/standoutsService';
+import PartnerPreferencesCard from './PartnerPreferencesCard';
 import MatchCard from './MatchCard';
 import ProfileModal from './ProfileModal';
 import UpgradeModal from './UpgradeModal';
@@ -116,6 +117,8 @@ const StandoutsView: React.FC<StandoutsViewProps> = ({ onNavigateToMatches }) =>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Hand-picked profiles based on what matters most to you. Refreshes every 24 hours.
             </p>
+            {/* Today's picks follow the partner preferences (the next picks do, after a change) */}
+            <div className="mt-1"><PartnerPreferencesCard compact /></div>
           </div>
         </div>
 

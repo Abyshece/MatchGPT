@@ -183,6 +183,7 @@ export interface UserProfile {
   sisters?: string;
   sistersMarried?: string;
   familyLocation?: string;
+  familyState?: string;          // the state the family comes from (the "Family from" filter)
   livingWithFamily?: string;
   aboutFamily?: string;
 
@@ -219,6 +220,10 @@ export interface FilterOptions {
   country?: string;
   state?: string;
   heightRange?: [number, number];  // cm
+  // Phase 3 of the review fixes
+  familyState?: string;          // the state the family comes from
+  managedBy?: string;            // who runs the profile: 'Self', 'Parents', 'Sibling, relative or friend'
+  usePreferences?: boolean;      // start from the member's partner preferences (lib/partnerPreferences.ts)
   // No longer asked or offered (Phase 12); the server ignores them
   relationshipType?: string;
   height?: string;
@@ -265,6 +270,7 @@ export interface MatchCandidate {
   spotlight?: boolean;          // in Spotlight near the searcher (lib/boosts.ts): shown first, marked
   isNew?: boolean;              // joined in the last week (search function)
   repliesUsually?: boolean;     // answers most people who write to them (member_stats in the database)
+  missed?: string;              // a near miss: the one thing that doesn't fit what was asked ("Age 31")
 
   // Detailed profile fields used by ProfileModal — same shape as UserProfile
   jobTitle?: string;
@@ -380,6 +386,7 @@ export interface MatchCandidate {
   sisters?: string;
   sistersMarried?: string;
   familyLocation?: string;
+  familyState?: string;          // the state the family comes from (the "Family from" filter)
   livingWithFamily?: string;
   aboutFamily?: string;
 }

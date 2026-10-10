@@ -151,6 +151,7 @@ const FIELD_MAP: Partial<Record<keyof UserProfile, keyof ProfileRow>> = {
   sisters: 'sisters',
   sistersMarried: 'sisters_married',
   familyLocation: 'family_location',
+  familyState: 'family_state',
   livingWithFamily: 'living_with_family',
   aboutFamily: 'about_family',
 

@@ -1051,8 +1051,10 @@ fast, and a scams section on the Safety page; sign-in errors in plain words. Pha
 interested" for good, with Undo and Settings → Hidden profiles (`passed_profiles`); nobody inactive
 for 60 days in search or Standouts; unanswered interests expire after 14 days (28 for a Super
 Interest) and can be sent again; "New" and "Usually replies" on cards (`member_stats`); no repeats in
-Standouts for 30 days; "I found my match" in Settings. Next: partner preferences and saved searches
-(3), trust and support (4), payments and reliability (5).
+Standouts for 30 days; "I found my match" in Settings. Phase 3 (done): partner preferences (Standouts
+follow them, search starts from them, a daily alert about new members who fit); near misses below few
+results; saved searches (up to 10) with a daily alert; "Family from (state)" and "Profile managed by"
+filters. Next: trust and support (4), payments and reliability (5).
 
 **Still to do**
 

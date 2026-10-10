@@ -17,6 +17,7 @@ import { draftAboutFamily, draftAboutMe, hasFamilyDetails } from '../lib/aboutDr
 import { ABOUT_ME_MIN, REQUIRED_LABELS, fetchProfileSections, type ProfileSections, type SectionId } from '../lib/profileRewards';
 import { DAILY_LIMITS } from '../lib/profileService';
 import ProfileRewardsCard from './ProfileRewardsCard';
+import PartnerPreferencesCard from './PartnerPreferencesCard';
 import { fetchMyReviewStatus, type MyReviewStatus } from '../lib/adminSafety';
 import { SECT_LABEL, formatBirthTime, formatChildren, formatSiblings } from '../lib/profileDisplay';
 import {
@@ -35,7 +36,7 @@ import { belowMarriageAge, tooYoungMessage } from '../lib/legalAge';
 const HOROSCOPE_RELIGIONS = ['Hindu', 'Jain', 'Sikh', 'Buddhist'];
 
 const VISIBILITY_KEY: Partial<Record<keyof UserProfile, string>> = {
-  country: 'location', state: 'location', city: 'location', dateOfBirth: 'age',
+  country: 'location', state: 'location', city: 'location', dateOfBirth: 'age', familyState: 'familyLocation',
 };
 
 // When one answer changes, answers that depended on it no longer apply.
@@ -452,6 +453,9 @@ const ProfileView: React.FC<{ initialSection?: SectionId }> = ({ initialSection 
         <ProfileRewardsCard sections={sections} isPro={profile.subscriptionTier === 'PRO'}
           completionPercentage={completionPercentage} estimatedMinutes={estimatedMinutes} />
 
+        {/* Who they're looking for: Standouts, search and the daily alerts use it */}
+        <PartnerPreferencesCard />
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* LEFT — INFORMATION */}
           <div className="space-y-8">
@@ -612,6 +616,8 @@ const ProfileView: React.FC<{ initialSection?: SectionId }> = ({ initialSection 
               })}
               {profile.sisters && profile.sisters !== '0' && renderRow('sistersMarried', 'Sisters married', undefined, 'select', SIBLING_COUNTS)}
               {renderRow('familyLocation', 'Family lives in')}
+              {renderChoice('familyState', "Family's home state", { options: INDIAN_STATES }, undefined,
+                'The state your family comes from (your native place), wherever you live now. Members can search by it.')}
               {renderRow('livingWithFamily', 'Lives with family', undefined, 'select', LIVING_WITH_FAMILY)}
               {renderRow('familyCloseness', 'Closeness to family', undefined, 'select', ['Very close', 'Close', 'Moderate', `We're not close`])}
               {renderRow('aboutFamily', 'About my family', undefined, 'textarea', [], {

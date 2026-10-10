@@ -129,7 +129,8 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
     setIsMobileMenuOpen(false);
   }, []);
 
-  // A tapped notification opens its chat, Likes You, or (admins) the report or request to review
+  // A tapped notification opens its chat, Likes You, Search History (new members for a
+  // saved search), or (admins) the report or request to review
   const openFromNotification = useCallback((data: PushData) => {
     setIsMobileMenuOpen(false);
     const matchId = typeof data.match_id === 'string' ? data.match_id : null;
@@ -144,6 +145,10 @@ const Dashboard: React.FC<DashboardProps> = ({ isDarkMode, onToggleDarkMode, the
     } else if (data.event_type === 'family_reaction') {
       setPendingMatchOpenId(null);
       setActiveTab('family');
+    } else if (data.event_type === 'search_alert') {
+      // New members for a saved search or the partner preferences: Search History lists them
+      setPendingMatchOpenId(null);
+      setActiveTab('history');
     } else if (data.event_type === 'admin_message') {
       // A message from the team: it shows as a card when the app opens; its
       // button's place too, if it's in My Profile

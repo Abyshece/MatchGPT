@@ -1330,6 +1330,83 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_preferences: {
+        Row: {
+          age_max: number | null
+          age_min: number | null
+          alerted_at: string | null
+          alerts: boolean
+          checked_at: string
+          countries: string[]
+          diets: string[]
+          height_max_cm: number | null
+          height_min_cm: number | null
+          manglik: string[]
+          marital_statuses: string[]
+          mother_tongues: string[]
+          new_ids: string[]
+          no_drinking: boolean
+          no_smoking: boolean
+          religions: string[]
+          seen_at: string | null
+          states: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          age_max?: number | null
+          age_min?: number | null
+          alerted_at?: string | null
+          alerts?: boolean
+          checked_at?: string
+          countries?: string[]
+          diets?: string[]
+          height_max_cm?: number | null
+          height_min_cm?: number | null
+          manglik?: string[]
+          marital_statuses?: string[]
+          mother_tongues?: string[]
+          new_ids?: string[]
+          no_drinking?: boolean
+          no_smoking?: boolean
+          religions?: string[]
+          seen_at?: string | null
+          states?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          age_max?: number | null
+          age_min?: number | null
+          alerted_at?: string | null
+          alerts?: boolean
+          checked_at?: string
+          countries?: string[]
+          diets?: string[]
+          height_max_cm?: number | null
+          height_min_cm?: number | null
+          manglik?: string[]
+          marital_statuses?: string[]
+          mother_tongues?: string[]
+          new_ids?: string[]
+          no_drinking?: boolean
+          no_smoking?: boolean
+          religions?: string[]
+          seen_at?: string | null
+          states?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       passed_profiles: {
         Row: {
           created_at: string
@@ -1541,6 +1618,7 @@ export type Database = {
           family_closeness: string | null
           family_health_history: string | null
           family_location: string | null
+          family_state: string | null
           family_plans: string | null
           family_status: string | null
           family_type: string | null
@@ -1575,6 +1653,7 @@ export type Database = {
           job_title: string | null
           languages: string | null
           last_active_at: string | null
+          listed_at: string | null
           last_like_date: string | null
           last_search_date: string | null
           last_super_like_date: string | null
@@ -1712,6 +1791,7 @@ export type Database = {
           family_closeness?: string | null
           family_health_history?: string | null
           family_location?: string | null
+          family_state?: string | null
           family_plans?: string | null
           family_status?: string | null
           family_type?: string | null
@@ -1746,6 +1826,7 @@ export type Database = {
           job_title?: string | null
           languages?: string | null
           last_active_at?: string | null
+          listed_at?: string | null
           last_like_date?: string | null
           last_search_date?: string | null
           last_super_like_date?: string | null
@@ -1883,6 +1964,7 @@ export type Database = {
           family_closeness?: string | null
           family_health_history?: string | null
           family_location?: string | null
+          family_state?: string | null
           family_plans?: string | null
           family_status?: string | null
           family_type?: string | null
@@ -1917,6 +1999,7 @@ export type Database = {
           job_title?: string | null
           languages?: string | null
           last_active_at?: string | null
+          listed_at?: string | null
           last_like_date?: string | null
           last_search_date?: string | null
           last_super_like_date?: string | null
@@ -2210,6 +2293,59 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "risk_reviews_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saved_searches: {
+        Row: {
+          alerted_at: string | null
+          alerts: boolean
+          checked_at: string
+          created_at: string
+          filters: Json
+          id: string
+          name: string
+          new_ids: string[]
+          plan: Json | null
+          prompt: string
+          seen_at: string | null
+          user_id: string
+        }
+        Insert: {
+          alerted_at?: string | null
+          alerts?: boolean
+          checked_at?: string
+          created_at?: string
+          filters?: Json
+          id?: string
+          name: string
+          new_ids?: string[]
+          plan?: Json | null
+          prompt?: string
+          seen_at?: string | null
+          user_id: string
+        }
+        Update: {
+          alerted_at?: string | null
+          alerts?: boolean
+          checked_at?: string
+          created_at?: string
+          filters?: Json
+          id?: string
+          name?: string
+          new_ids?: string[]
+          plan?: Json | null
+          prompt?: string
+          seen_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_searches_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -3269,6 +3405,7 @@ export type Database = {
       interest_status: { Args: { p_liked: string }; Returns: string }
       found_my_match: { Args: { p_both_agree?: boolean; p_partner?: string; p_story?: string }; Returns: Json }
       my_passed_profiles: { Args: never; Returns: Json }
+      alert_members: { Args: { p_limit?: number }; Returns: Json }
       like_reveal_status: { Args: never; Returns: Json }
       reveal_like: { Args: { p_like_id: string }; Returns: Json }
       unregister_push_device: { Args: { p_token: string }; Returns: undefined }

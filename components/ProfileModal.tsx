@@ -362,6 +362,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                 ['brothers', 'Brothers', formatSiblings(c.brothers, answer('brothersMarried'))],
                 ['sisters', 'Sisters', formatSiblings(c.sisters, answer('sistersMarried'))],
                 ['familyLocation', 'Family lives in'],
+                ['familyState', "Family's home state"],
                 ['livingWithFamily', 'Lives with family'],
                 ['familyCloseness', 'Closeness to family'],
               ]}>

@@ -9,13 +9,16 @@ import { computeVerificationStatus } from '../lib/profileService';
 import { allowanceLine, useSearchAllowance } from '../lib/searchLimits';
 import { profileCompletion } from '../lib/profileCompletion';
 import { fetchTrendingSearches, trendingHeading, type TrendingSearch } from '../lib/trendingSearches';
+import { hasPreferences, usePartnerPreferences } from '../lib/partnerPreferences';
 import MatchCard from './MatchCard';
 import ProfileModal from './ProfileModal';
 import VerificationBanner from './VerificationBanner';
 import UpgradeModal from './UpgradeModal';
 import MatchCelebrationModal from './MatchCelebrationModal';
 import ResultsSortMenu from './ResultsSortMenu';
-import { IconX, IconCheck, IconSparkles, IconInstagram, IconLinkedin, IconSearch } from '../constants';
+import PartnerPreferencesModal from './PartnerPreferencesModal';
+import SaveSearchModal from './SaveSearchModal';
+import { IconX, IconCheck, IconSparkles, IconInstagram, IconLinkedin, IconSearch, IconBell } from '../constants';
 import type { MatchCandidate, FilterOptions } from '../types';
 import { firstCelebration } from '../lib/matchCelebration';
 import {
@@ -81,6 +84,12 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
   const [prompt, setPrompt] = useState('');
   const [filters, setFilters] = useState<FilterOptions>(DEFAULT_FILTERS);
   const [results, setResults] = useState<MatchCandidate[]>([]);
+  // Few results: people who miss one thing by a little, below them
+  const [nearMisses, setNearMisses] = useState<MatchCandidate[]>([]);
+  // The prompt the results came from (for "Save this search")
+  const [searchedPrompt, setSearchedPrompt] = useState('');
+  const [showSaveSearch, setShowSaveSearch] = useState(false);
+  const [showPreferences, setShowPreferences] = useState(false);
   const pass = usePassProfile();
   // The filters the results came from, and how the member wants them shown
   const [searchedFilters, setSearchedFilters] = useState<FilterOptions | null>(null);
@@ -148,7 +157,10 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
   const isLockedOut = verification?.isLockedOut ?? false;
   // Not read yet (or unreadable): let the server decide
   const searchAllowed = allowance?.allowed ?? true;
-  const filterChips = activeFilterChips(filters);
+  // Partner preferences: what search starts from, while that's on
+  const { prefs, reload: reloadPrefs } = usePartnerPreferences(userId);
+  const chipOptions = { preferences: hasPreferences(prefs) };
+  const filterChips = activeFilterChips(filters, chipOptions);
   const activeFilterCount = filterChips.length;
   // The results as shown: the quick filters, the match level, the order
   const { levels, levelOf } = useMemo(() => matchLevels(results, filters), [results, filters]);
@@ -192,6 +204,8 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
       else void refreshAllowance();
 
       setResults(output.candidates);
+      setNearMisses(output.nearMisses ?? []);
+      setSearchedPrompt(effectivePrompt);
       setSearchedFilters(filters);
       setLevel('all');
       setUnderstood({ labels: output.understood, byAi: output.understoodBy === 'ai', said: output.said ?? null });
@@ -202,7 +216,9 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
       // Picks up the new search count
       await refreshProfile();
 
-      if (output.candidates.length === 0) {
+      if (output.candidates.length === 0 && (output.nearMisses?.length ?? 0) > 0) {
+        showToast('Nobody fits everything yet. Here are people who come close.', 'info');
+      } else if (output.candidates.length === 0) {
         showToast(`No matches found in pool of ${output.totalEligible}`, 'info');
       } else {
         showToast(`Found ${output.candidates.length} matches`, 'success');
@@ -258,6 +274,18 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
     dropResult(id);
     if (candidate) {
       pass(candidate, () => setResults((prev) => (prev.some((r) => r.id === id) ? prev : [...prev.slice(0, at), candidate, ...prev.slice(at)])));
+    } else {
+      hideNearMiss(id);
+    }
+  };
+  // The same for the near misses below the results
+  const dropNearMiss = (id: string) => setNearMisses((prev) => prev.filter((r) => r.id !== id));
+  const hideNearMiss = (id: string) => {
+    const at = nearMisses.findIndex((r) => r.id === id);
+    const candidate = nearMisses[at];
+    dropNearMiss(id);
+    if (candidate) {
+      pass(candidate, () => setNearMisses((prev) => (prev.some((r) => r.id === id) ? prev : [...prev.slice(0, at), candidate, ...prev.slice(at)])));
     }
   };
 
@@ -471,7 +499,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
         )}
         {/* The quick filters narrow the results on screen at once; a filter
             taken off, or one from the filter panel, needs a new search */}
-        {hasSearched && !searching && searchedFilters && widensSearch(filters, searchedFilters) && (
+        {hasSearched && !searching && searchedFilters && widensSearch(filters, searchedFilters, chipOptions) && (
           <p className="text-center text-xs text-gray-500 dark:text-gray-400 mb-6 animate-fade-in" data-testid="search-again">
             Your filters have changed.{' '}
             <button type="button" onClick={() => handleSearch()} className="font-semibold text-gray-900 dark:text-white underline">
@@ -532,14 +560,26 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
                 ))}
               </div>
             ) : results.length === 0 ? (
-              <div className="text-center py-20 bg-gray-50 dark:bg-zinc-900/50 rounded-xl border border-gray-100 dark:border-zinc-800">
+              <div className="text-center py-12 bg-gray-50 dark:bg-zinc-900/50 rounded-xl border border-gray-100 dark:border-zinc-800">
                 <div className="mb-4 flex justify-center text-gray-300 dark:text-zinc-600 [&>svg]:w-12 [&>svg]:h-12" aria-hidden="true"><IconSearch /></div>
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No matches found</h3>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+                  {nearMisses.length > 0 ? 'Nobody fits everything yet' : 'No matches found'}
+                </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">
-                  {activeFilterCount > 0
-                    ? 'Try loosening your filters, or check that you\'ve completed enough of your profile to be matched.'
-                    : 'Try a less specific prompt, or check that you\'ve completed enough of your profile to be matched.'}
+                  {nearMisses.length > 0
+                    ? 'Below are people who come close. Save this search and we\'ll tell you when someone new fits.'
+                    : activeFilterCount > 0
+                      ? 'Try loosening your filters, or save this search and we\'ll tell you when someone new fits.'
+                      : 'Try a less specific prompt, or save this search and we\'ll tell you when someone new fits.'}
                 </p>
+                <button
+                  type="button"
+                  onClick={() => setShowSaveSearch(true)}
+                  data-testid="save-search"
+                  className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-semibold"
+                >
+                  <span aria-hidden="true" className="[&>svg]:w-4 [&>svg]:h-4"><IconBell /></span> Save this search
+                </button>
               </div>
             ) : (
               <>
@@ -554,7 +594,19 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
                       {shown.length === results.length ? results.length : `${shown.length} of ${results.length}`}
                     </span>
                   </h2>
-                  <ResultsSortMenu sort={sort} level={level} levels={levels} onSort={setSort} onLevel={setLevel} />
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowSaveSearch(true)}
+                      data-testid="save-search"
+                      title="Save this search, and hear about new members who fit"
+                      className="inline-flex items-center gap-1 px-3 h-8 rounded-full border border-gray-200 dark:border-zinc-700 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:border-gray-400"
+                    >
+                      <span aria-hidden="true" className="[&>svg]:w-3.5 [&>svg]:h-3.5"><IconBell /></span>
+                      <span className="hidden sm:inline">Save search</span><span className="sm:hidden">Save</span>
+                    </button>
+                    <ResultsSortMenu sort={sort} level={level} levels={levels} onSort={setSort} onLevel={setLevel} />
+                  </div>
                 </div>
                 {shown.length === 0 && (
                   <div className="text-center py-12 bg-gray-50 dark:bg-zinc-900/50 rounded-xl border border-gray-100 dark:border-zinc-800" data-testid="none-shown">
@@ -584,6 +636,29 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
                 </div>
               </>
             )}
+
+            {/* Few results: people who miss one thing by a little */}
+            {!searching && nearMisses.length > 0 && (
+              <section className="mt-10" data-testid="near-misses">
+                <h2 className="text-sm font-bold text-gray-700 dark:text-gray-200">Close to what you asked</h2>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 mb-4">
+                  Each misses one thing, by a little. It says which on the card.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {nearMisses.map((c) => (
+                    <MatchCard
+                      key={c.id}
+                      candidate={c}
+                      onClick={() => setSelectedCandidate(c)}
+                      onMatched={handleMatched}
+                      onLimitReached={() => openUpgrade('like_limit')}
+                      onLiked={() => dropNearMiss(c.id)}
+                      onReject={hideNearMiss}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
         )}
       </div>
@@ -596,8 +671,32 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
           onClose={() => setSelectedCandidate(null)}
           onUpgrade={() => { setSelectedCandidate(null); openUpgrade('pro_feature'); }}
           onMatched={handleMatched}
-          onLiked={dropResult}
+          onLiked={(id) => { dropResult(id); dropNearMiss(id); }}
           onHidden={hideResult}
+        />
+      )}
+
+      {/* Save this search, with an alert */}
+      {showSaveSearch && (
+        <SaveSearchModal
+          prompt={searchedPrompt}
+          filters={searchedFilters ?? filters}
+          onClose={() => setShowSaveSearch(false)}
+          onSaved={() => { setShowSaveSearch(false); showToast('Saved. It\'s in Search History.', 'success'); }}
+        />
+      )}
+
+      {/* Partner preferences */}
+      {showPreferences && (
+        <PartnerPreferencesModal
+          initial={prefs}
+          onClose={() => setShowPreferences(false)}
+          onSaved={() => {
+            setShowPreferences(false);
+            void reloadPrefs();
+            setFilters((f) => ({ ...f, usePreferences: true }));
+            showToast('Preferences saved', 'success');
+          }}
         />
       )}
 
@@ -620,6 +719,8 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
             onApply={(f) => setFilters(f)}
             onClose={() => setShowFilterPanel(false)}
             onUpgrade={() => { setShowFilterPanel(false); openUpgrade('pro_feature'); }}
+            preferences={prefs}
+            onEditPreferences={() => { setShowFilterPanel(false); setShowPreferences(true); }}
           />
         </Suspense>
       )}

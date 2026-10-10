@@ -95,7 +95,10 @@ const PrivacyView: React.FC<PrivacyViewProps> = ({ onBack }) => (
           person sees your profile and your note even without Shaadi24+. While your Spotlight is on, you're shown first,
           marked Spotlight, to members searching near you. In your first week your card says New, and if you answer most
           people who write to you (worked out each day from the last 90 days of chats), it says Usually replies. If you
-          haven't opened the app for 60 days, you're left out of search until you come back.</li>
+          haven't opened the app for 60 days, you're left out of search until you come back. Members can search by
+          your family's home state and by who manages your profile (you, parents, or a sibling, relative or friend).
+          Your partner preferences and saved searches are seen only by you; we use them to pick your Standouts, to start
+          your searches and to tell you about new members who fit.</li>
         <li><strong>People you share a link with.</strong> If you share your biodata, anyone with its link or QR code
           can open a page that shows what other members see of your profile (never what you hid, your email or a phone
           number), until you turn the link off in My Biodata. If you invite family to Family Circle, each person you

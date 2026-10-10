@@ -174,6 +174,11 @@ const MatchCard: React.FC<MatchCardProps> = ({
             {candidate.name}{candidate.age ? `, ${candidate.age}` : ''}
           </h3>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{candidate.location}</p>
+          {candidate.missed && (
+            <p data-testid="near-miss-note" className="mt-1.5 text-xs font-medium text-amber-800 dark:text-amber-300">
+              Close, but: {candidate.missed}
+            </p>
+          )}
         </div>
 
         {/* Footer: X + Like button row */}
