@@ -14,6 +14,7 @@ import { supabase } from './supabase';
 import { displayName } from './profileMapping';
 import type { FilterOptions, MatchCandidate } from '../types';
 import type { SearchAllowance } from './searchLimits';
+import { deviceId, devicePlatform } from './deviceId';
 
 export interface SearchOutput {
   candidates: MatchCandidate[];   // best first
@@ -27,15 +28,17 @@ export interface SearchOutput {
 }
 
 export type SearchErrorCode =
-  | 'LIMIT_REACHED' | 'VERIFY_REQUIRED' | 'PRO_ONLY' | 'UNAUTHENTICATED' | 'BANNED' | 'NO_PROFILE' | 'FAILED';
+  | 'LIMIT_REACHED' | 'ACCOUNT_LIMIT' | 'VERIFY_REQUIRED' | 'PRO_ONLY' | 'UNAUTHENTICATED' | 'BANNED' | 'NO_PROFILE' | 'FAILED';
 
 export class SearchError extends Error {
   code: SearchErrorCode;
   allowance?: SearchAllowance;    // LIMIT_REACHED: which limit, and when the next search can be
-  constructor(message: string, code: SearchErrorCode, allowance?: SearchAllowance) {
+  reason?: string;                // ACCOUNT_LIMIT: 'same_mailbox' | 'shared_phone'
+  constructor(message: string, code: SearchErrorCode, allowance?: SearchAllowance, reason?: string) {
     super(message);
     this.code = code;
     this.allowance = allowance;
+    this.reason = reason;
   }
 }
 
@@ -45,13 +48,15 @@ async function callSearch<T>(body: Record<string, unknown>): Promise<T> {
     let message = 'Search failed. Please try again.';
     let code: SearchErrorCode = 'FAILED';
     let allowance: SearchAllowance | undefined;
+    let reason: string | undefined;
     if (error instanceof FunctionsHttpError) {
       const details = await error.context.json().catch(() => null);
       if (typeof details?.error === 'string') message = details.error;
       if (typeof details?.code === 'string') code = details.code as SearchErrorCode;
       if (details?.allowance && typeof details.allowance === 'object') allowance = details.allowance as SearchAllowance;
+      if (typeof details?.reason === 'string') reason = details.reason;
     }
-    throw new SearchError(message, code, allowance);
+    throw new SearchError(message, code, allowance, reason);
   }
   return data as T;
 }
@@ -66,7 +71,9 @@ export async function searchProfiles(
   filters: FilterOptions,
   limit = 50,
 ): Promise<SearchOutput> {
-  const output = await callSearch<SearchOutput>({ mode: 'search', prompt, filters, limit });
+  // Which phone: one phone, at most 3 accounts with free searches (lib/deviceId.ts)
+  const device = await deviceId();
+  const output = await callSearch<SearchOutput>({ mode: 'search', prompt, filters, limit, device, platform: devicePlatform() });
   // (whether the next search can go ahead: this one used the last?)
   const allowance = output.allowance && { ...output.allowance, allowed: !output.allowance.limited_by };
   return { ...output, allowance, candidates: withNames(output.candidates) };

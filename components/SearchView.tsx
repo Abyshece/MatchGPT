@@ -213,6 +213,11 @@ const SearchView: React.FC<SearchViewProps> = ({ onNavigateToMatches, onNavigate
         else void refreshAllowance();
         openUpgrade('search_limit');
         await refreshProfile();
+      } else if (e instanceof SearchError && e.code === 'ACCOUNT_LIMIT') {
+        // A second account on the same mailbox, or a 4th on this phone (account_guard())
+        setHasSearched(hadSearched);
+        showToast(e.message, 'error');
+        if (e.reason === 'shared_phone') openUpgrade('search_limit');
       } else {
         showToast(e instanceof Error ? e.message : 'Search failed', 'error');
       }

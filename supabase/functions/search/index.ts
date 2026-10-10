@@ -17,7 +17,10 @@
 //     every 5 hours, a day and a week): 429 { code: 'LIMIT_REACHED',
 //     allowance } once one is used up, saying which and when the next search
 //     can be. Unverified accounts older than 72 hours get 403
-//     { code: 'VERIFY_REQUIRED' }.
+//     { code: 'VERIFY_REQUIRED' }. A free account that is a second account on
+//     the same mailbox, or the 4th on the same phone (the app sends `device`,
+//     its app ID), gets 403 { code: 'ACCOUNT_LIMIT', reason } (account_guard(),
+//     20261010090000_account_guards.sql).
 //   POST { mode: 'standouts', refresh? }
 //     → { candidates, computed }
 //     Today's 5 picks (UTC day), chosen on the first visit and kept for the
@@ -154,6 +157,15 @@ async function search(me: Row, body: Record<string, unknown>): Promise<Response>
   const hoursSinceSignup = (Date.now() - Date.parse(String(me.account_created))) / 3_600_000;
   if (me.is_verified !== true && hoursSinceSignup >= LOCKOUT_HOURS) {
     return json({ error: 'Verify your account to keep searching.', code: 'VERIFY_REQUIRED' }, 403);
+  }
+
+  // Free searches: one mailbox, one account; at most 3 accounts a phone
+  const device = typeof body.device === 'string' ? body.device.slice(0, 200) : null;
+  const platform = typeof body.platform === 'string' ? body.platform : null;
+  const guard = await rpc('account_guard', { p_user: me.id, p_device: device, p_platform: platform }) as
+    { allowed: boolean; reason?: string; message?: string };
+  if (!guard.allowed) {
+    return json({ error: guard.message, code: 'ACCOUNT_LIMIT', reason: guard.reason }, 403);
   }
 
   const allowance = await rpc('consume_search', { p_user_id: me.id }) as SearchAllowance;

@@ -16,6 +16,7 @@ import { LEGAL_PAGES, type LegalPageName } from './lib/legalInfo';
 import { needsConsent } from './lib/consentService';
 import { belowMarriageAge } from './lib/legalAge';
 import { IconAlert, IconWave } from './constants';
+import { noteDevice } from './lib/deviceId';
 
 // Screens a first visit doesn't need load when they're shown, so the first
 // download is small; the signed-in app starts loading as soon as there's a
@@ -134,6 +135,8 @@ const AppRouter: React.FC<{
     if (!isNativeApp() || !userId) return;
     const stopToasts = onNotificationWhileOpen(({ title, body }) => showToast(title || body, 'info'));
     startNativePush(userId);
+    // Which phone this account is on (Admin → Scam alerts; lib/deviceId.ts)
+    void noteDevice();
     return () => {
       stopToasts();
       stopNativePush();

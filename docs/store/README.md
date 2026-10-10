@@ -451,7 +451,7 @@ password, and OAuth (Google; Apple on iPhones).
 | App activity → App interactions (likes, matches, last active) | Yes | No | Required | App functionality |
 | App activity → In-app search history | Yes | **Yes**\* | Optional | App functionality |
 | App activity → Other user-generated content (About me, profile answers) | Yes | No | Optional | App functionality |
-| Device or other IDs (the notification token, if notifications are on) | Yes | No | Optional | App functionality |
+| Device or other IDs (the notification token, if notifications are on; the app's ID for the phone, kept scrambled) | Yes | No | Required | App functionality, Fraud prevention, security and compliance |
 | App info and performance → Crash logs (error reports: the error and where in the code) | Yes | No | Required | App functionality |
 | App info and performance → Diagnostics (with an error: the screen, app version, phone and system) | Yes | No | Required | App functionality |
 
@@ -492,7 +492,7 @@ third-party partners use data for tracking?" **No.**
 | Purchases | Purchase History | Shaadi24+ subscriptions and payments |
 | Search History | Search History | what people type into search |
 | Identifiers | User ID | the account's ID |
-| Identifiers | Device ID | the notification token |
+| Identifiers | Device ID | the notification token, and the app's ID for the phone (kept scrambled; fraud prevention: free searches on 3 accounts a phone) |
 | Usage Data | Product Interaction | likes, matches, last active |
 | Other Data | Other Data Types | date of birth, gender, marital status, height, horoscope, family, education, job |
 | Diagnostics (Not Linked to You) | Crash Data | error reports: the error and where in the code |

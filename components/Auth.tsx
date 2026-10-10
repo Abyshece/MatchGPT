@@ -7,6 +7,8 @@ import GoogleSignInButton from './GoogleSignInButton';
 import { isNativeApp } from '../lib/nativeApp';
 import { APP_PREVIEW_PATH, isAppPreview } from '../lib/appPreview';
 
+const THROWAWAY_EMAIL = "Temporary or throwaway email addresses can't be used on Shaadi24. Please use your regular email address.";
+
 interface AuthProps {
   // Sign-up that needs the emailed code: parent shows the email-verification screen.
   onSignupInitiated: (email: string) => void;
@@ -96,6 +98,14 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
       return;
     }
     setIsLoading(true);
+    // Throwaway addresses (Mailinator, YOPmail…) can't sign up; the server
+    // refuses them too (20261010090000_account_guards.sql)
+    const { data: allowed } = await supabase.rpc('email_domain_allowed', { p_email: email.trim() });
+    if (allowed === false) {
+      setIsLoading(false);
+      setError(THROWAWAY_EMAIL);
+      return;
+    }
     // The ticked boxes travel with the new account; StepConsent records them
     // once the user is signed in (recording needs a session).
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
@@ -111,7 +121,7 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
     });
     setIsLoading(false);
     if (signUpError) {
-      setError(signUpError.message);
+      setError(/throwaway|Database error saving new user/i.test(signUpError.message) ? THROWAWAY_EMAIL : signUpError.message);
       return;
     }
 

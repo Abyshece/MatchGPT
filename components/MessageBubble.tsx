@@ -1,7 +1,8 @@
 import React from 'react';
 import DateProposalCard from './DateProposalCard';
-import { IconCheck, IconUser } from '../constants';
+import { IconAlert, IconCheck, IconUser } from '../constants';
 import type { Message } from '../lib/chatService';
+import { looksLikeMoneyAsk } from '../lib/scamWarning';
 
 // ============================================================================
 // MessageBubble
@@ -11,6 +12,9 @@ import type { Message } from '../lib/chatService';
 //
 // Read receipts respect both parties' settings — caller passes `showReceipts`
 // false if either side has them disabled.
+//
+// A message from the other person that asks for money or payment details gets
+// a safety note under it, with Report (lib/scamWarning.ts).
 // ============================================================================
 
 interface MessageBubbleProps {
@@ -21,6 +25,7 @@ interface MessageBubbleProps {
   otherPhoto?: string;
   onAcceptDate?: (msgId: string) => void;
   onDeclineDate?: (msgId: string) => void;
+  onReport?: () => void;
 }
 
 const formatTime = (iso: string): string => {
@@ -30,7 +35,7 @@ const formatTime = (iso: string): string => {
 
 const MessageBubble: React.FC<MessageBubbleProps> = ({
   message, isMine, showReceipts, showAvatar, otherPhoto,
-  onAcceptDate, onDeclineDate,
+  onAcceptDate, onDeclineDate, onReport,
 }) => {
   const isDateProposal = message.messageType === 'date_proposal';
 
@@ -83,6 +88,19 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
         >
           {message.content}
         </div>
+
+        {!isMine && looksLikeMoneyAsk(message.content) && (
+          <div role="note" data-testid="scam-warning"
+            className="mt-1 flex items-start gap-2 rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/30 px-3 py-2 text-xs text-amber-900 dark:text-amber-200">
+            <span aria-hidden="true" className="flex-none mt-px [&>svg]:w-4 [&>svg]:h-4"><IconAlert /></span>
+            <span className="min-w-0">
+              Never send money or share bank, UPI or card details with someone you haven't met. Shaadi24 never asks for them.
+              {onReport && (
+                <> <button type="button" onClick={onReport} className="font-semibold underline underline-offset-2">Report</button></>
+              )}
+            </span>
+          </div>
+        )}
 
         {/* Timestamp + read receipt */}
         <div className={`text-[10px] mt-0.5 px-1 flex items-center gap-1 ${
