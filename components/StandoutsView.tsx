@@ -9,6 +9,7 @@ import MatchCelebrationModal from './MatchCelebrationModal';
 import { IconStar, IconZap, IconClock } from '../constants';
 import type { MatchCandidate } from '../types';
 import { firstCelebration } from '../lib/matchCelebration';
+import { usePassProfile } from '../lib/usePassProfile';
 
 // ============================================================================
 // StandoutsView
@@ -27,6 +28,7 @@ interface StandoutsViewProps {
 const StandoutsView: React.FC<StandoutsViewProps> = ({ onNavigateToMatches }) => {
   const { profile, session, hasPro } = useAuth();
   const { showToast } = useToast();
+  const pass = usePassProfile();
 
   const [candidates, setCandidates] = useState<MatchCandidate[]>([]);
   // Today's picks were chosen and have all been liked since (when none are left)
@@ -73,6 +75,15 @@ const StandoutsView: React.FC<StandoutsViewProps> = ({ onNavigateToMatches }) =>
   const dropPick = (id: string) => {
     setCandidates((prev) => prev.filter((c) => c.id !== id));
     setAllLiked(true);  // shown only once none are left
+  };
+  // The X, or "Not interested": gone for good (Undo puts the pick back)
+  const hidePick = (id: string) => {
+    const at = candidates.findIndex((c) => c.id === id);
+    const candidate = candidates[at];
+    dropPick(id);
+    if (candidate) {
+      pass(candidate, () => setCandidates((prev) => (prev.some((c) => c.id === id) ? prev : [...prev.slice(0, at), candidate, ...prev.slice(at)])));
+    }
   };
 
   const handleManualRefresh = async () => {
@@ -145,7 +156,7 @@ const StandoutsView: React.FC<StandoutsViewProps> = ({ onNavigateToMatches }) =>
             <div className="mb-4 flex justify-center text-gray-300 dark:text-zinc-600 [&>svg]:w-12 [&>svg]:h-12" aria-hidden="true"><IconStar /></div>
             {allLiked ? (
               <>
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">You've liked all of today's picks</h3>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">You've seen all of today's picks</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">
                   New Standouts come tomorrow. The people you sent an interest to are in Search History → Interests sent.
                 </p>
@@ -173,6 +184,7 @@ const StandoutsView: React.FC<StandoutsViewProps> = ({ onNavigateToMatches }) =>
                   onClick={() => setSelectedCandidate(candidates[0])}
                   onMatched={handleMatched}
                   onLiked={() => dropPick(candidates[0].id)}
+                  onReject={hidePick}
                   onLimitReached={() => setShowUpgradeModal(true)}
                 />
               </div>
@@ -190,6 +202,7 @@ const StandoutsView: React.FC<StandoutsViewProps> = ({ onNavigateToMatches }) =>
                       onClick={() => setSelectedCandidate(c)}
                       onMatched={handleMatched}
                       onLiked={() => dropPick(c.id)}
+                      onReject={hidePick}
                       onLimitReached={() => setShowUpgradeModal(true)}
                     />
                   ))}
@@ -214,6 +227,7 @@ const StandoutsView: React.FC<StandoutsViewProps> = ({ onNavigateToMatches }) =>
           onUpgrade={() => { setSelectedCandidate(null); setShowUpgradeModal(true); }}
           onMatched={handleMatched}
           onLiked={dropPick}
+          onHidden={hidePick}
         />
       )}
 

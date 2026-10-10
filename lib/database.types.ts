@@ -158,7 +158,10 @@ export type Database = {
       app_settings: {
         Row: {
           free_accounts_per_phone: number
+          free_like_reveals_per_day: number
           id: boolean
+          inactive_hide_days: number
+          interest_expiry_days: number
           pro_for_all: boolean
           require_admin_two_step: boolean
           review_before_showing: boolean
@@ -169,7 +172,10 @@ export type Database = {
         }
         Insert: {
           free_accounts_per_phone?: number
+          free_like_reveals_per_day?: number
           id?: boolean
+          inactive_hide_days?: number
+          interest_expiry_days?: number
           pro_for_all?: boolean
           require_admin_two_step?: boolean
           review_before_showing?: boolean
@@ -180,7 +186,10 @@ export type Database = {
         }
         Update: {
           free_accounts_per_phone?: number
+          free_like_reveals_per_day?: number
           id?: boolean
+          inactive_hide_days?: number
+          interest_expiry_days?: number
           pro_for_all?: boolean
           require_admin_two_step?: boolean
           review_before_showing?: boolean
@@ -1320,6 +1329,39 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      passed_profiles: {
+        Row: {
+          created_at: string
+          passed_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          passed_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          passed_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "passed_profiles_passed_id_fkey"
+            columns: ["passed_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "passed_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payments: {
         Row: {
@@ -3225,6 +3267,8 @@ export type Database = {
       unmatch: { Args: { p_match_id: string }; Returns: undefined }
       // From 20261004094100_phase13_phone_notifications_signout.sql (not yet on the live database)
       interest_status: { Args: { p_liked: string }; Returns: string }
+      found_my_match: { Args: { p_both_agree?: boolean; p_partner?: string; p_story?: string }; Returns: Json }
+      my_passed_profiles: { Args: never; Returns: Json }
       like_reveal_status: { Args: never; Returns: Json }
       reveal_like: { Args: { p_like_id: string }; Returns: Json }
       unregister_push_device: { Args: { p_token: string }; Returns: undefined }

@@ -38,6 +38,24 @@ export interface LikeResult {
 }
 
 // ----------------------------------------------------------------------------
+// Interests expire: one nobody answered in app_settings.interest_expiry_days
+// (14; a Super Interest twice as long) no longer counts (interest_active() in
+// the database). The member can then send another.
+// ----------------------------------------------------------------------------
+
+let expiryDays: Promise<number> | null = null;
+export function interestExpiryDays(): Promise<number> {
+  expiryDays ??= Promise.resolve(supabase.from('app_settings').select('interest_expiry_days').maybeSingle())
+    .then(({ data }) => data?.interest_expiry_days ?? 14, () => 14);
+  return expiryDays;
+}
+
+/** Whether an interest sent at `sentAt` has expired (nobody answered in time) */
+export function interestExpired(sentAt: string, isSuperLike: boolean, days: number, now = Date.now()): boolean {
+  return now - Date.parse(sentAt) > days * (isSuperLike ? 2 : 1) * 86_400_000;
+}
+
+// ----------------------------------------------------------------------------
 // likeUser — insert into likes, check if it caused a match
 // ----------------------------------------------------------------------------
 
@@ -60,8 +78,15 @@ export async function likeUser(
     });
 
   if (insertError) {
-    // unique violation = already liked
+    // unique violation = already liked: an interest that expired is replaced
+    // by this one; one that still counts is left as it is
     if (insertError.code === '23505') {
+      const { data: old } = await supabase.from('likes').select('created_at, is_super_like')
+        .eq('liker_id', likerId).eq('liked_id', likedId).maybeSingle();
+      if (old && interestExpired(old.created_at, old.is_super_like, await interestExpiryDays())) {
+        await supabase.from('likes').delete().eq('liker_id', likerId).eq('liked_id', likedId);
+        return likeUser(likerId, likedId, isSuperLike, note);
+      }
       return { success: false, matched: false, error: 'Already liked this user' };
     }
     return { success: false, matched: false, error: insertError.message, code: insertError.hint || undefined };
@@ -83,23 +108,6 @@ export async function likeUser(
     return { success: true, matched: true, matchId: matchData.id };
   }
   return { success: true, matched: false };
-}
-
-// ----------------------------------------------------------------------------
-// unlikeUser — remove a previous like (e.g. user wants to undo)
-// ----------------------------------------------------------------------------
-
-export async function unlikeUser(
-  likerId: string,
-  likedId: string
-): Promise<{ error: string | null }> {
-  const { error } = await supabase
-    .from('likes')
-    .delete()
-    .eq('liker_id', likerId)
-    .eq('liked_id', likedId);
-  if (error) return { error: error.message };
-  return { error: null };
 }
 
 // ----------------------------------------------------------------------------
@@ -164,11 +172,12 @@ export async function hasLiked(
 ): Promise<boolean> {
   const { data } = await supabase
     .from('likes')
-    .select('id')
+    .select('created_at, is_super_like')
     .eq('liker_id', likerId)
     .eq('liked_id', likedId)
     .maybeSingle();
-  return !!data;
+  // One nobody answered in time has expired: they can be sent another
+  return !!data && !interestExpired(data.created_at, data.is_super_like, await interestExpiryDays());
 }
 
 // ----------------------------------------------------------------------------
@@ -196,6 +205,7 @@ export interface MyLikeEntry {
   likedAt: string;     // ISO timestamp
   isSuperLike: boolean;
   matched: boolean;    // it became a match (it can't be withdrawn then)
+  expired: boolean;    // nobody answered in time: it no longer counts
   candidate: MatchCandidate;
 }
 
@@ -208,6 +218,7 @@ export async function listMyLikesDetailed(
     .select('id, liked_id, is_super_like, created_at')
     .eq('liker_id', likerId)
     .order('created_at', { ascending: false });
+  const days = await interestExpiryDays();
   if (likeErr) return { entries: [], error: likeErr.message };
   if (!likeRows || likeRows.length === 0) return { entries: [], error: null };
 
@@ -236,6 +247,7 @@ export async function listMyLikesDetailed(
         likedAt: row.created_at as string,
         isSuperLike: row.is_super_like as boolean,
         matched: matchedIds.has(row.liked_id as string),
+        expired: !matchedIds.has(row.liked_id as string) && interestExpired(row.created_at as string, row.is_super_like as boolean, days),
         candidate: {
           id: p.id,
           name: displayName(p.name),

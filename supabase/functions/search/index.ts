@@ -24,7 +24,12 @@
 //   POST { mode: 'standouts', refresh? }
 //     → { candidates, computed }
 //     Today's 5 picks (UTC day), chosen on the first visit and kept for the
-//     day; refresh (Shaadi24+) picks again.
+//     day; refresh (Shaadi24+) picks again. Nobody picked in the last 30
+//     days is picked again while there are others to pick.
+//
+// Both leave out people the member passed on and people who haven't opened
+// the app in 60 days (search_candidates()), and mark who is new and who
+// usually replies (matching.ts).
 //
 // Shaadi24+ follows the database's one rule, has_pro(): a subscriber, or
 // everyone while "Shaadi24+ for everyone" is on. Without it, the Shaadi24+
@@ -49,6 +54,7 @@ const GEMINI_API_BASE = Deno.env.get('GEMINI_API_BASE') || undefined;  // only f
 
 const MAX_RESULTS = 50;
 const STANDOUTS_PER_DAY = 5;
+const STANDOUTS_REPEAT_DAYS = 30;  // someone picked isn't picked again for this long
 const LOCKOUT_HOURS = 72;        // unverified accounts can search for 3 days
 const PLAN_VERSION = 4;          // bump when ai.ts's instructions change, so old plans aren't reused
 const PLAN_CACHE_DAYS = 30;
@@ -220,9 +226,19 @@ async function standouts(me: Row, body: Record<string, unknown>): Promise<Respon
     return json({ candidates: pro ? candidates : withoutReport(candidates), computed: false });
   }
 
-  // First visit today: the most compatible people the user hasn't liked yet
+  // First visit today: the most compatible people the user hasn't liked yet,
+  // and hasn't been shown as a Standout in the last 30 days (they fill in
+  // only when there aren't enough others)
   const pool = await rpc('search_candidates', { p_user_id: me.id, p_exclude_liked: true }) as Row[];
-  const { candidates } = rankCandidates(me, pool, '', {}, STANDOUTS_PER_DAY);
+  const since = new Date(Date.now() - STANDOUTS_REPEAT_DAYS * 86_400_000).toISOString().slice(0, 10);
+  const shownBefore = new Set((await rest(
+    `standouts?user_id=eq.${me.id}&for_date=gte.${since}&for_date=lt.${today}&select=candidate_id`,
+  ) as { candidate_id: string }[]).map((s) => s.candidate_id));
+  const fresh = rankCandidates(me, pool.filter((r) => !shownBefore.has(r.id)), '', {}, STANDOUTS_PER_DAY).candidates;
+  const again = fresh.length < STANDOUTS_PER_DAY
+    ? rankCandidates(me, pool.filter((r) => shownBefore.has(r.id)), '', {}, STANDOUTS_PER_DAY - fresh.length).candidates
+    : [];
+  const candidates = [...fresh, ...again];
   if (candidates.length > 0) {
     await rest('standouts?on_conflict=user_id,candidate_id,for_date', {
       method: 'POST',

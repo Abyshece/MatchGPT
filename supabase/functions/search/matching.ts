@@ -85,6 +85,8 @@ export interface MatchCandidate {
   isPremium: boolean;
   subscriptionTier: 'FREE' | 'PRO';
   hiddenFields: string[];
+  isNew?: boolean;           // joined in the last NEW_FOR_DAYS days
+  repliesUsually?: boolean;  // answers most people who write to them (member_stats)
   [detail: string]: unknown;
 }
 
@@ -1370,12 +1372,17 @@ function toCandidate(row: Row, c: Profile, me: Profile, parsed: ParsedPrompt, no
     isPremium: tier === 'PRO',
     subscriptionTier: tier,
     hiddenFields: (row.hidden_fields as string[] | null) ?? [],
+    isNew: !!row.account_created && now - Date.parse(String(row.account_created)) < NEW_FOR_DAYS * 86_400_000,
+    repliesUsually: row.replies_usually === true,
   };
   for (const field of SHOWN_FIELDS) {
     if (c[field] !== undefined) candidate[field] = c[field];
   }
   return candidate;
 }
+
+// "New" on the cards of people who joined in the last week
+export const NEW_FOR_DAYS = 7;
 
 // Spotlight (bought by the member, 24 hours): up to this many people in
 // Spotlight go first, marked, when they live near the searcher, passed every

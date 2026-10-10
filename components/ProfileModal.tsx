@@ -4,7 +4,7 @@ import LikeButton from './LikeButton';
 import { SuperInterestButton } from './SuperInterestSheet';
 import BlockReportModal from './BlockReportModal';
 import {
-  IconX, IconCheck, IconChevronLeft, IconChevronRight, IconUser, IconFlag, IconBan, IconMore, IconMapPin,
+  IconX, IconCheck, IconChevronLeft, IconChevronRight, IconUser, IconFlag, IconBan, IconMore, IconMapPin, IconEyeOff,
 } from '../constants';
 import { SECT_LABEL, formatBirthTime, formatChildren, formatSiblings, profileManagedBy } from '../lib/profileDisplay';
 import { isNativeApp } from '../lib/nativeApp';
@@ -16,7 +16,9 @@ import type { MatchCandidate } from '../types';
 // Two-column grid: photo+thumbnails on left, scrollable content on right.
 // Sticky footer with social links + a wide pill Like button.
 // A like closes it: the profile bursts into sparkles (as the cards do), and
-// onLiked tells the list behind it to drop the person.
+// onLiked tells the list behind it to drop the person. Where onHidden is
+// given (search, Standouts), ⋯ → Not interested asks the list behind to hide
+// the person for good (lib/usePassProfile.ts).
 // ============================================================================
 
 interface ProfileModalProps {
@@ -26,6 +28,7 @@ interface ProfileModalProps {
   onUpgrade: () => void;
   onMatched?: (matchId: string, candidate: MatchCandidate) => void;
   onLiked?: (id: string) => void;  // liked here: the list drops them (the profile closes itself)
+  onHidden?: (id: string) => void; // "Not interested" here: the list drops them, for good
   showLikeButton?: boolean;
 }
 
@@ -59,7 +62,7 @@ const Section: React.FC<{
 };
 
 const ProfileModal: React.FC<ProfileModalProps> = ({
-  candidate, isPro, onClose, onUpgrade, onMatched, onLiked, showLikeButton = true,
+  candidate, isPro, onClose, onUpgrade, onMatched, onLiked, onHidden, showLikeButton = true,
 }) => {
   const [photoIdx, setPhotoIdx] = useState(0);
   const [leaving, setLeaving] = useState(false);
@@ -145,6 +148,15 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                     className="absolute top-12 right-0 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg shadow-2xl overflow-hidden min-w-[160px] py-1 z-30"
                     onClick={(e) => e.stopPropagation()}
                   >
+                    {onHidden && (
+                      <button
+                        onClick={() => { setShowOverflowMenu(false); onClose(); onHidden(candidate.id); }}
+                        data-testid="not-interested"
+                        className="w-full px-3 py-2.5 text-sm text-left text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2"
+                      >
+                        <span className="flex-none w-4 h-4 [&>svg]:w-4 [&>svg]:h-4" aria-hidden="true"><IconEyeOff /></span> Not interested
+                      </button>
+                    )}
                     <button
                       onClick={() => { setShowOverflowMenu(false); setShowBlockReport('report'); }}
                       className="w-full px-3 py-2.5 text-sm text-left text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center gap-2"

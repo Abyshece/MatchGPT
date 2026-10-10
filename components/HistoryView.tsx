@@ -4,7 +4,7 @@ import { useNow } from '../lib/useNow';
 import { useToast } from '../lib/useToast';
 import { loadHistory, deleteSearch, clearHistory } from '../lib/searchHistoryService';
 import { useSearchAllowance } from '../lib/searchLimits';
-import { listMyLikesDetailed, withdrawInterest } from '../lib/likesService';
+import { listMyLikesDetailed, withdrawInterest, likeUser } from '../lib/likesService';
 import MatchCard from './MatchCard';
 import ProfileModal from './ProfileModal';
 import UpgradeModal from './UpgradeModal';
@@ -19,7 +19,8 @@ import type { MatchCandidate } from '../types';
 // Two tabs:
 //   - Searches: past search prompts the user can click to re-run
 //   - Liked: every interest the user has sent, with Today/Week/All filter;
-//     one that hasn't become a match can be withdrawn
+//     one that hasn't become a match can be withdrawn, and one nobody
+//     answered in 14 days has expired and can be sent again
 // ============================================================================
 
 type HistoryTab = 'searches' | 'liked';
@@ -101,6 +102,19 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
     }
     setLiked((prev) => prev.filter((e) => e.likeId !== entry.likeId));
     showToast(`Interest in ${entry.candidate.name} withdrawn`, 'success');
+  };
+
+  // An interest nobody answered in time: send another
+  const handleSendAgain = async (entry: MyLikeEntry) => {
+    if (!session?.user.id) return;
+    const out = await likeUser(session.user.id, entry.candidate.id);
+    if (!out.success) {
+      showToast(out.error ?? "Couldn't send it", 'error');
+      return;
+    }
+    setLiked((prev) => prev.map((e) => (e.likeId === entry.likeId
+      ? { ...e, expired: false, matched: out.matched, likedAt: new Date().toISOString() } : e)));
+    showToast(out.matched ? `It's a match with ${entry.candidate.name}!` : `Interest sent to ${entry.candidate.name} again`, 'success');
   };
 
   const handleRerun = useCallback((saved: SavedSearch) => {
@@ -259,6 +273,17 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
                       <p className="text-xs font-semibold text-center text-green-700 dark:text-green-400 py-1.5">
                         Matched: say hello in Messages
                       </p>
+                    ) : entry.expired ? (
+                      <div className="text-center" data-testid="expired-interest">
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400">No reply in time: this interest has expired.</p>
+                        <button
+                          type="button"
+                          onClick={() => handleSendAgain(entry)}
+                          className="mt-1 w-full text-xs font-semibold py-1.5 rounded-lg border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-zinc-800"
+                        >
+                          Send again
+                        </button>
+                      </div>
                     ) : (
                       <button
                         type="button"

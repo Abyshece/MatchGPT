@@ -6,6 +6,8 @@ import { updateSettings, setPauseStatus } from '../lib/profileService';
 import { deleteAccount } from '../lib/deleteAccountService';
 import PushNotifSetup from './PushNotifSetup';
 import BlockedPeopleList from './BlockedPeopleList';
+import HiddenProfilesList from './HiddenProfilesList';
+import FoundMatchModal from './FoundMatchModal';
 import SubscriptionSettings from './SubscriptionSettings';
 import { getMySubscription, type Subscription } from '../lib/billingService';
 import { manageStoreSubscription, storeManageHint, storePlatform } from '../lib/storePurchases';
@@ -86,6 +88,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
   // A subscription that would keep renewing: what deleting does to it
   const [renewing, setRenewing] = useState<Subscription | null>(null);
   const [downloading, setDownloading] = useState(false);
+  const [foundMatch, setFoundMatch] = useState(false);   // the "I found my match" sheet
 
   if (!settings || !profile) {
     return <div className="p-12 text-center text-gray-500 dark:text-gray-400">Loading…</div>;
@@ -200,6 +203,19 @@ const SettingsView: React.FC<SettingsViewProps> = ({
               checked={profileRow?.is_paused ?? false}
               onChange={togglePause}
             />
+            {!profileRow?.is_paused && (
+              <button
+                onClick={() => setFoundMatch(true)}
+                data-testid="found-my-match"
+                className="w-full flex items-center justify-between py-3 px-2 rounded text-left hover:bg-gray-50 dark:hover:bg-zinc-800/30 transition-colors"
+              >
+                <span className="flex-1 pr-4">
+                  <span className="block text-sm font-medium text-gray-900 dark:text-white">I found my match</span>
+                  <span className="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">Congratulations! Hide your profile from everyone, and tell us your story if you like.</span>
+                </span>
+                <IconChevronRight />
+              </button>
+            )}
             <SettingsToggle label="Incognito Mode" description="Only show my profile to people I've liked." checked={settings.incognito} onChange={(v) => updateOne('incognito', v)} />
             <SettingsToggle label="Active Status" description="Show when you are online." checked={settings.showOnline} onChange={(v) => updateOne('showOnline', v)} />
             <SettingsToggle label="Show me to members' families" description="Members can show your profile, as other members see it, to their family in Family Circle." checked={settings.familyCanView} onChange={(v) => updateOne('familyCanView', v)} />
@@ -220,6 +236,21 @@ const SettingsView: React.FC<SettingsViewProps> = ({
           <InfoSection title="Blocked people">
             {session && <BlockedPeopleList userId={session.user.id} />}
           </InfoSection>
+
+          <InfoSection title="Hidden profiles">
+            {session && <HiddenProfilesList userId={session.user.id} />}
+          </InfoSection>
+
+          {foundMatch && (
+            <FoundMatchModal
+              onCancel={() => setFoundMatch(false)}
+              onDone={async () => {
+                setFoundMatch(false);
+                await refreshProfile();
+                showToast('Congratulations! Your profile is hidden now.', 'success');
+              }}
+            />
+          )}
 
           <InfoSection title="Notifications">
             <PushNotifSetup />
