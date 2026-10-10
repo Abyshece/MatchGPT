@@ -103,9 +103,10 @@ export async function unlikeUser(
 }
 
 // ----------------------------------------------------------------------------
-// withdrawInterest — take back an interest that hasn't become a match
-// (withdraw_interest() in the database). Taken back within a minute (Undo),
-// it doesn't use up one of the day's likes or a bought Super Interest.
+// withdrawInterest — take back an interest that hasn't become a match.
+// interest_status() in the database says whether it can be; the member then
+// deletes their own interest. Taken back within a minute (Undo), the database
+// gives back the day's like or a bought Super Interest (refund_undone_interest()).
 // ----------------------------------------------------------------------------
 
 export interface WithdrawResult {
@@ -115,13 +116,21 @@ export interface WithdrawResult {
   error: string | null;
 }
 
-export async function withdrawInterest(likedId: string): Promise<WithdrawResult> {
-  const { data, error } = await supabase.rpc('withdraw_interest', { p_liked: likedId });
+export async function withdrawInterest(likerId: string, likedId: string): Promise<WithdrawResult> {
+  const { data: status, error: statusError } = await supabase.rpc('interest_status', { p_liked: likedId });
+  if (statusError) return { withdrawn: false, refunded: false, reason: 'error', error: statusError.message };
+  if (status !== 'open') {
+    return { withdrawn: false, refunded: false, reason: status === 'matched' ? 'matched' : 'not_found', error: null };
+  }
+  const { data: gone, error } = await supabase
+    .from('likes')
+    .delete()
+    .eq('liker_id', likerId)
+    .eq('liked_id', likedId)
+    .select('created_at');
   if (error) return { withdrawn: false, refunded: false, reason: 'error', error: error.message };
-  const out = data as { withdrawn: boolean; refunded?: boolean; reason?: 'matched' | 'not_found' };
-  return out.withdrawn
-    ? { withdrawn: true, refunded: !!out.refunded, reason: null, error: null }
-    : { withdrawn: false, refunded: false, reason: out.reason ?? 'not_found', error: null };
+  if (!gone?.length) return { withdrawn: false, refunded: false, reason: 'not_found', error: null };
+  return { withdrawn: true, refunded: Date.now() - Date.parse(gone[0].created_at) < 60_000, reason: null, error: null };
 }
 
 // ----------------------------------------------------------------------------

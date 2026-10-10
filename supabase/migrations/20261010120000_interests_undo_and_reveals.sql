@@ -2,9 +2,10 @@
 -- Fixes for what members of other matrimony apps complain about most
 -- (research in docs/research/competitor-reviews.md), part 1:
 --
--- 1. withdraw_interest(): take back an interest that hasn't become a match.
---    Undone within a minute (the Undo after sending), it doesn't count toward
---    the day's 15 free likes, and a bought Super Interest comes back.
+-- 1. Taking back an interest that hasn't become a match (interest_status(),
+--    then the member's own delete). Undone within a minute (the Undo after
+--    sending), it doesn't count toward the day's 15 free likes, and a bought
+--    Super Interest comes back (refund_undone_interest()).
 -- 2. One free "Likes You" a day: a member without Shaadi24+ can see who one of
 --    the people who liked them is, once a day (India time). The rest stay
 --    hidden until Shaadi24+, as before. reveal_like() and like_reveal_status();
@@ -14,51 +15,69 @@
 -- ============================================================================
 
 -- ---- 1. Taking back an interest -----------------------------------------------------------------
+--
+-- A member deletes their own interest, as they always could (the "users
+-- delete own likes" rule on likes); the app asks interest_status() first, so
+-- a match isn't taken back by mistake. Taken back within a minute, the
+-- trigger below gives back what it used.
 
-create or replace function public.withdraw_interest(p_liked uuid)
-returns jsonb
+-- Whether an interest can be taken back: 'open', 'matched' or 'not_found'
+create or replace function public.interest_status(p_liked uuid)
+returns text
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select case
+    when not exists (select 1 from public.likes where liker_id = auth.uid() and liked_id = p_liked) then 'not_found'
+    when exists (
+      select 1 from public.matches m
+      where m.unmatched_at is null
+        and ((m.user_a_id = auth.uid() and m.user_b_id = p_liked) or (m.user_a_id = p_liked and m.user_b_id = auth.uid()))
+    ) then 'matched'
+    else 'open'
+  end;
+$$;
+revoke all on function public.interest_status(uuid) from public, anon;
+grant execute on function public.interest_status(uuid) to authenticated;
+
+-- Undone straight away (sent by mistake): it doesn't use up the day's like,
+-- or a bought Super Interest. Only when its sender takes it back themselves
+-- (not when an account is deleted), and not once it's a match.
+create or replace function public.refund_undone_interest()
+returns trigger
 language plpgsql
 security definer
 set search_path = public
 as $$
-declare
-  v_me uuid := auth.uid();
-  v_like public.likes%rowtype;
-  v_undo boolean;
 begin
-  if v_me is null then
-    raise exception 'Please sign in again.' using errcode = '42501';
+  if pg_trigger_depth() > 1 or auth.uid() is distinct from old.liker_id
+     or old.created_at <= now() - interval '1 minute' then
+    return old;
   end if;
-  select * into v_like from public.likes where liker_id = v_me and liked_id = p_liked;
-  if not found then
-    return jsonb_build_object('withdrawn', false, 'reason', 'not_found');
-  end if;
-  -- A match stays a match: unmatching is done from the chat
   if exists (
     select 1 from public.matches m
     where m.unmatched_at is null
-      and ((m.user_a_id = v_me and m.user_b_id = p_liked) or (m.user_a_id = p_liked and m.user_b_id = v_me))
+      and ((m.user_a_id = old.liker_id and m.user_b_id = old.liked_id) or (m.user_a_id = old.liked_id and m.user_b_id = old.liker_id))
   ) then
-    return jsonb_build_object('withdrawn', false, 'reason', 'matched');
+    return old;
   end if;
-
-  delete from public.likes where id = v_like.id;
-
-  -- Undone straight away (sent by mistake): it doesn't use up anything
-  v_undo := v_like.created_at > now() - interval '1 minute';
-  if v_undo and not v_like.is_super_like then
+  if not old.is_super_like then
     update public.profiles
        set daily_like_count = greatest(daily_like_count - 1, 0)
-     where id = v_me and last_like_date = current_date and daily_like_count > 0;
-  elsif v_undo and v_like.super_source = 'credit' then
-    insert into public.member_credits (user_id, kind, balance) values (v_me, 'super_interest', 1)
+     where id = old.liker_id and last_like_date = current_date and daily_like_count > 0;
+  elsif old.super_source = 'credit' then
+    insert into public.member_credits (user_id, kind, balance) values (old.liker_id, 'super_interest', 1)
     on conflict (user_id, kind) do update set balance = public.member_credits.balance + 1, updated_at = now();
   end if;
-  return jsonb_build_object('withdrawn', true, 'refunded', v_undo);
+  return old;
 end;
 $$;
-revoke all on function public.withdraw_interest(uuid) from public, anon;
-grant execute on function public.withdraw_interest(uuid) to authenticated;
+revoke all on function public.refund_undone_interest() from public, anon, authenticated;
+create or replace trigger likes_refund_undone
+  after delete on public.likes
+  for each row execute function public.refund_undone_interest();
 
 -- ---- 2. One free "Likes You" a day ----------------------------------------------------------
 

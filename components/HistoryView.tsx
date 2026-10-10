@@ -88,7 +88,8 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
   // Take back an interest that hasn't become a match
   const handleWithdraw = async (entry: MyLikeEntry) => {
     if (!window.confirm(`Withdraw your interest in ${entry.candidate.name}? They won't be told.`)) return;
-    const out = await withdrawInterest(entry.candidate.id);
+    if (!session?.user.id) return;
+    const out = await withdrawInterest(session.user.id, entry.candidate.id);
     if (!out.withdrawn) {
       if (out.reason === 'matched') {
         setLiked((prev) => prev.map((e) => (e.likeId === entry.likeId ? { ...e, matched: true } : e)));

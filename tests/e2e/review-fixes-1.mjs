@@ -5,8 +5,9 @@
 //   1. Chat notes: "digital arrest" and money talk under every such message,
 //      moving to WhatsApp or a video call under the first only; "digital
 //      arrest" also raises Admin → Scam alerts (money_talk)
-//   2. Taking back an interest: withdraw_interest() refuses a match; undone
-//      within a minute it gives back the day's like, later it doesn't
+//   2. Taking back an interest: interest_status() says a match can't be;
+//      the member's own delete, within a minute, gives back the day's like
+//      (refund_undone_interest()), later it doesn't; nobody else can delete it
 //   3. Undo on the "Interest sent" toast, in the app
 //   4. Search History → Interests sent: Withdraw, and "Matched" for a match
 //   5. One free "Likes You" a day (Shaadi24+ for everyone switched off): the
@@ -54,6 +55,13 @@ const rpc = async (fn, args, jwt) => {
   });
   return r.json().catch(() => null);
 };
+// The app's way of taking an interest back (lib/likesService.ts withdrawInterest)
+const unlike = async (jwt, liker, liked) => {
+  const r = await fetch(`${API}/rest/v1/likes?liker_id=eq.${liker}&liked_id=eq.${liked}`, {
+    method: 'DELETE', headers: { apikey: ANON, Authorization: `Bearer ${jwt}`, Prefer: 'return=representation' },
+  });
+  return (await r.json().catch(() => [])).length;
+};
 const like = async (jwt, liker, liked) => {
   const r = await fetch(`${API}/rest/v1/likes`, {
     method: 'POST', headers: { apikey: ANON, Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
@@ -89,7 +97,7 @@ const cleanup = () => {
        delete from likes where (liker_id = '${A}' and liked_id in ('${B}', '${X.id}', '${Y.id}'))
                             or (liked_id = '${A}' and liker_id in ('${X.id}', '${Y.id}'));
        delete from like_reveals where user_id = '${A}';
-       update app_settings set pro_for_all = ${proForAll === 't'};
+       update app_settings set pro_for_all = ${['t', 'true'].includes(proForAll)};
        update profiles set subscription_tier = '${tierA}', daily_like_count = ${likesA}
          ${likeDateA ? `, last_like_date = '${likeDateA}'` : ''} where id = '${A}';`);
 };
@@ -142,29 +150,32 @@ try {
   await chat.close();
 
   log('== 2. Taking back an interest');
-  check((await rpc('withdraw_interest', { p_liked: B }, jwt))?.reason === 'not_found', 'nothing to take back yet');
+  check(await rpc('interest_status', { p_liked: B }, jwt) === 'not_found', 'nothing to take back yet');
   await like(jwt, A, B);
-  check((await rpc('withdraw_interest', { p_liked: B }, jwt))?.reason === 'matched', 'a match stays a match');
-  check(sql(`select count(*) from likes where liker_id = '${A}' and liked_id = '${B}';`) === '1', 'the interest in a match stays');
+  check(await rpc('interest_status', { p_liked: B }, jwt) === 'matched', 'a match stays a match');
   const used = () => Number(sql(`select daily_like_count from profiles where id = '${A}';`));
   const start = used();
   await like(jwt, A, X.id);
   check(used() === start + 1, `the like counts toward the day (${start} → ${start + 1})`);
-  const undone = await rpc('withdraw_interest', { p_liked: X.id }, jwt);
-  check(undone?.withdrawn === true && undone?.refunded === true, 'taken back straight away: withdrawn, nothing used up');
+  check(await rpc('interest_status', { p_liked: X.id }, jwt) === 'open', 'an interest that isn\'t a match can be taken back');
+  check(await unlike(jwt, A, X.id) === 1, 'taken back straight away');
   check(used() === start, `the day's like is given back (${start})`);
   await like(jwt, A, X.id);
   sql(`update likes set created_at = now() - interval '5 minutes' where liker_id = '${A}' and liked_id = '${X.id}';`);
-  const later = await rpc('withdraw_interest', { p_liked: X.id }, jwt);
-  check(later?.withdrawn === true && later?.refunded === false, 'taken back later: withdrawn, the like stays used');
+  check(await unlike(jwt, A, X.id) === 1, 'taken back later');
   check(used() === start + 1, `the day's count stays at ${start + 1}`);
   const other = await token(EMAIL_B);
-  check((await rpc('withdraw_interest', { p_liked: X.id }, other))?.reason === 'not_found', "nobody can take back someone else's interest");
+  await like(jwt, A, X.id);
+  check(await unlike(other, A, X.id) === 0 && sql(`select count(*) from likes where liker_id = '${A}' and liked_id = '${X.id}';`) === '1',
+    "nobody can take back someone else's interest");
+  sql(`update likes set created_at = now() - interval '5 minutes' where liker_id = '${A}' and liked_id = '${X.id}';`);
+  await unlike(jwt, A, X.id);
 
   log('== 3. Undo on the "Interest sent" toast');
   const app = await newContext();
   const pa = await signIn(app);
   // From a profile opened from the search results
+  const beforeUndo = used();
   await pa.getByRole('button', { name: /Find Match/ }).first().click();
   await pa.getByTestId('find-match-box').fill(Y.name);
   await pa.getByRole('button', { name: 'Search', exact: true }).click();
@@ -180,7 +191,7 @@ try {
     await pa.getByRole('button', { name: 'Undo', exact: true }).click();
     check(await appears(pa.getByText(`Interest to ${Y.name} taken back`)), 'Undo takes it back');
     check(sql(`select count(*) from likes where liker_id = '${A}' and liked_id = '${Y.id}';`) === '0', 'the interest is gone');
-    check(used() === start + 1, "and it didn't use up a like");
+    check(used() === beforeUndo, `and it didn't use up a like (${used()})`);
     await pa.keyboard.press('Escape');
   } else {
     check(false, `the search finds ${Y.name}`);

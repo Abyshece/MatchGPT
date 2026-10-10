@@ -102,7 +102,7 @@ const LikeButton: React.FC<LikeButtonProps> = ({
         action: {
           label: 'Undo',
           onClick: async () => {
-            const out = await withdrawInterest(candidate.id);
+            const out = await withdrawInterest(session.user.id, candidate.id);
             if (out.withdrawn) {
               setLiked(false);
               showToast(`Interest to ${name} taken back`, 'info');
@@ -137,7 +137,7 @@ const LikeButton: React.FC<LikeButtonProps> = ({
     if (!session?.user.id || busy) return;
     setBusy(true);
     setLiked(false); // optimistic
-    const out = await withdrawInterest(candidate.id);
+    const out = await withdrawInterest(session.user.id, candidate.id);
     setBusy(false);
     if (!out.withdrawn) {
       setLiked(true);

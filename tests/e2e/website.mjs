@@ -78,7 +78,7 @@ try {
   check(await page.getByText('Google Play', { exact: true }).isVisible() && await page.getByText('App Store', { exact: true }).isVisible(),
     'Google Play and App Store badges');
   check(await page.getByText('Coming soon to').count() === 2, '"Coming soon" until the store addresses are set');
-  check(await page.getByRole('heading', { level: 2 }).count() === 4, 'what Shaadi24 does, in four parts');
+  check(await page.getByRole('heading', { level: 2 }).count() === 6, 'what Shaadi24 does, in four parts, then our promises and the prices');
   const footer = await page.getByRole('navigation', { name: 'About Shaadi24' }).locator('a').evaluateAll((as) => as.map((a) => a.getAttribute('href')));
   check(['/support', '/privacy', '/terms', '/grievances', '/safety', '/refunds', '/delete-account', '/admin'].every((h) => footer.includes(h)),
     `the footer's pages (${footer.join(' ')})`);
