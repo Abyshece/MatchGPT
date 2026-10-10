@@ -84,48 +84,9 @@ as $$
               else 0 end;
 $$;
 
-create or replace function public.admin_list_payments(
-  p_from timestamptz default null,
-  p_to timestamptz default null,
-  p_provider text default null,
-  p_mode text default null,
-  p_limit integer default 100,
-  p_offset integer default 0
-)
-returns table (
-  id uuid, paid_at timestamptz, provider text, order_id text, plan_id text, user_id uuid, user_name text,
-  user_email text, amount integer, currency text, status text, method text, fee_amount integer,
-  fee_estimated boolean, refunded_amount integer, refunded_at timestamptz, net_amount integer, mode text
-)
-language plpgsql
-stable
-security definer
-set search_path = ''
-as $$
-begin
-  if not public.is_admin() then
-    raise exception 'Admins only' using errcode = '42501';
-  end if;
-  return query
-    select p.id, p.paid_at, p.provider, p.store_order_id as order_id,
-           s.plan_id, p.user_id, pr.name, u.email::text,
-           p.amount, p.currency, p.status, p.method,
-           p.fee_amount, p.fee_estimated, p.refunded_amount, p.refunded_at,
-           case when p.status in ('captured', 'refunded') then public.payment_net(p) else 0 end,
-           coalesce(s.mode, 'live')
-      from public.payments p
-      left join public.subscriptions s on s.id = p.subscription_id
-      left join public.profiles pr on pr.id = p.user_id
-      left join auth.users u on u.id = p.user_id
-     where (p_from is null or p.paid_at >= p_from)
-       and (p_to is null or p.paid_at < p_to)
-       and (p_provider is null or p.provider = p_provider)
-       and (p_mode is null or coalesce(s.mode, 'live') = p_mode)
-     order by p.paid_at desc, p.id
-     limit greatest(1, least(coalesce(p_limit, 100), 5000))
-    offset greatest(0, coalesce(p_offset, 0));
-end;
-$$;
+-- admin_list_payments() is not redefined here: the one in later migrations
+-- (team roles, Spotlight and Super Interest) never used Razorpay's columns, and
+-- a definition here would replace it when this runs after them.
 
 -- ---- "Download my data" ----------------------------------------------------
 -- Defined in 20261012090000_trust_and_support.sql, which reads the Razorpay
