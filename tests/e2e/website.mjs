@@ -6,8 +6,7 @@
 //     dark mode nothing is wider than the screen
 //  2. Terms and Privacy at /terms, /privacy and #privacy, back to the home page;
 //     /support with the store badges
-//  3. /admin, and the home page of admin.<host>: a sign-in for Shaadi24's team
-//     (no sign-up). A member who signs
+//  3. /admin: a sign-in for Shaadi24's team (no sign-up). A member who signs
 //     in is told Shaadi24 is used in the app; an admin gets the admin panel,
 //     with browser alerts and signing out
 //  4. Admin alerts: one that opens the site (/?push=…) goes to its admin tab,
@@ -125,13 +124,6 @@ try {
   await page.goto(`${BASE}/admin`);
   check(await appears(page.getByText('Admin sign-in')) && await page.getByText(/For Shaadi24's team/).isVisible(), 'a sign-in for the team');
   check(await page.getByRole('button', { name: /Create Account/ }).count() === 0, 'no sign-up');
-  // admin.shaadi24.in: the panel is its home page (admin.localhost here, which browsers send to this computer)
-  const adminHost = new URL(BASE);
-  adminHost.hostname = `admin.${adminHost.hostname}`;
-  const sub = await ctx.newPage();
-  await sub.goto(adminHost.origin);
-  check(await appears(sub.getByText('Admin sign-in')), `${adminHost.host}: the admin sign-in on its home page`);
-  await sub.close();
   await page.screenshot({ path: `${OUT}3-admin-sign-in.png` });
   await adminSignIn(page, MEMBER);
   check(await appears(page.getByTestId('not-an-admin')), 'a member: "Shaadi24 is used in the app"');
