@@ -206,8 +206,8 @@ Search and Standouts run in a new `search` edge function instead of the browser.
   Then I switch Google's button on (`LIVE_CLIENT_ID` in `lib/googleSignIn.ts`); Google's screen then shows
   the site's address instead of Supabase's
 - [ ] **Owner, for "Shaadi24" on Google's screen** (after the button is on): Branding: app name Shaadi24,
-  logo, home page `https://shaadi-gpt.vercel.app`, privacy `https://shaadi-gpt.vercel.app/#privacy`, terms
-  `https://shaadi-gpt.vercel.app/#terms`, authorized domain `shaadi-gpt.vercel.app`; remove the Supabase
+  logo, home page `https://shaadi-gpt.vercel.app`, privacy `https://shaadi-gpt.vercel.app/privacy`, terms
+  `https://shaadi-gpt.vercel.app/terms`, authorized domain `shaadi-gpt.vercel.app`; remove the Supabase
   callback from the client's redirect URIs and `fmrbzzdjtarsaqvfukum.supabase.co` from the authorized domains;
   prove the site is yours in Google Search Console (I add the verification tag); then Verification Center →
   submit for brand verification (Google says a few business days)
