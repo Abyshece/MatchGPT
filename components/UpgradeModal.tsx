@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { IconX, IconCheck, BrandMark } from '../constants';
 import { useAuth } from '../lib/AuthContext';
 import { FEATURES_FREE_NOW, proBenefits, formatDate } from '../lib/billingService';
+import { PROMISES } from '../lib/promises';
 import { limitTitle, whenText, type SearchAllowance } from '../lib/searchLimits';
 import { DAILY_LIMITS } from '../lib/profileService';
 import { isNativeApp } from '../lib/nativeApp';
@@ -18,8 +19,8 @@ import { PlanCards, PlanSaving, StoreTerms, buyLabel, useStoreUpgrade } from './
 // logo and what the moment calls for (a search limit used up, with when the
 // next search can be; the day's likes used up; a Shaadi24+ feature), the plans in a list (1 week, 1 month,
 // 3 months, 6 months; StoreUpgrade) with what the chosen one saves, what
-// Shaadi24+ adds, and the button with the store's terms, which stay at the
-// bottom while the rest scrolls.
+// Shaadi24+ adds, our promises (lib/promises.ts), and the button with the
+// store's terms, which stay at the bottom while the rest scrolls.
 //
 // Shaadi24+ is sold only inside the phone apps, through Google Play or the App
 // Store. Anywhere else it says so, with where to get the apps. Rendered into
@@ -152,6 +153,21 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ reason, limit, onClose }) =
                 ))}
               </ul>
               {proForAll && <p className="mt-3 text-xs text-gray-500 dark:text-zinc-400">{FEATURES_FREE_NOW}</p>}
+            </div>
+          )}
+
+          {/* What we promise (lib/promises.ts): no sales calls, no fake interests */}
+          {!done && !alreadyPro && (
+            <div className="mt-6 pt-5 border-t border-gray-100 dark:border-zinc-800" data-testid="upgrade-promises">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">Our promises</h3>
+              <ul className="mt-3 space-y-2">
+                {PROMISES.map((p) => (
+                  <li key={p.key} className="text-sm">
+                    <span className="font-medium">{p.title}.</span>{' '}
+                    <span className="text-gray-500 dark:text-zinc-400">{p.text}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 

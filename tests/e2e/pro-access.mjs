@@ -216,7 +216,8 @@ try {
   const locked = await lockedFilters();
   check(locked === 12, `switch off: the 12 Shaadi24+ filters are locked (${locked})`);
   await page.getByRole('button', { name: /Likes You/ }).first().click();
-  check(await appears(page.getByText('Upgrade to See')), 'switch off: Likes You asks to upgrade');
+  check(await appears(page.getByTestId('reveal-like').or(page.getByText('Upgrade to See'))),
+    'switch off: Likes You hides who it was (the day\'s free look, or upgrade)');
   check(!(await page.getByText(nameB).first().isVisible().catch(() => false)), `and doesn't show ${nameB}`);
   await page.screenshot({ path: `${OUT}3-likes-off.png` });
 

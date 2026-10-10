@@ -103,6 +103,58 @@ export async function unlikeUser(
 }
 
 // ----------------------------------------------------------------------------
+// withdrawInterest — take back an interest that hasn't become a match.
+// interest_status() in the database says whether it can be; the member then
+// deletes their own interest. Taken back within a minute (Undo), the database
+// gives back the day's like or a bought Super Interest (refund_undone_interest()).
+// ----------------------------------------------------------------------------
+
+export interface WithdrawResult {
+  withdrawn: boolean;
+  refunded: boolean;                                      // undone within a minute: nothing used up
+  reason: 'matched' | 'not_found' | 'error' | null;       // why not, when it wasn't
+  error: string | null;
+}
+
+export async function withdrawInterest(likerId: string, likedId: string): Promise<WithdrawResult> {
+  const { data: status, error: statusError } = await supabase.rpc('interest_status', { p_liked: likedId });
+  if (statusError) return { withdrawn: false, refunded: false, reason: 'error', error: statusError.message };
+  if (status !== 'open') {
+    return { withdrawn: false, refunded: false, reason: status === 'matched' ? 'matched' : 'not_found', error: null };
+  }
+  const { data: gone, error } = await supabase
+    .from('likes')
+    .delete()
+    .eq('liker_id', likerId)
+    .eq('liked_id', likedId)
+    .select('created_at');
+  if (error) return { withdrawn: false, refunded: false, reason: 'error', error: error.message };
+  if (!gone?.length) return { withdrawn: false, refunded: false, reason: 'not_found', error: null };
+  return { withdrawn: true, refunded: Date.now() - Date.parse(gone[0].created_at) < 60_000, reason: null, error: null };
+}
+
+// ----------------------------------------------------------------------------
+// One free "Likes You" a day (like_reveals in the database): a member without
+// Shaadi24+ can see who one person who liked them is, each day (India time)
+// ----------------------------------------------------------------------------
+
+export interface RevealStatus { perDay: number; left: number; resetsAt: string }
+
+export async function likeRevealStatus(): Promise<RevealStatus | null> {
+  const { data, error } = await supabase.rpc('like_reveal_status');
+  if (error || !data) return null;
+  const d = data as { per_day: number; left: number; resets_at: string };
+  return { perDay: d.per_day, left: d.left, resetsAt: d.resets_at };
+}
+
+export async function revealLike(likeId: string): Promise<{ revealed: boolean; resetsAt?: string; error: string | null }> {
+  const { data, error } = await supabase.rpc('reveal_like', { p_like_id: likeId });
+  if (error) return { revealed: false, error: error.message };
+  const d = data as { revealed: boolean; resets_at?: string };
+  return { revealed: d.revealed, resetsAt: d.resets_at, error: null };
+}
+
+// ----------------------------------------------------------------------------
 // hasLiked — check whether current user has already liked someone
 // ----------------------------------------------------------------------------
 
@@ -143,6 +195,7 @@ export interface MyLikeEntry {
   likeId: string;
   likedAt: string;     // ISO timestamp
   isSuperLike: boolean;
+  matched: boolean;    // it became a match (it can't be withdrawn then)
   candidate: MatchCandidate;
 }
 
@@ -166,6 +219,14 @@ export async function listMyLikesDetailed(
 
   const cardById = new Map((cards ?? []).map((p) => [p.id, p]));
 
+  // Which of them became a match
+  const { data: matchRows } = await supabase
+    .from('matches')
+    .select('user_a_id, user_b_id')
+    .or(`user_a_id.eq.${likerId},user_b_id.eq.${likerId}`)
+    .is('unmatched_at', null);
+  const matchedIds = new Set((matchRows ?? []).map((m) => (m.user_a_id === likerId ? m.user_b_id : m.user_a_id)));
+
   const entries: MyLikeEntry[] = likeRows
     .map((row): MyLikeEntry | null => {
       const p = cardById.get(row.liked_id as string);
@@ -174,6 +235,7 @@ export async function listMyLikesDetailed(
         likeId: row.id as string,
         likedAt: row.created_at as string,
         isSuperLike: row.is_super_like as boolean,
+        matched: matchedIds.has(row.liked_id as string),
         candidate: {
           id: p.id,
           name: displayName(p.name),

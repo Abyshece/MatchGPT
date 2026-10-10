@@ -4,7 +4,7 @@ import { useNow } from '../lib/useNow';
 import { useToast } from '../lib/useToast';
 import { loadHistory, deleteSearch, clearHistory } from '../lib/searchHistoryService';
 import { useSearchAllowance } from '../lib/searchLimits';
-import { listMyLikesDetailed } from '../lib/likesService';
+import { listMyLikesDetailed, withdrawInterest } from '../lib/likesService';
 import MatchCard from './MatchCard';
 import ProfileModal from './ProfileModal';
 import UpgradeModal from './UpgradeModal';
@@ -18,7 +18,8 @@ import type { MatchCandidate } from '../types';
 //
 // Two tabs:
 //   - Searches: past search prompts the user can click to re-run
-//   - Liked: every profile the user has liked, with Today/Week/All filter
+//   - Liked: every interest the user has sent, with Today/Week/All filter;
+//     one that hasn't become a match can be withdrawn
 // ============================================================================
 
 type HistoryTab = 'searches' | 'liked';
@@ -83,6 +84,24 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
       : now - 7 * 24 * 60 * 60 * 1000;
     return liked.filter((e) => new Date(e.likedAt).getTime() >= cutoff);
   }, [liked, timeFilter, now]);
+
+  // Take back an interest that hasn't become a match
+  const handleWithdraw = async (entry: MyLikeEntry) => {
+    if (!window.confirm(`Withdraw your interest in ${entry.candidate.name}? They won't be told.`)) return;
+    if (!session?.user.id) return;
+    const out = await withdrawInterest(session.user.id, entry.candidate.id);
+    if (!out.withdrawn) {
+      if (out.reason === 'matched') {
+        setLiked((prev) => prev.map((e) => (e.likeId === entry.likeId ? { ...e, matched: true } : e)));
+        showToast(`You and ${entry.candidate.name} have already matched`, 'info');
+      } else {
+        showToast(`Couldn't withdraw${out.error ? `: ${out.error}` : ''}`, 'error');
+      }
+      return;
+    }
+    setLiked((prev) => prev.filter((e) => e.likeId !== entry.likeId));
+    showToast(`Interest in ${entry.candidate.name} withdrawn`, 'success');
+  };
 
   const handleRerun = useCallback((saved: SavedSearch) => {
     if (!profile) return;
@@ -174,7 +193,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
                 : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
             }`}
           >
-            <IconHeart /> Liked profiles
+            <IconHeart /> Interests sent
           </button>
         </div>
 
@@ -182,9 +201,10 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
           <>
             <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-1">Profiles you liked</h1>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-1">Interests you sent</h1>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Every profile you've liked. {liked.length === 0 ? '' : `${filteredLiked.length} of ${liked.length} shown.`}
+                  Everyone you've sent an interest to. You can withdraw one that hasn't become a match.{' '}
+                  {liked.length === 0 ? '' : `${filteredLiked.length} of ${liked.length} shown.`}
                 </p>
               </div>
               {liked.length > 0 && (
@@ -229,12 +249,27 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onOpenInSearch }) => {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {filteredLiked.map((entry) => (
-                  <MatchCard
-                    key={entry.likeId}
-                    candidate={entry.candidate}
-                    onClick={() => setSelectedCandidate(entry.candidate)}
-                    showLikeButton={false}
-                  />
+                  <div key={entry.likeId} className="flex flex-col gap-2" data-testid="sent-interest">
+                    <MatchCard
+                      candidate={entry.candidate}
+                      onClick={() => setSelectedCandidate(entry.candidate)}
+                      showLikeButton={false}
+                    />
+                    {entry.matched ? (
+                      <p className="text-xs font-semibold text-center text-green-700 dark:text-green-400 py-1.5">
+                        Matched: say hello in Messages
+                      </p>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleWithdraw(entry)}
+                        data-testid="withdraw-interest"
+                        className="text-xs font-semibold py-1.5 rounded-lg border border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-gray-300 hover:text-red-600 hover:border-red-200 dark:hover:text-red-400 dark:hover:border-red-900/60 transition-colors"
+                      >
+                        Withdraw interest
+                      </button>
+                    )}
+                  </div>
                 ))}
               </div>
             )}

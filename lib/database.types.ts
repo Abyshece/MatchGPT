@@ -3224,6 +3224,9 @@ export type Database = {
       trending_searches: { Args: never; Returns: Json }
       unmatch: { Args: { p_match_id: string }; Returns: undefined }
       // From 20261004094100_phase13_phone_notifications_signout.sql (not yet on the live database)
+      interest_status: { Args: { p_liked: string }; Returns: string }
+      like_reveal_status: { Args: never; Returns: Json }
+      reveal_like: { Args: { p_like_id: string }; Returns: Json }
       unregister_push_device: { Args: { p_token: string }; Returns: undefined }
       vapid_public_key: { Args: never; Returns: string }
     }

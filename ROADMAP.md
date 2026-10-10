@@ -1041,6 +1041,16 @@ the store forms mention the phone ID. Found while checking: two migrations were 
 one of them a privacy fix (signing out doesn't stop that phone getting the account's notifications);
 both wait for the owner to run them in the SQL Editor.
 
+What members of other matrimony apps complain about (`docs/research/competitor-reviews.md`: 13,707
+store reviews of 9 apps, 20 problems), fixed in 5 phases. Phase 1 (done): our promises (no sales
+calls, real interests only, chatting free, clear prices) on the welcome screen, the Shaadi24+ page,
+the website (with the price list) and the store texts; Undo after sending an interest and Withdraw in
+Search History (`withdraw_interest()`: undone within a minute, nothing is used up); one free "Likes
+You" a day (`reveal_like()`); chat notes on "digital arrest" threats and on moving to WhatsApp or a
+video call fast, and a scams section on the Safety page; sign-in errors in plain words. Next: fresh,
+active profiles (2), partner preferences and saved searches (3), trust and support (4), payments and
+reliability (5).
+
 **Still to do**
 
 - [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.

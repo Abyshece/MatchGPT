@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { IconMail, IconGoogle, IconChevronRight, IconX, BrandMark } from '../constants';
 import { supabase } from '../lib/supabase';
+import { authErrorText, BAD_CODE } from '../lib/authErrors';
 import { TERMS_VERSION, PRIVACY_VERSION } from '../lib/consentService';
 import { GOOGLE_CLIENT_ID } from '../lib/googleSignIn';
 import GoogleSignInButton from './GoogleSignInButton';
@@ -56,7 +57,7 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
       },
     });
     if (oauthError) {
-      setError(oauthError.message);
+      setError(authErrorText(oauthError));
       setIsLoading(false);
     }
     // On success, the browser redirects to Google. We never reach here.
@@ -76,7 +77,7 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
     });
     setIsLoading(false);
     if (signInError) {
-      setError(signInError.message);
+      setError(authErrorText(signInError));
       return;
     }
     onSignInSuccess();
@@ -121,7 +122,7 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
     });
     setIsLoading(false);
     if (signUpError) {
-      setError(/throwaway|Database error saving new user/i.test(signUpError.message) ? THROWAWAY_EMAIL : signUpError.message);
+      setError(/throwaway|Database error saving new user/i.test(signUpError.message) ? THROWAWAY_EMAIL : authErrorText(signUpError));
       return;
     }
 
@@ -160,7 +161,7 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
     });
     setIsLoading(false);
     if (resetError) {
-      setError(resetError.message);
+      setError(authErrorText(resetError));
       return;
     }
     setResetCode('');
@@ -182,9 +183,7 @@ const Auth: React.FC<AuthProps> = ({ onSignupInitiated, onSignInSuccess, onClose
     const { error: verifyError } = await supabase.auth.verifyOtp({ email, token: resetCode, type: 'recovery' });
     setIsLoading(false);
     if (verifyError) {
-      setError(verifyError.status === 429
-        ? 'Too many tries. Please wait a few minutes and try again.'
-        : "That code isn't right or has expired. Check the email, or send a new code.");
+      setError(verifyError.status === 429 ? 'Too many tries. Please wait a few minutes and try again.' : BAD_CODE);
       return;
     }
     onSignInSuccess();

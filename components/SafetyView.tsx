@@ -7,7 +7,9 @@ import { HindiSummary, LegalLayout, List, Section, Summary, linkClass } from './
 // Community Guidelines and Safety: the rules of the Terms in everyday words,
 // and the warnings about fraud that the Government's advisory for matrimonial
 // websites asks for (caution members against fraudsters, encourage reporting,
-// say that profiles aren't checked unless marked).
+// say that profiles aren't checked unless marked), and the scams members of
+// matrimony apps report most ("digital arrest", investment, parcels, moving to
+// WhatsApp fast), which the chat also warns about (lib/scamWarning.ts).
 // ============================================================================
 
 const SafetyView: React.FC<{ onBack: () => void }> = ({ onBack }) => (
@@ -55,6 +57,23 @@ const SafetyView: React.FC<{ onBack: () => void }> = ({ onBack }) => (
       </List>
     </Section>
 
+    <Section title="Scams to know about">
+      <p>These are the scams members of matrimony apps report most. {LEGAL.brand} warns you in the chat when a message
+        looks like one of them.</p>
+      <List>
+        <li><strong>"Digital arrest".</strong> Someone calls or video-calls as the police, CBI, customs, a court or a bank,
+          says a parcel or account in your name is linked to a crime, keeps you on camera and asks for money to "settle"
+          it. No officer does this. Hang up, and call 1930.</li>
+        <li><strong>Investment and trading.</strong> A match who is "doing very well" in crypto, forex, shares or a
+          family business offers to help you invest. It always ends with your money gone.</li>
+        <li><strong>Gifts, parcels and emergencies.</strong> A gift or parcel "stuck at customs", a ticket home, hospital
+          bills: there is always a fee for you to pay.</li>
+        <li><strong>Moving off {LEGAL.brand} fast.</strong> Scammers push to move to WhatsApp, Telegram or a video call
+          within days, where we can't see or stop them. Some record video calls and threaten to share them unless you
+          pay. Keep talking here until you have met, with your family involved.</li>
+      </List>
+    </Section>
+
     <Section title="Before you meet">
       <List>
         <li>Talk on video first, and involve your family early.</li>
@@ -86,6 +105,8 @@ const SafetyView: React.FC<{ onBack: () => void }> = ({ onBack }) => (
       <p>शादी24 केवल विवाह के लिए है। अपनी सही जानकारी दें, सबसे सम्मान से बात करें, और दहेज की माँग या पेशकश बिल्कुल न करें।</p>
       <p>हम हर प्रोफ़ाइल की जाँच नहीं करते; केवल "Verified" निशान वाली प्रोफ़ाइल के सोशल मीडिया लिंक जाँचे गए हैं। किसी को कभी पैसे न
         भेजें और बैंक विवरण या OTP साझा न करें। पहली मुलाकात सार्वजनिक स्थान पर करें और परिवार को बताएँ।</p>
+      <p>पुलिस, CBI, कस्टम या कोर्ट कभी वीडियो कॉल पर "डिजिटल अरेस्ट" नहीं करते और पैसे नहीं माँगते। निवेश, क्रिप्टो या "कस्टम में फँसे
+        पार्सल" के नाम पर पैसे माँगने वाले धोखेबाज़ हैं, और जो जल्दी WhatsApp या वीडियो कॉल पर ले जाना चाहे, उससे सावधान रहें।</p>
       <p>गड़बड़ी दिखे तो Report और Block करें। आपात स्थिति में 112, महिला हेल्पलाइन 181, और साइबर धोखाधड़ी के लिए 1930 पर कॉल करें।</p>
     </HindiSummary>
   </LegalLayout>

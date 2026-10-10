@@ -91,7 +91,7 @@ async function resetOn(label, android) {
 
   await step.locator('input').fill(code === '000000' ? '111111' : '000000');
   await step.getByRole('button', { name: 'Continue' }).click();
-  check(await appears(page.getByText("That code isn't right or has expired. Check the email, or send a new code.")), 'a wrong code is refused');
+  check(await appears(page.getByText("That code isn't right or has expired. Use the code in the newest email, or send a new one.")), 'a wrong code is refused');
   await step.locator('input').fill(code);
   await step.getByRole('button', { name: 'Continue' }).click();
   check(await appears(page.getByRole('heading', { name: 'Set a new password' }), 10000), 'the right code → "Set a new password", in the app');

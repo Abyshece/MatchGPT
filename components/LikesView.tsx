@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { useToast } from '../lib/useToast';
-import { listLikesReceived } from '../lib/likesService';
+import { listLikesReceived, likeRevealStatus, revealLike, type RevealStatus } from '../lib/likesService';
 import LikedYouCard from './LikedYouCard';
 import ProfileModal from './ProfileModal';
 import UpgradeModal from './UpgradeModal';
@@ -37,6 +37,8 @@ const LikesView: React.FC<{ onNavigateToMatches?: (matchId: string) => void; onO
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [matchCelebration, setMatchCelebration] = useState<{ matchId: string; candidate: MatchCandidate } | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('Recent');
+  // Without Shaadi24+: the free look of the day (reveal_like() in the database)
+  const [reveals, setReveals] = useState<RevealStatus | null>(null);
 
   const fetchLikes = useCallback(async () => {
     if (!session?.user.id) return;
@@ -51,14 +53,37 @@ const LikesView: React.FC<{ onNavigateToMatches?: (matchId: string) => void; onO
   }, [session?.user.id, showToast]);
 
   useEffect(() => { fetchLikes(); }, [fetchLikes]);
+  useEffect(() => {
+    if (hasPro) return;
+    likeRevealStatus().then(setReveals);
+  }, [hasPro]);
+
+  // Open one card with the day's free look
+  const handleReveal = async (like: LikeReceived) => {
+    const out = await revealLike(like.likeId);
+    if (out.error) {
+      showToast(`Couldn't open it: ${out.error}`, 'error');
+      return;
+    }
+    if (!out.revealed) {
+      setReveals((r) => (r ? { ...r, left: 0 } : r));
+      showToast("You've used today's free look; the next one comes tomorrow. Shaadi24+ shows everyone.", 'info');
+      return;
+    }
+    await fetchLikes();
+    setReveals(await likeRevealStatus());
+    showToast('Here they are.', 'success');
+  };
 
   if (!profile) {
     return <div className="p-12 text-center text-gray-500 dark:text-gray-400">Loading…</div>;
   }
 
   const isPro = hasPro;
-  // Super Interests show who sent them to everyone; the rest need Shaadi24+
-  const hidden = isPro ? 0 : likes.filter((l) => !l.isSuperLike).length;
+  // Super Interests show who sent them to everyone, as does the day's free
+  // look; the rest need Shaadi24+ (the database leaves out who they are)
+  const hidden = isPro ? 0 : likes.filter((l) => !l.likerId).length;
+  const revealsLeft = reveals?.left ?? 0;
 
   const handleMatched = (matchId: string, candidate: MatchCandidate) => {
     setSelectedCandidate(null);
@@ -98,8 +123,10 @@ const LikesView: React.FC<{ onNavigateToMatches?: (matchId: string) => void; onO
               </div>
               <div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white">See who liked you</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Get Shaadi24+ to reveal {hidden === likes.length ? 'all ' : ''}{hidden} {hidden === 1 ? 'person' : 'people'} and sort them.
+                <p className="text-sm text-gray-600 dark:text-gray-300" data-testid="likes-reveal-note">
+                  {revealsLeft > 0
+                    ? <>Tap a card to see who it is: one free look a day. Get Shaadi24+ to see all {hidden} and sort them.</>
+                    : <>Get Shaadi24+ to reveal {hidden === likes.length ? 'all ' : ''}{hidden} {hidden === 1 ? 'person' : 'people'} and sort them.{reveals ? ' Your next free look comes tomorrow.' : ''}</>}
                 </p>
               </div>
             </div>
@@ -148,6 +175,8 @@ const LikesView: React.FC<{ onNavigateToMatches?: (matchId: string) => void; onO
                 onView={(c) => setSelectedCandidate(c)}
                 onUpgrade={() => setShowUpgradeModal(true)}
                 onMatched={handleMatched}
+                revealsLeft={revealsLeft}
+                onReveal={() => handleReveal(like)}
               />
             ))}
           </div>

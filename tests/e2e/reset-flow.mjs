@@ -92,7 +92,7 @@ try {
 
   await page.getByTitle('Sign out').click();
   await signIn(OLD);
-  await page.getByText(/Invalid login credentials/i).waitFor({ timeout: 10000 });
+  await page.getByText(/That email and password don't match/).waitFor({ timeout: 10000 });
   log('old password rejected');
   await page.locator('input[type=password]').fill(NEW);
   await page.locator('form').getByRole('button', { name: /Log In/i }).click();

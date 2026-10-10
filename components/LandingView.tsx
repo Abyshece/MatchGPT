@@ -1,6 +1,7 @@
 import React, { Suspense, useEffect, useState } from 'react';
 import type { LegalPageName } from '../lib/legalInfo';
 import { lazyScreen } from '../lib/lazyScreen';
+import { PROMISES_SHORT } from '../lib/promises';
 import { isNativeApp } from '../lib/nativeApp';
 import NativeSignInButtons from './NativeSignInButtons';
 import { BrandMark } from '../constants';
@@ -53,6 +54,10 @@ const LandingView: React.FC<LandingViewProps> = ({ onSignupInitiated, onShowLega
           <h1 className="text-[40px] leading-none font-bold tracking-tight text-gray-900 dark:text-white">Shaadi24</h1>
           <p className="mt-4 max-w-[19rem] text-[17px] leading-snug text-gray-500 dark:text-gray-400 text-balance">
             Find your life partner by personality, not just biodata.
+          </p>
+          {/* What other matrimony apps' members complain about, promised away (lib/promises.ts) */}
+          <p className="mt-3 text-[13px] text-gray-500 dark:text-gray-400" data-testid="welcome-promises">
+            {PROMISES_SHORT.join(' · ')}
           </p>
         </div>
 
