@@ -292,6 +292,8 @@ as $$
     join public.profiles p on p.id = x.user_id
     where p.onboarding_complete and not coalesce(p.is_banned, false) and not coalesce(p.is_paused, false)
     group by x.user_id
+    -- Those looked at longest ago first, when there are more than one run takes
+    order by min(x.checked_at)
     limit least(greatest(coalesce(p_limit, 500), 1), 5000)
   ) a;
 $$;

@@ -240,7 +240,8 @@ try {
   await page.getByTestId('find-match-box').fill('zebracorn');
   await page.getByTestId('find-match-box').press('Enter');
   const hisFullName = sql(`select trim(name) from profiles where id = '${him}';`);
-  const hisCard = page.getByTestId('results-grid').locator('> *', { hasText: hisFullName }).first();
+  // By his id: other test members share his name
+  const hisCard = page.getByTestId('results-grid').locator(`[data-candidate-id="${him}"]`);
   await hisCard.waitFor({ timeout: 20000 });
   await hisCard.click();
   await page.waitForTimeout(1200);

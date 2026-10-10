@@ -60,6 +60,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
       onClick={() => !exiting && onClick()}
       data-exiting={exiting ?? undefined}
       data-testid="match-card"
+      data-candidate-id={candidate.id}
       className={`group relative bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:hover:border-zinc-700 hover:shadow-lg overflow-hidden flex flex-col h-full cursor-pointer transition-[border-color,box-shadow] duration-200 ${
         exiting ? 'pointer-events-none' : ''
       }`}
