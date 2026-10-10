@@ -315,6 +315,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                 otherPhoto={otherPhoto}
                 onAcceptDate={handleAcceptDate}
                 onDeclineDate={handleDeclineDate}
+                onReport={() => setShowBlockReport('report')}
               />
             );
           })
