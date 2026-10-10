@@ -1,4 +1,18 @@
 {
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "shaadi-gpt.vercel.app" }],
+      "destination": "https://shaadi24.in/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.shaadi24.in" }],
+      "destination": "https://shaadi24.in/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/blog",

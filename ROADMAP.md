@@ -202,12 +202,12 @@ Search and Standouts run in a new `search` edge function instead of the browser.
   `tests/e2e/google-button.mjs`. It stays off until the step below: Google refuses its button on sites
   that aren't registered, and a check against Google showed `https://shaadi-gpt.vercel.app` isn't yet
 - [ ] **Owner:** Google Cloud → Google Auth Platform → Clients → the web client (ID starting
-  `1095396009529-7cqo…`) → Authorized JavaScript origins → add `https://shaadi-gpt.vercel.app` → Save.
+  `1095396009529-7cqo…`) → Authorized JavaScript origins → add `https://shaadi24.in` → Save.
   Then I switch Google's button on (`LIVE_CLIENT_ID` in `lib/googleSignIn.ts`); Google's screen then shows
   the site's address instead of Supabase's
 - [ ] **Owner, for "Shaadi24" on Google's screen** (after the button is on): Branding: app name Shaadi24,
-  logo, home page `https://shaadi-gpt.vercel.app`, privacy `https://shaadi-gpt.vercel.app/privacy`, terms
-  `https://shaadi-gpt.vercel.app/terms`, authorized domain `shaadi-gpt.vercel.app`; remove the Supabase
+  logo, home page `https://shaadi24.in`, privacy `https://shaadi24.in/privacy`, terms
+  `https://shaadi24.in/terms`, authorized domain `shaadi24.in`; remove the Supabase
   callback from the client's redirect URIs and `fmrbzzdjtarsaqvfukum.supabase.co` from the authorized domains;
   prove the site is yours in Google Search Console (I add the verification tag); then Verification Center →
   submit for brand verification (Google says a few business days)
@@ -350,7 +350,7 @@ Shaadi24 in the apps, and the website (https://shaadi-gpt.vercel.app) no longer 
 - [x] **Tests**: `tests/e2e/website.mjs` (the website as it is live, 39 checks); the other browser tests
   ran again.
 - [ ] **Owner:** Supabase → Authentication → URL Configuration → Redirect URLs: add
-  `https://shaadi-gpt.vercel.app/**`, so an admin who signs in with Google comes back to the admin panel
+  `https://shaadi24.in/**`, so an admin who signs in with Google comes back to the admin panel
   (without it they come back to the home page, which links to it).
 - [ ] **Owner, once the apps are live:** set `VITE_PLAY_STORE_URL` and `VITE_APP_STORE_URL` in Vercel and
   redeploy (docs/store/README.md, step 9).
@@ -425,10 +425,23 @@ Part 7 done 2026-10-06: **the name is now Shaadi24** (it was MatchGPT), everywhe
   paste the templates again (their subjects: "Your Shaadi24 code", "Your Shaadi24 password reset code")
   and set the sender name to Shaadi24. Optional: rename the Vercel project (a new `*.vercel.app` address,
   or your own domain), the GitHub repository and the Supabase project.
-- [ ] **Owner:** shaadi24.com was already registered by someone in October 2026 (it answered with a
-  hosted website), so mail to support@ and privacy@shaadi24.com won't reach you unless you get the domain;
-  otherwise tell Claude which addresses to use. Shaadi.com is a big matrimony brand: have a lawyer check
-  the name with the legal review.
+- [x] shaadi24.com belongs to someone else, so the owner bought **shaadi24.in** (2026-10-10): the website,
+  its links and the contact addresses moved there (below). Shaadi.com is a big matrimony brand: have a
+  lawyer check the name with the legal review.
+- [x] **The website at https://shaadi24.in** (2026-10-10): every link the apps and the website give
+  (privacy, terms, support, account deletion, shared biodata and Family Circle links, the blog and its
+  sitemap) uses `LEGAL.websiteUrl`; the contact addresses are support@, privacy@ and grievance@shaadi24.in;
+  `vercel.json` forwards `shaadi-gpt.vercel.app` and `www.shaadi24.in` to `https://shaadi24.in`, so old
+  links keep working.
+- [ ] **Owner, shaadi24.in:**
+  1. Vercel → the project → Settings → Domains: add `shaadi24.in` and `www.shaadi24.in`.
+  2. GoDaddy → shaadi24.in → DNS: delete the "Parked" A record for `@`, then add the records Vercel shows
+     (an A record for `@`, a CNAME for `www`). Vercel says "Valid Configuration" when it works.
+  3. Email forwarding for support@, privacy@ and grievance@shaadi24.in to the inbox you read every day
+     (GoDaddy → Email forwarding, or a free service such as ImprovMX).
+  4. Supabase → Authentication → URL Configuration: Site URL `https://shaadi24.in`; Redirect URLs add
+     `https://shaadi24.in/**`.
+  5. In the stores' listings, use the shaadi24.in addresses (`docs/store/README.md`).
 
 Part 8 done 2026-10-06: **the members' app inside the admin panel**, to see that everything works.
 
@@ -1325,7 +1338,7 @@ No database or function changes; the website serves the new page.
      built-in email is for trying things out: a few emails an hour, and only to your team's
      addresses, so real members would get no codes
 - [ ] **Owner, Google Play**: Play Console → App content → Data safety → "Delete account URL":
-  `https://shaadi-gpt.vercel.app/delete-account` (or the same path on your own domain)
+  `https://shaadi24.in/delete-account`
 
 ### Store releases and the launch kit (done 2026-10-04)
 Migrations `20261004170828_phase13_rls_performance` and `20261004174515_phase13_content_filter`

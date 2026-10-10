@@ -81,8 +81,8 @@ try {
   check(await appears(page.getByRole('heading', { name: 'Help & Support' }), 15000), 'the support page opens');
   check(await page.title() === 'Shaadi24 Help & Support', `its title (${await page.title()})`);
   const contact = page.getByTestId('support-contact');
-  check(/^mailto:support@shaadi24\.com/.test(await contact.locator('a').first().getAttribute('href') || ''), 'the support address, as an email link');
-  check(await contact.locator('a[href="mailto:privacy@shaadi24.com"]').count() === 1, 'the privacy address');
+  check(/^mailto:support@shaadi24\.in/.test(await contact.locator('a').first().getAttribute('href') || ''), 'the support address, as an email link');
+  check(await contact.locator('a[href="mailto:privacy@shaadi24.in"]').count() === 1, 'the privacy address');
   check(/review every report within 24 hours/.test(await contact.innerText()), 'how reports are handled');
   const questions = page.locator('details');
   check(await questions.count() === 21, `21 questions (${await questions.count()})`);
@@ -132,7 +132,7 @@ try {
   await settings(page);
   check(await page.getByText(`Shaadi24 • v${VERSION}`).isVisible(), `the version is package.json's (${VERSION})`);
   const mail = page.getByRole('link', { name: /Contact support/ });
-  check(/^mailto:support@shaadi24\.com\?subject=/.test(await mail.getAttribute('href') || ''), 'Contact support writes an email');
+  check(/^mailto:support@shaadi24\.in\?subject=/.test(await mail.getAttribute('href') || ''), 'Contact support writes an email');
   await page.getByRole('button', { name: 'Terms of Service' }).click();
   check(await appears(page.getByRole('heading', { name: 'Terms of Service' })), 'Terms of Service opens');
   await page.getByRole('button', { name: 'Back' }).click();
@@ -155,7 +155,7 @@ try {
 
   await page.getByRole('button', { name: 'Help Center' }).click();
   await page.getByRole('heading', { name: 'Help Center' }).waitFor();
-  check(/^mailto:support@shaadi24\.com/.test(await page.getByRole('link', { name: 'Contact Support' }).getAttribute('href') || ''),
+  check(/^mailto:support@shaadi24\.in/.test(await page.getByRole('link', { name: 'Contact Support' }).getAttribute('href') || ''),
     'the Help Center\'s Contact Support writes an email');
   await page.getByRole('button', { name: 'How do I report or block someone?' }).click();
   check(await appears(page.getByText(/We review every report within 24 hours/)), 'its questions open to their answers');

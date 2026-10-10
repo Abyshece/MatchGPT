@@ -62,7 +62,7 @@ const DeleteThisAccount: React.FC<{ onDeleted: (d: Deleted) => void; onCancel: (
     const result = await deleteAccount({ confirmation: 'Delete', reason: 'Deleted on the website' });
     setBusy(false);
     if (!result.success) {
-      setError(result.error || "Your account couldn't be deleted. Please try again, or write to privacy@shaadi24.com.");
+      setError(result.error || "Your account couldn't be deleted. Please try again, or write to privacy@shaadi24.in.");
       return;
     }
     onDeleted({ appStoreRenews: !!result.appStoreRenews });
