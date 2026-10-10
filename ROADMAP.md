@@ -1029,6 +1029,18 @@ mark, thumbs down, with Yes/Maybe/No), the landing page's features and offer ban
 verification checks and social links. Kept on purpose: country flags, the biodata's religious symbols and
 border, the WhatsApp invite's 🙏, notification titles, and chat messages already saved with an emoji.
 
+Security against fake and repeat accounts, and scammers (`docs/security.md` has the whole picture and
+the owner's steps). Throwaway email addresses (9,221 domains) can't sign up. A second account on the
+same mailbox (Gmail dots and +tags) can't search. At most 3 accounts on one phone get free searches:
+the app sends a scrambled app ID (`@capacitor/device`), and team test accounts are exempt. Admin →
+Scam alerts adds a second account on a mailbox, 4 or more accounts on a phone, and a banned member's
+phone (`20261010090000_account_guards.sql`, `account_guard()` in the search function). A chat message
+asking for money, UPI or bank details shows a safety note with Report (`lib/scamWarning.ts`). The
+website sends security headers (HTTPS only, no framing by other sites). The Privacy Policy (v16) and
+the store forms mention the phone ID. Found while checking: two migrations were never applied live,
+one of them a privacy fix (signing out doesn't stop that phone getting the account's notifications);
+both wait for the owner to run them in the SQL Editor.
+
 **Still to do**
 
 - [ ] Delete the 18 unused prototype files (~4,000 lines). This waits for your OK.
