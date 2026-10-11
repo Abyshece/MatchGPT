@@ -433,6 +433,12 @@ Part 7 done 2026-10-06: **the name is now Shaadi24** (it was MatchGPT), everywhe
   sitemap) uses `LEGAL.websiteUrl`; one contact address for everything, hello@shaadi24.in (the owner's choice: help, personal data and the Grievance Officer);
   `vercel.json` forwards `shaadi-gpt.vercel.app` and `www.shaadi24.in` to `https://shaadi24.in`, so old
   links keep working.
+- [x] **Photos made small before they're sent** (`lib/imageShrink.ts`, 2026-10-11): profile photos and the
+  verification selfie are redrawn at 1280 pixels at most as a JPEG (about 150–300 KB instead of 2–8 MB;
+  the live average was 2 MB), stored with a year's cache time (their names never repeat), and without the
+  camera's hidden details, such as where a photo was taken. A photo the phone can't read goes as it was.
+  At 10,000 members this keeps photo storage near 6 GB instead of 60, and the downloads within Supabase
+  Pro's allowance. Test: `tests/e2e/photo-shrink.mjs`.
 - [ ] **Owner, shaadi24.in:**
   1. Vercel → the project → Settings → Domains: add `shaadi24.in` and `www.shaadi24.in`.
   2. GoDaddy → shaadi24.in → DNS: delete the "Parked" A record for `@`, then add the records Vercel shows

@@ -9,6 +9,7 @@
 // ============================================================================
 
 import { supabase } from './supabase';
+import { shrinkImage } from './imageShrink';
 
 const BUCKET = 'verification-selfies';
 
@@ -84,32 +85,15 @@ export async function fetchPose(): Promise<Pose | null> {
   return data as Pose;
 }
 
-// A phone photo can be 5–10 MB: made smaller (1280 pixels at most) as a JPEG
-// before it's sent. If the browser can't, it goes as it is.
-async function shrink(file: File): Promise<Blob> {
-  try {
-    const bitmap = await createImageBitmap(file);
-    const scale = Math.min(1, 1280 / Math.max(bitmap.width, bitmap.height));
-    const canvas = document.createElement('canvas');
-    canvas.width = Math.round(bitmap.width * scale);
-    canvas.height = Math.round(bitmap.height * scale);
-    canvas.getContext('2d')?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    bitmap.close?.();
-    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.85));
-    return blob ?? file;
-  } catch {
-    return file;
-  }
-}
-
-/** Sends the selfie; returns where it is in the bucket */
+/** Sends the selfie, made small first (lib/imageShrink.ts); returns where it is in the bucket */
 export async function uploadSelfie(userId: string, file: File): Promise<{ path: string | null; error: string | null }> {
   if (!file.type.startsWith('image/')) return { path: null, error: "That isn't a photo." };
-  const blob = await shrink(file);
-  if (blob.size > 8 * 1024 * 1024) return { path: null, error: 'That photo is too big. Please take it again.' };
-  const type = blob.type === 'image/png' || blob.type === 'image/webp' ? blob.type : 'image/jpeg';
+  const photo = await shrinkImage(file);
+  if (photo.blob.size > 8 * 1024 * 1024) return { path: null, error: 'That photo is too big. Please take it again.' };
+  // The bucket takes JPEG, PNG and WebP; anything else that couldn't be made small goes as JPEG
+  const type = ['image/jpeg', 'image/png', 'image/webp'].includes(photo.type) ? photo.type : 'image/jpeg';
   const path = `${userId}/selfie_${Date.now()}.${type.split('/')[1].replace('jpeg', 'jpg')}`;
-  const { error } = await supabase.storage.from(BUCKET).upload(path, blob, { upsert: false, contentType: type });
+  const { error } = await supabase.storage.from(BUCKET).upload(path, photo.blob, { upsert: false, contentType: type });
   if (error) return { path: null, error: error.message };
   return { path, error: null };
 }
