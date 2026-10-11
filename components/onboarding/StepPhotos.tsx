@@ -1,17 +1,22 @@
-import React, { useRef, useState } from 'react';
+import React, { Suspense, useRef, useState } from 'react';
 import { PageHeader, Card, Button } from '../NotionUI';
 import { IconUpload, IconCheck, IconChevronRight, IconChevronLeft, IconX } from '../../constants';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../lib/AuthContext';
 import { BACK, useBackHandler } from '../../lib/nativeApp';
 import { deletePhotoFile, uploadPhoto } from '../../lib/photoService';
+import { lazyScreen } from '../../lib/lazyScreen';
+import type { CropSource } from '../PhotoCropper';
+
+const PhotoCropper = lazyScreen(() => import('../PhotoCropper'));
 
 // ============================================================================
 // Step 3 of sign-up: photos. One clear photo of the face is enough to start;
 // the other slots suggest what families like to see (a full-length photo, one
 // in traditional clothes…), and more can be added later in My Profile (up to
-// 12). Each photo is saved as soon as it's uploaded, so nothing is lost if
-// the app closes.
+// 12). Each photo is framed first (PhotoCropper); several picked at once fill
+// this slot and the empty ones after it. Each photo is saved as soon as it's
+// uploaded, so nothing is lost if the app closes.
 // ============================================================================
 
 const PHOTO_SLOTS = [
@@ -48,6 +53,8 @@ const StepPhotos: React.FC<StepPhotosProps> = ({ onComplete, onBack }) => {
   const extraUrls = useRef(saved.slice(PHOTO_SLOTS.length));
   const latest = useRef(photos);
   const [uploadingSlot, setUploadingSlot] = useState<string | null>(null);
+  // Photos being framed, and the slots they go to (in order)
+  const [cropping, setCropping] = useState<{ sources: CropSource[]; slots: string[] } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -80,15 +87,35 @@ const StepPhotos: React.FC<StepPhotosProps> = ({ onComplete, onBack }) => {
     return !saveError;
   };
 
-  const handleFileChange = async (slotId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+  // Photos picked for a slot: this slot and the empty ones after it, in order
+  const handleFileChange = (slotId: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target;
-    const file = input.files?.[0];
+    const picked = Array.from(input.files ?? []);
     // reset the input so choosing the same file again fires onChange again
     input.value = '';
-    if (!file) return;
+    if (!picked.length) return;
     if (!session?.user.id) { setError('Not signed in.'); return; }
+    const start = PHOTO_SLOTS.findIndex((s) => s.id === slotId);
+    const slots = [slotId, ...PHOTO_SLOTS.slice(start + 1).concat(PHOTO_SLOTS.slice(0, start))
+      .filter((s) => !latest.current[s.id]).map((s) => s.id)];
+    setError(picked.length > slots.length
+      ? `${slots.length === 1 ? 'One photo fits' : `${slots.length} photos fit`} here; add more later in My Profile.`
+      : null);
+    setCropping({ sources: picked.slice(0, slots.length).map((file) => ({ file })), slots });
+  };
 
-    setError(null);
+  // The framed photos, uploaded one after the other into their slots
+  const handleCropped = async (files: File[]) => {
+    const job = cropping;
+    setCropping(null);
+    if (!job) return;
+    for (let i = 0; i < files.length; i++) {
+      if (!(await uploadToSlot(job.slots[i], files[i]))) break;
+    }
+  };
+
+  const uploadToSlot = async (slotId: string, file: File): Promise<boolean> => {
+    if (!session?.user.id) { setError('Not signed in.'); return false; }
     setUploadingSlot(slotId);
     // Stored as <user id>/<slot>_<time>.<ext>: the folder named for the user
     // is what lets them write there
@@ -96,7 +123,7 @@ const StepPhotos: React.FC<StepPhotosProps> = ({ onComplete, onBack }) => {
     if (upload.error || !upload.url) {
       setError(upload.error ?? 'The photo could not be uploaded.');
       setUploadingSlot(null);
-      return;
+      return false;
     }
 
     const previous = latest.current[slotId];
@@ -107,6 +134,7 @@ const StepPhotos: React.FC<StepPhotosProps> = ({ onComplete, onBack }) => {
     setUploadingSlot(null);
     // The photo it replaced, once the profile no longer points at it
     if (saveOk && previous) await deletePhotoFile(previous.publicUrl);
+    return saveOk;
   };
 
   const handleRemove = async (slotId: string) => {
@@ -212,6 +240,7 @@ const StepPhotos: React.FC<StepPhotosProps> = ({ onComplete, onBack }) => {
                       <input
                         type="file"
                         accept="image/*"
+                        multiple
                         className="absolute inset-0 opacity-0 cursor-pointer"
                         aria-label={`Upload ${slot.description.toLowerCase()}`}
                         disabled={!!uploadingSlot}
@@ -235,6 +264,11 @@ const StepPhotos: React.FC<StepPhotosProps> = ({ onComplete, onBack }) => {
           </div>
         </div>
       </div>
+      {cropping && (
+        <Suspense fallback={null}>
+          <PhotoCropper sources={cropping.sources} onDone={handleCropped} onCancel={() => setCropping(null)} />
+        </Suspense>
+      )}
     </div>
   );
 };
