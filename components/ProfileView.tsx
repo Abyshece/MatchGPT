@@ -1,11 +1,16 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { Suspense, useState, useMemo, useEffect, useRef } from 'react';
 import { PageHeader, PropertyRow, InfoSection } from './NotionUI';
 import { useAuth } from '../lib/AuthContext';
 import { useToast } from '../lib/useToast';
 import { updateProfile } from '../lib/profileService';
 import { addPhoto, removePhoto, replacePhoto } from '../lib/photoService';
+import { lazyScreen } from '../lib/lazyScreen';
+import type { CropSource } from './PhotoCropper';
 import { supabase } from '../lib/supabase';
 import VerificationRequestModal from './VerificationRequestModal';
+
+const PhotoCropper = lazyScreen(() => import('./PhotoCropper'));
+const MAX_PHOTOS = 12;
 import {
   ChipsField, DateOfBirthField, PILL_LIMIT, PillPicker, SheetPicker, ageFromDateOfBirth, formatDateOfBirth,
 } from './ProfileInputs';
@@ -269,35 +274,58 @@ const ProfileView: React.FC<{ initialSection?: SectionId }> = ({ initialSection 
   };
 
   // ---- photos --------------------------------------------------------------
+  // Every photo is framed before it's uploaded (PhotoCropper): several picked
+  // at once are framed one after the other; Adjust frames one already there.
   const [photoUploading, setPhotoUploading] = useState(false);
+  const [cropping, setCropping] = useState<{ sources: CropSource[]; replace?: string } | null>(null);
 
-  const handleAddPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !session?.user.id) return;
+  const handleAddPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const picked = Array.from(e.target.files ?? []);
     e.target.value = '';
-    setPhotoUploading(true);
-    const result = await addPhoto(session.user.id, file, photos);
-    setPhotoUploading(false);
-    if (result.error) {
-      showToast(`Upload failed: ${result.error}`, 'error');
-      return;
+    if (!picked.length || !session?.user.id) return;
+    const room = MAX_PHOTOS - photos.length;
+    if (picked.length > room) {
+      showToast(`Only ${room} more ${room === 1 ? 'photo fits' : 'photos fit'} (${MAX_PHOTOS} at most): the first ${room} are used.`, 'info');
     }
-    showToast('Photo added', 'success');
-    await refreshProfile();
+    setCropping({ sources: picked.slice(0, room).map((file) => ({ file })) });
   };
 
-  const handleReplacePhoto = async (oldUrl: string, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleReplacePhoto = (oldUrl: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !session?.user.id) return;
     e.target.value = '';
+    if (!file || !session?.user.id) return;
+    setCropping({ sources: [{ file }], replace: oldUrl });
+  };
+
+  const handleCropped = async (files: File[]) => {
+    const job = cropping;
+    setCropping(null);
+    if (!job || !files.length || !session?.user.id) return;
     setPhotoUploading(true);
-    const result = await replacePhoto(session.user.id, oldUrl, file, photos);
-    setPhotoUploading(false);
-    if (result.error) {
-      showToast(`Replace failed: ${result.error}`, 'error');
+    if (job.replace) {
+      const result = await replacePhoto(session.user.id, job.replace, files[0], photos);
+      setPhotoUploading(false);
+      if (result.error) {
+        showToast(`Couldn't save the photo: ${result.error}`, 'error');
+        return;
+      }
+      showToast('Photo saved', 'success');
+      await refreshProfile();
       return;
     }
-    showToast('Photo replaced', 'success');
+    let urls = photos;
+    let added = 0;
+    for (const file of files) {
+      const result = await addPhoto(session.user.id, file, urls);
+      if (result.error || !result.urls) {
+        showToast(`Upload failed: ${result.error ?? 'please try again'}`, 'error');
+        break;
+      }
+      urls = result.urls;
+      added++;
+    }
+    setPhotoUploading(false);
+    if (added) showToast(added === 1 ? 'Photo added' : `${added} photos added`, 'success');
     await refreshProfile();
   };
 
@@ -703,7 +731,7 @@ const ProfileView: React.FC<{ initialSection?: SectionId }> = ({ initialSection 
           <div>
             <div className="flex items-center justify-between border-b border-gray-200 dark:border-zinc-800 pb-2 mb-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Photos</h2>
-              <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">{photos.length}/12</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">{photos.length}/{MAX_PHOTOS}</span>
             </div>
 
             <div className="grid grid-cols-2 gap-3 mb-6">
@@ -714,8 +742,12 @@ const ProfileView: React.FC<{ initialSection?: SectionId }> = ({ initialSection 
                     <span className="absolute top-2 left-2 z-10 rounded-full bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 shadow" data-testid="photo-under-review">Under review</span>
                   )}
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-2 z-20">
+                    <button onClick={() => setCropping({ sources: [{ url }], replace: url })} disabled={photoUploading} data-testid="photo-adjust"
+                      className="bg-white text-gray-800 px-3 py-1.5 rounded-full text-xs font-bold hover:bg-gray-100 shadow-sm flex items-center gap-1 transition-transform hover:scale-105 disabled:opacity-50">
+                      <IconEdit /> Adjust
+                    </button>
                     <label className="cursor-pointer bg-white text-gray-800 px-3 py-1.5 rounded-full text-xs font-bold hover:bg-gray-100 shadow-sm flex items-center gap-1 transition-transform hover:scale-105">
-                      <IconEdit /> Replace
+                      <IconUpload /> Replace
                       <input type="file" className="hidden" accept="image/*" onChange={(e) => handleReplacePhoto(url, e)} />
                     </label>
                     <button onClick={() => handleRemovePhoto(url)} className="bg-red-500 text-white px-3 py-1.5 rounded-full text-xs font-bold hover:bg-red-600 shadow-sm flex items-center gap-1 transition-transform hover:scale-105">
@@ -725,7 +757,7 @@ const ProfileView: React.FC<{ initialSection?: SectionId }> = ({ initialSection 
                 </div>
               ))}
 
-              {photos.length < 12 && (
+              {photos.length < MAX_PHOTOS && (
                 <label className="aspect-[3/4] rounded-lg overflow-hidden border-2 border-dashed border-gray-300 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors cursor-pointer flex flex-col items-center justify-center gap-2 text-gray-500 dark:text-gray-400">
                   {photoUploading ? (
                     <>
@@ -738,13 +770,20 @@ const ProfileView: React.FC<{ initialSection?: SectionId }> = ({ initialSection 
                       <span className="text-xs font-bold uppercase">Add Photo</span>
                     </>
                   )}
-                  <input type="file" className="hidden" accept="image/*" disabled={photoUploading} onChange={handleAddPhoto} />
+                  <input type="file" className="hidden" accept="image/*" multiple disabled={photoUploading} onChange={handleAddPhoto}
+                    data-testid="photo-add-input" />
                 </label>
               )}
             </div>
 
+            {cropping && (
+              <Suspense fallback={null}>
+                <PhotoCropper sources={cropping.sources} onDone={handleCropped} onCancel={() => setCropping(null)} />
+              </Suspense>
+            )}
+
             <p className="text-[11px] text-gray-500 dark:text-gray-400 mb-4">
-              Hover any photo to replace or remove it. Up to 12 photos allowed.
+              Tap a photo to adjust, replace or remove it. You can add several at once and frame each one; up to 12 photos.
             </p>
 
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/30 rounded-lg p-4 text-xs text-blue-800 dark:text-blue-200">

@@ -439,6 +439,12 @@ Part 7 done 2026-10-06: **the name is now Shaadi24** (it was MatchGPT), everywhe
   camera's hidden details, such as where a photo was taken. A photo the phone can't read goes as it was.
   At 10,000 members this keeps photo storage near 6 GB instead of 60, and the downloads within Supabase
   Pro's allowance. Test: `tests/e2e/photo-shrink.mjs`.
+- [x] **Framing photos before they're uploaded** (`components/PhotoCropper.tsx`, `lib/photoCrop.ts`,
+  2026-10-11): every photo, at sign-up and in My Profile, is framed in a 3:4 frame (the cards' shape): drag
+  to move, pinch, scroll or a slider to zoom, Rotate for a sideways photo. Several picked at once are
+  framed one after the other ("Photo 2 of 4", Leave out, Next photo); at sign-up they fill the empty
+  slots in order. My Profile's photos also have **Adjust**, to frame one again. A photo the phone can't
+  open is offered as it is. Library: `react-easy-crop` 6.2.3. Test: `tests/e2e/photo-crop.mjs`.
 - [ ] **Owner, shaadi24.in:**
   1. Vercel → the project → Settings → Domains: add `shaadi24.in` and `www.shaadi24.in`.
   2. GoDaddy → shaadi24.in → DNS: delete the "Parked" A record for `@`, then add the records Vercel shows

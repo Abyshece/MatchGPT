@@ -139,6 +139,7 @@ try {
   await member.getByText('About me saved').waitFor({ timeout: 15000 });
   const photosBefore = (saved.a.p ?? []).length;
   await member.locator('label:has-text("Add Photo") input[type=file]').setInputFiles(PHOTO);
+  await member.getByTestId('photo-cropper-use').click();  // framed first (PhotoCropper)
   check(await until(() => Number(sql(`select coalesce(cardinality(photo_urls), 0) from profiles where id = '${a}';`)) === photosBefore + 1), 'the photo is added');
   const banner = member.getByTestId('under-review');
   check(await banner.waitFor({ timeout: 15000 }).then(() => true, () => false), 'My Profile says what waits for approval');
@@ -218,9 +219,11 @@ try {
 
   // ---- 5. Scam alerts ---------------------------------------------------------------------------
   log('5. Scam alerts');
-  // The other member has the same photo (put there by the server: no approval needed)
-  otherPhotoPath = `${b}/same_${Date.now()}.png`;
-  const up = await fetch(`${API}/storage/v1/object/photos/${otherPhotoPath}`, { method: 'POST', headers: { ...svc, 'Content-Type': 'image/png' }, body: fs.readFileSync(PHOTO) });
+  // The other member has the same photo, as the app stored it for A (framed and made small:
+  // PhotoCropper, lib/imageShrink.ts), put there by the server: no approval needed
+  const storedCopy = Buffer.from(await (await fetch(newPhoto)).arrayBuffer());
+  otherPhotoPath = `${b}/same_${Date.now()}.jpg`;
+  const up = await fetch(`${API}/storage/v1/object/photos/${otherPhotoPath}`, { method: 'POST', headers: { ...svc, 'Content-Type': 'image/jpeg' }, body: storedCopy });
   check(up.ok, 'the same photo uploaded for the other member');
   sql(`update profiles set photo_urls = coalesce(photo_urls, '{}') || '${API}/storage/v1/object/public/photos/${otherPhotoPath}'::text where id = '${b}';`);
   if (!hadMatch) sql(`insert into matches (user_a_id, user_b_id) values (${pair});`);

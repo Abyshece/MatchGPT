@@ -164,6 +164,8 @@ try {
       if (await page.getByText(gone, { exact: true }).count()) throw new Error(`"${gone}" is still a photo slot`);
     }
     await page.locator('input[type=file]').first().setInputFiles(photos[0]);
+    // Framed first (PhotoCropper), then uploaded
+    await page.getByTestId('photo-cropper-use').click();
     await page.getByText('1/6 added').waitFor({ timeout: 15000 });
     // Saved at once
     if (sql(`select coalesce(array_length(photo_urls, 1), 0) from profiles where email = '${email}';`) !== '1') throw new Error('the photo was not saved at once');
