@@ -12,6 +12,7 @@
 // ============================================================================
 
 import { supabase } from './supabase';
+import { shrinkImage } from './imageShrink';
 
 const BUCKET = 'photos';
 
@@ -26,26 +27,34 @@ function pathFromPublicUrl(url: string): string | null {
 
 // ----------------------------------------------------------------------------
 // Upload a new photo file. Returns its public URL.
+// The photo is made small first (1280 pixels, JPEG, without the camera's
+// hidden details such as where it was taken: lib/imageShrink.ts).
 // ----------------------------------------------------------------------------
+
+const MAX_ORIGINAL = 25 * 1024 * 1024;  // a phone photo, before it's made small
+const MAX_STORED = 8 * 1024 * 1024;     // what's sent, if it can't be made small
 
 export async function uploadPhoto(
   userId: string,
   file: File,
   slot = 'p'
 ): Promise<{ url: string | null; error: string | null }> {
-  if (file.size > 8 * 1024 * 1024) {
-    return { url: null, error: 'Photo must be under 8MB.' };
-  }
   if (!file.type.startsWith('image/')) {
     return { url: null, error: 'That file is not an image.' };
   }
+  if (file.size > MAX_ORIGINAL) {
+    return { url: null, error: 'Photo must be under 25MB.' };
+  }
 
-  const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-  const path = `${userId}/${slot}_${Date.now()}.${ext}`;
+  const photo = await shrinkImage(file);
+  if (photo.blob.size > MAX_STORED) {
+    return { url: null, error: 'Photo must be under 8MB.' };
+  }
+  const path = `${userId}/${slot}_${Date.now()}.${photo.ext}`;
 
   const { error: uploadError } = await supabase.storage
     .from(BUCKET)
-    .upload(path, file, { upsert: false, contentType: file.type });
+    .upload(path, photo.blob, { upsert: false, contentType: photo.type, cacheControl: '31536000' });
 
   if (uploadError) {
     return { url: null, error: uploadError.message };
